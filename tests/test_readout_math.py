@@ -152,3 +152,95 @@ def test_reliability_flags_low_mass_and_never_renormalizes() -> None:
     assert readout.reliability(0.9, coverage_floor=0.10, low_confidence=True) == "low_confidence"
     # the floor is inclusive: exactly at the floor is not below it
     assert readout.reliability(0.10, coverage_floor=0.10) == "ok"
+
+
+# --------------------------------------------------------------- mutation-driven pins
+# Every test below was written to kill a specific surviving mutant of this module (Tier M run;
+# the survivor diff is in docs/evidence/e1b_t_34abf324_engine.md §6).
+def test_softmax_rejects_bad_input_with_the_documented_message() -> None:
+    with pytest.raises(ValueError, match=r"^softmax needs at least one value$"):
+        readout.softmax([])
+    with pytest.raises(ValueError, match=r"^temperature must be > 0, got 0\.0$"):
+        readout.softmax([1.0], temperature=0.0)
+    with pytest.raises(ValueError, match=r"^temperature must be > 0, got -1\.0$"):
+        readout.softmax([1.0], temperature=-1.0)
+    with pytest.raises(ValueError, match=r"^softmax needs at least one value$"):
+        readout.restricted_softmax([])
+
+
+def test_softmax_scales_by_temperature_exactly() -> None:
+    """Temperature DIVIDES the logits: T=2 halves the gap, T=0.5 doubles it."""
+    hot = readout.softmax([1.0, 0.0], temperature=2.0)
+    assert hot[0] == pytest.approx(math.exp(0.5) / (math.exp(0.5) + 1.0), abs=1e-12)
+    cold = readout.softmax([1.0, 0.0], temperature=0.5)
+    assert cold[0] == pytest.approx(math.exp(2.0) / (math.exp(2.0) + 1.0), abs=1e-12)
+
+
+def test_argmax_rejects_empty_input_with_the_documented_message() -> None:
+    with pytest.raises(ValueError, match=r"^argmax needs at least one value$"):
+        readout.argmax_first([])
+
+
+def test_candidate_sequence_score_default_length_norm_is_one() -> None:
+    assert readout.candidate_sequence_score([-2.0, -4.0]) == -3.0      # default 1.0 = mean
+    with pytest.raises(ValueError, match=r"^a candidate must score at least one token$"):
+        readout.candidate_sequence_score([])
+
+
+def test_wire_precision_is_six_significant_digits() -> None:
+    # 6 significant digits is the frozen JSON precision (SPEC 2.5); 7 would change this value
+    assert readout.score_weighted_mean([0.0, 1 / 3, 2 / 3]) == 1.66667
+    assert readout.round_sig(1.23456789) == 1.23457
+    assert readout.round_sig(1.23456789, 7) == 1.234568
+
+
+def test_confidence_modes_pin_their_formulas() -> None:
+    # entropy: K=2 uniform -> 0.0 (the `k <= 1` shortcut must not swallow K=2)
+    assert readout.confidence_entropy([0.5, 0.5]) == pytest.approx(0.0, abs=1e-12)
+    assert readout.confidence_entropy([0.75, 0.25]) == pytest.approx(0.1887, abs=1e-3)
+    assert readout.confidence_entropy([1.0, 0.0]) == pytest.approx(1.0, abs=1e-12)
+    # margin: (p1 - p2) / (1 - p2), guarded against the degenerate p2 == 1
+    assert readout.confidence_margin([0.6, 0.3, 0.1]) == pytest.approx(0.3 / 0.7, abs=1e-12)
+    assert readout.confidence_margin([1.0, 1.0]) == 0.0
+    assert readout.confidence_margin([1.0, 0.0]) == 1.0
+
+
+def test_confidence_statistics_are_clamped_for_any_input() -> None:
+    """confidence ∈ [0,1] is a contract for every caller, not only for well-formed probs."""
+    assert readout.confidence_normalized_peak([2.0, 0.0]) == 1.0
+    assert readout.confidence_normalized_peak([-1.0, 0.0]) == 0.0
+
+
+def test_logsumexp_of_nothing_is_minus_infinity() -> None:
+    assert readout.logsumexp([]) == -math.inf
+
+
+def test_scaled_helpers_match_the_unscaled_ones() -> None:
+    row = [2.0, 1.0, 0.0, -1.0]
+    scale = readout.logsumexp(row)
+    for token in range(4):
+        assert readout.logprob_from_scale(row, token, scale) \
+            == pytest.approx(readout.logprob(row, token))
+    assert readout.coverage_from_scale(row, [0, 1], scale) \
+        == pytest.approx(readout.coverage_from_row(row, [0, 1]))
+    assert readout.coverage_from_scale(row, [], scale) == 0.0
+
+
+def test_the_coverage_cap_is_a_cap() -> None:
+    row = [0.0] * 4
+    assert readout.coverage_from_row(row, [0] * 8) == 1.0
+    assert readout.coverage_from_scale(row, [0] * 8, readout.logsumexp(row)) == 1.0
+
+
+def test_reliability_floor_paths() -> None:
+    assert readout.reliability(0.9) == "ok"                        # default floor is 0.10
+    assert readout.reliability(0.4, coverage_floor=0.5,
+                               confidence_floor=0.5, confidence_value=0.4) == "low_mass"
+    assert readout.reliability(0.9, coverage_floor=0.5, confidence_floor=0.5,
+                               confidence_value=0.4) == "low_confidence"
+    assert readout.reliability(0.9, coverage_floor=0.5, confidence_floor=0.5,
+                               confidence_value=0.5) == "ok"        # the floor is exclusive
+    assert readout.reliability(0.9, confidence_floor=0.5,
+                               confidence_value=0.4) == "low_confidence"
+    assert readout.reliability(0.9, confidence_floor=0.5,
+                               confidence_value=0.6) == "ok"

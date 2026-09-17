@@ -305,3 +305,42 @@ def test_typesafe_model_mapping_follows_spec_2_6() -> None:
                                     default_alias="x") == "/m/models/a.gguf"
     assert schema.adapter_model_ref("XHToken/Spark-X2.5-4B-GGUF:Q8_0", known_aliases=known,
                                     default_alias="x") == "XHToken/Spark-X2.5-4B-GGUF:Q8_0"
+
+
+# --------------------------------------------------------------- mutation-driven pins
+# Written to kill the surviving mutants of this module (Tier M run — see the evidence report).
+def test_validation_rejects_empty_strings_where_text_is_required() -> None:
+    with pytest.raises(UserError) as exc:
+        schema.parse_request(request(questions={"q": {"type": "score",
+                                                      "criteria": ["ok level", "   "]}}))
+    assert code_of(exc) == "E_SCORE_LEVELS"
+    with pytest.raises(UserError) as exc:
+        schema.parse_request(request(questions={"q": {"type": "choice",
+                                                      "criteria": {"   ": None, "b": None}}}))
+    assert code_of(exc) == "E_CHOICE_CRITERIA"
+    with pytest.raises(UserError) as exc:
+        schema.parse_request(request(questions={
+            "q": {"type": "noul", "criteria": {"true": "yes", "false": "   "}}}))
+    assert code_of(exc) == "E_NOUL_CRITERIA"
+
+
+def test_option_value_edges_are_inclusive_where_documented() -> None:
+    assert schema.parse_request(
+        request(options={"coverage_floor": 0.0})).options.coverage_floor == 0.0
+    assert schema.parse_request(
+        request(options={"coverage_floor": 1.0})).options.coverage_floor == 1.0
+    with pytest.raises(UserError) as exc:
+        schema.parse_request(request(options={"coverage_floor": 1.5}))
+    assert code_of(exc) == "E_UNKNOWN_KEY"
+    assert schema.parse_request(request(options={"length_norm": 0})).options.length_norm == 0.0
+    with pytest.raises(UserError) as exc:
+        schema.parse_request(request(options={"length_norm": -0.1}))
+    assert code_of(exc) == "E_UNKNOWN_KEY"
+    with pytest.raises(UserError) as exc:
+        schema.parse_request(request(options={"state_id": "   "}))
+    assert code_of(exc) == "E_UNKNOWN_KEY"
+    # booleans are not integers for the numeric options
+    for name in ("threads", "n_seq_max", "seed", "max_waves"):
+        with pytest.raises(UserError) as exc:
+            schema.parse_request(request(options={name: True}))
+        assert code_of(exc) == "E_UNKNOWN_KEY", name
