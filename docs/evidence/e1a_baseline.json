@@ -192,6 +192,7 @@
    "gate_script": {
     "cmd": "bash tools/host_gate_e1a.sh /work/e1a/logs/gate-final",
     "script_exit": 0,
+    "raw_summary": "docs/evidence/host_gate_sandbox_rehearsal.json (is_host_run: false — the sandbox rehearsal of the exact host command, 9 steps with exit codes, timings and output tails)",
     "steps": {
      "pytest_before": {"exit": 0, "elapsed_s": 21, "result": "284 passed, 10 skipped"},
      "init_dry_run": {"exit": 0, "elapsed_s": 1, "result": "backend=cuda variant=linux-x64-cuda-12.8 size=168811114"},
