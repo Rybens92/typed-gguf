@@ -70,14 +70,17 @@ quote-style = "double"
 
 [tool.mutmut]
 # E1a mutation testing (Tier M). The E1a FIX (t_eae35404) scoped the *test selection* to the
-# modules it touched (pins/capability/install/finder/cli); `source_paths` stays the whole
-# package because mutmut copies the source tree from it — a file list would leave the copied
-# package unable to import (mutants/src/ggufone would miss errors.py, registry/, ...).
+# modules it touched (pins/capability/install/cli + the probe isolation modules); `source_paths`
+# stays the whole package because mutmut copies the source tree from it — a file list would
+# leave the copied package unable to import (mutants/src/ggufone would miss errors.py,
+# registry/, ...).
 source_paths = ["src/ggufone"]
-also_copy = ["tests", "docs", "runtime.lock", "pyproject.toml", "README.md", "SPEC.md",
+also_copy = ["tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md", "SPEC.md",
              "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 pytest_add_cli_args_test_selection = ["tests/test_pins.py",
+                                      "tests/test_capability.py",
+                                      "tests/test_probe_isolation.py",
                                       "tests/test_runtime_fallback.py",
                                       "tests/test_runtime_install.py",
                                       "tests/test_cli_e1a.py",

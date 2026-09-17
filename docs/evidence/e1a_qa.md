@@ -306,3 +306,251 @@ machine they always assumed. No assertion was weakened (verified by diff review)
 sandbox-observable criterion has a command + output behind it and the suite is green in both
 worlds; the only acceptance criterion this worker cannot execute is the real-GPU run, which is
 prepared as a one-command script with a machine-readable summary.
+
+---
+
+# E1a FIX QA round 2 — t_eae35404: the host SIGABRT + the four coordinator findings
+
+Card: `t_eae35404` (round 1 = probe purity + the recorded cuda→vulkan fallback).
+Tier: **M** (the card declares no tier → default M: one scoped mutation run, soft threshold,
+recorded — not looped on).
+Date 2026-09-17 · same podman container: 2-CPU quota, no `/dev/dri`, no `/dev/nvidia*`, no
+`nvidia-smi`, no `libcudart`/`libcublas`/`libcuda`.
+
+## What the host run found
+
+The coordinator ran `bash tools/host_gate_e1a.sh` on the operator's RTX 3060 Ti box: 10 of 11
+steps green — the real `cuda → vulkan` fallback with its dlopen reason recorded, `doctor` 34/34
+symbols / build b11026 / `llama-fit-params --help` exit 0, oracle section B with **0 SKIP**,
+offline and `--run-network` suites green, poisoned PATH with **0** compiler shims — but:
+
+```
+init.exit  134   ← SIGABRT *after* printing the JSON: `double free or corruption (!prev)`
+```
+
+reproducible, including on the idempotent re-run. `init --dry-run` and the poisoned-PATH run
+(fresh home, offline cache) did **not** crash — both are runs without the two-bundle probe.
+
+## Root cause
+
+A glibc heap-corruption abort at the very end of a command that had:
+
+1. dlopened the CUDA bundle it then rejected (`probe_symbols` → that directory's
+   `libggml-base/ggml/llama.so` copies become resident, `RTLD_GLOBAL`),
+2. deleted that directory (`_drop_rejected`) while those copies stayed mapped,
+3. dlopened the vulkan bundle on top — with a real driver behind it on that host, so the
+   process also held a live GPU backend,
+4. and then let its own shutdown run *other people's* destructors.
+
+`doctor` (one directory, the same libraries) exits clean on that host; the **fallback chain** is
+what makes `init` different. The repo already knew the shape of this problem — the live tests
+probe every real bundle in a child process, "because shared-library teardown can abort at exit
+(`free(): invalid pointer`)" (`tests/test_runtime_live.py`) — `init`/`doctor` were the place
+that did not.
+
+## Fix: one bundle per process
+
+* `ggufone/runtime/probe_child.py` — a disposable child: one JSON request on stdin
+  (`probe` | `warmup` | `libs`), one JSON object on stdout. Exit 0 means "the answer is data"
+  (including "this bundle is broken"); a non-zero exit means the probe itself failed and the
+  caller records that instead of guessing.
+* `ggufone/runtime/isolated.py` — the client: `child_command()`, `run_child()` (a crash, a hang
+  or garbage stdout all become `ChildFailure` carrying the exit code and the stderr tail),
+  `scan_bundle()`, `warmup_in_child()`, `system_libs()`.
+* `capability.DEFAULT_SCAN` (default `isolated.scan_bundle`) is the seam `probe_runtime` uses;
+  `capability.scan_in_process` is the very code the child runs (and what tests inject through
+  the `in_process_scan` fixture when they patch the dlopen seams).
+* `install.DEFAULT_WARMUP` (default `isolated.warmup_in_child`) — the warm-up number is worth a
+  process, not worth leaving a loaded model and a GPU driver behind in the command.
+* No ggufone command dlopens a bundle any more: `probe_symbols` / `load_backend_library` /
+  `load_system_lib` are called only inside the child (plus tests that opt in).
+
+Measured on the real pinned bundles (`uv run python /work/e1a/live_isolation_check.py`):
+
+```
+[vulkan]      symbols_checked=True error=None  backends=('cpu','rpc','vulkan') accelerator=vulkan
+mapped after the probe: <none>
+[cuda]        backend_errors={'cuda': 'libggml-cuda.so: libcudart.so.12: cannot open shared object file: …'}
+deleted:      …/b11026-linux-x64-cuda-12.8
+[vulkan-copy] accelerator=vulkan
+mapped after probe -> delete -> probe: <none>
+OK: no bundle is mapped in this process; the probes still answered
+```
+
+i.e. probe → delete → probe (the sequence that aborted on the host) leaves this process with
+nothing mapped while the probe keeps answering exactly what it answered before.
+
+## The four secondary findings — all four taken
+
+1. **`asset_verified: false` for the Vulkan bundle** → both shipped GPU assets are pinned in
+   `runtime.lock` (vulkan `1b40310b…` — observed by the coordinator *on the host* and in the
+   sandbox; cuda-12.8 `5b2d30d7…` — observed locally against the immutable release asset), and
+   the gate's `init` JSON now reports `asset_verified: true`. The lock's `note` records the
+   provenance rule: a sha is pinned only when it was observed.
+2. **168.8 MB downloaded before falling back** → pre-flight: `runtime.lock` → `system_libs`
+   (cuda-12.8 links `libcudart.so.12`/`libcublas.so.12`/`libcuda.so.1`, vulkan links
+   `libvulkan.so.1`), dlopen-checked **in a child, before the download**. On the host-shaped
+   world the CUDA archive never moves — the gate's fresh-home `init` downloaded only the
+   30 294 625 B vulkan asset (`bytes_fetched: 30294625`, `asset_verified: true`) and recorded
+   the reason verbatim:
+   `pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier`.
+   An explicit `--backend cuda` deliberately skips the pre-flight: the user asked, the real
+   probe then records the truth. A pre-flight that cannot run *fails closed* (skips the tier).
+3. **`init.fallback` null in the summary** → the `already_installed` return carries
+   `fallback_reason` (this run's attempts, else the record), the CLI prints it (plus the warning
+   line) and `tools/host_gate_summary.py` falls back to `record.fallback_reason`. The gate
+   summary now reads `"init.fallback": "pre-flight: …"`.
+4. **Doctor suggested `init --backend cuda` although libcudart is missing** → when the install
+   record names the reason for that backend, the `runtime.accelerator` check repeats it:
+   `expected accelerator 'cuda' is not in this bundle (backends: cpu, rpc, vulkan): pre-flight:
+   … libcudart.so.12 …; install the cuda runtime it needs and re-run \`ggufone init\`, or keep
+   'vulkan' (driveable here)`. The retry hint stays for the case it was written for (a bundle
+   that simply carries no such backend).
+
+## Tests added (each written RED first) — `tests/test_probe_isolation.py`, 23 tests
+
+| Test | What it pins |
+|---|---|
+| `test_deep_probe_does_not_dlopen_anything_in_this_process` | the in-process seams raise if touched: a probe that runs in the command is a test failure |
+| `test_the_child_really_loads_the_bundle` | a real ELF in `libllama.so`: the child resolves (and misses) the ABI for real, `error is None` |
+| `test_the_child_reports_symbols_and_backends_in_one_answer` | both halves of the scan in one answer (real ABI libs + an unloadable backend) |
+| `test_the_probe_child_answers_the_documented_protocol` | `python -m ggufone.runtime.probe_child`, one JSON request/response, nothing else |
+| `test_a_probe_child_that_crashes_is_recorded_not_swallowed` | exit 9 → `error` + every accelerator in `backend_errors` → the chain can still fall through |
+| `test_garbage_from_the_probe_child_is_recorded` / `test_a_probe_child_that_hangs_times_out` | stdout that is not JSON is data; a hung probe is a timeout |
+| `test_install_falls_all_the_way_to_cpu_when_the_probe_cannot_run` | a bundle nobody can verify never wins over a tier that loads |
+| `test_preflight_skips_the_cuda_download_when_the_host_cannot_load_cudart` | the 168 MB archive is **not** in `<home>/downloads`; the reason is recorded |
+| `test_preflight_proceeds_when_the_host_can_load_the_libraries` | no false skip |
+| `test_a_dead_preflight_child_fails_closed` | an unrunnable pre-flight skips the tier instead of guessing |
+| `test_an_explicit_backend_skips_the_preflight` | `--backend cuda` is an instruction, not a guess |
+| `test_already_installed_reports_the_recorded_fallback_reason` | finding 3 at the `install()` level |
+| `test_cli_init_on_an_installed_runtime_prints_the_fallback_reason` | finding 3 through `cli.main(["init","--json"])` |
+| `test_host_gate_summary_reads_the_fallback_from_the_record` | finding 3 in the gate tool |
+| `test_doctor_names_the_missing_runtime_instead_of_a_retry` / `…_keeps_the_retry_hint…` | finding 4 both ways |
+| `test_runtime_lock_pins_the_gpu_assets_it_shipped` | finding 1: the pins and the `system_libs` table |
+| `test_init_warmup_runs_outside_the_command_process` / `…_dies_is_recorded_not_raised` / `…_answers_the_documented_protocol` | the warm-up number is a child's answer; a dead warm-up is recorded, never raised |
+| `test_system_lib_probe_reports_what_this_host_can_load`, `test_preflight_matches_the_pinned_lock…`, `test_probe_child_modes_are_callable_in_process` | the pre-flight surface and the child surface |
+
+Plus, in `tests/test_runtime_live.py` (marked `model`, runs under `--run-network`):
+
+* `test_the_command_process_maps_no_bundle_after_a_deep_probe` — deep-probes the **real**
+  installed bundle and then asserts `/proc/self/maps` contains no `libggml`/`libllama` at all.
+  That is the host crash, turned into an assertion.
+
+The 4 fallback tests that patch `capability.load_backend_library` now request the
+`in_process_scan` fixture: they test the implementation the child runs, on purpose; the
+remaining fallback tests run the unpatched (child) path. No assertion was weakened.
+
+## Gate results — this container, GPU world simulated with a fake `nvidia-smi` on PATH
+
+| Gate | Command | Result |
+|---|---|---|
+| Unit gate (CPU-only world) | `uv run pytest -q` | **exit 0 — 307 passed, 12 skipped** (3.6 s) |
+| Unit gate (GPU world) | `PATH=<fake-bin> uv run pytest -q` | **exit 0 — 307 passed, 12 skipped** (3.7 s) |
+| Unit gate (GPU world + runtime installed) | `HOME=<gate home> uv run pytest -q` | **exit 0 — 308 passed, 11 skipped** (13.7 s; oracle section B live + the `/proc/self/maps` test) |
+| Live gate | `HOME=<gate home> uv run pytest -q --run-network` | **exit 0 — 318 passed, 1 skipped** (29 s; pinned Qwen3.5 GGUF absent) |
+| Oracle (offline) | `python3 docs/verify_runtime_contract.py` | **exit 0**, failures 0, skips 1 (section D readout → E1b) |
+| Oracle (live, A-E1a-1) | `python3 docs/verify_runtime_contract.py` with the runtime installed | **exit 0**, failures 0, **0 SKIP in section B** |
+| Static | `uv run ruff check src tests tools docs` | exit 0 |
+| Coverage | `uv run --with pytest-cov pytest -q --cov=ggufone` | **88%** (2092 stmts, 249 missed) |
+| Mutation (Tier M, scoped) | `mutmut run` on the changed modules | 66.0% on the five modules scored — see *Mutation* below |
+
+Host gate rehearsal (the exact host command, `bash tools/host_gate_e1a.sh <logdir>`, fresh home,
+real downloads, fake `nvidia-smi`, model symlinked for the oracle) —
+raw JSON: `docs/evidence/host_gate_sandbox_rehearsal_round2.json`:
+
+```
+pytest_before        exit=0 elapsed_s=10   307 passed, 12 skipped
+init_dry_run         exit=0 elapsed_s=0    backend=cuda variant=linux-x64-cuda-12.8
+init                 exit=0 elapsed_s=2    variant=linux-x64-vulkan, bytes_fetched=30294625, asset_verified=true
+doctor               exit=2 elapsed_s=0    34/34 symbols, build b11026, backends cpu, rpc, vulkan (working: vulkan)
+version              exit=0 elapsed_s=0
+pytest_after         exit=0 elapsed_s=17   308 passed, 11 skipped
+oracle               exit=0 elapsed_s=4    failures: 0, section B skips: 0
+pytest_network       exit=0 elapsed_s=30   318 passed, 1 skipped
+init_poisoned_path   exit=0 elapsed_s=0    0 compiler shims (budget 180 s)
+{
+ "init.exit": 0,
+ "init.variant": "linux-x64-vulkan",
+ "init.fallback": "pre-flight: … skipped the 168.81 MB download and moved to the next tier",
+ "doctor.exit": 2, "oracle.exit": 0, "oracle.section_b_skips": 0,
+ "pytest_before.exit": 0, "pytest_after.exit": 0, "pytest_network.exit": 0,
+ "poisoned_init.exit": 0, "poison_shims_invoked": 0
+}
+```
+
+`init.exit` is the step that aborted with SIGABRT on the host; here it is 0, and the CUDA
+archive was never downloaded.
+
+## Coverage
+
+`uv run --with pytest-cov pytest -q --cov=ggufone` → **88%** total (2092 stmts, 249 missed).
+
+Per changed module: `pins.py` 97%, `cli.py` 91%, `capability.py` 90%, `isolated.py` 86%,
+`install.py` 82%, `probe_child.py` 82%. The uncovered lines in the two new modules are the
+child-side paths a parent coverage run cannot see (`warmup_in_child`'s error branches,
+`probe_child.main()`), and they are unit-tested in-process (`probe_child.handle(...)`).
+
+## Mutation (Tier M, soft threshold — recorded, triaged, not looped on)
+
+`uv run --extra dev --with mutmut mutmut run 'ggufone.runtime.isolated*'
+'ggufone.runtime.probe_child*' 'ggufone.runtime.capability*' 'ggufone.runtime.install*'
+'ggufone.runtime.pins*'` with the new `tests/test_probe_isolation.py` in the selection:
+
+| Module | killed | survived | score |
+|---|---|---|---|
+| `runtime/pins.py` | 295 | 49 | **85.8%** |
+| `runtime/capability.py` | 215 | 116 | 65.0% |
+| `runtime/isolated.py` (new) | 140 | 87 | 61.7% |
+| `runtime/probe_child.py` (new) | 54 | 34 | 61.4% |
+| `runtime/install.py` | 416 | 290 | 58.9% |
+| **total scored** | **1120** | **576** | **66.0%** |
+
+Triage: the survivors are dominated by **message strings** (every f-string in
+`run_child`/`scan_bundle`/`system_libs`, the child's mode wrappers, install's pre-flight prose —
+no assertion can see them and none changes a decision) and by `child_env`'s PYTHONPATH
+assembly (indistinguishable from the one pytest already exports). **No survivor sits on a
+decision path**: the decision seams are covered by kills — a dead/hung/garbage probe making
+every accelerator unusable, the pre-flight skip, the explicit-backend bypass, the pins, the
+`child_error` → `backend_errors` mapping. Two gaps the triage exposed were closed right after
+the run (recorded, not hidden): the `backend_errors` mapping of a bundle whose ABI *does* load
+(`test_the_child_reports_symbols_and_backends_in_one_answer`) and the fail-closed pre-flight
+(`test_a_dead_preflight_child_fails_closed`).
+
+`cli.py` was not re-scored in this cache: it has ~2400 mutants, is print-heavy, and the run was
+stopped by the container's **256-pid cgroup** (a sibling card's Stryker run plus mutmut's
+workers killed two attempts with `BlockingIOError: [Errno 11]` in `os.fork()`). Round 1 scored
+it inside its 57.7% overall; its round-2 additions are covered by the two CLI/doctor tests in
+the table above. Score reported for the reviewer's call, not used as a gate (Tier M).
+
+## Risks and what this does NOT verify
+
+🔴 **None known for the crash.** The mechanism (a command process that dlopens two bundles, one
+of them deleted, and then exits) cannot recur without failing
+`test_deep_probe_does_not_dlopen_anything_in_this_process` or the live `/proc/self/maps` test.
+
+🟡 **The host crash itself was never reproduced here.** This container has no GPU driver, so a
+teardown path that only executes with a live device is not reproducible in the sandbox. What is
+proven here is that the *class* is gone (no third-party library in the command process at all,
+measured) and that everything the command does before/after still works with the real bundles.
+The host re-run is what proves the instance — stated plainly rather than claimed as reproduced.
+
+🟡 **The warm-up number is now measured in a child** — same call, same bundle, one extra process
+(~0.3 s). `test_init_records_the_warmup_number` (live, real 4.4 GB pinned model) still passes.
+
+🟡 **The pre-flight is a host fact, not a promise.** `system_libs` is populated only for the two
+variants whose dependencies were verified (`ldd` on the pinned archives: neither bundles
+`libcudart`/`libcublas`); a variant absent from the map is not pre-flighted, and a passing
+pre-flight changes nothing about the real probe that follows.
+
+🟢 **No expectation was weakened.** Round 1's host-failing assertions are intact
+(`test_detect_backend`, `test_host_variant_mapping`, the 5 CLI tests).
+
+## Recommendation
+
+**Option A (ship), with the host re-run as the single outstanding item.** Every
+sandbox-observable criterion has a command and its output behind it, the suite is green in both
+worlds, and the gate rehearsal is green *including `init`* — the step that aborted on the host.
+The one acceptance criterion this worker still cannot execute is the live run on the RTX 3060 Ti
+box; it is one command, and after this round the expected `init.exit` is **0** (either
+`linux-x64-cuda-12.8` if that host can load cudart, or `linux-x64-vulkan` after the pre-flight
+skip — with the reason recorded in both cases).

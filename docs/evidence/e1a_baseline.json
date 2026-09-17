@@ -9,7 +9,6 @@
   "repo_commit_at_measurement": "210da65 (E1a implementation; see the card's final handoff for the shipped head)"
  },
  "tagging": "every number here is [executed] in this sandbox unless it says [recon] or 'not measurable here'",
-
  "runtime": {
   "tag": "b11026",
   "variant": "linux-x64-cpu",
@@ -20,52 +19,93 @@
   "libllama_sha256": "8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975",
   "dir": "/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu",
   "build": 11026,
-  "backends": ["cpu", "rpc"],
-  "tools": ["llama-cli", "llama-fit-params", "llama-tokenize"],
+  "backends": [
+   "cpu",
+   "rpc"
+  ],
+  "tools": [
+   "llama-cli",
+   "llama-fit-params",
+   "llama-tokenize"
+  ],
   "note": "GPU detection in this sandbox returns cpu (no /dev/dri, no nvidia-smi); the host's Vulkan/CUDA variants stay untested here."
  },
-
  "init": {
   "poisoned_path": true,
-  "poisoned_tools": ["cc", "gcc", "g++", "clang", "clang++", "nvcc", "cmake", "ninja", "make"],
+  "poisoned_tools": [
+   "cc",
+   "gcc",
+   "g++",
+   "clang",
+   "clang++",
+   "nvcc",
+   "cmake",
+   "ninja",
+   "make"
+  ],
   "compiler_shims_invoked": 0,
   "offline_cache": "/var/home/rybens/.hermes/cache-bundles",
   "source": "offline-cache",
   "elapsed_ms": 1093,
   "budget_s": 180,
-  "dry_run": {"exit": 0, "asset": "llama-b11026-bin-ubuntu-x64.tar.gz", "size": 16855810,
-              "destination": "/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu",
-              "required_bytes": 50567430}
+  "dry_run": {
+   "exit": 0,
+   "asset": "llama-b11026-bin-ubuntu-x64.tar.gz",
+   "size": 16855810,
+   "destination": "/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu",
+   "required_bytes": 50567430
+  }
  },
-
  "doctor": {
   "exit_pre_pull": 2,
   "exit_post_pull": 0,
   "status_post_pull": "ok",
-  "checks": ["runtime.present", "runtime.files", "runtime.symbols", "runtime.build",
-             "runtime.fit_params", "runtime.backends", "runtime.sha_recorded",
-             "runtime.accelerator", "model.file", "model.sha256", "model.arch"],
+  "checks": [
+   "runtime.present",
+   "runtime.files",
+   "runtime.symbols",
+   "runtime.build",
+   "runtime.fit_params",
+   "runtime.backends",
+   "runtime.sha_recorded",
+   "runtime.accelerator",
+   "model.file",
+   "model.sha256",
+   "model.arch"
+  ],
   "symbols": "34/34",
   "build": "b11026 (>= b10828)",
   "fit_params_help_exit": 0,
   "json_schema": "ggufone.doctor/v1",
-  "exit_codes_exercised": {"0": "all checks ok", "2": "warnings (no model / shallow probe / missing sha record)",
-                           "1": "failures (no runtime, missing lib, drifted libllama sha, arch unsupported)"}
+  "exit_codes_exercised": {
+   "0": "all checks ok",
+   "2": "warnings (no model / shallow probe / missing sha record)",
+   "1": "failures (no runtime, missing lib, drifted libllama sha, arch unsupported)"
+  }
  },
-
  "oracle": {
-  "offline": {"cmd": "python3 docs/verify_runtime_contract.py", "exit": 0, "failures": 0, "skips": 1,
-              "skip_note": "section D: readout functions land in E1b"},
-  "live": {"cmd": "GGUFONE_RUNTIME_DIR=<runtime> python3 docs/verify_runtime_contract.py",
-           "exit": 0, "failures": 0, "section_b_skips": 0,
-           "section_b": ["32/32 required libllama.so symbols resolve",
-                         "2/2 libggml.so loader symbols (PoC pitfall 1)",
-                         "llama-cli build == 11026 (pinned release)",
-                         "libllama.so carries the spark2_5 implementation",
-                         "llama-fit-params present",
-                         "local Spark Q8_0 size + sha256 == HF pin"]}
+  "offline": {
+   "cmd": "python3 docs/verify_runtime_contract.py",
+   "exit": 0,
+   "failures": 0,
+   "skips": 1,
+   "skip_note": "section D: readout functions land in E1b"
+  },
+  "live": {
+   "cmd": "GGUFONE_RUNTIME_DIR=<runtime> python3 docs/verify_runtime_contract.py",
+   "exit": 0,
+   "failures": 0,
+   "section_b_skips": 0,
+   "section_b": [
+    "32/32 required libllama.so symbols resolve",
+    "2/2 libggml.so loader symbols (PoC pitfall 1)",
+    "llama-cli build == 11026 (pinned release)",
+    "libllama.so carries the spark2_5 implementation",
+    "llama-fit-params present",
+    "local Spark Q8_0 size + sha256 == HF pin"
+   ]
+  }
  },
-
  "pull_resume": {
   "repo": "XHToken/Spark-X2.5-4B-GGUF",
   "revision": "902d865994943ab9235670e24f01846ee06091f2",
@@ -74,16 +114,28 @@
   "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
   "sha256_equals_hf_lfs_oid": true,
   "independent_check": "sha256sum of the published file == the pin (log 09-pull-verify)",
-  "interruption": {"how": "SIGKILL after 10 s (timeout -s KILL)",
-                   "part_bytes": 660602880, "part_percent": 15.10,
-                   "registry_json_written": false},
-  "resume": {"resumed_from": 660602880, "bytes_fetched": 3714418272, "elapsed_s": 58,
-             "sha256_verified_by_downloader": true},
-  "registry_entry": {"alias": "spark-x2.5-4b-q8_0", "arch": "spark2_5", "quant": "Q8_0",
-                     "file_type": 7, "license": "apache-2.0", "size": 4375021152,
-                     "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2"}
+  "interruption": {
+   "how": "SIGKILL after 10 s (timeout -s KILL)",
+   "part_bytes": 660602880,
+   "part_percent": 15.1,
+   "registry_json_written": false
+  },
+  "resume": {
+   "resumed_from": 660602880,
+   "bytes_fetched": 3714418272,
+   "elapsed_s": 58,
+   "sha256_verified_by_downloader": true
+  },
+  "registry_entry": {
+   "alias": "spark-x2.5-4b-q8_0",
+   "arch": "spark2_5",
+   "quant": "Q8_0",
+   "file_type": 7,
+   "license": "apache-2.0",
+   "size": 4375021152,
+   "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2"
+  }
  },
-
  "kv_footprint": {
   "method": "ctypes on the pinned bundle; KV = VmRSS delta across llama_init_from_model (kv_unified=True); prefill = one llama_decode of a 217-token shared prefix; warm decode = median of 5 single-token decodes",
   "model": "Spark-X2.5-4B-Q8_0.gguf",
@@ -93,15 +145,24 @@
   "kv_bytes_per_token_f16_from_header": 147456,
   "n_ctx": 2048,
   "measurements": [
-   {"n_seq_max": 1, "kv_unified": true, "measured_kv_bytes": 302219264,
-    "conservative_bound_bytes": 301989888, "measured_over_bound": 1.0008},
-   {"n_seq_max": 4, "kv_unified": true, "measured_kv_bytes": 302006272,
-    "conservative_bound_bytes": 1207959552, "measured_over_bound": 0.25}
+   {
+    "n_seq_max": 1,
+    "kv_unified": true,
+    "measured_kv_bytes": 302219264,
+    "conservative_bound_bytes": 301989888,
+    "measured_over_bound": 1.0008
+   },
+   {
+    "n_seq_max": 4,
+    "kv_unified": true,
+    "measured_kv_bytes": 302006272,
+    "conservative_bound_bytes": 1207959552,
+    "measured_over_bound": 0.25
+   }
   ],
   "finding": "with kv_unified=True the measured KV is identical for n_seq_max=1 and 4: the cache is n_ctx cells shared by every sequence, exactly as S-4 hypothesised. The conservative planner charges n_ctx * n_seq_max, i.e. 4x too much at n_seq_max=4, and agrees with the measurement to 0.1% at n_seq_max=1. The recommender stays conservative (S-4) until E2.5 consumes this number.",
   "secondary": "llama.cpp splits this arch into a SWA cache (27 layers) + a non-SWA cache (9 layers): at n_ctx=2048/f16 that is 216 MiB + 72 MiB = 288 MiB, matching the 302 MB measured (decimal)."
  },
-
  "cpu_baseline": {
   "model_load_ms": 508.1,
   "prefill_tokens": 217,
@@ -112,57 +173,94 @@
   "ctx_init_ms": 148.2,
   "caveat": "the sandbox is cgroup-limited to 2 CPUs (cpu.max=200000/100000) while os.cpu_count() reports 24, so the 24-thread run thrashes and is SLOWER than threads=1. These are sandbox numbers, not this box's numbers: the [recon] host figures (prefill ~2k tokens in 5.9 s CPU = ~340 tok/s, warm decision 14-20 ms) are NOT reproduced here and remain [recon]."
  },
-
  "vulkan_baseline": {
   "measured": false,
   "reason": "no DRM device (/dev/dri absent) and no nvidia-smi inside the sandbox: the Vulkan bundle cannot be exercised here",
   "recon_reference": "prefill ~4.6k tok/s, warm decision 14-20 ms, first call 23-30 s shader compile [recon]",
   "vehicle_that_will_measure_it": "a host run of tools/measure_kv_footprint.py with `ggufone init --backend vulkan`, or the CI runtime-matrix job that runs the oracle live section per platform"
  },
-
  "gates": {
-  "uv run pytest -q": {"exit": 0, "result": "262 passed, 10 skipped"},
-  "uv run pytest -q --run-network": {"exit": 0, "result": "260 passed, 1 skipped",
-                                     "skip": "pinned Qwen3.5-0.8B GGUF not present on this box"},
-  "uv run ruff check src tests tools": {"exit": 0}
+  "uv run pytest -q": {
+   "exit": 0,
+   "result": "262 passed, 10 skipped"
+  },
+  "uv run pytest -q --run-network": {
+   "exit": 0,
+   "result": "260 passed, 1 skipped",
+   "skip": "pinned Qwen3.5-0.8B GGUF not present on this box"
+  },
+  "uv run ruff check src tests tools": {
+   "exit": 0
+  }
  },
-
  "coverage": {
   "tool": "uv run --with pytest-cov pytest -q --cov=src/ggufone",
   "total": "87% (1821 statements, 234 missed)",
-  "per_module": {"cli.py": "91%", "registry/gguf.py": "95%", "registry/store.py": "93%",
-                 "runtime/pins.py": "97%", "runtime/finder.py": "96%",
-                 "registry/hf.py": "87%", "runtime/capability.py": "87%",
-                 "registry/recommend.py": "83%", "runtime/install.py": "76%",
-                 "runtime/ctypes_binding.py": "55%", "__main__.py": "0% (1 statement)"},
+  "per_module": {
+   "cli.py": "91%",
+   "registry/gguf.py": "95%",
+   "registry/store.py": "93%",
+   "runtime/pins.py": "97%",
+   "runtime/finder.py": "96%",
+   "registry/hf.py": "87%",
+   "runtime/capability.py": "87%",
+   "registry/recommend.py": "83%",
+   "runtime/install.py": "76%",
+   "runtime/ctypes_binding.py": "55%",
+   "__main__.py": "0% (1 statement)"
+  },
   "caveat": "ctypes_binding/install cover the real-library paths that the subprocess-isolated live tests exercise outside the pytest process (see docs/evidence/e1a_qa.md)"
  },
-
  "mutation": {
   "tool": "mutmut 3.8, one scoped pass + one hardening round",
-  "scope": ["errors.py", "runtime/pins.py", "registry/gguf.py", "registry/recommend.py",
-            "registry/store.py"],
-  "selection": ["tests/test_recommend_quant.py", "tests/test_gguf_header.py",
-                "tests/test_registry_store.py", "tests/test_pins.py",
-                "tests/test_mutation_hardening.py"],
+  "scope": [
+   "errors.py",
+   "runtime/pins.py",
+   "registry/gguf.py",
+   "registry/recommend.py",
+   "registry/store.py"
+  ],
+  "selection": [
+   "tests/test_recommend_quant.py",
+   "tests/test_gguf_header.py",
+   "tests/test_registry_store.py",
+   "tests/test_pins.py",
+   "tests/test_mutation_hardening.py"
+  ],
   "mutants": 1182,
   "killed": 859,
   "score_percent": 72.7,
   "hardening_round": "killed the budget/parsing boundary survivors (gguf.py 39 -> 32 mutants survive; recommend_quant survivors are now message-string or equivalent only)",
-  "survivor_classes": {"message-string or equivalent": "~60% of survivors",
-                       "data-integrity": "none remaining"},
+  "survivor_classes": {
+   "message-string or equivalent": "~60% of survivors",
+   "data-integrity": "none remaining"
+  },
   "report": "docs/evidence/e1a_qa.md (Mutation section)"
  },
-
  "coordinator_additions": {
-  "hf_auth": {"live_evidence": "gated repo blob without a token -> E_HF_AUTH_REQUIRED (HTTP 401), no file written",
-              "token_sources": ["HF_TOKEN", "HUGGING_FACE_HUB_TOKEN", "HUGGINGFACE_HUB_TOKEN", "~/.cache/huggingface/token"]},
-  "disk_precheck": {"live_evidence": "4.38 GB model vs 512 MB tmpfs -> E_INSUFFICIENT_DISK naming 4375021152 and 333410304 bytes, exit 2, nothing downloaded"},
-  "license_surfacing": {"registry_field": true, "printed_by": ["models pull", "models ls --json", "doctor --json"],
-                        "value": "apache-2.0 (from the HF model card)"},
+  "hf_auth": {
+   "live_evidence": "gated repo blob without a token -> E_HF_AUTH_REQUIRED (HTTP 401), no file written",
+   "token_sources": [
+    "HF_TOKEN",
+    "HUGGING_FACE_HUB_TOKEN",
+    "HUGGINGFACE_HUB_TOKEN",
+    "~/.cache/huggingface/token"
+   ]
+  },
+  "disk_precheck": {
+   "live_evidence": "4.38 GB model vs 512 MB tmpfs -> E_INSUFFICIENT_DISK naming 4375021152 and 333410304 bytes, exit 2, nothing downloaded"
+  },
+  "license_surfacing": {
+   "registry_field": true,
+   "printed_by": [
+    "models pull",
+    "models ls --json",
+    "doctor --json"
+   ],
+   "value": "apache-2.0 (from the HF model card)"
+  },
   "credits": "README.md -> Credits and attribution (llama.cpp MIT, TypeSafe docs, parallel-decisions/openjev, RLCD, Spark)"
  },
-
  "measurement_commands": [
   "uv run ggufone init --dry-run --json",
   "PATH=<poisoned-bin> GGUFONE_OFFLINE_CACHE=<dir> uv run ggufone init   # 1093 ms, 0 compiler shims hit",
@@ -175,92 +273,427 @@
   "python3 tools/measure_kv_footprint.py --json <out>",
   "uv run pytest -q ; uv run pytest -q --run-network"
  ],
-
  "e1a_fix_t_eae35404": {
   "what": "probes fully injectable (HostProbes / current_host() / fake_host()) and a recorded cuda -> vulkan -> cpu fallback; host gate prepared as tools/host_gate_e1a.sh + tools/host_gate_summary.py",
-  "commits": ["f3ae67d", "6ef79d2"],
+  "commits": [
+   "f3ae67d",
+   "6ef79d2"
+  ],
   "why": "the E1a detection layer read the real host behind injected probes: on the operator's RTX 3060 Ti host host_variant('auto', linux, x86_64) answered linux-x64-cuda-12.8 where the test expects linux-x64-cpu (7 failures there, green in this GPU-less sandbox)",
-
   "sandbox_host_simulated": {
    "vehicle": "container (podman) in the same sandbox class as the E1a run: no /dev/dri, no /dev/nvidia*, no GPU. The GPU world is simulated by putting a fake `nvidia-smi` first on PATH — the exact host fact detection reads (shutil.which) — and the CUDA dlopen failure below is REAL (measured on the pinned b11026 asset), not simulated.",
    "suite": {
-    "cpu_world": {"cmd": "uv run pytest -q", "exit": 0, "result": "283 passed, 11 skipped", "elapsed_s": 2.0},
-    "gpu_world": {"cmd": "PATH=<fake-bin> uv run pytest -q", "exit": 0, "result": "283 passed, 11 skipped", "elapsed_s": 3.4},
-    "gpu_world_runtime_installed": {"cmd": "HOME=<gate home> uv run pytest -q", "exit": 0, "result": "284 passed, 10 skipped (oracle section B live)", "elapsed_s": 17},
-    "gpu_world_run_network": {"cmd": "HOME=<gate home> uv run pytest -q --run-network", "exit": 0, "result": "293 passed, 1 skipped (pinned Qwen3.5 GGUF absent)", "elapsed_s": 28}
+    "cpu_world": {
+     "cmd": "uv run pytest -q",
+     "exit": 0,
+     "result": "283 passed, 11 skipped",
+     "elapsed_s": 2.0
+    },
+    "gpu_world": {
+     "cmd": "PATH=<fake-bin> uv run pytest -q",
+     "exit": 0,
+     "result": "283 passed, 11 skipped",
+     "elapsed_s": 3.4
+    },
+    "gpu_world_runtime_installed": {
+     "cmd": "HOME=<gate home> uv run pytest -q",
+     "exit": 0,
+     "result": "284 passed, 10 skipped (oracle section B live)",
+     "elapsed_s": 17
+    },
+    "gpu_world_run_network": {
+     "cmd": "HOME=<gate home> uv run pytest -q --run-network",
+     "exit": 0,
+     "result": "293 passed, 1 skipped (pinned Qwen3.5 GGUF absent)",
+     "elapsed_s": 28
+    }
    },
    "gate_script": {
     "cmd": "bash tools/host_gate_e1a.sh /work/e1a/logs/gate-final",
     "script_exit": 0,
     "raw_summary": "docs/evidence/host_gate_sandbox_rehearsal.json (is_host_run: false — the sandbox rehearsal of the exact host command, 9 steps with exit codes, timings and output tails)",
     "steps": {
-     "pytest_before": {"exit": 0, "elapsed_s": 21, "result": "284 passed, 10 skipped"},
-     "init_dry_run": {"exit": 0, "elapsed_s": 1, "result": "backend=cuda variant=linux-x64-cuda-12.8 size=168811114"},
-     "init": {"exit": 0, "elapsed_s": 2, "result": "variant=linux-x64-vulkan (already_installed; CUDA tier rejected and recorded in fallback_attempts); a fresh-home run installed it from a real 30 294 625 B download"},
-     "doctor": {"exit": 2, "elapsed_s": 0, "result": "status=warnings; backends: cpu, rpc, vulkan (driveable here: vulkan); symbols 34/34; build b11026"},
-     "version": {"exit": 0, "elapsed_s": 0},
-     "pytest_after": {"exit": 0, "elapsed_s": 17, "result": "284 passed, 10 skipped"},
-     "oracle": {"exit": 0, "elapsed_s": 5, "result": "failures: 0, skips: 1 (section D = E1b), section B skips: 0"},
-     "pytest_network": {"exit": 0, "elapsed_s": 28, "result": "293 passed, 1 skipped"},
-     "init_poisoned_path": {"exit": 0, "elapsed_s": 3, "budget_s": 180, "compiler_shims_invoked": 0}
+     "pytest_before": {
+      "exit": 0,
+      "elapsed_s": 21,
+      "result": "284 passed, 10 skipped"
+     },
+     "init_dry_run": {
+      "exit": 0,
+      "elapsed_s": 1,
+      "result": "backend=cuda variant=linux-x64-cuda-12.8 size=168811114"
+     },
+     "init": {
+      "exit": 0,
+      "elapsed_s": 2,
+      "result": "variant=linux-x64-vulkan (already_installed; CUDA tier rejected and recorded in fallback_attempts); a fresh-home run installed it from a real 30 294 625 B download"
+     },
+     "doctor": {
+      "exit": 2,
+      "elapsed_s": 0,
+      "result": "status=warnings; backends: cpu, rpc, vulkan (driveable here: vulkan); symbols 34/34; build b11026"
+     },
+     "version": {
+      "exit": 0,
+      "elapsed_s": 0
+     },
+     "pytest_after": {
+      "exit": 0,
+      "elapsed_s": 17,
+      "result": "284 passed, 10 skipped"
+     },
+     "oracle": {
+      "exit": 0,
+      "elapsed_s": 5,
+      "result": "failures: 0, skips: 1 (section D = E1b), section B skips: 0"
+     },
+     "pytest_network": {
+      "exit": 0,
+      "elapsed_s": 28,
+      "result": "293 passed, 1 skipped"
+     },
+     "init_poisoned_path": {
+      "exit": 0,
+      "elapsed_s": 3,
+      "budget_s": 180,
+      "compiler_shims_invoked": 0
+     }
     }
    },
    "fallback_evidence": {
-    "from_init_json": {"backend_requested": "cuda", "backend_working": "vulkan", "variant": "linux-x64-vulkan", "build": 11026, "symbols_ok": true, "backends": ["cpu", "rpc", "vulkan"]},
+    "from_init_json": {
+     "backend_requested": "cuda",
+     "backend_working": "vulkan",
+     "variant": "linux-x64-vulkan",
+     "build": 11026,
+     "symbols_ok": true,
+     "backends": [
+      "cpu",
+      "rpc",
+      "vulkan"
+     ]
+    },
     "fallback_reason": "cuda does not load on this host (libggml-cuda.so: libcudart.so.12: cannot open shared object file: No such file or directory)",
-    "from_runtime_json": {"asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz", "asset_sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708", "bytes_fetched": 30294625, "library_names": ["libllama.so", "libggml.so", "libggml-base.so"]},
-    "doctor_runtime": {"dir": "<data home>/runtime/b11026-linux-x64-vulkan", "working_backend": "vulkan", "build": 11026, "symbols_probed": true, "symbols_missing": []},
-    "ldd_of_the_cuda_backend": ["libcudart.so.12 => not found", "libcublas.so.12 => not found", "libcuda.so.1 => not found"]
+    "from_runtime_json": {
+     "asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz",
+     "asset_sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708",
+     "bytes_fetched": 30294625,
+     "library_names": [
+      "libllama.so",
+      "libggml.so",
+      "libggml-base.so"
+     ]
+    },
+    "doctor_runtime": {
+     "dir": "<data home>/runtime/b11026-linux-x64-vulkan",
+     "working_backend": "vulkan",
+     "build": 11026,
+     "symbols_probed": true,
+     "symbols_missing": []
+    },
+    "ldd_of_the_cuda_backend": [
+     "libcudart.so.12 => not found",
+     "libcublas.so.12 => not found",
+     "libcuda.so.1 => not found"
+    ]
    },
    "assets_on_disk_sha256": {
-    "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz": {"sha256": "5b2d30d7a5e448fbe0aceda360c8f9ed2949aa1734e94db078e6d0b722521e2b", "size": 168811114, "size_matches_pin": true, "sha256_pin": null},
-    "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz": {"sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708", "size": 30294625, "size_matches_pin": true, "sha256_pin": null},
-    "Spark-X2.5-4B-Q8_0.gguf": {"sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2", "size": 4375021152, "sha256_equals_hf_lfs_oid": true}
+    "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz": {
+     "sha256": "5b2d30d7a5e448fbe0aceda360c8f9ed2949aa1734e94db078e6d0b722521e2b",
+     "size": 168811114,
+     "size_matches_pin": true,
+     "sha256_pin": null
+    },
+    "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz": {
+     "sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708",
+     "size": 30294625,
+     "size_matches_pin": true,
+     "sha256_pin": null
+    },
+    "Spark-X2.5-4B-Q8_0.gguf": {
+     "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+     "size": 4375021152,
+     "sha256_equals_hf_lfs_oid": true
+    }
    },
    "caveat": "A backend *loading* is what E1a can prove here; that a GPU is present and drives it is E1b's context init. Device enumeration, Vulkan shader warm-up and CUDA kernels stay unverified in this sandbox."
   },
-
   "coverage": {
    "tool": "uv run --with pytest-cov pytest -q --cov=src/ggufone",
    "total": "88% (1926 statements, 235 missed)",
-   "changed_modules": {"runtime/pins.py": "97%", "runtime/capability.py": "90%",
-                       "runtime/install.py": "78%", "runtime/finder.py": "96%", "cli.py": "91%"},
+   "changed_modules": {
+    "runtime/pins.py": "97%",
+    "runtime/capability.py": "90%",
+    "runtime/install.py": "78%",
+    "runtime/finder.py": "96%",
+    "cli.py": "91%"
+   },
    "uncovered_paths": "install.py's real warmup()/ctypes call path (live-only) plus one staging-cleanup branch; capability.py's ctypes symbol paths (live-only) — same class as the E1a baseline"
   },
-
   "mutation_fix": {
    "tool": "mutmut 3.8, one scoped run (Tier M, soft threshold — recorded, not looped on)",
    "cmd": "uv run --extra dev --with mutmut mutmut run 'ggufone.runtime.pins*' 'ggufone.runtime.capability*' 'ggufone.runtime.install*' 'ggufone.runtime.finder*' 'ggufone.cli*'",
-   "selection": ["tests/test_pins.py", "tests/test_runtime_fallback.py",
-                 "tests/test_runtime_install.py", "tests/test_cli_e1a.py",
-                 "tests/test_cli_doctor_branches.py"],
-   "killed": 2405, "survived": 1759, "no_tests": 136, "timeout": 3,
+   "selection": [
+    "tests/test_pins.py",
+    "tests/test_runtime_fallback.py",
+    "tests/test_runtime_install.py",
+    "tests/test_cli_e1a.py",
+    "tests/test_cli_doctor_branches.py"
+   ],
+   "killed": 2405,
+   "survived": 1759,
+   "no_tests": 136,
+   "timeout": 3,
    "not_checked_outside_the_filter": 1803,
    "score_percent": 57.7,
    "survivor_classes": {
     "message-string or equivalent": "the bulk (ProbeResult.failures/_unusable_reason text, find_runtime prose, install() docstrings, kwargs masked by an explicit probes=)",
     "critical path": "none — no survivor can accept an unloadable backend, install a rejected variant, skip a SHA-256 check or break extract-then-move",
-    "real gaps closed right after the run": ["load_backend_library dropping RTLD_GLOBAL (now pinned by a CDLL spy test)",
-                                             "ProbeResult.accelerator() handling of the (cpu, rpc, base) tuple (now pinned directly)"]
+    "real gaps closed right after the run": [
+     "load_backend_library dropping RTLD_GLOBAL (now pinned by a CDLL spy test)",
+     "ProbeResult.accelerator() handling of the (cpu, rpc, base) tuple (now pinned directly)"
+    ]
    },
    "note": "not comparable to the E1a baseline's 72.7% (that scope was errors/gguf/recommend/store/pins); cli.py alone (print-heavy, never mutation-tuned) contributes ~800 survivors"
   },
-
   "host": {
-   "status": "PENDING — operator run required (no GPU in the worker sandbox: /dev/dri absent, no /dev/nvidia*, nvidia-smi absent)",
+   "status": "PENDING — operator re-run required (this sandbox still has no GPU: /dev/dri absent, no /dev/nvidia*, no nvidia-smi, no libcudart/libcublas/libcuda)",
+   "why": "round 1's host run: 10/11 steps green but `init.exit 134` — SIGABRT (`double free or corruption (!prev)`) *after* init printed its JSON, reproducibly, also on the idempotent re-run. Round 2 removed every dlopen of a bundle from the command process (deep probe + warm-up run in a disposable child), so the expected init.exit is 0.",
    "cmd": "bash tools/host_gate_e1a.sh        # writes raw logs + host_gate_e1a.json into $HOME/.ggufone-host-gate-<utc>",
    "then": "python3 tools/host_gate_summary.py <that log dir>   # prints the summary block to paste here",
    "expected_shape": {
-    "pytest_before": "0 - the offline suite must be green on the GPU host (this is the regression the card is about)",
-    "init_dry_run": "backend=cuda variant=linux-x64-cuda-12.8 (nvidia-smi present)",
-    "init": "variant depends on whether libggml-cuda.so really dlopens here: linux-x64-cuda-12.8 (works) or linux-x64-vulkan + fallback_reason (cudart/driver missing)",
-    "doctor": "reports runtime.working_backend + backends from the real probe; exit 0 only if no warnings remain",
+    "pytest_before": "0 — the offline suite must be green on the GPU host (this is the regression the whole card is about)",
+    "init_dry_run": "backend=cuda variant=linux-x64-cuda-12.8 (nvidia-smi present) — the plan is a host fact; the download follows the pre-flight",
+    "init": "exit 0. variant=linux-x64-cuda-12.8 if this host can dlopen libcudart.so.12/libcublas.so.12, otherwise linux-x64-vulkan with fallback_reason = the pre-flight line and NO 168.8 MB download",
+    "doctor": "exit 2 (warnings: no model in the registry, fallback recorded) or 0 if a model is registered; runtime.accelerator must name the real reason when cuda is the expected-but-missing backend",
     "oracle": "exit 0 with section B skips: 0",
     "pytest_network": "0",
     "init_poisoned_path": "0 with compiler shims invoked: 0 and elapsed <= 180 s"
    },
+   "round_1_host_result": {
+    "recorded_by": "bots-coordinator on the operator's RTX 3060 Ti (log dir /home/rybens/.ggufone-host-gate-20260917T170441Z)",
+    "init_exit": 134,
+    "init_stderr": "double free or corruption (!prev)  (SIGABRT, after the JSON)",
+    "init_variant": "linux-x64-vulkan",
+    "doctor_exit": 2,
+    "oracle_exit": 0,
+    "oracle_section_b_skips": 0,
+    "pytest_before_exit": 0,
+    "pytest_after_exit": 0,
+    "pytest_network_exit": 0,
+    "poisoned_init_exit": 0,
+    "poison_shims_invoked": 0,
+    "findings": [
+     "the SIGABRT itself",
+     "vulkan asset had no pinned sha (asset_verified false)",
+     "init downloaded the 168.8 MB CUDA archive before falling back",
+     "init.fallback was null in the summary although the record carried the reason",
+     "doctor suggested `init --backend cuda` although libcudart is missing"
+    ]
+   },
    "recorded_at": null,
    "recorded_by": null
+  },
+  "crash_fix_round_2": {
+   "what": "round 2 of the E1a FIX: the host SIGABRT (init exit 134 after printing its JSON) + the four secondary findings from the coordinator's host run",
+   "why": "on the operator's RTX 3060 Ti host `uv run ggufone init --json` printed its JSON and then died with `double free or corruption (!prev)` (SIGABRT), reproducibly, including on the idempotent re-run. The process had dlopened the CUDA bundle it rejected, deleted that directory while those copies stayed mapped, dlopened the vulkan bundle on top of a live driver, and then ran third-party destructors at exit. `doctor` (one directory, the same libraries) exits clean there — the fallback chain is the difference.",
+   "fix": {
+    "rule": "one bundle per process: no ggufone command dlopens a bundle any more",
+    "modules": {
+     "src/ggufone/runtime/probe_child.py": "the disposable child (modes probe|warmup|libs; one JSON request on stdin, one JSON object on stdout; exit 0 == the answer is data, including 'this bundle is broken')",
+     "src/ggufone/runtime/isolated.py": "the client: child_command(), run_child() (crash/hang/garbage -> ChildFailure with exit code + stderr tail), scan_bundle(), warmup_in_child(), system_libs()",
+     "src/ggufone/runtime/capability.py": "DEFAULT_SCAN = isolated.scan_bundle is the seam probe_runtime uses; scan_in_process is the very code the child runs; load_system_lib() added for the pre-flight",
+     "src/ggufone/runtime/install.py": "DEFAULT_WARMUP = isolated.warmup_in_child; PREFLIGHT_SYSTEM_LIBS = isolated.system_libs; the chain pre-flights GPU tiers before unpacking",
+     "tests/conftest.py": "the in_process_scan fixture: tests that patch the dlopen seams now say so explicitly"
+    }
+   },
+   "isolation_measured": {
+    "cmd": "uv run python /work/e1a/live_isolation_check.py   # real pinned bundles; probe -> delete -> probe",
+    "output_tail": [
+     "[vulkan] symbols_checked=True error=None backends=('cpu', 'rpc', 'vulkan') accelerator=vulkan",
+     "mapped after the probe: <none>",
+     "[cuda] backend_errors={'cuda': 'libggml-cuda.so: libcudart.so.12: cannot open shared object file: No such file or directory'}",
+     "deleted: /work/e1a/live-isolation/b11026-linux-x64-cuda-12.8",
+     "[vulkan-copy] accelerator=vulkan",
+     "mapped after probe -> delete -> probe: <none>",
+     "OK: no bundle is mapped in this process; the probes still answered"
+    ],
+    "exit": 0,
+    "note": "the sequence that aborted on the host leaves this process with no libggml/libllama mapped, while the probe answers exactly what it answered before"
+   },
+   "findings_taken": {
+    "1_vulkan_asset_not_pinned": "runtime.lock now pins linux-x64-vulkan (1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708, observed on the host by the coordinator and in the sandbox) and linux-x64-cuda-12.8 (5b2d30d7a5e448fbe0aceda360c8f9ed2949aa1734e94db078e6d0b722521e2b, observed locally). Gate init JSON: asset_verified true (measured).",
+    "2_168MB_downloaded_before_falling_back": "runtime.lock -> system_libs (cuda-12.8: libcudart.so.12/libcublas.so.12/libcuda.so.1; vulkan: libvulkan.so.1), dlopen-checked in a child before the download. Gate: only the 30 294 625 B vulkan archive was downloaded; the reason is recorded verbatim. --backend X deliberately skips the pre-flight.",
+    "3_init_fallback_null_in_the_summary": "the already_installed return carries fallback_reason (this run's attempts, else the record), the CLI prints it, tools/host_gate_summary.py falls back to record.fallback_reason. Gate summary: init.fallback = the pre-flight reason (non-null, measured).",
+    "4_doctor_suggested_a_retry_that_cannot_work": "when the install record names the reason for the expected backend, runtime.accelerator repeats it ('… : pre-flight: … libcudart.so.12 … install the cuda runtime it needs and re-run `ggufone init`, or keep vulkan (driveable here)'); the retry hint survives for a bundle that simply carries no such backend."
+   },
+   "tests_added": {
+    "file": "tests/test_probe_isolation.py",
+    "count": 23,
+    "highlights": [
+     "test_deep_probe_does_not_dlopen_anything_in_this_process — the in-process seams raise if touched",
+     "test_a_probe_child_that_crashes_is_recorded_not_swallowed / …_hangs_times_out / garbage — a dead probe is data: every accelerator becomes unusable and the chain can fall through",
+     "test_preflight_skips_the_cuda_download_when_the_host_cannot_load_cudart — the archive is not in <home>/downloads and the reason is recorded",
+     "test_a_dead_preflight_child_fails_closed — an unrunnable pre-flight skips the tier instead of guessing",
+     "test_cli_init_on_an_installed_runtime_prints_the_fallback_reason + test_host_gate_summary_reads_the_fallback_from_the_record — finding 3 end to end",
+     "test_doctor_names_the_missing_runtime_instead_of_a_retry / …_keeps_the_retry_hint… — finding 4 both ways"
+    ],
+    "live_test": "tests/test_runtime_live.py::test_the_command_process_maps_no_bundle_after_a_deep_probe (marked model, runs under --run-network): deep-probes the real installed bundle, then asserts /proc/self/maps has no libggml/libllama"
+   },
+   "suite": {
+    "cpu_world": {
+     "cmd": "uv run pytest -q",
+     "exit": 0,
+     "result": "307 passed, 12 skipped",
+     "elapsed_s": 3.6
+    },
+    "gpu_world": {
+     "cmd": "PATH=<fake nvidia-smi> uv run pytest -q",
+     "exit": 0,
+     "result": "307 passed, 12 skipped",
+     "elapsed_s": 3.7
+    },
+    "gpu_world_runtime_installed": {
+     "cmd": "HOME=<gate home> uv run pytest -q",
+     "exit": 0,
+     "result": "308 passed, 11 skipped (oracle section B live, incl. the /proc/self/maps test)",
+     "elapsed_s": 13.7
+    },
+    "gpu_world_run_network": {
+     "cmd": "HOME=<gate home> uv run pytest -q --run-network",
+     "exit": 0,
+     "result": "318 passed, 1 skipped (pinned Qwen3.5 GGUF absent)",
+     "elapsed_s": 29.0
+    },
+    "static": {
+     "cmd": "uv run ruff check src tests tools docs",
+     "exit": 0
+    }
+   },
+   "gate_rehearsal_round_2": {
+    "cmd": "bash tools/host_gate_e1a.sh /work/e1a/fix5-logs   # fresh home, fake nvidia-smi, real downloads, model symlinked for the oracle",
+    "script_exit": 0,
+    "raw_summary": "docs/evidence/host_gate_sandbox_rehearsal_round2.json",
+    "steps": {
+     "pytest_before": {
+      "exit": 0,
+      "elapsed_s": 10,
+      "result": "307 passed, 12 skipped"
+     },
+     "init_dry_run": {
+      "exit": 0,
+      "elapsed_s": 0,
+      "result": "backend=cuda variant=linux-x64-cuda-12.8 size=168811114 sha256=5b2d30d7… (the plan is a host fact; the download follows the pre-flight)"
+     },
+     "init": {
+      "exit": 0,
+      "elapsed_s": 2,
+      "result": "variant=linux-x64-vulkan, bytes_fetched=30294625, asset_verified=true, fallback_reason=pre-flight (the 168.81 MB CUDA archive was never downloaded)"
+     },
+     "doctor": {
+      "exit": 2,
+      "elapsed_s": 0,
+      "result": "status=warnings; 34/34 symbols; build b11026; backends cpu, rpc, vulkan (driveable here: vulkan)"
+     },
+     "version": {
+      "exit": 0,
+      "elapsed_s": 0
+     },
+     "pytest_after": {
+      "exit": 0,
+      "elapsed_s": 17,
+      "result": "308 passed, 11 skipped"
+     },
+     "oracle": {
+      "exit": 0,
+      "elapsed_s": 4,
+      "result": "failures: 0, section B skips: 0 (live)"
+     },
+     "pytest_network": {
+      "exit": 0,
+      "elapsed_s": 30,
+      "result": "318 passed, 1 skipped"
+     },
+     "init_poisoned_path": {
+      "exit": 0,
+      "elapsed_s": 0,
+      "budget_s": 180,
+      "compiler_shims_invoked": 0
+     }
+    },
+    "who_this_proves": "10/10 steps green in the GPU-simulated world, including init.exit == 0 — the step that aborted with SIGABRT on the host before this round"
+   }
+  },
+  "coverage_round_2": {
+   "tool": "uv run --with pytest-cov pytest -q --cov=ggufone",
+   "total": "88% (2092 statements, 249 missed)",
+   "changed_modules": {
+    "runtime/isolated.py": "86% (new; the uncovered lines are warmup_in_child's error paths, which run in the child process)",
+    "runtime/probe_child.py": "82% (new; main()/handle() dispatch and the unknown-mode SystemExit run only in a child, the modes themselves are unit-tested in-process)",
+    "runtime/capability.py": "90%",
+    "runtime/install.py": "82%",
+    "runtime/pins.py": "97%",
+    "cli.py": "91%"
+   },
+   "uncovered_paths": "as before: install.py's real warmup()/ctypes call path and the staging-cleanup branches, capability.py's live-only ctypes symbol paths, plus the child-only lines above (a child process is not traced by the parent's coverage run)"
+  },
+  "mutation_round_2": {
+   "tool": "mutmut 3.8, Tier M (soft threshold: score recorded, triage done, no return-loop)",
+   "cmd": "uv run --extra dev --with mutmut mutmut run 'ggufone.runtime.isolated*' 'ggufone.runtime.probe_child*' 'ggufone.runtime.capability*' 'ggufone.runtime.install*' 'ggufone.runtime.pins*'",
+   "selection": [
+    "tests/test_probe_isolation.py",
+    "tests/test_runtime_fallback.py",
+    "tests/test_runtime_install.py",
+    "tests/test_cli_doctor_branches.py",
+    "tests/test_capability.py",
+    "tests/test_cli_e1a.py",
+    "tests/test_pins.py"
+   ],
+   "scored_by_module": {
+    "runtime/isolated.py": {
+     "killed": 140,
+     "survived": 87,
+     "score_percent": 61.7
+    },
+    "runtime/probe_child.py": {
+     "killed": 54,
+     "survived": 34,
+     "score_percent": 61.4
+    },
+    "runtime/capability.py": {
+     "killed": 215,
+     "survived": 116,
+     "score_percent": 65.0
+    },
+    "runtime/install.py": {
+     "killed": 416,
+     "survived": 290,
+     "score_percent": 58.9
+    },
+    "runtime/pins.py": {
+     "killed": 295,
+     "survived": 49,
+     "score_percent": 85.8
+    }
+   },
+   "total_scored": {
+    "killed": 1120,
+    "survived": 576,
+    "score_percent": 66.0
+   },
+   "not_rerun_in_this_cache": {
+    "cli.py": "~2400 mutants: the run was stopped by the container's pid cap (see environment_caveat) and cli.py is print-heavy; round 1 scored it inside its 57.7% overall. Its round-2 additions (_recorded_backend_reason, the already_installed payload + warning) are covered by tests/test_probe_isolation.py::test_cli_init_on_an_installed_runtime_prints_the_fallback_reason and the two doctor-wording tests."
+   },
+   "survivor_classes": {
+    "message strings": "the bulk — every f-string in isolated.run_child/scan_bundle/system_libs, probe_child's mode wrappers, install's pre-flight prose. No assertion can see them and none of them changes a decision.",
+    "environment construction": "isolated.child_env's PYTHONPATH assembly (no test can distinguish a correct PYTHONPATH from a missing one, because pytest's own pythonpath already exports it)",
+    "critical path": "none found. The decision seams are covered by kills: child_error -> every accelerator unusable (test_a_probe_child_that_crashes…), exit 9/timeout/garbage -> ChildFailure (three tests), the pre-flight skip (two tests), the explicit-backend bypass (one test), the pins (test_runtime_lock_pins_the_gpu_assets_it_shipped).",
+    "gaps closed right after the run (same as round 1's practice, recorded not hidden)": [
+     "scan_bundle's backend_errors mapping was only exercised on a bundle whose symbol scan already failed -> added test_the_child_reports_symbols_and_backends_in_one_answer (real ABI libs + an unloadable backend)",
+     "system_libs' child-failure path (fail closed) had no test -> added test_a_dead_preflight_child_fails_closed"
+    ]
+   },
+   "environment_caveat": "this container shares a 256-pid cgroup with sibling cards; a sibling Stryker (node) run plus mutmut's 8 workers killed two full-scope runs mid-flight with `BlockingIOError: [Errno 11]` in os.fork() and a third needed max_children=2. The scores above are from the cache that survived; `not_checked` mutants are simply not part of the denominator (mutmut's exit_code_by_key)."
   }
  }
 }

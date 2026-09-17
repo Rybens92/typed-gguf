@@ -16,7 +16,7 @@ import pathlib
 import platform
 import shutil
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from ggufone.errors import RuntimeMissingError
@@ -65,6 +65,9 @@ class RuntimeLock:
     mandatory_call_order: tuple[str, ...]
     default_model: DefaultModel
     source_path: pathlib.Path
+    #: variant -> system sonames the pinned bundle links but does not ship. `init` pre-flights
+    #: them before downloading (E1a FIX finding 2): empty for a variant we have not verified.
+    system_libs: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
     @property
     def build(self) -> int:
@@ -109,6 +112,8 @@ def load_lock(path: pathlib.Path | None = None) -> RuntimeLock:
             repo=dm["repo"], repo_sha=dm["repo_sha"], quant=dm["quant"], file=dm["file"],
             size=int(dm["size"]), sha256=dm["sha256"], arch=dm["arch"],
             license=dm.get("license"), alternates=dict(dm.get("alternates", {})))
+        system_libs = {variant: tuple(names)
+                       for variant, names in (llama.get("system_libs") or {}).items()}
         return RuntimeLock(
             tag=llama["tag"], published_at=llama["published_at"], commit=llama["commit"],
             min_build_for_spark2_5=int(llama["min_build_for_spark2_5"]),
@@ -118,7 +123,7 @@ def load_lock(path: pathlib.Path | None = None) -> RuntimeLock:
             required_symbols_llama=tuple(llama["required_symbols_llama"]),
             required_symbols_ggml=tuple(llama["required_symbols_ggml"]),
             mandatory_call_order=tuple(llama["mandatory_call_order"]),
-            default_model=default_model, source_path=path)
+            default_model=default_model, source_path=path, system_libs=system_libs)
     except (KeyError, TypeError, ValueError) as exc:
         raise RuntimeMissingError(
             f"E_RUNTIME_MISSING: {path} is not a usable runtime lock "

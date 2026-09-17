@@ -20,10 +20,11 @@ import pathlib
 import platform
 import re
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from ggufone.errors import ModelArchUnsupportedError
-from ggufone.runtime import finder, pins
+from ggufone.runtime import finder, isolated, pins
 
 _BUILD_RE = re.compile(rb"build\s+b?(\d{2,7})")
 MIN_BUILD_ARCH = {"spark2_5": "spark2_5"}
@@ -149,12 +150,29 @@ def load_backend_library(path: str | os.PathLike[str] | pathlib.Path) -> str | N
     the CUDA runtime/driver, which is what makes `init` fall back cuda -> vulkan -> cpu and
     what makes `doctor` report the working backend (E1a FIX requirement 4). Real dlopen in
     production; tests inject this seam instead of shipping a loadable ELF per backend.
+
+    Runs inside the probe child, never in a command process (E1a FIX t_eae35404: dlopening a
+    bundle — and then a second one — in one process aborted at exit on the operator's host).
     """
     path = pathlib.Path(path)
     try:
         C.CDLL(str(path), mode=getattr(C, "RTLD_GLOBAL", 0))
     except OSError as exc:
         return f"{path.name}: {exc}"
+    return None
+
+
+def load_system_lib(name: str) -> str | None:
+    """Can this host load `name` at all? `None` when it can, else the loader's message.
+
+    The pre-flight (E1a FIX finding 2): the pinned CUDA bundle links libcudart/libcublas, so
+    `init` can answer "not on this host" without downloading 168.8 MB. Also third-party code
+    (the driver), so it too runs in the probe child.
+    """
+    try:
+        C.CDLL(name, mode=getattr(C, "RTLD_GLOBAL", 0))
+    except OSError as exc:
+        return str(exc)          # already reads "libcudart.so.12: cannot open shared object …"
     return None
 
 
@@ -265,9 +283,43 @@ def probe_symbols(runtime_dir: pathlib.Path, symbols_llama: tuple[str, ...],
     return missing_llama, missing_ggml, None
 
 
+def scan_in_process(runtime_dir: str | os.PathLike[str] | pathlib.Path, *,
+                    symbols_llama: tuple[str, ...] = (), symbols_ggml: tuple[str, ...] = (),
+                    system: str | None = None) -> isolated.ProbeScan:
+    """The deep probe itself: resolve the ABI and dlopen every backend — in THIS process.
+
+    Not called by any command: this is the implementation the probe child runs
+    (`ggufone.runtime.probe_child`), and what a test drives directly when it wants to inject a
+    dlopen seam. `DEFAULT_SCAN` is the seam `probe_runtime` uses.
+    """
+    runtime_dir = pathlib.Path(runtime_dir)
+    missing_llama, missing_ggml, error = probe_symbols(
+        runtime_dir, tuple(symbols_llama), tuple(symbols_ggml), system=system)
+    backend_errors: dict[str, str] = {}
+    # Independent of the symbol scan: each accelerator backend has to dlopen *on this host*
+    # or `init` falls back to the next tier (E1a FIX requirement 4). A CUDA build fails here
+    # with `libcudart.so.12: cannot open shared object file` when the runtime/driver is absent.
+    for path in sorted(runtime_dir.glob(finder.library_glob(system))):
+        name = _backend_name(path.name)
+        if name in (None, "cpu"):
+            continue
+        load_error = load_backend_library(path)
+        if load_error:
+            backend_errors[name] = load_error
+    return isolated.ProbeScan(missing_llama=tuple(missing_llama), missing_ggml=tuple(missing_ggml),
+                              error=error, backend_errors=backend_errors)
+
+
+#: How `probe_runtime(deep=True)` gets its answer: a disposable child per bundle, by default
+#: (`ggufone.runtime.isolated`). Tests that inject the dlopen seams below swap it for
+#: `scan_in_process`, which is exactly what the child runs.
+DEFAULT_SCAN = isolated.scan_bundle
+
+
 def probe_runtime(runtime_dir: str | os.PathLike[str] | None = None, *, deep: bool = True,
                   lock: pins.RuntimeLock | None = None, expect_backend: str | None = None,
-                  run_tools: bool = True, system: str | None = None) -> ProbeResult:
+                  run_tools: bool = True, system: str | None = None,
+                  scan: Callable[..., isolated.ProbeScan] | None = None) -> ProbeResult:
     lock = lock or pins.load_lock()
     result = ProbeResult(deep=deep, expected_tag=lock.tag,
                          min_build=lock.min_build_for_spark2_5, expect_backend=expect_backend)
@@ -298,21 +350,19 @@ def probe_runtime(runtime_dir: str | os.PathLike[str] | None = None, *, deep: bo
                         f"(missing {', '.join(missing)})")
     elif deep:
         result.symbols_checked = True
-        missing_llama, missing_ggml, error = probe_symbols(
-            rt, lock.required_symbols_llama, lock.required_symbols_ggml, system=system)
-        result.missing_symbols = tuple(missing_llama + missing_ggml)
-        result.error = error
-    if deep and not missing:
-        # Independent of the symbol scan: each accelerator backend has to dlopen *on this host*
-        # or `init` falls back to the next tier (E1a FIX requirement 4). A CUDA build fails here
-        # with `libcudart.so.12: cannot open shared object file` when the runtime/driver is absent.
-        for path in sorted(rt.glob(finder.library_glob(system))):
-            name = _backend_name(path.name)
-            if name in (None, "cpu"):
-                continue
-            backend_error = load_backend_library(path)
-            if backend_error:
-                result.backend_errors[name] = backend_error
+        found = (scan or DEFAULT_SCAN)(rt, symbols_llama=lock.required_symbols_llama,
+                                       symbols_ggml=lock.required_symbols_ggml, system=system)
+        result.missing_symbols = tuple(found.missing_llama + found.missing_ggml)
+        result.error = found.error
+        result.backend_errors.update(found.backend_errors)
+        if found.child_error:
+            # The probe never ran: nothing was verified. Record what the child said and treat
+            # every accelerator as unusable, so the fallback chain can still pick a tier that
+            # does load here instead of installing something nobody could check (req. 4).
+            result.error = result.error or f"E_RUNTIME_SYMBOLS: {found.child_error}"
+            for name in result.backends:
+                if name != "cpu":
+                    result.backend_errors.setdefault(name, found.child_error)
     if run_tools:
         fit = rt / "llama-fit-params"
         if "llama-fit-params" in layout.tools:

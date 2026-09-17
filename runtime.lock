@@ -10,8 +10,8 @@
   "min_build_for_spark2_5": 10828,
   "assets": {
    "linux-x64-cpu": {"asset": "llama-b11026-bin-ubuntu-x64.tar.gz", "size": 16855810, "sha256": "219cf1c726bae1da4289b96a6378314d5485c6bc74c43891a4203e30906afb06", "verified_locally": true},
-   "linux-x64-vulkan": {"asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz", "size": 30294625, "sha256": null},
-   "linux-x64-cuda-12.8": {"asset": "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz", "size": 168811114, "sha256": null},
+   "linux-x64-vulkan": {"asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz", "size": 30294625, "sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708", "verified_locally": true},
+   "linux-x64-cuda-12.8": {"asset": "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz", "size": 168811114, "sha256": "5b2d30d7a5e448fbe0aceda360c8f9ed2949aa1734e94db078e6d0b722521e2b", "verified_locally": true},
    "linux-x64-cuda-13.3": {"asset": "llama-b11026-bin-ubuntu-cuda-13.3-x64.tar.gz", "size": 149113548, "sha256": null},
    "windows-x64-cpu": {"asset": "llama-b11026-bin-win-cpu-x64.zip", "size": 18439911, "sha256": null},
    "windows-x64-vulkan": {"asset": "llama-b11026-bin-win-vulkan-x64.zip", "size": 31766385, "sha256": null},
@@ -20,6 +20,10 @@
    "macos-x64-metal": {"asset": "llama-b11026-bin-macos-x64.tar.gz", "size": 11204942, "sha256": null}
   },
   "url_template": "https://github.com/ggml-org/llama.cpp/releases/download/{tag}/{asset}",
+  "system_libs": {
+   "linux-x64-cuda-12.8": ["libcudart.so.12", "libcublas.so.12", "libcuda.so.1"],
+   "linux-x64-vulkan": ["libvulkan.so.1"]
+  },
   "required_files": ["libllama.so", "libggml.so", "libggml-base.so"],
   "required_tools": ["llama-fit-params", "llama-tokenize"],
   "required_symbols_llama": [
@@ -58,5 +62,5 @@
  },
  "oracle": "docs/verify_runtime_contract.py",
  "evidence": "docs/evidence/",
- "note": "sha256 values not yet computed (null) are downloaded-and-hashed by ggufone init on first use and written into the local runtime.json; the oracle fails if a *pinned* value drifts."
+ "note": "sha256 values not yet computed (null) are downloaded-and-hashed by ggufone init on first use and written into the local runtime.json; the oracle fails if a *pinned* value drifts. The linux-x64-vulkan and linux-x64-cuda-12.8 pins were observed on two machines (container and the operator's GPU host, E1a FIX t_eae35404) on the same immutable release asset. `system_libs` lists the sonames a variant links but does not ship: `init` pre-flights them so a host without them never downloads the bundle (E1a FIX finding 2); a variant absent from the map is not pre-flighted."
 }

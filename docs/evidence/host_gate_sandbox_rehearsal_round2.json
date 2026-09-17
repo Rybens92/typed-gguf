@@ -1,0 +1,194 @@
+{
+ "schema": "ggufone.evidence.e1a.host_gate/v1",
+ "log_dir": "/work/e1a/fix5-logs",
+ "host_facts": "# host facts\ndate_utc: 2026-09-17T18:05:39Z\nuname: Linux 81d0085e1344 7.2.4-ogc3.1.fc44.x86_64 #1 SMP PREEMPT_DYNAMIC Sun Sep 13 01:41:06 UTC 2026 x86_64 GNU/Linux\ngit_head: e008d69ef571a5ebcc3e151b5d770824cb1a941c  M pyproject.toml\n M runtime.lock\n M src/ggufone/cli.py\npython: Python 3.11.15  uv: uv 0.12.0 (x86_64-unknown-linux-gnu)\nfreedisk_home_bytes: 597761105920\nnvidia_smi_which: /work/e1a/fakebin/nvidia-smi\nnvidia_smi_L:\n  NVIDIA-SMI 580.00  Driver Version: 580.00  CUDA Version: 13.0\n  GPU 0: NVIDIA GeForce RTX 3060 Ti (UUID: GPU-fake)\ndri_nodes:\n  ls: cannot access '/dev/dri': No such file or directory\nvulkan_icd:\n  gfxstream_vk_icd.json\n  intel_hasvk_icd.json\n  intel_icd.json\n  lvp_icd.json\n  nouveau_icd.json\n  radeon_icd.json\n  virtio_icd.json\ncudart_in_ldconfig:\n    <none>\nggufone_home: /work/e1a/fix5-home/.local/share/ggufone\n",
+ "steps": {
+  "pytest_before": {
+   "cmd": "uv run pytest -q",
+   "exit": 0,
+   "elapsed_s": 10,
+   "meaning": "0 = offline suite green on this host",
+   "stdout_tail": "........................................................................ [ 22%]\n............................................ss.......................sss [ 45%]\ns....................................................................... [ 67%]\n......................................s...............................ss [ 90%]\nsss............................                                          [100%]\n307 passed, 12 skipped in 9.04s\n"
+  },
+  "init_dry_run": {
+   "cmd": "uv run ggufone init --dry-run --json",
+   "exit": 0,
+   "elapsed_s": 0,
+   "meaning": "0 = plan only, nothing written",
+   "stdout_tail": "{\n  \"dry_run\": true,\n  \"rung\": \"prebuilt\",\n  \"backend\": \"cuda\",\n  \"variant\": \"linux-x64-cuda-12.8\",\n  \"asset\": \"llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz\",\n  \"url\": \"https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz\",\n  \"size\": 168811114,\n  \"size_human\": \"168.81 MB\",\n  \"sha256\": \"5b2d30d7a5e448fbe0aceda360c8f9ed2949aa1734e94db078e6d0b722521e2b\",\n  \"destination\": \"/work/e1a/fix5-home/.local/share/ggufone/runtime/b11026-linux-x64-cuda-12.8\",\n  \"required_bytes\": 506433342,\n  \"cached\": null,\n  \"host\": {\n    \"system\": \"linux\",\n    \"machine\": \"x86_64\",\n    \"has_nvidia_smi\": true,\n    \"dri_nodes\": [],\n    \"icd_dir\": \"/usr/share/vulkan/icd.d\",\n    \"backend\": \"cuda\"\n  }\n}\n"
+  },
+  "init": {
+   "cmd": "uv run ggufone init --json",
+   "exit": 0,
+   "elapsed_s": 2,
+   "meaning": "0 = installed (see variant/fallback below)",
+   "stdout_tail": "king_backend\": \"vulkan\",\n  \"source\": \"url\",\n  \"asset\": \"llama-b11026-bin-ubuntu-vulkan-x64.tar.gz\",\n  \"asset_sha256\": \"1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708\",\n  \"asset_verified\": true,\n  \"libllama_sha256\": \"8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975\",\n  \"bytes_fetched\": 30294625,\n  \"resumed_from\": 0,\n  \"build\": 11026,\n  \"backends\": [\n    \"cpu\",\n    \"rpc\",\n    \"vulkan\"\n  ],\n  \"backend_errors\": {},\n  \"fallback_attempts\": [\n    {\n      \"backend\": \"cuda\",\n      \"variant\": \"linux-x64-cuda-12.8\",\n      \"reason\": \"pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier\"\n    }\n  ],\n  \"fallback_reason\": \"pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier\",\n  \"symbols_ok\": true,\n  \"warmup_ms\": null,\n  \"rung\": \"prebuilt\"\n}\n",
+   "stderr_tail": "warning: fell back from cuda to linux-x64-vulkan: pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier\nwarning: expected accelerator 'cuda' is not in the bundle (backends: cpu, rpc, vulkan)\nwarning: W_VULKAN_WARMUP: the first Vulkan decode pays the shader compilation (23-30 s measured); `ggufone init`/`serve` warm up before serving\n"
+  },
+  "doctor": {
+   "cmd": "uv run ggufone doctor --json",
+   "exit": 2,
+   "elapsed_s": 0,
+   "meaning": "0 ok / 2 warnings / 1 failures",
+   "stdout_tail": ": \"linux-x64-vulkan\",\n    \"build\": 11026,\n    \"backends\": [\n      \"cpu\",\n      \"rpc\",\n      \"vulkan\"\n    ],\n    \"working_backend\": \"vulkan\",\n    \"backend_errors\": {},\n    \"backend_requested\": \"cuda\",\n    \"fallback_reason\": \"pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier\",\n    \"fallback_attempts\": [\n      {\n        \"backend\": \"cuda\",\n        \"reason\": \"pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier\",\n        \"variant\": \"linux-x64-cuda-12.8\"\n      }\n    ],\n    \"symbols_required\": 34,\n    \"symbols_missing\": [],\n    \"symbols_probed\": true,\n    \"fit_params_help_exit\": 0,\n    \"libllama_sha256\": \"8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975\",\n    \"warmup_ms\": null\n  },\n  \"model\": {\n    \"alias\": null\n  },\n  \"expected_backend\": \"cuda\"\n}\n"
+  },
+  "version": {
+   "cmd": "uv run ggufone version --json",
+   "exit": 0,
+   "elapsed_s": 0,
+   "meaning": "0 = record read back",
+   "stdout_tail": "{\n  \"name\": \"ggufone\",\n  \"version\": \"0.1.0\",\n  \"python\": \"3.11.15\",\n  \"lock\": {\n    \"tag\": \"b11026\",\n    \"min_build_for_spark2_5\": 10828\n  },\n  \"runtime\": {\n    \"installed\": true,\n    \"dir\": \"/work/e1a/fix5-home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan\",\n    \"variant\": \"linux-x64-vulkan\",\n    \"build\": 11026,\n    \"backends\": [\n      \"cpu\",\n      \"rpc\",\n      \"vulkan\"\n    ]\n  },\n  \"home\": \"/work/e1a/fix5-home/.local/share/ggufone\"\n}\n"
+  },
+  "pytest_after": {
+   "cmd": "uv run pytest -q",
+   "exit": 0,
+   "elapsed_s": 17,
+   "meaning": "0 = suite green with the runtime installed",
+   "stdout_tail": "........................................................................ [ 22%]\n............................................ss.......................sss [ 45%]\ns....................................................................... [ 67%]\n......................................................................ss [ 90%]\nsss............................                                          [100%]\n308 passed, 11 skipped in 16.67s\n"
+  },
+  "oracle": {
+   "cmd": "python3 docs/verify_runtime_contract.py",
+   "exit": 0,
+   "elapsed_s": 4,
+   "meaning": "0 = exit 0, no FAIL",
+   "stdout_tail": " model pin                    XHToken/Spark-X2.5-4B-GGUF:Q8_0 4375021152 B\n  llama-cli version                    version: 0.4.1-dev (build 11026, commit b49650adb)\n  softmax([2,1,0])                     0.665241, 0.244728, 0.090031\n  confidence choice/returns-ticket     0.4000 vs doc 0.39\n  confidence choice/return_reason      1.0000 vs doc 1.0\n  confidence choice/shipping_issue     0.5375 vs doc 0.53\n  confidence choice/requested_resolution 0.1600 vs doc 0.16\n  confidence choice/tone               0.8800 vs doc 0.88\n  confidence score/bug_severity        0.5500 vs doc 0.54\n  confidence score/spinner+examples    0.9100 vs doc 0.91\n  score = \u03a3 i\u00b7p_i                      1.30 / 1.06 / 0.0 reproduced\n  coverage(cands={0,1})                0.880797\n  candidate z (-1.0 x3, norm=1)        -1.0000\n  spark2_5 KV/token/seq (f16|q8_0)     147456 | 73728 B\n  recommend_quant 8GiB                 Spark-X2.5-4B-Q8_0.gguf kv=q8_0 total=7.33 GB\n  recommend_quant 8GiB small-ctx       Spark-X2.5-4B-Q8_0.gguf kv=f16 total=6.12 GB\n  recommend_quant huge ctx             None kv=None placement=insufficient\n  local Spark arch                     spark2_5 file_type=7 (MOSTLY_Q8_0)\n\nfailures: 0  skips: 1\n"
+  },
+  "pytest_network": {
+   "cmd": "uv run pytest -q --run-network",
+   "exit": 0,
+   "elapsed_s": 30,
+   "meaning": "0 = live tests green",
+   "stdout_tail": "........................................................................ [ 22%]\n.............................................s.......................... [ 45%]\n........................................................................ [ 67%]\n........................................................................ [ 90%]\n...............................                                          [100%]\n318 passed, 1 skipped in 29.26s\n"
+  },
+  "init_poisoned_path": {
+   "cmd": "PATH=<poisoned> uv run ggufone init --json",
+   "exit": 0,
+   "elapsed_s": 0,
+   "meaning": "0 = installed without a toolchain; <=180 s",
+   "stdout_tail": "nd\": \"vulkan\",\n  \"source\": \"offline-cache\",\n  \"asset\": \"llama-b11026-bin-ubuntu-vulkan-x64.tar.gz\",\n  \"asset_sha256\": \"1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708\",\n  \"asset_verified\": true,\n  \"libllama_sha256\": \"8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975\",\n  \"bytes_fetched\": 30294625,\n  \"resumed_from\": 0,\n  \"build\": 11026,\n  \"backends\": [\n    \"cpu\",\n    \"rpc\",\n    \"vulkan\"\n  ],\n  \"backend_errors\": {},\n  \"fallback_attempts\": [\n    {\n      \"backend\": \"cuda\",\n      \"variant\": \"linux-x64-cuda-12.8\",\n      \"reason\": \"pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier\"\n    }\n  ],\n  \"fallback_reason\": \"pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier\",\n  \"symbols_ok\": true,\n  \"warmup_ms\": null,\n  \"rung\": \"prebuilt\"\n}\n",
+   "stderr_tail": "warning: fell back from cuda to linux-x64-vulkan: pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier\nwarning: expected accelerator 'cuda' is not in the bundle (backends: cpu, rpc, vulkan)\nwarning: W_VULKAN_WARMUP: the first Vulkan decode pays the shader compilation (23-30 s measured); `ggufone init`/`serve` warm up before serving\n"
+  }
+ },
+ "poison_shims_invoked": 0,
+ "install": {
+  "variant": "linux-x64-vulkan",
+  "backend": "vulkan",
+  "working_backend": "vulkan",
+  "backends": [
+   "cpu",
+   "rpc",
+   "vulkan"
+  ],
+  "build": 11026,
+  "symbols_ok": true,
+  "asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz",
+  "bytes_fetched": 30294625,
+  "fallback_attempts": [
+   {
+    "backend": "cuda",
+    "variant": "linux-x64-cuda-12.8",
+    "reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier"
+   }
+  ],
+  "fallback_reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+  "record": null
+ },
+ "doctor": {
+  "status": "warnings",
+  "exit_code": 2,
+  "runtime": {
+   "dir": "/work/e1a/fix5-home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+   "installed": true,
+   "tag": "b11026",
+   "pinned_tag": "b11026",
+   "min_build": 10828,
+   "variant": "linux-x64-vulkan",
+   "build": 11026,
+   "backends": [
+    "cpu",
+    "rpc",
+    "vulkan"
+   ],
+   "working_backend": "vulkan",
+   "backend_errors": {},
+   "backend_requested": "cuda",
+   "fallback_reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+   "fallback_attempts": [
+    {
+     "backend": "cuda",
+     "reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+     "variant": "linux-x64-cuda-12.8"
+    }
+   ],
+   "symbols_required": 34,
+   "symbols_missing": [],
+   "symbols_probed": true,
+   "fit_params_help_exit": 0,
+   "libllama_sha256": "8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975",
+   "warmup_ms": null
+  },
+  "checks": [
+   {
+    "id": "runtime.present",
+    "status": "ok",
+    "detail": "/work/e1a/fix5-home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+   },
+   {
+    "id": "runtime.files",
+    "status": "ok",
+    "detail": "all required libraries present: libllama.so, libggml.so, libggml-base.so"
+   },
+   {
+    "id": "runtime.symbols",
+    "status": "ok",
+    "detail": "resolved 34/34 required symbols"
+   },
+   {
+    "id": "runtime.build",
+    "status": "ok",
+    "detail": "build b11026"
+   },
+   {
+    "id": "runtime.fit_params",
+    "status": "ok",
+    "detail": "llama-fit-params --help exit 0"
+   },
+   {
+    "id": "runtime.backends",
+    "status": "ok",
+    "detail": "backends: cpu, rpc, vulkan (driveable here: vulkan)"
+   },
+   {
+    "id": "runtime.accelerator",
+    "status": "warn",
+    "detail": "expected accelerator 'cuda' is not in this bundle (backends: cpu, rpc, vulkan): pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier; install the cuda runtime it needs and re-run `ggufone init`, or keep 'vulkan' (driveable here)"
+   },
+   {
+    "id": "runtime.fallback",
+    "status": "warn",
+    "detail": "installed linux-x64-vulkan after cuda was unusable here: pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier"
+   },
+   {
+    "id": "runtime.sha_recorded",
+    "status": "ok",
+    "detail": "libllama.so sha256 8d72d777d9406945\u2026"
+   },
+   {
+    "id": "model.present",
+    "status": "warn",
+    "detail": "no model in the registry; run `ggufone models pull` (default model is pinned)"
+   }
+  ],
+  "expected_backend": "cuda"
+ },
+ "oracle": {
+  "failures": 0,
+  "section_b_skips": 0,
+  "tail": " model pin                    XHToken/Spark-X2.5-4B-GGUF:Q8_0 4375021152 B\n  llama-cli version                    version: 0.4.1-dev (build 11026, commit b49650adb)\n  softmax([2,1,0])                     0.665241, 0.244728, 0.090031\n  confidence choice/returns-ticket     0.4000 vs doc 0.39\n  confidence choice/return_reason      1.0000 vs doc 1.0\n  confidence choice/shipping_issue     0.5375 vs doc 0.53\n  confidence choice/requested_resolution 0.1600 vs doc 0.16\n  confidence choice/tone               0.8800 vs doc 0.88\n  confidence score/bug_severity        0.5500 vs doc 0.54\n  confidence score/spinner+examples    0.9100 vs doc 0.91\n  score = \u03a3 i\u00b7p_i                      1.30 / 1.06 / 0.0 reproduced\n  coverage(cands={0,1})                0.880797\n  candidate z (-1.0 x3, norm=1)        -1.0000\n  spark2_5 KV/token/seq (f16|q8_0)     147456 | 73728 B\n  recommend_quant 8GiB                 Spark-X2.5-4B-Q8_0.gguf kv=q8_0 total=7.33 GB\n  recommend_quant 8GiB small-ctx       Spark-X2.5-4B-Q8_0.gguf kv=f16 total=6.12 GB\n  recommend_quant huge ctx             None kv=None placement=insufficient\n  local Spark arch                     spark2_5 file_type=7 (MOSTLY_Q8_0)\n\nfailures: 0  skips: 1\n"
+ },
+ "suite": {
+  "pytest_before": "........................................ [ 22%]\n............................................ss.......................sss [ 45%]\ns....................................................................... [ 67%]\n......................................s...............................ss [ 90%]\nsss............................                                          [100%]\n307 passed, 12 skipped in 9.04s",
+  "pytest_after": "....................................... [ 22%]\n............................................ss.......................sss [ 45%]\ns....................................................................... [ 67%]\n......................................................................ss [ 90%]\nsss............................                                          [100%]\n308 passed, 11 skipped in 16.67s",
+  "pytest_network": "........................................ [ 22%]\n.............................................s.......................... [ 45%]\n........................................................................ [ 67%]\n........................................................................ [ 90%]\n...............................                                          [100%]\n318 passed, 1 skipped in 29.26s"
+ }
+}

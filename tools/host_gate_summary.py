@@ -85,6 +85,11 @@ def main(argv: list[str]) -> int:
 
     init_payload = parse_json_output(read(log_dir / "init.out"))
     record = parse_json_output(read(log_dir / "fallback_evidence.txt"))
+    record_reason = record.get("fallback_reason") if isinstance(record, dict) else None
+    # `init` on an already-installed runtime reports the attempts it made plus the reason the
+    # record carries; the fresh-install path reports its own. Either way the run must not read
+    # as "no fallback happened" (E1a FIX finding 3).
+    fallback_reason = init_payload.get("fallback_reason") or record_reason
     report["install"] = {
         "variant": init_payload.get("variant"),
         "backend": init_payload.get("backend"),
@@ -95,7 +100,7 @@ def main(argv: list[str]) -> int:
         "asset": init_payload.get("asset"),
         "bytes_fetched": init_payload.get("bytes_fetched"),
         "fallback_attempts": init_payload.get("fallback_attempts", []),
-        "fallback_reason": init_payload.get("fallback_reason"),
+        "fallback_reason": fallback_reason,
         "record": record or None,
     }
 

@@ -164,7 +164,7 @@ def test_load_backend_library_accepts_a_real_shared_object() -> None:
 
 # ------------------------------------------------------------------ the chain
 def test_install_falls_back_from_cuda_to_vulkan_and_records_why(
-        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, in_process_scan: None) -> None:
     cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
     lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
     monkeypatch.setattr(capability, "load_backend_library", fake_loader({"cuda": CUDA_LOAD_ERROR}))
@@ -207,7 +207,8 @@ def test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads(
 
 
 def test_install_keeps_cuda_when_its_backend_really_loads(monkeypatch: pytest.MonkeyPatch,
-                                                          tmp_path: pathlib.Path) -> None:
+                                                          tmp_path: pathlib.Path,
+                                                          in_process_scan: None) -> None:
     cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
     lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
     monkeypatch.setattr(capability, "load_backend_library", fake_loader({}))
@@ -235,7 +236,8 @@ def test_an_explicit_backend_is_honoured_without_falling_back(tmp_path: pathlib.
 
 
 def test_install_skips_an_already_installed_backend_that_cannot_load(
-        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path,
+        in_process_scan: None) -> None:
     """A cuda dir left behind by an earlier run must not win over a working tier."""
     cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
     lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
@@ -255,7 +257,8 @@ def test_install_skips_an_already_installed_backend_that_cannot_load(
 
 
 def test_install_removes_the_bundle_it_rejected(monkeypatch: pytest.MonkeyPatch,
-                                                tmp_path: pathlib.Path) -> None:
+                                                tmp_path: pathlib.Path,
+                                                in_process_scan: None) -> None:
     """The stale CUDA dir must not shadow the working tier for `doctor`/`find_runtime`."""
     cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
     lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))

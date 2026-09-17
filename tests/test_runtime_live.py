@@ -18,7 +18,7 @@ import sys
 
 import pytest
 
-from ggufone.runtime import finder
+from ggufone.runtime import capability, finder
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PROBE = ROOT / "tools" / "live_probe.py"
@@ -54,6 +54,30 @@ def test_deep_probe_in_a_child_process() -> None:
     assert payload["missing_symbols"] == 0
     assert payload["build"] == 11026
     assert payload["fit_params_help_exit"] == 0
+
+
+@pytest.mark.model
+def test_the_command_process_maps_no_bundle_after_a_deep_probe() -> None:
+    """The fix for the host SIGABRT, measured on the real bundle (E1a FIX t_eae35404).
+
+    On the operator's host a glibc double-free aborted `init` at exit: the process had
+    dlopened the CUDA bundle it rejected, deleted that directory, then dlopened the vulkan
+    one. The deep probe now runs in a child, so this process must map no libggml/libllama at
+    all — while still reporting exactly what the child resolved.
+    """
+    if finder.find_runtime() is None:
+        pytest.skip("no runtime installed (run `ggufone init` or set GGUFONE_RUNTIME_DIR)")
+    runtime = finder.resolve_runtime()
+
+    probe = capability.probe_runtime(runtime, deep=True, run_tools=False)
+
+    assert probe.symbols_checked is True
+    assert probe.error is None
+    assert probe.missing_symbols == ()
+    assert probe.backend_errors == {}
+    mapped = pathlib.Path("/proc/self/maps").read_text(encoding="utf-8", errors="replace")
+    assert "libggml" not in mapped
+    assert "libllama" not in mapped
 
 
 @pytest.mark.model

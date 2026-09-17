@@ -28,7 +28,7 @@ from ggufone.errors import (
 )
 from ggufone.registry import hf, store
 from ggufone.registry.gguf import sha256_file
-from ggufone.runtime import capability, ctypes_binding, finder, pins
+from ggufone.runtime import capability, ctypes_binding, finder, isolated, pins
 
 EXTRACT_MULTIPLIER = 3          # archive -> on-disk size, generous (compressed .so files)
 RUNG = "prebuilt"               # SPEC 4 rung 1
@@ -228,7 +228,12 @@ def _flatten_bundle(directory: pathlib.Path) -> pathlib.Path:
 # --------------------------------------------------------------------- warm-up
 def warmup(runtime_dir: str | os.PathLike[str], model_path: str | os.PathLike[str], *,
            n_ctx: int = 128, n_threads: int = 1) -> float:
-    """One tiny decode: loads the model, prefills, returns milliseconds (R2/A13)."""
+    """One tiny decode: loads the model, prefills, returns milliseconds (R2/A13).
+
+    In-process: this is the engine's path (`tools/live_probe.py` drives it in a child of its
+    own). `init` uses `DEFAULT_WARMUP` instead — the warm-up number is worth a process, not
+    worth leaving a loaded model and a GPU driver behind in the command (t_eae35404).
+    """
     runtime = ctypes_binding.load_libraries(runtime_dir)
     llama = runtime.llama
     params = llama.llama_model_default_params()
@@ -276,6 +281,15 @@ FALLBACK_CHAIN: dict[str, tuple[str, ...]] = {
     "metal": (),
 }
 
+#: How the warm-up number is produced: a disposable child by default, so `init` never leaves a
+#: loaded model (and a GPU driver) behind in its own process.
+DEFAULT_WARMUP = isolated.warmup_in_child
+
+#: Pre-flight for a tier that needs system libraries this host may not have (finding 2): the
+#: pinned CUDA bundle links libcudart/libcublas/libcuda, so `init` can skip its 168.8 MB
+#: download instead of finding out after the fact. In a child, like every other dlopen.
+PREFLIGHT_SYSTEM_LIBS = isolated.system_libs
+
 
 def _unusable_reason(probe: capability.ProbeResult, backend: str) -> str:
     """Why `backend` cannot be used, from a real probe (goes into the record verbatim)."""
@@ -285,6 +299,25 @@ def _unusable_reason(probe: capability.ProbeResult, backend: str) -> str:
         return (f"the bundle carries no {backend} backend (backends: "
                 f"{', '.join(probe.backends) or 'none'})")
     return f"the {backend} backend reported unusable"
+
+
+def _preflight_reason(plan: InstallPlan, lock: pins.RuntimeLock) -> str | None:
+    """Why this tier's download is pointless *before* downloading it, or `None`.
+
+    The pinned bundle links system libraries it does not ship (`runtime.lock` -> `system_libs`:
+    libcudart.so.12/libcublas.so.12/libcuda.so.1 for CUDA). If this host cannot load one of
+    them, the bundle cannot work here, and 168.8 MB of download buys nothing.
+    """
+    required = lock.system_libs.get(plan.variant, ())
+    if not required:
+        return None
+    errors = PREFLIGHT_SYSTEM_LIBS(required)
+    missing = [errors[name] for name in required if errors.get(name)]
+    if not missing:
+        return None
+    return (f"pre-flight: the pinned {plan.variant} bundle links "
+            f"{', '.join(required)}, which this host cannot load ({missing[0]}); skipped the "
+            f"{hf.human_bytes(plan.size)} download and moved to the next tier")
 
 
 def _drop_rejected(plan: InstallPlan) -> None:
@@ -337,7 +370,7 @@ def _warmup_ms(home: pathlib.Path, plan: InstallPlan,
     if not model_path:
         return None, None, None
     try:
-        return round(warmup(plan.dest, model_path), 3), None, str(model_path)
+        return round(DEFAULT_WARMUP(plan.dest, model_path), 3), None, str(model_path)
     except Exception as exc:  # noqa: BLE001 - a warm-up failure is recorded, never raised
         return None, f"{exc.__class__.__name__}: {exc}", str(model_path)
 
@@ -429,17 +462,29 @@ def install(backend: str = "auto", *, home: pathlib.Path | None = None,
                                              expect_backend=requested, run_tools=True,
                                              system=system)
             if probe.usable(candidate) or last:
+                record = finder.runtime_record(home) or {}
                 return {"already_installed": True, "variant": candidate_plan.variant,
                         "backend": candidate, "dir": str(candidate_plan.dest),
-                        "record": finder.runtime_record(home),
+                        "record": record,
                         "working_backend": probe.accelerator(),
                         "fallback_attempts": list(attempts),
+                        "fallback_reason": (attempts[0]["reason"] if attempts
+                                            else record.get("fallback_reason")),
                         "hint": "pass --force to re-download and re-extract"}
             attempts.append({"backend": candidate, "variant": candidate_plan.variant,
                              "reason": _unusable_reason(probe, candidate)})
             if not last:
                 _drop_rejected(candidate_plan)
             continue
+
+        if auto and not last:
+            # Answer it before spending the bandwidth (finding 2). `--backend X` is an explicit
+            # instruction and skips this: the probe then records the truth about the bundle.
+            reason = _preflight_reason(candidate_plan, lock)
+            if reason:
+                attempts.append({"backend": candidate, "variant": candidate_plan.variant,
+                                 "reason": reason})
+                continue
 
         source, stats = _unpack_one(candidate_plan, home=home, lock=lock, url=url,
                                     progress=progress, free_bytes=free_bytes)

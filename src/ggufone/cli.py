@@ -133,12 +133,20 @@ def _cmd_init(args: list[str]) -> int:
             print("\n(dry run: nothing downloaded, nothing written)")
         return 0
     if result.get("already_installed"):
+        record = result.get("record") or {}
         payload = {"already_installed": True, "variant": result["variant"],
                    "backend": result.get("backend"), "dir": result["dir"],
                    "working_backend": result.get("working_backend"),
+                   "backend_requested": record.get("backend_requested"),
                    "fallback_attempts": result.get("fallback_attempts", []),
+                   "fallback_reason": result.get("fallback_reason"),
                    "hint": result["hint"]}
         _emit(payload, bool(options.get("json")))
+        if result.get("fallback_reason"):
+            print(f"warning: fell back from {record.get('backend_requested')} to "
+                  f"{result['variant']}: {result['fallback_reason']}", file=sys.stderr)
+        for warning in record.get("probe_warnings", []):
+            print(f"warning: {warning}", file=sys.stderr)
         return 0
     record = result["record"]
     payload = {"installed": True, "variant": result["variant"], "dir": result["dir"],
@@ -168,6 +176,22 @@ def _cmd_init(args: list[str]) -> int:
 
 
 # --------------------------------------------------------------------- doctor
+def _recorded_backend_reason(record: dict | None, backend: str) -> str | None:
+    """Why the install record says `backend` is not the one in use (or `None` if it does not).
+
+    `init` records the probe result that made it fall back, so `doctor` can repeat the *real*
+    reason instead of suggesting a retry that would fail the same way (finding 4).
+    """
+    if not record:
+        return None
+    for attempt in record.get("fallback_attempts") or []:
+        if attempt.get("backend") == backend and attempt.get("reason"):
+            return str(attempt["reason"])
+    if record.get("backend_requested") == backend and record.get("fallback_reason"):
+        return str(record["fallback_reason"])
+    return None
+
+
 def doctor_checks(home: pathlib.Path | None = None,
                   lock: pins.RuntimeLock | None = None) -> dict[str, Any]:
     """Build the doctor report (checks + runtime + model). Pure: no printing."""
@@ -240,10 +264,18 @@ def doctor_checks(home: pathlib.Path | None = None,
                 f"expected accelerator {expected_backend!r} does not load here "
                 f"({probe.backend_errors[expected_backend]}); using {working_backend!r}")
         elif accel:
-            add("runtime.accelerator", "warn",
-                f"expected accelerator {expected_backend!r} is not in this bundle "
-                f"(backends: {', '.join(probe.backends) or 'none'}); re-run `ggufone init "
-                f"--backend {expected_backend}`")
+            reason = _recorded_backend_reason(record, expected_backend)
+            if reason:
+                add("runtime.accelerator", "warn",
+                    f"expected accelerator {expected_backend!r} is not in this bundle "
+                    f"(backends: {', '.join(probe.backends) or 'none'}): {reason}; install the "
+                    f"{expected_backend} runtime it needs and re-run `ggufone init`, or keep "
+                    f"{working_backend!r} (driveable here)")
+            else:
+                add("runtime.accelerator", "warn",
+                    f"expected accelerator {expected_backend!r} is not in this bundle "
+                    f"(backends: {', '.join(probe.backends) or 'none'}); re-run `ggufone init "
+                    f"--backend {expected_backend}`")
         else:
             add("runtime.accelerator", "warn",
                 f"no accelerator in this bundle (expected {expected_backend!r}); CPU works "

@@ -11,6 +11,10 @@ probability distributions and confidence, computed locally on **frozen** GGUF mo
   The core has zero third-party runtime dependencies (stdlib only).
 - **No compiler, ever.** `ggufone init` downloads a pinned official llama.cpp release bundle
   (shared libraries driven through `ctypes`). Users never build anything.
+- **One bundle per process.** Probes (`init`'s fallback chain, `doctor`, the warm-up) run in a
+  disposable child (`ggufone.runtime.probe_child`) and come back as JSON. Third-party GPU
+  libraries and drivers stay out of the command process, so their teardown cannot take the
+  command down with it.
 
 Default model: [`XHToken/Spark-X2.5-4B-GGUF`](https://huggingface.co/XHToken/Spark-X2.5-4B-GGUF)
 `Q8_0`, pinned by size and SHA-256.
