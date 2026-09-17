@@ -13,6 +13,14 @@ shim on `PATH`, a real DRM render node, a real Vulkan ICD directory — so the p
 GPU-less machine. `PATH` is *replaced*, never extended: extending it would still find the
 operator's real ``nvidia-smi`` in the GPU-absent world, which is the very leak this file exists
 to catch.
+
+The B1–B3 pins (card t_83ee1eed, closing the survivors of the adversarial duel t_0fc576df) extend
+the same rule to the surfaces the duel reached: `capability.backends(system=…)` (m11 — the
+injected platform must answer the glob, not `finder.library_glob()`'s host default), an unnamed
+`machine` (m08 — a caller error, never `platform.machine()`), omitted `dri_nodes` next to a
+supplied ICD (m09 — absent, never the real `/dev/dri` listing), and
+`registry.recommend.host_budget`'s vram seam (m10 — it lives outside the detection modules, so it
+is pinned here as well as in `test_recommend_quant.py`).
 """
 from __future__ import annotations
 
@@ -22,7 +30,9 @@ import subprocess
 
 import pytest
 
-from ggufone.runtime import install, pins
+from ggufone.errors import RuntimeMissingError
+from ggufone.registry import recommend
+from ggufone.runtime import capability, install, pins
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LOCK = ROOT / "runtime.lock"
@@ -229,3 +239,118 @@ def test_the_injected_path_reads_no_device_environment_and_runs_no_nvidia_smi(
     assert plan.variant == "linux-x64-cpu"
     assert spawned == []
     assert not (set(spy.reads) & set(DEVICE_ENV)), f"device env read: {set(spy.reads)}"
+
+
+# ------------------------------------------- the pins of the duel's survivors (card t_83ee1eed)
+def distractor_bundle(tmp_path: pathlib.Path) -> pathlib.Path:
+    """A bundle carrying one backend per platform: the Linux CPU lib and the Windows Vulkan dll.
+
+    A single-platform bundle cannot tell the caller's platform from this host's, so every glob
+    (``libggml-*.so``, ``*ggml-*.dll``) finds the same file. The distractor makes the two answers
+    differ, which is what turns the injected `system` into an observable fact.
+    """
+    runtime = tmp_path / "runtime-cross-platform"
+    runtime.mkdir()
+    (runtime / "libggml-cpu.so").write_bytes(b"")
+    (runtime / "ggml-vulkan.dll").write_bytes(b"")
+    return runtime
+
+
+def test_backends_answers_the_system_the_caller_named(tmp_path: pathlib.Path) -> None:
+    """B1 (duel t_0fc576df, m11): `capability.backends(system=…)` is a pure function of `system`.
+
+    m11 dropped the argument (`finder.library_glob()` — `platform.system()`), so a caller stating
+    "windows" got this host's Linux-shaped glob: `['vulkan']` became `['cpu']`. Both directions
+    are asserted because either one alone is host-dependent: only the pair differs from the host
+    platform in *every* world.
+    """
+    runtime = distractor_bundle(tmp_path)
+
+    assert capability.backends(runtime, system="linux") == ["cpu"]
+    assert capability.backends(runtime, system="windows") == ["vulkan"]
+
+
+def test_backends_never_asks_this_host_for_a_system_the_caller_supplied(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    """B1 as a tripwire: with `system=` given, `platform.system()` must not be read at all.
+
+    `pins.platform` is the process-wide `platform` module `finder` also imports, so this makes the
+    m11 fall-through loud instead of host-dependent (it would otherwise pass on Windows hosts).
+    """
+    runtime = distractor_bundle(tmp_path)
+
+    def tripwire(*args: object, **kwargs: object) -> str:
+        raise AssertionError("host access leaked: platform.system()")
+
+    monkeypatch.setattr(pins.platform, "system", tripwire)
+
+    assert capability.backends(runtime, system="linux") == ["cpu"]
+    assert capability.backends(runtime, system="windows") == ["vulkan"]
+
+
+def test_an_unnamed_machine_is_a_caller_error_not_a_platform_machine_read(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    """B2 (duel t_0fc576df, m08): a synthetic world without an arch is the caller's mistake to fix.
+
+    m08 filled the omitted `machine` from `platform.machine()`, so a caller who described only the
+    OS silently got a plan for the real box's arch. The tripwire makes the read loud; HEAD answers
+    the caller error (`host_variant`'s "no pinned bundle for platform linux-") instead of planning.
+    """
+    simulate_host(monkeypatch, tmp_path, world="cuda")   # the GPU box is the adversarial case
+    read: list[str] = []
+
+    def tripwire(*args: object, **kwargs: object) -> str:
+        read.append("platform.machine()")
+        raise AssertionError("host access leaked: platform.machine()")
+
+    monkeypatch.setattr(pins.platform, "machine", tripwire)
+
+    with pytest.raises(RuntimeMissingError) as excinfo:
+        pins.host_variant("auto", system="linux")
+
+    assert read == []
+    assert "no pinned llama.cpp bundle for platform linux-" in str(excinfo.value)
+
+
+def test_omitted_dri_nodes_never_list_the_real_dev_dri(monkeypatch: pytest.MonkeyPatch,
+                                                       tmp_path: pathlib.Path) -> None:
+    """B2 (duel t_0fc576df, m09): a supplied ICD without `dri_nodes` does not make this box Vulkan.
+
+    m09 listed the real `/dev/dri` when `dri_nodes` was omitted — the file's own "facts not
+    supplied count as absent" clause. The simulated world really does carry a render node, so the
+    mutant answers `vulkan`; the Trap additionally makes any such listing loud.
+    """
+    simulate_host(monkeypatch, tmp_path, world="vulkan")   # a render node IS present on this box
+    icd = tmp_path / "caller-icd.d"
+    icd.mkdir()
+
+    assert pins.detect_backend(system="linux", has_nvidia_smi=False, icd_dir=str(icd)) == "cpu"
+
+    class Trap:
+        def __getattr__(self, name: str) -> object:
+            raise AssertionError(f"host access leaked: /dev/dri.{name}")
+
+    monkeypatch.setattr(pins, "DRI_DIR", Trap())
+    assert pins.detect_backend(system="linux", has_nvidia_smi=False, icd_dir=str(icd)) == "cpu"
+
+
+def test_an_empty_injected_vram_probe_never_reaches_the_real_driver(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    """B3 (duel t_0fc576df, m10): the `nvidia_smi=` seam owns vram — an empty answer stays empty.
+
+    m10 fell through to the real driver when the injected probe answered empty (`vram 0 ->
+    8589934592` on the operator's RTX box; on a GPU-less CI box the same fall-through is a hidden
+    host read). The tripwire keeps this pin host-independent, so it fails on the mutant here too.
+    """
+    meminfo = tmp_path / "meminfo"
+    meminfo.write_text("MemTotal:       32761996 kB\n")
+
+    def tripwire() -> int | None:
+        raise AssertionError("host access leaked: recommend._query_nvidia_smi()")
+
+    monkeypatch.setattr(recommend, "_query_nvidia_smi", tripwire)
+
+    budget = recommend.host_budget(meminfo_path=meminfo, nvidia_smi=lambda: None)
+
+    assert budget.vram_bytes == 0
+    assert budget.ram_bytes == 32_761_996 * 1024
