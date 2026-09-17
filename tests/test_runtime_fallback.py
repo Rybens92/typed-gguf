@@ -221,8 +221,10 @@ def test_install_keeps_cuda_when_its_backend_really_loads(monkeypatch: pytest.Mo
     assert result["variant"] == "linux-x64-cuda-12.8"
     assert result["backend"] == "cuda" and result["working_backend"] == "cuda"
     assert result["fallback_attempts"] == []
+    assert result["fallback_reason"] is None and result["fallback_reason_code"] is None
     record = json.loads((tmp_path / "home" / "runtime.json").read_text())
-    assert record["fallback_reason"] is None and record["backend_requested"] == "cuda"
+    assert record["fallback_reason"] is None and record["fallback_reason_code"] is None
+    assert record["backend_requested"] == "cuda"
 
 
 def test_an_explicit_backend_is_honoured_without_falling_back(tmp_path: pathlib.Path) -> None:
@@ -384,6 +386,9 @@ def test_doctor_marks_the_expected_backend_ok_when_it_really_loads(
     assert "cuda" in checks["runtime.accelerator"]["detail"]
     assert "runtime.fallback" not in checks
     assert report["runtime"]["backend_errors"] == {}
+    assert report["runtime"]["fallback_reason_code"] is None    # nothing was recorded: no code
+    # this bundle carries only libggml-cuda.so: the probed list says exactly that
+    assert report["backend"] == "cuda" and report["backends"] == ["cuda"]
 
 
 # ------------------------------------------------------------------ machine-readable reasons
