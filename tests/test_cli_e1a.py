@@ -19,6 +19,17 @@ from ggufone import __version__, cli
 from ggufone.errors import InsufficientDiskError
 from ggufone.registry import hf, store
 from ggufone.registry.hf import DownloadResult
+from ggufone.runtime import pins
+
+
+def cpu_only_host() -> pins.HostProbes:
+    """A deterministic GPU-less machine (x86_64 Linux, no nvidia-smi, no DRM node)."""
+    return pins.fake_host(system="linux", machine="x86_64")
+
+
+def gpu_host() -> pins.HostProbes:
+    """The operator's box as a probe object: nvidia-smi present -> the pinned CUDA bundle."""
+    return pins.fake_host(system="linux", machine="x86_64", has_nvidia_smi=True)
 
 
 # ------------------------------------------------------------------ fixtures
@@ -31,6 +42,13 @@ def _isolated(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> pathli
     monkeypatch.delenv("GGUFONE_OFFLINE", raising=False)
     monkeypatch.delenv("GGUFONE_OFFLINE_CACHE", raising=False)
     monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    # E1a FIX t_eae35404: this file tests the *plan* (which pinned asset a variant maps to),
+    # not the box it runs on — so it runs in a deterministic fake CPU machine. Without this,
+    # the assertions below would flip to linux-x64-cuda-12.8 on the operator's GPU host.
+    # The real-host path is covered by tests/test_pins.py
+    # (test_the_whole_mapping_in_a_fake_host_world: cpu/vulkan/cuda worlds) and by the live
+    # host gate.
+    monkeypatch.setattr(pins, "current_host", cpu_only_host)
     return tmp_path
 
 
@@ -97,6 +115,24 @@ def test_init_dry_run_text_says_so(capsys) -> None:
     assert cli.main(["init", "--dry-run"]) == 0
     out = capsys.readouterr().out
     assert "llama-b11026-bin-ubuntu-x64.tar.gz" in out and "dry run" in out
+
+
+def test_init_dry_run_on_a_gpu_host_plans_the_pinned_cuda_bundle(monkeypatch: pytest.MonkeyPatch,
+                                                                 capsys) -> None:
+    """The GPU half of the fake-host regression (operator's RTX box, E1a FIX t_eae35404)."""
+    monkeypatch.setattr(pins, "current_host", gpu_host)
+    lock = pins.load_lock()
+    assert cli.main(["init", "--dry-run", "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    spec = lock.assets["linux-x64-cuda-12.8"]
+    assert payload["backend"] == "cuda"
+    assert payload["variant"] == "linux-x64-cuda-12.8"
+    assert payload["asset"] == "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz"
+    assert payload["size"] == spec.size == 168_811_114
+    assert payload["sha256"] == spec.sha256
+    assert payload["host"]["has_nvidia_smi"] is True
+    assert payload["host"]["backend"] == "cuda"
+    assert not pathlib.Path(payload["destination"]).exists()
 
 
 def test_init_backend_without_an_asset_is_a_user_error(capsys) -> None:

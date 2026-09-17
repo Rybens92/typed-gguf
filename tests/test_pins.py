@@ -7,7 +7,7 @@ import pathlib
 import pytest
 
 from ggufone.errors import GgufoneError
-from ggufone.runtime import pins
+from ggufone.runtime import install, pins
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 EVID = ROOT / "docs" / "evidence"
@@ -151,3 +151,115 @@ def test_asset_for_unknown_variant_is_an_error(lock: pins.RuntimeLock) -> None:
     with pytest.raises(GgufoneError) as exc:
         pins.asset_for(lock, "linux-aarch64-cpu")
     assert exc.value.code == "E_RUNTIME_MISSING"
+
+
+# ------------------------------------------------------------------ probe purity
+def install_fake_machine(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, *,
+                         world: str) -> None:
+    """Patch every real-host source so `current_host()` reports a synthetic machine.
+
+    world=cpu: no nvidia-smi, no DRM render node, no Vulkan ICD
+    world=vulkan: no nvidia-smi, a DRM render node + a Vulkan ICD
+    world=cuda: nvidia-smi on PATH (as on the operator's RTX box)
+
+    The regression this guards (E1a FIX t_eae35404): the suite must be green on a CPU-only
+    box *and* on a GPU box. The fake machine is installed at the OS level — shutil.which,
+    platform.system/machine, /dev/dri, the Vulkan ICD dir — so the *production* path
+    (`detect_backend()` with no arguments) is what gets exercised.
+    """
+    assert world in ("cpu", "vulkan", "cuda")
+    monkeypatch.setattr(
+        pins.shutil, "which",
+        lambda name: "/usr/bin/nvidia-smi" if (world == "cuda" and name == "nvidia-smi") else None)
+    monkeypatch.setattr(pins.platform, "system", lambda: "linux")
+    monkeypatch.setattr(pins.platform, "machine", lambda: "x86_64")
+    dri = tmp_path / "dev-dri"
+    dri.mkdir()
+    if world == "vulkan":
+        (dri / "renderD128").write_bytes(b"")
+    monkeypatch.setattr(pins, "DRI_DIR", dri)
+    icd = tmp_path / "vulkan-icd.d"
+    icd.mkdir()
+    monkeypatch.setattr(pins, "ICD_DIR", icd if world == "vulkan" else tmp_path / "no-icd.d")
+
+
+@pytest.mark.parametrize(("world", "backend", "variant", "asset", "size"), [
+    ("cpu", "cpu", "linux-x64-cpu", "llama-b11026-bin-ubuntu-x64.tar.gz", 16_855_810),
+    ("vulkan", "vulkan", "linux-x64-vulkan", "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz",
+     30_294_625),
+    ("cuda", "cuda", "linux-x64-cuda-12.8", "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz",
+     168_811_114),
+])
+def test_the_whole_mapping_in_a_fake_host_world(monkeypatch: pytest.MonkeyPatch,
+                                                tmp_path: pathlib.Path, world: str, backend: str,
+                                                variant: str, asset: str, size: int) -> None:
+    """detection -> variant -> pinned asset -> install plan, in both GPU-absent and GPU worlds."""
+    install_fake_machine(monkeypatch, tmp_path, world=world)
+    lock = pins.load_lock(ROOT / "runtime.lock")
+    assert pins.detect_backend() == backend
+    assert pins.host_variant("auto") == variant
+    assert pins.asset_for(lock, variant).asset == asset
+    assert pins.asset_for(lock, variant).size == size
+    plan = install.plan_install("auto", home=tmp_path / "home", lock=lock)
+    assert (plan.variant, plan.asset, plan.size) == (variant, asset, size)
+    assert plan.backend == backend
+
+
+def test_probes_never_fall_back_to_the_real_host(monkeypatch: pytest.MonkeyPatch,
+                                                tmp_path: pathlib.Path) -> None:
+    """With probes supplied nothing on the real machine may be read (E1a FIX t_eae35404).
+
+    Every host source is replaced by a tripwire: any leak (`shutil.which`, `platform.*`,
+    the `/dev/dri` glob, the Vulkan ICD stat) raises instead of quietly answering 'cuda'.
+    """
+
+    class Trap:
+        def __init__(self, what: str) -> None:
+            self.what = what
+
+        def __getattr__(self, name: str) -> object:
+            raise AssertionError(f"host access leaked: {self.what}.{name}")
+
+    def tripwire(*args: object, **kwargs: object) -> object:
+        raise AssertionError(f"host access leaked: {args} {kwargs}")
+
+    monkeypatch.setattr(pins.shutil, "which", tripwire)
+    monkeypatch.setattr(pins.platform, "system", tripwire)
+    monkeypatch.setattr(pins.platform, "machine", tripwire)
+    monkeypatch.setattr(pins, "DRI_DIR", Trap("/dev/dri"))
+    monkeypatch.setattr(pins, "ICD_DIR", Trap("/usr/share/vulkan/icd.d"))
+    icd = tmp_path / "icd.d"
+    icd.mkdir()
+
+    assert pins.detect_backend(system="linux", has_nvidia_smi=True) == "cuda"
+    assert pins.detect_backend(system="linux", dri_nodes=["/dev/dri/renderD128"],
+                               icd_dir=str(icd)) == "vulkan"
+    assert pins.detect_backend(system="linux", dri_nodes=[], has_nvidia_smi=False) == "cpu"
+    assert pins.detect_backend(system="windows", has_nvidia_smi=False, dri_nodes=[]) == "cpu"
+    assert pins.detect_backend(system="darwin") == "metal"
+    assert pins.host_variant("auto", system="linux", machine="x86_64") == "linux-x64-cpu"
+    assert pins.host_variant("vulkan", system="linux", machine="x86_64") == "linux-x64-vulkan"
+    assert pins.host_variant("linux-x64-cuda-13.3") == "linux-x64-cuda-13.3"
+    probes = pins.fake_host(system="darwin", machine="arm64")
+    assert pins.host_variant("auto", probes=probes) == "macos-arm64-metal"
+    assert pins.host_variant("auto", probes=pins.fake_host(has_nvidia_smi=True,
+                                                           machine="x86_64")) == \
+        "linux-x64-cuda-12.8"
+
+
+def test_current_host_is_the_only_reader_of_the_real_machine(monkeypatch: pytest.MonkeyPatch,
+                                                            tmp_path: pathlib.Path) -> None:
+    """`current_host()` reports the machine; the synthetic constructor never probes."""
+    install_fake_machine(monkeypatch, tmp_path, world="cuda")
+    host = pins.current_host()
+    assert (host.system, host.machine) == ("linux", "x86_64")
+    assert host.has_nvidia_smi is True
+    assert host.detect_backend() == "cuda"
+    assert host.to_dict()["has_nvidia_smi"] is True
+
+    faux = pins.fake_host(system="linux", machine="x86_64", dri_nodes=["/dev/dri/renderD128"],
+                          icd_dir=str(tmp_path / "icd.d"))
+    assert faux.has_nvidia_smi is False
+    assert faux.detect_backend() == "cpu"  # no ICD at that path -> no Vulkan claim
+    assert (tmp_path / "icd.d").mkdir() is None
+    assert faux.detect_backend() == "vulkan"

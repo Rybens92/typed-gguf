@@ -127,7 +127,7 @@ def _cmd_init(args: list[str]) -> int:
                    "size": plan["size"], "size_human": hf.human_bytes(plan["size"]),
                    "sha256": plan["sha256"], "destination": plan["dest"],
                    "required_bytes": plan["required_bytes"],
-                   "cached": plan["cached"]}
+                   "cached": plan["cached"], "host": plan["host"]}
         _emit(payload, bool(options.get("json")))
         if not options.get("json"):
             print("\n(dry run: nothing downloaded, nothing written)")

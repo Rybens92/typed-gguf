@@ -15,6 +15,7 @@ import json
 import pathlib
 import platform
 import shutil
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -22,6 +23,9 @@ from ggufone.errors import RuntimeMissingError
 
 REQUIRED_SYMBOL_COUNT = 34  # 32 libllama.so + 2 libggml.so (SPEC 2.2)
 LOCK_NAME = "runtime.lock"
+NVIDIA_SMI = "nvidia-smi"
+DRI_DIR = pathlib.Path("/dev/dri")
+ICD_DIR = pathlib.Path("/usr/share/vulkan/icd.d")
 
 
 @dataclass(frozen=True)
@@ -159,51 +163,58 @@ def _normalize_machine(machine: str) -> str:
     return lowered
 
 
-def detect_backend(*, system: str | None = None, machine: str | None = None,
-                   has_nvidia_smi: bool | None = None, dri_nodes: list[str] | None = None,
-                   icd_dir: str | None = None) -> str:
+def detect_backend(*, probes: HostProbes | None = None, system: str | None = None,
+                   machine: str | None = None, has_nvidia_smi: bool | None = None,
+                   dri_nodes: list[str] | None = None, icd_dir: str | None = None) -> str:
     """Best-effort accelerator detection (no compilation, no model load).
 
     CUDA when `nvidia-smi` exists; else Vulkan when a DRM render node *and* a Vulkan ICD are
-    present; Metal on macOS; CPU otherwise. Everything is overridable, which is what the
-    poisoned-PATH / no-GPU CI paths need.
+    present; Metal on macOS; CPU otherwise.
+
+    Purity rule (E1a FIX t_eae35404): once *any* probe is supplied — this call's arguments or
+    a `HostProbes` object — detection is a pure function of it and the real machine is never
+    consulted (`shutil.which`, `platform.*`, `/dev/dri`, the ICD dir). Facts that were not
+    supplied count as absent, so `host_variant("auto", system="linux", machine="x86_64")`
+    answers `cpu` on a GPU box too. Only `detect_backend()` / `host_variant("auto")` with no
+    probes at all read the real host (the production path).
     """
-    system = (system or platform.system()).lower()
-    if system == "darwin":
-        return "metal"
-    if has_nvidia_smi is None:
-        has_nvidia_smi = shutil.which("nvidia-smi") is not None
-    if has_nvidia_smi:
-        return "cuda"
-    if dri_nodes is None:
-        dri_nodes = sorted(str(p) for p in pathlib.Path("/dev/dri").glob("renderD*")) \
-            if pathlib.Path("/dev/dri").is_dir() else []
-    if icd_dir is None:
-        icd_dir = "/usr/share/vulkan/icd.d"
-    if dri_nodes and pathlib.Path(icd_dir).is_dir():
-        return "vulkan"
+    return resolve_host(probes=probes, system=system, machine=machine,
+                        has_nvidia_smi=has_nvidia_smi, dri_nodes=dri_nodes,
+                        icd_dir=icd_dir).detect_backend()
+
+
+def accelerator_of(variant: str) -> str:
+    """`linux-x64-cuda-12.8` -> `cuda` (the accelerator a variant key carries)."""
+    parts = variant.split("-")
+    for name in ("cuda", "vulkan", "metal", "rocm", "sycl", "openvino", "cpu"):
+        if name in parts:
+            return name
     return "cpu"
 
 
 def host_variant(backend: str = "auto", *, system: str | None = None, machine: str | None = None,
-                 **detect_kwargs: Any) -> str:
-    """Map (OS, arch, backend) to a `runtime.lock` variant key."""
-    system = (system or platform.system()).lower()
-    raw_machine = machine or platform.machine()
+                 probes: HostProbes | None = None, **detect_kwargs: Any) -> str:
+    """Map (OS, arch, backend) to a `runtime.lock` variant key.
+
+    A bare `backend` without a `-` is an accelerator name resolved against the host; a name
+    with one is a full variant key and is returned as-is (e.g. `--backend linux-x64-cuda-13.3`),
+    without reading the host at all. In a synthetic world (`probes=` or any explicit fact) the
+    platform must be named too: an unnamed machine is a caller error, not a reason to ask the
+    real box.
+    """
+    chosen: str
+    if backend != "auto" and "-" in backend:
+        return backend.lower()  # an explicit variant name is accepted as-is
+    host = resolve_host(probes=probes, system=system, machine=machine, **detect_kwargs)
+    chosen = backend.lower() if backend != "auto" else host.detect_backend()
+    os_name = host.system.lower()
+    raw_machine = host.machine
     machine = _normalize_machine(raw_machine)
-    if backend != "auto":
-        # an explicit variant name is accepted as-is (e.g. `--backend linux-x64-cuda-13.3`)
-        lowered = backend.lower()
-        if "-" in lowered:
-            return lowered
-        chosen = lowered
-    else:
-        chosen = detect_backend(system=system, machine=machine, **detect_kwargs)
-    variant = _VARIANTS.get((system, machine, chosen))
+    variant = _VARIANTS.get((os_name, machine, chosen))
     if variant:
         return variant
-    platform_name = f"{system}-{raw_machine}"
-    known = ", ".join(v for (s, m, b), v in _VARIANTS.items() if (s, m) == (system, machine))
+    platform_name = f"{os_name}-{raw_machine}"
+    known = ", ".join(v for (s, m, b), v in _VARIANTS.items() if (s, m) == (os_name, machine))
     if known:
         raise RuntimeMissingError(
             f"E_RUNTIME_MISSING: backend {chosen!r} has no pinned bundle for {platform_name}; "
@@ -212,3 +223,78 @@ def host_variant(backend: str = "auto", *, system: str | None = None, machine: s
         f"E_RUNTIME_MISSING: no pinned llama.cpp bundle for platform {platform_name} "
         f"(backend {chosen!r}); see SPEC 4 for the build-from-source fallback, or point "
         f"GGUFONE_RUNTIME_DIR at an existing runtime")
+
+
+# --------------------------------------------------------------- host probes
+@dataclass(frozen=True)
+class HostProbes:
+    """Every host fact detection is allowed to see (E1a FIX t_eae35404).
+
+    Produced either by `current_host()` — the single place in the package that reads the real
+    machine — or by `fake_host()` for tests/CI/reproducible plans. Detection is then a pure
+    function of this object, so a caller that supplies probes can never be surprised by the
+    machine it happens to run on.
+    """
+
+    system: str = ""
+    machine: str = ""
+    has_nvidia_smi: bool = False
+    dri_nodes: tuple[str, ...] = ()
+    icd_dir: str = ""
+
+    def detect_backend(self) -> str:
+        """CUDA > Vulkan > Metal > CPU, decided from the probe facts alone."""
+        system = self.system.lower()
+        if system == "darwin":
+            return "metal"
+        if self.has_nvidia_smi:
+            return "cuda"
+        if self.dri_nodes and self.icd_dir and pathlib.Path(self.icd_dir).is_dir():
+            return "vulkan"
+        return "cpu"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"system": self.system, "machine": self.machine,
+                "has_nvidia_smi": self.has_nvidia_smi, "dri_nodes": list(self.dri_nodes),
+                "icd_dir": self.icd_dir, "backend": self.detect_backend()}
+
+
+def current_host() -> HostProbes:
+    """Read the real machine. The only `shutil.which` / `platform` / `/dev/dri` reader."""
+    system = platform.system().lower()
+    dri_nodes: tuple[str, ...] = ()
+    if DRI_DIR.is_dir():
+        dri_nodes = tuple(sorted(str(node) for node in DRI_DIR.glob("renderD*")))
+    return HostProbes(system=system, machine=platform.machine(),
+                      has_nvidia_smi=shutil.which(NVIDIA_SMI) is not None,
+                      dri_nodes=dri_nodes, icd_dir=str(ICD_DIR))
+
+
+def fake_host(*, system: str = "linux", machine: str = "", has_nvidia_smi: bool = False,
+              dri_nodes: Iterable[str] = (), icd_dir: str = "") -> HostProbes:
+    """A synthetic machine: every fact that is not passed in is ABSENT, never probed.
+
+    `system` defaults to `linux` because the CUDA/DRM facts are Linux-shaped and a caller
+    injecting a single fact (`has_nvidia_smi=True`) still has to name a platform.
+    """
+    return HostProbes(system=system, machine=machine,
+                      has_nvidia_smi=bool(has_nvidia_smi),
+                      dri_nodes=tuple(str(node) for node in dri_nodes), icd_dir=str(icd_dir))
+
+
+def resolve_host(*, probes: HostProbes | None = None, system: str | None = None,
+                 machine: str | None = None, has_nvidia_smi: bool | None = None,
+                 dri_nodes: list[str] | None = None,
+                 icd_dir: str | None = None) -> HostProbes:
+    """Probes in hand (or any single fact given) win; otherwise read the real machine."""
+    if probes is not None:
+        return probes
+    given: dict[str, Any] = {}
+    for name, value in (("system", system), ("machine", machine),
+                        ("has_nvidia_smi", has_nvidia_smi), ("dri_nodes", dri_nodes),
+                        ("icd_dir", icd_dir)):
+        if value is not None:
+            given[name] = value
+    if not given:
+        return current_host()
+    return fake_host(**given)

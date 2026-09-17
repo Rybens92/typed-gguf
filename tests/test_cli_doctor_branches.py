@@ -15,6 +15,7 @@ import pytest
 
 from ggufone import cli
 from ggufone.registry import store
+from ggufone.runtime import pins
 
 
 @pytest.fixture(autouse=True)
@@ -24,6 +25,9 @@ def _isolated(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> pathli
     monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
     monkeypatch.delenv("GGUFONE_LOCK", raising=False)
     monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    # deterministic GPU-less machine (see tests/test_cli_e1a.py::_isolated)
+    monkeypatch.setattr(pins, "current_host",
+                        lambda: pins.fake_host(system="linux", machine="x86_64"))
     return tmp_path
 
 

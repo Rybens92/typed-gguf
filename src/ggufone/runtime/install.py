@@ -18,7 +18,7 @@ import shutil
 import tarfile
 import time
 import zipfile
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from ggufone.errors import (
@@ -50,6 +50,7 @@ class InstallPlan:
     cached: pathlib.Path | None = None
     required_bytes: int = 0
     rung: str = RUNG
+    host: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -71,7 +72,12 @@ def plan_install(backend: str = "auto", *, home: pathlib.Path | None = None,
     """Resolve (host -> variant -> asset -> destination) without touching the network."""
     home = home or store.data_home()
     lock = lock or pins.load_lock()
-    variant = pins.host_variant(backend, system=system, machine=machine, **detect_kwargs)
+    host: pins.HostProbes | None = None
+    if backend != "auto" and "-" in backend:
+        variant = backend.lower()          # a full variant name needs no host facts
+    else:
+        host = pins.resolve_host(system=system, machine=machine, **detect_kwargs)
+        variant = pins.host_variant(backend, probes=host)
     asset = pins.asset_for(lock, variant)
     cache = pathlib.Path(offline_cache) if offline_cache else offline_cache_path()
     cached = None
@@ -83,8 +89,9 @@ def plan_install(backend: str = "auto", *, home: pathlib.Path | None = None,
         tag=lock.tag, variant=variant, asset=asset.asset, url=pins.url_for(lock, variant),
         size=asset.size, sha256=asset.sha256,
         dest=home / "runtime" / f"{lock.tag}-{variant}",
-        backend=backend if backend != "auto" else variant.rsplit("-", 1)[-1],
-        cached=cached, required_bytes=asset.size * EXTRACT_MULTIPLIER)
+        backend=backend if backend != "auto" else pins.accelerator_of(variant),
+        cached=cached, required_bytes=asset.size * EXTRACT_MULTIPLIER,
+        host=host.to_dict() if host else {})
 
 
 # --------------------------------------------------------------------- fetching
