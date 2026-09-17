@@ -15,8 +15,10 @@ import sys
 import time
 from typing import Any
 
-from ggufone import __version__
-from ggufone.errors import GgufoneError, Sha256MismatchError, UserError
+from ggufone import __version__, schema
+from ggufone.engine import decide
+from ggufone.engine import session as session_module
+from ggufone.errors import GgufoneError, ModelNotFoundError, Sha256MismatchError, UserError
 from ggufone.registry import gguf, hf, recommend, store
 from ggufone.registry.gguf import sha256_file
 from ggufone.runtime import capability, finder, install, pins
@@ -43,9 +45,11 @@ def _usage() -> str:
 
 
 def _parse_args(args: list[str], *, value_flags: tuple[str, ...] = (),
-                bool_flags: tuple[str, ...] = ()) -> tuple[list[str], dict[str, Any]]:
+                bool_flags: tuple[str, ...] = (),
+                multi_flags: tuple[str, ...] = ()) -> tuple[list[str], dict[str, Any]]:
     values = {name.replace("-", "_") for name in value_flags}
     flags = {name.replace("-", "_") for name in bool_flags}
+    repeats = {name.replace("-", "_") for name in multi_flags}
     positionals: list[str] = []
     options: dict[str, Any] = {}
     index = 0
@@ -58,10 +62,14 @@ def _parse_args(args: list[str], *, value_flags: tuple[str, ...] = (),
                 options[key] = inline
             elif key in flags:
                 options[key] = True
-            elif key in values:
+            elif key in values or key in repeats:
                 if index + 1 >= len(args):
                     raise UserError(f"--{name} needs a value", code="E_UNKNOWN_KEY")
-                options[key] = args[index + 1]
+                value = args[index + 1]
+                if key in repeats:
+                    options.setdefault(key, []).append(value)
+                else:
+                    options[key] = value
                 index += 1
             else:
                 raise UserError(f"unknown option --{name}", code="E_UNKNOWN_KEY")
@@ -687,6 +695,206 @@ def _models_recommend_quant(args: list[str]) -> int:
     return 0
 
 
+# --------------------------------------------------------------------- run / ask
+ENGINE_VALUE_FLAGS = ("model", "format", "state-id", "temperature", "length-norm", "readout",
+                      "confidence-mode", "coverage-floor", "n-ctx", "n-seq-max", "kv-type",
+                      "threads", "backend", "seed", "max-waves", "out", "questions", "state",
+                      "state-json")
+ENGINE_BOOL_FLAGS = ("strict", "save-state", "no-state-cache")
+
+
+def _engine_options(options: dict[str, Any]) -> dict[str, Any]:
+    """Map CLI flags onto the frozen `options` keys (SPEC 2.5)."""
+    mapping = {
+        "temperature": float, "length_norm": float, "coverage_floor": float,
+        "n_ctx": int, "n_seq_max": int, "threads": int, "seed": int, "max_waves": int,
+        "readout": str, "confidence_mode": str, "kv_type": str, "backend": str,
+        "state_id": str, "strict": bool, "save_state": bool,
+    }
+    engine: dict[str, Any] = {}
+    for key, caster in mapping.items():
+        if key not in options:
+            continue
+        value = options[key]
+        try:
+            if caster is bool:
+                engine[key] = bool(value) and value is not False
+            else:
+                engine[key] = caster(value)
+        except (TypeError, ValueError) as exc:
+            raise UserError(f"--{key.replace('_', '-')} got an invalid value {value!r}",
+                            code="E_UNKNOWN_KEY") from exc
+    if options.get("no_state_cache"):
+        engine["state_cache"] = False
+    return engine
+
+
+def _load_state_argument(value: str | None, json_path: str | None) -> Any:
+    """`--state <text|@file>` / `--state-json <file>` -> the request's `state`."""
+    if json_path:
+        path = pathlib.Path(json_path)
+        if not path.exists():
+            raise UserError(f"--state-json {path} does not exist", code="E_UNKNOWN_KEY")
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise UserError(f"--state-json {path} is not valid JSON ({exc})",
+                            code="E_UNKNOWN_KEY") from exc
+    if value is None:
+        return None
+    if value.startswith("@"):
+        path = pathlib.Path(value[1:])
+        if not path.exists():
+            raise UserError(f"--state @{path} does not exist", code="E_UNKNOWN_KEY")
+        return path.read_text(encoding="utf-8")
+    return value
+
+
+def _load_questions(path: str) -> dict[str, Any]:
+    questions_path = pathlib.Path(path)
+    if not questions_path.exists():
+        raise UserError(f"--questions {questions_path} does not exist", code="E_UNKNOWN_KEY")
+    try:
+        payload = json.loads(questions_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise UserError(f"--questions {questions_path} is not valid JSON ({exc})",
+                        code="E_UNKNOWN_KEY") from exc
+    if not isinstance(payload, dict):
+        raise UserError("--questions must contain a JSON object", code="E_UNKNOWN_KEY")
+    return payload
+
+
+def engine_request_payload(payload: dict[str, Any], *, state: Any = None,
+                           model: str | None = None, fmt: str | None = None,
+                           engine_options: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Overlay CLI flags on a `run`/`ask` request body (schema validation does the rest)."""
+    body = dict(payload)
+    if "questions" not in body:                       # a bare {qid: {...}} map is accepted
+        body = {"questions": body}
+    if state is not None:
+        body["state"] = state
+    if model is not None:
+        body["model"] = model
+    if fmt is not None:
+        body["format"] = fmt
+    options = dict(body.get("options") or {})
+    options.update(engine_options or {})
+    if options:
+        body["options"] = options
+    return body
+
+
+def _resolve_model(request: schema.Request, *, home: pathlib.Path | None = None) -> tuple[str, str]:
+    """`alias | path | repo[:quant]` -> (alias, path) through the E1a registry."""
+    registry, _warnings = store.load_registry(store.registry_path(home))
+    known = tuple(registry.aliases)
+    ref = request.model
+    if request.format == "typesafe":
+        ref = schema.adapter_model_ref(ref, known_aliases=known, default_alias=registry.current)
+    if ref is None:
+        entry = store.resolve(registry, None, use_current=True)
+    else:
+        candidate = pathlib.Path(ref)
+        if candidate.exists() and candidate.is_file():
+            return candidate.name.removesuffix(".gguf"), str(candidate)
+        entry = store.resolve(registry, ref)
+    if entry is None:
+        raise ModelNotFoundError(
+            f"E_MODEL_NOT_FOUND: {ref!r} is not a registry alias, a path or a pulled model; "
+            f"known aliases: {', '.join(known) or '<none>'} (use `ggufone models pull` or "
+            f"`ggufone models use`)")
+    return entry.alias, entry.path
+
+
+def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
+                   ) -> dict[str, Any]:
+    """Validate -> resolve -> load -> prefilled fork-decide -> rendered response body."""
+    request = schema.parse_request(payload)
+    alias, model_path = _resolve_model(request, home=home)
+    with session_module.open_model(model_path, home=home) as handle:
+        plan = decide.plan_context(request, handle)
+        with session_module.ModelSession(handle, plan,
+                                         backend=session_module.runtime_backend(home),
+                                         states_home=store.states_dir(home)) as live:
+            result = decide.DecisionEngine(live).decide(request, plan=plan, model_alias=alias)
+        return schema.render_response(result.payload(), format=request.format)
+
+
+def _cmd_run(args: list[str]) -> int:
+    positionals, options = _parse_args(args, value_flags=ENGINE_VALUE_FLAGS,
+                                        bool_flags=ENGINE_BOOL_FLAGS)
+    if positionals:
+        raise UserError(f"unexpected argument {positionals[0]!r}", code="E_UNKNOWN_KEY")
+    if "questions" not in options:
+        raise UserError("run needs --questions <file.json> (SPEC 2.8)", code="E_UNKNOWN_KEY")
+    body = _load_questions(options["questions"])
+    state = _load_state_argument(options.get("state"), options.get("state_json"))
+    payload = engine_request_payload(body, state=state, model=options.get("model"),
+                                     fmt=options.get("format"),
+                                     engine_options=_engine_options(options))
+    response = decide_payload(payload)
+    text = json.dumps(response, indent=2, sort_keys=False)
+    if options.get("out"):
+        pathlib.Path(options["out"]).write_text(text + "\n", encoding="utf-8")
+    else:
+        print(text)
+    return 0
+
+
+def _ask_question(spec: str, qtype: str) -> tuple[str, dict[str, Any]]:
+    """`id=instr:opt1|opt2` -> (id, question body). SPEC 2.8."""
+    qid, sep, rest = spec.partition("=")
+    if not sep or not qid.strip():
+        raise UserError(f"--{qtype} needs 'id=instructions:labels' (got {spec!r})",
+                        code="E_QID_INVALID")
+    if qtype == "noul":
+        body: dict[str, Any] = {"type": "noul"}
+        if rest:
+            body["instructions"] = rest
+        return qid, body
+    instructions, sep, labels = rest.partition(":")
+    if not sep or not labels.strip():
+        raise UserError(f"--{qtype} needs 'id=instructions:labels' (got {spec!r})",
+                        code="E_CHOICE_CRITERIA" if qtype == "choice" else "E_SCORE_LEVELS")
+    parts = [part.strip() for part in labels.split("|") if part.strip()]
+    criteria: Any = {part: None for part in parts} if qtype == "choice" else parts
+    body = {"type": qtype, "criteria": criteria}
+    if instructions:
+        body["instructions"] = instructions
+    return qid, body
+
+
+def _cmd_ask(args: list[str]) -> int:
+    positionals, options = _parse_args(args, value_flags=ENGINE_VALUE_FLAGS,
+                                        bool_flags=ENGINE_BOOL_FLAGS,
+                                        multi_flags=("choice", "score", "noul"))
+    if positionals:
+        raise UserError(f"unexpected argument {positionals[0]!r}", code="E_UNKNOWN_KEY")
+    if "state" not in options and "state_json" not in options:
+        raise UserError("ask needs --state <text|@file> (SPEC 2.8)", code="E_STATE_EMPTY")
+    questions: dict[str, Any] = {}
+    for qtype in ("choice", "score", "noul"):
+        for spec in options.get(qtype, []):
+            qid, body = _ask_question(spec, qtype)
+            if qid in questions:
+                raise UserError(f"duplicate question id {qid!r}", code="E_QID_INVALID")
+            questions[qid] = body
+    if not questions:
+        raise UserError("ask needs at least one --choice/--score/--noul question",
+                        code="E_QID_INVALID")
+    state = _load_state_argument(options.get("state"), options.get("state_json"))
+    payload = engine_request_payload({"questions": questions}, state=state,
+                                     model=options.get("model"), fmt=options.get("format"),
+                                     engine_options=_engine_options(options))
+    response = decide_payload(payload)
+    text = json.dumps(response, indent=2, sort_keys=False)
+    if options.get("out"):
+        pathlib.Path(options["out"]).write_text(text + "\n", encoding="utf-8")
+    else:
+        print(text)
+    return 0
+
+
 # --------------------------------------------------------------------- version
 def _cmd_version(args: list[str]) -> int:
     _, options = _parse_args(args, bool_flags=("json",))
@@ -734,6 +942,10 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_doctor(rest)
         if cmd == "models":
             return _cmd_models(rest)
+        if cmd == "run":
+            return _cmd_run(rest)
+        if cmd == "ask":
+            return _cmd_ask(rest)
     except GgufoneError as exc:
         return _fail(exc)
     except KeyboardInterrupt:  # pragma: no cover - interactive
