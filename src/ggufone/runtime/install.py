@@ -287,6 +287,17 @@ def _unusable_reason(probe: capability.ProbeResult, backend: str) -> str:
     return f"the {backend} backend reported unusable"
 
 
+def _drop_rejected(plan: InstallPlan) -> None:
+    """Remove a bundle this host cannot drive.
+
+    Leaving it behind would shadow the tier that *does* work: `find_runtime()` scans
+    `<home>/runtime/*` and `linux-x64-cuda-12.8` sorts before `linux-x64-vulkan`, so `doctor`
+    would probe the broken bundle. The reason stays in `runtime.json` and the verified archive
+    stays in `<home>/downloads/`.
+    """
+    shutil.rmtree(plan.dest, ignore_errors=True)
+
+
 def _unpack_one(plan: InstallPlan, *, home: pathlib.Path, lock: pins.RuntimeLock,
                 url: str | None, progress: hf.Progress | None,
                 free_bytes: int | None) -> tuple[str, dict[str, Any]]:
@@ -403,9 +414,15 @@ def install(backend: str = "auto", *, home: pathlib.Path | None = None,
 
     for index, candidate in enumerate(chain):
         last = index == len(chain) - 1
-        candidate_plan = plan if index == 0 else plan_install(
-            candidate, home=home, lock=lock, offline_cache=offline_cache, system=system,
-            machine=machine, probes=probes, **detect_kwargs)
+        try:
+            candidate_plan = plan if index == 0 else plan_install(
+                candidate, home=home, lock=lock, offline_cache=offline_cache, system=system,
+                machine=machine, probes=probes, **detect_kwargs)
+        except RuntimeMissingError as exc:
+            if last:
+                raise
+            attempts.append({"backend": candidate, "variant": "", "reason": str(exc)})
+            continue
 
         if candidate_plan.dest.exists() and not force:
             probe = capability.probe_runtime(candidate_plan.dest, deep=deep_probe, lock=lock,
@@ -420,6 +437,8 @@ def install(backend: str = "auto", *, home: pathlib.Path | None = None,
                         "hint": "pass --force to re-download and re-extract"}
             attempts.append({"backend": candidate, "variant": candidate_plan.variant,
                              "reason": _unusable_reason(probe, candidate)})
+            if not last:
+                _drop_rejected(candidate_plan)
             continue
 
         source, stats = _unpack_one(candidate_plan, home=home, lock=lock, url=url,
@@ -429,6 +448,7 @@ def install(backend: str = "auto", *, home: pathlib.Path | None = None,
         if not probe.usable(candidate) and not last:
             attempts.append({"backend": candidate, "variant": candidate_plan.variant,
                              "reason": _unusable_reason(probe, candidate)})
+            _drop_rejected(candidate_plan)
             continue
 
         warmup_ms, warmup_error, model_path = _warmup_ms(home, candidate_plan, warmup_model)

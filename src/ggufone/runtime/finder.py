@@ -84,6 +84,10 @@ def find_runtime(*, home: pathlib.Path | None = None,
 
     `$GGUFONE_RUNTIME_DIR` is honoured strictly: if the user points it somewhere without
     `libllama`, that is an error, not a silent fallback to another install.
+
+    Otherwise the variant `runtime.json` records wins (that is what `init` proved works on
+    this host), and only then a scan of `<home>/runtime/*` — which also covers hand-made
+    installs the record does not know about.
     """
     env = os.environ.get("GGUFONE_RUNTIME_DIR")
     names = library_names(system)
@@ -94,6 +98,9 @@ def find_runtime(*, home: pathlib.Path | None = None,
         raise RuntimeMissingError(
             f"E_RUNTIME_MISSING: GGUFONE_RUNTIME_DIR={candidate} does not contain "
             f"{names['llama']}; point it at an extracted llama.cpp bundle or unset it")
+    recorded = (runtime_record(home) or {}).get("dir")
+    if recorded and (pathlib.Path(recorded) / names["llama"]).exists():
+        return pathlib.Path(recorded)
     for candidate in runtime_dirs(home):
         if (candidate / names["llama"]).exists():
             return candidate

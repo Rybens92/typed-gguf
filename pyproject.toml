@@ -69,15 +69,17 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM"]
 quote-style = "double"
 
 [tool.mutmut]
-# E1a mutation testing (Tier M): run over the package, on the offline unit suite.
+# E1a mutation testing (Tier M). The E1a FIX (t_eae35404) scoped the *test selection* to the
+# modules it touched (pins/capability/install/finder/cli); `source_paths` stays the whole
+# package because mutmut copies the source tree from it — a file list would leave the copied
+# package unable to import (mutants/src/ggufone would miss errors.py, registry/, ...).
 source_paths = ["src/ggufone"]
 also_copy = ["tests", "docs", "runtime.lock", "pyproject.toml", "README.md", "SPEC.md",
              "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
-# full offline suite; a scoped pass points this at the owning test files (see the E1a QA note)
-pytest_add_cli_args_test_selection = ["tests/test_recommend_quant.py",
-                                      "tests/test_gguf_header.py",
-                                      "tests/test_registry_store.py",
-                                      "tests/test_pins.py",
-                                      "tests/test_mutation_hardening.py"]
-max_children = 1
+pytest_add_cli_args_test_selection = ["tests/test_pins.py",
+                                      "tests/test_runtime_fallback.py",
+                                      "tests/test_runtime_install.py",
+                                      "tests/test_cli_e1a.py",
+                                      "tests/test_cli_doctor_branches.py"]
+max_children = 8

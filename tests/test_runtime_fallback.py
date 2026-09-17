@@ -22,7 +22,7 @@ import tarfile
 import pytest
 
 from ggufone import cli
-from ggufone.runtime import capability, install, pins
+from ggufone.runtime import capability, finder, install, pins
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ASSET = {
@@ -220,6 +220,76 @@ def test_install_skips_an_already_installed_backend_that_cannot_load(
     assert result["variant"] == "linux-x64-vulkan"
     assert result["fallback_attempts"][0]["backend"] == "cuda"
     assert result["fallback_attempts"][0]["reason"].startswith("cuda does not load")
+
+
+def test_install_removes_the_bundle_it_rejected(monkeypatch: pytest.MonkeyPatch,
+                                                tmp_path: pathlib.Path) -> None:
+    """The stale CUDA dir must not shadow the working tier for `doctor`/`find_runtime`."""
+    cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
+    lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
+    monkeypatch.setattr(capability, "load_backend_library", fake_loader({"cuda": CUDA_LOAD_ERROR}))
+
+    result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                             free_bytes=1 << 40, probes=GPU_HOST)
+
+    assert result["variant"] == "linux-x64-vulkan"
+    assert not (tmp_path / "home" / "runtime" / "b11026-linux-x64-cuda-12.8").exists()
+    assert (tmp_path / "home" / "runtime" / "b11026-linux-x64-vulkan").is_dir()
+    record = json.loads((tmp_path / "home" / "runtime.json").read_text())
+    assert record["dir"] == str(tmp_path / "home" / "runtime" / "b11026-linux-x64-vulkan")
+
+
+def test_find_runtime_prefers_the_recorded_variant(tmp_path: pathlib.Path) -> None:
+    """Two installed variants: the one runtime.json records is the active one."""
+    home = tmp_path / "home"
+    cuda = home / "runtime" / "b11026-linux-x64-cuda-12.8"
+    vulkan = home / "runtime" / "b11026-linux-x64-vulkan"
+    for directory in (cuda, vulkan):
+        directory.mkdir(parents=True)
+        (directory / "libllama.so").write_bytes(b"\x7fELF fake\n")
+    (home / "runtime.json").write_text(json.dumps({"schema": "ggufone.runtime/v1",
+                                                  "variant": "linux-x64-vulkan",
+                                                  "dir": str(vulkan)}))
+    assert finder.find_runtime(home=home) == vulkan
+
+
+def test_find_runtime_falls_back_to_a_scan_when_the_record_is_stale(
+        tmp_path: pathlib.Path) -> None:
+    home = tmp_path / "home"
+    vulkan = home / "runtime" / "b11026-linux-x64-vulkan"
+    vulkan.mkdir(parents=True)
+    (vulkan / "libllama.so").write_bytes(b"\x7fELF fake\n")
+    (home / "runtime.json").write_text(json.dumps({"variant": "linux-x64-cuda-12.8",
+                                                  "dir": str(home / "gone")}))
+    assert finder.find_runtime(home=home) == vulkan
+
+
+def test_a_fallback_tier_without_a_pinned_bundle_is_skipped(tmp_path: pathlib.Path) -> None:
+    """A lock that carries no vulkan asset must not abort the chain — it is recorded."""
+    cache = bundle_cache(tmp_path, ("cuda", "cpu"))
+    lock = pins.load_lock(multi_lock(cache, ("cuda", "cpu")))
+
+    result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                             free_bytes=1 << 40, probes=GPU_HOST)
+
+    assert result["variant"] == "linux-x64-cpu"
+    assert [attempt["backend"] for attempt in result["fallback_attempts"]] == ["cuda", "vulkan"]
+    assert "E_RUNTIME_MISSING" in result["fallback_attempts"][1]["reason"]
+
+
+def test_install_reports_a_bundle_that_carries_no_such_backend(tmp_path: pathlib.Path) -> None:
+    """Variant says vulkan but the archive holds no libggml-vulkan: name it, then fall back."""
+    cache = bundle_cache(tmp_path, ("cuda", "cpu"))
+    vulkan_asset = cache / ASSET["vulkan"]
+    vulkan_asset.write_bytes((cache / ASSET["cpu"]).read_bytes())  # cpu layout under a vulkan name
+    lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
+
+    result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                             free_bytes=1 << 40, probes=GPU_HOST)
+
+    assert result["variant"] == "linux-x64-cpu"
+    reasons = [attempt["reason"] for attempt in result["fallback_attempts"]]
+    assert any("carries no vulkan backend" in reason for reason in reasons), reasons
 
 
 # ------------------------------------------------------------------ doctor
