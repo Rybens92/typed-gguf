@@ -223,12 +223,13 @@ $ python3 /work/tf363/uv-mutmut-run.py run --max-children 2
 
 mutmut generates **every** mutant in the package (the name filter only selects which *results are
 printed*), and the run orders by estimated test time, so this is a whole-package sweep that is only
-read as per-function numbers. It was stopped at **5253/6704** after ~40 min: this container shares
-a 256-pid cgroup with sibling cards (a Stryker + a vitest run were live), `os.fork()` inside
-mutmut died with `BlockingIOError: [Errno 11] Resource temporarily unavailable`, and
+read as per-function numbers. It was stopped at **5318/6704** (a first sweep, then a resume after
+the fork error, ~50 min total): this container shares a 256-pid cgroup with sibling cards (a
+Stryker + a vitest run were live), `os.fork()` inside mutmut died with
+`BlockingIOError: [Errno 11] Resource temporarily unavailable`, and
 `--max-children 2` only brought it back to ~2 mutations/s (the FIX card's run, on a quieter box,
 was ~4x faster). **Partial, not a score** — numbers from
-`/work/tf363/mutmut-score-partial.txt`, per function changed or touched here:
+`/work/tf363/mutmut-score-final.txt`, per function changed or touched here:
 
 | function | killed | survived | score | triage |
 |---|---|---|---|---|
