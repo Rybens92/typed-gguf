@@ -64,5 +64,6 @@ def test_oracle_live_section_is_green_without_skips() -> None:
     live = result.stdout.split("[B] live runtime probes")[-1].split("[C] arithmetic mirror")[0]
     skips = [line for line in live.splitlines() if re.match(r"\s*SKIP ", line)]
     assert skips == [], f"section B skipped: {skips}"
-    assert "resolves all 34 required symbols" in live
+    assert "resolves all 32 required symbols" in live       # 32 libllama.so symbols …
+    assert "resolves the backend loader (2/2)" in live       # … + 2 libggml.so symbols = 34
     assert "llama-fit-params available for auto-fit" in live

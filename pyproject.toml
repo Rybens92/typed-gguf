@@ -55,7 +55,7 @@ line-length = 100
 target-version = "py311"
 # docs/evidence/ holds captured third-party artifacts (e.g. the operator's PoC). Frozen
 # evidence, not our code: it is pinned by the oracle and never edited.
-exclude = ["docs/evidence", "state", ".venv", "build", "dist"]
+exclude = ["docs/evidence", "state", ".venv", "mutants", "build", "dist"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]
@@ -66,3 +66,12 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.mutmut]
+# E1a mutation testing (Tier M): the pure-logic modules first — they carry the arithmetic the
+# SPEC pins (KV math, quant selection, GGUF parsing, registry durability, pins).
+source_paths = ["src/ggufone"]
+also_copy = ["tests", "docs", "runtime.lock", "pyproject.toml", "README.md"]
+pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
+pytest_add_cli_args_test_selection = ["tests/"]
+max_children = 1
