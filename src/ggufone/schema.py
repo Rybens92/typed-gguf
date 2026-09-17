@@ -60,6 +60,9 @@ OPTION_DEFAULTS: dict[str, Any] = {
     "save_state": False,
     "max_waves": None,
     "strict": False,
+    # E1c: prompt assembly knobs (SPEC 5 A-E1c-1/2)
+    "template": None,          # None/"auto" = the chain; "plain"; a builtin name; a path
+    "thinking": False,         # False = suppress (default); True = leave the block open
 }
 
 
@@ -104,6 +107,8 @@ class Options:
     save_state: bool = False
     max_waves: int | None = None
     strict: bool = False
+    template: str | None = None
+    thinking: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -278,8 +283,20 @@ def _parse_options(raw: Any) -> tuple[Options, list[str]]:
         save_state=_bool("save_state", values["save_state"]),
         max_waves=_optional_int("max_waves", values["max_waves"], low=1),
         strict=strict,
+        template=_optional_template("template", values["template"]),
+        thinking=_bool("thinking", values["thinking"]),
     )
     return options, warnings
+
+
+def _optional_template(name: str, value: Any) -> str | None:
+    """`null` | "auto" | "plain" | a builtin name | a path | inline template text (E1c)."""
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise _fail(f"options.{name} must be a non-empty string or null (got {value!r})",
+                    "E_UNKNOWN_KEY")
+    return value.strip()
 
 
 def _number(name: str, value: Any, *, low: float, inclusive: bool,

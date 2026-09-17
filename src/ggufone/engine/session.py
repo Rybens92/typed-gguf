@@ -95,8 +95,14 @@ class ModelHandle:
 
 
 def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[str] | None = None,
-               home: pathlib.Path | None = None, system: str | None = None) -> ModelHandle:
-    """Load a GGUF model through the pinned runtime, after the arch pre-flight (SPEC 2.2/A11)."""
+               home: pathlib.Path | None = None, system: str | None = None,
+               fit_plan: Any | None = None) -> ModelHandle:
+    """Load a GGUF model through the pinned runtime, after the arch pre-flight (SPEC 2.2/A11).
+
+    `fit_plan` (E1c) contributes the placement: `n_gpu_layers` comes from the plan
+    (`llama_model_params.n_gpu_layers`); without a plan — or with `--no-fit` — the model is
+    placed on the CPU exactly as E1b shipped it.
+    """
     model_path = pathlib.Path(path)
     if not model_path.exists():
         raise RuntimeMissingError(f"E_MODEL_NOT_FOUND: {model_path} does not exist")
@@ -118,7 +124,7 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
     runtime = ctypes_binding.load_libraries(rt_dir, system=system)
     llama = runtime.llama
     params = llama.llama_model_default_params()
-    params.n_gpu_layers = 0          # E1b places on CPU; E1c's fit plan owns offload
+    params.n_gpu_layers = int(getattr(fit_plan, "n_gpu_layers", 0) or 0)
     started = time.perf_counter()
     model = llama.llama_model_load_from_file(str(model_path).encode(), params)
     load_ms = (time.perf_counter() - started) * 1000.0

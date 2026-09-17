@@ -35,7 +35,7 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 from ggufone import schema
-from ggufone.engine import prompt, readout
+from ggufone.engine import prompt, readout, template as template_module
 from ggufone.errors import (
     CandidateCollisionError,
     ContextTooSmallError,
@@ -117,6 +117,9 @@ class ContextPlan:
     kv_type: str
     # per-question requirements, for the ctx guard
     max_question_tokens: int = 0
+    # E1c: the template that produced `prefix_tokens` (None = the plain E1b framing)
+    template: template_module.Resolution | None = None
+    enable_thinking: bool = False
 
     @property
     def n_prefix(self) -> int:
@@ -182,10 +185,38 @@ def candidate_sequences(candidates: Sequence[Sequence[int]], *,
             for tokens in candidates]
 
 
-def plan_context(request: schema.Request, tokenizer: Tokenizer) -> ContextPlan:
-    """Size the context from the request itself (SPEC 2.2)."""
+def resolve_template(request: schema.Request, tokenizer: Any) -> template_module.Resolution | None:
+    """A-E1c-1 for a live handle: the chain over the model's own template.
+
+    Returns `None` when the session carries no model (the deterministic fake sessions of the
+    engine tests, and any caller that wants the plain E1b framing): plain is the documented
+    fallback of `--template plain`, not a silent default for a real model.
+    """
+    if getattr(tokenizer, "model", None) is None or getattr(tokenizer, "runtime", None) is None:
+        return None
     options = request.options
-    prefix_tokens = tokenizer.tokenize(prompt.build_prefix(request.state))
+    user_template = options.template if options.template not in (None, "auto") else None
+    return template_module.resolve_for_handle(
+        tokenizer, messages=prompt.chat_messages(request.state), user_template=user_template,
+        explicit_user=user_template is not None,
+        think_mode="on" if options.thinking else "auto")
+
+
+def plan_context(request: schema.Request, tokenizer: Tokenizer, *,
+                 template: template_module.Resolution | None = None,
+                 resolve: bool = True, n_ctx_cap: int | None = None) -> ContextPlan:
+    """Size the context from the request itself (SPEC 2.2 + the E1c template chain).
+
+    `n_ctx_cap` is the fit plan's ceiling (A-E1c-5): the engine never allocates more context
+    than the host was measured to hold, and a request that needs more fails the ctx guard with
+    `E_CTX_TOO_SMALL` instead of silently truncating the state.
+    """
+    options = request.options
+    resolution = template
+    if resolution is None and resolve:
+        resolution = resolve_template(request, tokenizer)
+    prefix_tokens = tokenizer.tokenize(prompt.build_prefix(
+        request.state, resolution=resolution, enable_thinking=options.thinking))
     requirements = question_requirements(request, tokenizer)
     per_question = [len(suffix) + max(len(tokens) for tokens in candidates)
                     for _, _, suffix, candidates in requirements]
@@ -195,10 +226,13 @@ def plan_context(request: schema.Request, tokenizer: Tokenizer) -> ContextPlan:
     meta_threads = getattr(meta, "threads", 0)
     threads = options.threads or meta_threads or _default_threads()
     n_ctx = options.n_ctx or (len(prefix_tokens) + max_question + CONTEXT_MARGIN)
+    if n_ctx_cap is not None:
+        n_ctx = min(int(n_ctx), int(n_ctx_cap))
     n_seq_max = options.n_seq_max or max(MIN_SEQ_MAX, 1 + max_candidates)
     return ContextPlan(prefix_tokens=tuple(prefix_tokens), n_ctx=int(n_ctx),
                        n_seq_max=int(n_seq_max), threads=int(threads),
-                       kv_type=options.kv_type, max_question_tokens=max_question)
+                       kv_type=options.kv_type, max_question_tokens=max_question,
+                       template=resolution, enable_thinking=options.thinking)
 
 
 def _default_threads() -> int:
@@ -258,6 +292,9 @@ class DecisionEngine:
         question_started = time.perf_counter()
         answers: dict[str, Any] = {}
         warnings: list[str] = list(request.warnings)
+        if plan.template is not None:
+            for code in plan.template.warnings:
+                _add_warning(warnings, code)
         input_tokens = len(plan.prefix_tokens)
         output_tokens = 0
         for question, view, suffix_tokens, candidates in requirements:
@@ -280,6 +317,7 @@ class DecisionEngine:
                 "prefix_tokens": len(plan.prefix_tokens),
                 "state_id": state_id,
                 "prefill_reused": bool(prefill.prefill_reused),
+                "template": self._template_surface(plan),
             },
             answers=answers,
             usage={
@@ -301,6 +339,14 @@ class DecisionEngine:
         )
 
     # ---- guards
+    @staticmethod
+    def _template_surface(plan: ContextPlan) -> dict[str, Any]:
+        """`engine.template` — which template produced the prompt (A-E1c-1/2, evidence-ready)."""
+        if plan.template is None:
+            return {"kind": "plain", "renderer": "plain", "source": "prompt.py framing",
+                    "family": None, "thinking": "n/a"}
+        return plan.template.to_dict()
+
     def _guard_context(self, request: schema.Request, plan: ContextPlan, meta: SessionMeta,
                        requirements: Sequence[tuple[schema.Question, prompt.RenderedQuestion,
                                                      list[int], list[list[int]]]]) -> None:

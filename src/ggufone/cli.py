@@ -9,6 +9,7 @@ Exit codes (SPEC 2.5): 0 ok, 2 user error, 3 runtime/model error, 4 internal.
 """
 from __future__ import annotations
 
+import dataclasses
 import json
 import pathlib
 import sys
@@ -21,7 +22,7 @@ from ggufone.engine import session as session_module
 from ggufone.errors import GgufoneError, ModelNotFoundError, Sha256MismatchError, UserError
 from ggufone.registry import gguf, hf, recommend, store
 from ggufone.registry.gguf import sha256_file
-from ggufone.runtime import capability, finder, install, pins
+from ggufone.runtime import capability, finder, fit, install, pins
 
 COMMANDS = ("init", "doctor", "models", "run", "ask", "serve", "mcp", "bench",
             "fit", "calibrate", "version")
@@ -32,6 +33,41 @@ MILESTONES = {"version": "E0", "init": "E1a", "doctor": "E1a", "models": "E1a",
               "bench": "E2", "calibrate": "E2.5"}
 DOCTOR_SCHEMA = "ggufone.doctor/v1"
 MODELS_SCHEMA = "ggufone.models/v1"
+
+#: per-command help (SPEC 2.8 surface). `ggufone <cmd> --help` prints the flags that command
+#: accepts — carried finding #1 of the E1c card: `--help` used to be an E_UNKNOWN_KEY error.
+COMMAND_HELP: dict[str, tuple[str, ...]] = {
+    "init": ("--backend auto|cpu|vulkan|cuda|metal", "--force", "--dry-run",
+             "--offline-cache DIR", "--json"),
+    "doctor": ("--json",),
+    "models": ("search <query>", "pull <repo[:quant]> [--file NAME] [--no-verify] [--jobs N]",
+               "use <alias>", "ls [--json]", "rm <alias>", "verify [alias]",
+               "recommend-quant [--vram GIB] [--json]"),
+    "run": ("--questions FILE", "--state TEXT|@FILE", "--state-json FILE", "--model REF",
+            "--format native|typesafe", "--out FILE", "--template auto|plain|NAME|PATH",
+            "--thinking", "--no-fit", "--fit-target MIB", "--fit-ctx N", "--no-fit-cache",
+            "--threads N", "--n-ctx N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0",
+            "--readout sequence|single_token", "--confidence-mode MODE", "--temperature F",
+            "--length-norm F", "--coverage-floor F", "--state-id ID", "--save-state",
+            "--no-state-cache", "--strict", "--max-waves N"),
+    "ask": ("--state TEXT|@FILE", "--state-json FILE", "--choice 'id=instr:opt1|opt2'",
+            "--score 'id=instr:l0|l1'", "--noul 'id=instr'", "… plus every `run` flag"),
+    "fit": ("[<model>]", "--print", "--no-cache", "--json", "--fit-target MIB", "--fit-ctx N",
+            "--n-ctx N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--timeout S"),
+    "serve": ("--host IP", "--port N", "--format native|typesafe"),
+    "mcp": (),
+    "bench": ("--suite latency|throughput|quality|calibration|determinism", "--model REF",
+              "--json"),
+    "calibrate": ("--model REF", "--dry-run"),
+    "version": ("--json",),
+}
+
+
+def _command_usage(command: str) -> str:
+    lines = [f"usage: ggufone {command} " + (" ".join(COMMAND_HELP.get(command, ()) ) or ""),
+             "", f"milestone: {MILESTONES.get(command, 'E1')}",
+             "run `ggufone --help` for the command list"]
+    return "\n".join(lines)
 
 
 # --------------------------------------------------------------------- plumbing
@@ -699,8 +735,10 @@ def _models_recommend_quant(args: list[str]) -> int:
 ENGINE_VALUE_FLAGS = ("model", "format", "state-id", "temperature", "length-norm", "readout",
                       "confidence-mode", "coverage-floor", "n-ctx", "n-seq-max", "kv-type",
                       "threads", "backend", "seed", "max-waves", "out", "questions", "state",
-                      "state-json")
-ENGINE_BOOL_FLAGS = ("strict", "save-state", "no-state-cache")
+                      "state-json", "template")
+ENGINE_BOOL_FLAGS = ("strict", "save-state", "no-state-cache", "thinking", "no-fit",
+                     "no-fit-cache")
+FIT_VALUE_FLAGS = ("fit-target", "fit-ctx")
 
 
 def _engine_options(options: dict[str, Any]) -> dict[str, Any]:
@@ -709,7 +747,8 @@ def _engine_options(options: dict[str, Any]) -> dict[str, Any]:
         "temperature": float, "length_norm": float, "coverage_floor": float,
         "n_ctx": int, "n_seq_max": int, "threads": int, "seed": int, "max_waves": int,
         "readout": str, "confidence_mode": str, "kv_type": str, "backend": str,
-        "state_id": str, "strict": bool, "save_state": bool,
+        "state_id": str, "strict": bool, "save_state": bool, "template": str,
+        "thinking": bool,
     }
     engine: dict[str, Any] = {}
     for key, caster in mapping.items():
@@ -806,22 +845,84 @@ def _resolve_model(request: schema.Request, *, home: pathlib.Path | None = None)
     return entry.alias, entry.path
 
 
+def _resolve_model_ref(ref: str | None, *, home: pathlib.Path | None = None) -> tuple[str, str]:
+    """`alias | path | repo[:quant]` -> (alias, path) without a full request (used by `fit`)."""
+    if ref:
+        candidate = pathlib.Path(ref)
+        if candidate.exists() and candidate.is_file():
+            return candidate.name.removesuffix(".gguf"), str(candidate)
+    registry, _warnings = store.load_registry(store.registry_path(home))
+    entry = store.resolve(registry, ref, use_current=ref is None)
+    if entry is None:
+        known = ", ".join(registry.aliases) or "<none>"
+        raise ModelNotFoundError(
+            f"E_MODEL_NOT_FOUND: {ref!r} is not a registry alias or an existing file; known "
+            f"aliases: {known} (use `ggufone models pull` / `ggufone models use`)")
+    return entry.alias, entry.path
+
+
+def fit_plan_for(model_path: str, *, home: pathlib.Path | None = None, use_cache: bool = True,
+                 fit_target_mb: int | None = None, min_ctx: int | None = None,
+                 n_ctx: int | None = None, n_seq_max: int | None = None,
+                 kv_type: str = "auto") -> fit.FitPlan:
+    """The A-E1c-4 plan for one model on this host (cached, binary when available)."""
+    model = fit.ModelFacts.read(model_path)
+    host = fit.host_facts()
+    runtime_dir = finder.find_runtime(home=home)
+    kwargs: dict[str, Any] = {"use_cache": use_cache, "kv_type": kv_type}
+    if fit_target_mb is not None:
+        kwargs["fit_target_mb"] = int(fit_target_mb)
+    if min_ctx is not None:
+        kwargs["min_ctx"] = int(min_ctx)
+    if n_ctx is not None:
+        kwargs["n_ctx"] = int(n_ctx)
+    if n_seq_max is not None:
+        kwargs["n_seq_max"] = int(n_seq_max)
+    return fit.plan_for_model(model, host, home=home, runtime_dir=runtime_dir, **kwargs)
+
+
 def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
-                   ) -> dict[str, Any]:
-    """Validate -> resolve -> load -> prefilled fork-decide -> rendered response body."""
+                   fit_enabled: bool = True, fit_target_mb: int | None = None,
+                   fit_ctx: int | None = None, fit_cache: bool = True) -> dict[str, Any]:
+    """Validate -> resolve -> fit -> load -> prefilled fork-decide -> rendered response body."""
     request = schema.parse_request(payload)
     alias, model_path = _resolve_model(request, home=home)
-    with session_module.open_model(model_path, home=home) as handle:
-        plan = decide.plan_context(request, handle)
-        with session_module.ModelSession(handle, plan,
+    plan: fit.FitPlan | None = None
+    n_ctx_cap: int | None = None
+    if fit_enabled:
+        plan = fit_plan_for(model_path, home=home, use_cache=fit_cache,
+                            fit_target_mb=fit_target_mb, min_ctx=fit_ctx,
+                            kv_type=request.options.kv_type)
+        n_ctx_cap = plan.n_ctx
+        request = _with_fit_options(request, plan)
+    with session_module.open_model(model_path, home=home,
+                                   fit_plan=plan) as handle:
+        context_plan = decide.plan_context(request, handle, n_ctx_cap=n_ctx_cap)
+        with session_module.ModelSession(handle, context_plan,
                                          backend=session_module.runtime_backend(home),
                                          states_home=store.states_dir(home)) as live:
-            result = decide.DecisionEngine(live).decide(request, plan=plan, model_alias=alias)
-        return schema.render_response(result.payload(), format=request.format)
+            result = decide.DecisionEngine(live).decide(request, plan=context_plan,
+                                                        model_alias=alias)
+        body = schema.render_response(result.payload(), format=request.format)
+    if plan is not None and isinstance(body.get("engine"), dict):
+        body["engine"]["fit"] = plan.to_dict()
+    return body
+
+
+def _with_fit_options(request: schema.Request, plan: fit.FitPlan) -> schema.Request:
+    """Fill what the request left open with the plan (explicit words always win)."""
+    options = request.options
+    needed_sequences = max(3, 1 + max((len(q.options) for q in request.questions), default=1))
+    return dataclasses.replace(request, options=dataclasses.replace(
+        options,
+        kv_type=plan.kv_type if options.kv_type in ("auto", None) else options.kv_type,
+        n_seq_max=max(options.n_seq_max or 0, plan.n_seq_max, needed_sequences)
+        if options.n_seq_max is None else options.n_seq_max,
+    ))
 
 
 def _cmd_run(args: list[str]) -> int:
-    positionals, options = _parse_args(args, value_flags=ENGINE_VALUE_FLAGS,
+    positionals, options = _parse_args(args, value_flags=ENGINE_VALUE_FLAGS + FIT_VALUE_FLAGS,
                                         bool_flags=ENGINE_BOOL_FLAGS)
     if positionals:
         raise UserError(f"unexpected argument {positionals[0]!r}", code="E_UNKNOWN_KEY")
@@ -832,13 +933,24 @@ def _cmd_run(args: list[str]) -> int:
     payload = engine_request_payload(body, state=state, model=options.get("model"),
                                      fmt=options.get("format"),
                                      engine_options=_engine_options(options))
-    response = decide_payload(payload)
+    response = decide_payload(payload, **_fit_arguments(options))
     text = json.dumps(response, indent=2, sort_keys=False)
     if options.get("out"):
         pathlib.Path(options["out"]).write_text(text + "\n", encoding="utf-8")
     else:
         print(text)
     return 0
+
+
+def _fit_arguments(options: dict[str, Any]) -> dict[str, Any]:
+    """`--no-fit` / `--fit-target` / `--fit-ctx` / `--no-fit-cache` -> `decide_payload` kwargs."""
+    kwargs: dict[str, Any] = {"fit_enabled": not options.get("no_fit"),
+                              "fit_cache": not options.get("no_fit_cache")}
+    if options.get("fit_target") is not None:
+        kwargs["fit_target_mb"] = int(options["fit_target"])
+    if options.get("fit_ctx") is not None:
+        kwargs["fit_ctx"] = int(options["fit_ctx"])
+    return kwargs
 
 
 def _ask_question(spec: str, qtype: str) -> tuple[str, dict[str, Any]]:
@@ -865,7 +977,7 @@ def _ask_question(spec: str, qtype: str) -> tuple[str, dict[str, Any]]:
 
 
 def _cmd_ask(args: list[str]) -> int:
-    positionals, options = _parse_args(args, value_flags=ENGINE_VALUE_FLAGS,
+    positionals, options = _parse_args(args, value_flags=ENGINE_VALUE_FLAGS + FIT_VALUE_FLAGS,
                                         bool_flags=ENGINE_BOOL_FLAGS,
                                         multi_flags=("choice", "score", "noul"))
     if positionals:
@@ -886,12 +998,47 @@ def _cmd_ask(args: list[str]) -> int:
     payload = engine_request_payload({"questions": questions}, state=state,
                                      model=options.get("model"), fmt=options.get("format"),
                                      engine_options=_engine_options(options))
-    response = decide_payload(payload)
+    response = decide_payload(payload, **_fit_arguments(options))
     text = json.dumps(response, indent=2, sort_keys=False)
     if options.get("out"):
         pathlib.Path(options["out"]).write_text(text + "\n", encoding="utf-8")
     else:
         print(text)
+    return 0
+
+
+# --------------------------------------------------------------------- fit (E1c)
+def _cmd_fit(args: list[str]) -> int:
+    """`ggufone fit [<model>] [--print] [--no-cache]` (SPEC 2.8/2.10, A-E1c-4)."""
+    positionals, options = _parse_args(
+        args, value_flags=("model", "fit-target", "fit-ctx", "n-ctx", "n-seq-max", "kv-type",
+                           "timeout"),
+        bool_flags=("print", "no-cache", "json"))
+    if len(positionals) > 1:
+        raise UserError(f"unexpected argument {positionals[1]!r}", code="E_UNKNOWN_KEY")
+    home = store.data_home()
+    ref = positionals[0] if positionals else options.get("model")
+    alias, model_path = _resolve_model_ref(ref, home=home)
+    plan = fit_plan_for(model_path, home=home, use_cache=not options.get("no_cache"),
+                        fit_target_mb=int(options["fit_target"]) if "fit_target" in options
+                        else None,
+                        min_ctx=int(options["fit_ctx"]) if "fit_ctx" in options else None,
+                        n_ctx=int(options["n_ctx"]) if "n_ctx" in options else None,
+                        n_seq_max=int(options["n_seq_max"]) if "n_seq_max" in options else None,
+                        kv_type=options.get("kv_type", "auto"))
+    payload = {"model": alias, "path": model_path, **plan.to_dict()}
+    cache = fit.cache_path(plan.model_sha256, plan.host_fingerprint, home)
+    payload["cache"] = str(cache) if cache.exists() else None
+    if options.get("json"):
+        print(json.dumps(payload, indent=2, sort_keys=False))
+        return 0
+    for key, value in payload.items():
+        print(f"{key}: {_render(value) if not isinstance(value, (bool, type(None))) else value}")
+    for note in plan.notes:
+        print(f"note: {note}")
+    if plan.insufficient:
+        print("hint: the plan exceeds this host's memory — use a smaller quant or "
+              "raise --fit-target", file=sys.stderr)
     return 0
 
 
@@ -926,16 +1073,21 @@ def main(argv: list[str] | None = None) -> int:
         print(_usage())
         return 0
     cmd, rest = args[0], args[1:]
-    if cmd == "version":
-        try:
-            return _cmd_version(rest)
-        except GgufoneError as exc:
-            return _fail(exc)
     if cmd not in COMMANDS:
         print(f"unknown command: {cmd}", file=sys.stderr)
         print(_usage(), file=sys.stderr)
         return 2
+    # carried finding #1 (E1c card): `ggufone <cmd> --help` used to be an E_UNKNOWN_KEY error
+    if any(arg in ("-h", "--help") for arg in rest):
+        if cmd == "models" and rest and rest[0] in MODELS_SUBCOMMANDS:
+            print(f"usage: ggufone models {rest[0]} "
+                  f"{' '.join(flag for flag in COMMAND_HELP['models'] if flag.startswith(rest[0]))}")
+            return 0
+        print(_command_usage(cmd))
+        return 0
     try:
+        if cmd == "version":
+            return _cmd_version(rest)
         if cmd == "init":
             return _cmd_init(rest)
         if cmd == "doctor":
@@ -946,8 +1098,10 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_run(rest)
         if cmd == "ask":
             return _cmd_ask(rest)
+        if cmd == "fit":
+            return _cmd_fit(rest)
     except GgufoneError as exc:
-        return _fail(exc)
+        return _fail(exc, command=cmd)
     except KeyboardInterrupt:  # pragma: no cover - interactive
         print("interrupted", file=sys.stderr)
         return 130
@@ -959,11 +1113,14 @@ def main(argv: list[str] | None = None) -> int:
     return 3
 
 
-def _fail(exc: GgufoneError) -> int:
+def _fail(exc: GgufoneError, *, command: str | None = None) -> int:
     message = str(exc)
     if not message.startswith(exc.code):
         message = f"{exc.code}: {message}"
     print(f"error: {message}", file=sys.stderr)
+    if exc.code == "E_UNKNOWN_KEY" and command:
+        print(f"hint: run `ggufone {command} --help` for the flags this command accepts",
+              file=sys.stderr)
     return exc.exit_code
 
 

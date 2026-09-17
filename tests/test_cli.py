@@ -20,8 +20,12 @@ from ggufone.registry import store
 from tests.fake_engine import FakeSession, biased_row
 
 
-def _fake_decide(payload: dict, *, home: pathlib.Path | None = None) -> dict:
-    """`cli.decide_payload` with the fake session: same validation, same rendering."""
+def _fake_decide(payload: dict, *, home: pathlib.Path | None = None, **kwargs) -> dict:
+    """`cli.decide_payload` with the fake session: same validation, same rendering.
+
+    `**kwargs` absorbs the E1c fit knobs (`fit_enabled`, `fit_target_mb`, `fit_ctx`,
+    `fit_cache`) — the fake never loads a model, so a plan cannot be involved.
+    """
     request = schema.parse_request(payload)
     session = FakeSession(n_vocab=512)
     word = "billing"
@@ -138,7 +142,7 @@ def test_schema_errors_exit_two_without_a_traceback(fake_engine, home, tmp_path,
 
 
 def test_runtime_errors_exit_three(fake_engine, home, tmp_path, capsys, monkeypatch) -> None:
-    def boom(payload, *, home=None):
+    def boom(payload, *, home=None, **kwargs):
         from ggufone.errors import RuntimeMissingError
         raise RuntimeMissingError("E_RUNTIME_MISSING: no runtime installed")
 
@@ -149,7 +153,7 @@ def test_runtime_errors_exit_three(fake_engine, home, tmp_path, capsys, monkeypa
 
 def test_internal_errors_exit_four_and_never_leak_a_traceback(fake_engine, home, capsys,
                                                               monkeypatch) -> None:
-    def boom(payload, *, home=None):
+    def boom(payload, *, home=None, **kwargs):
         raise ZeroDivisionError("kaboom")
 
     monkeypatch.setattr(cli, "decide_payload", boom)

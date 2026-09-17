@@ -8,10 +8,14 @@ Candidate labels are rendered from the request, never invented: option names for
 level numbers for `score` ("0".."K-1"), and `yes`/`no` for `noul` — exactly the keys the
 response reports back, so nothing inside `answers` has to be renamed (SPEC 2.6).
 
-Readout policy note: E1b scores the rendered label itself (`sequence` = every token of the
-label, `single_token` = its first token, same prompt either way). The per-family label policy
-(bracket letters, leading space, chat template) is E1c/§5 — this module keeps the seam: pass
-`readout=` and the *same* suffix is produced for both modes (A-E1b-6).
+Two assemblies (E1c):
+
+* **plain** — the model-agnostic framing of E1b, kept as the documented escape hatch
+  (`--template plain`, and the default for a session that has no model handle);
+* **chat template** — the model's own template, resolved by `engine/template.py` (A-E1c-1) and
+  rendered with thinking suppressed (A-E1c-2). The prefix ends at the template's generation
+  prompt; the question suffix is the continuation of that assistant turn, so the candidate label
+  is read exactly where the family expects it.
 """
 from __future__ import annotations
 
@@ -19,6 +23,7 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
+from ggufone.engine import template as template_module
 from ggufone.schema import Question
 
 SYSTEM_FRAMING = (
@@ -65,9 +70,25 @@ def render_instructions(instructions: Any) -> str:
     return render_value(instructions)
 
 
-def build_prefix(state: Any) -> str:
-    """`system framing + state` — the bytes every question of this request shares."""
-    return f"{SYSTEM_FRAMING}{STATE_HEADER}{render_state(state)}\n"
+def chat_messages(state: Any) -> list[dict[str, str]]:
+    """The default turn structure every family template renders (system framing + state)."""
+    return [{"role": "system", "content": SYSTEM_FRAMING.strip()},
+            {"role": "user", "content": f"{STATE_HEADER}{render_state(state)}"}]
+
+
+def build_prefix(state: Any, *, resolution: template_module.Resolution | None = None,
+                 enable_thinking: bool = False) -> str:
+    """`system framing + state` — the bytes every question of this request shares.
+
+    With a chat-template `resolution` the bytes are that template's rendering of
+    `[system, user]` plus its generation prompt (A-E1c-1/2); without one (or with
+    `--template plain`) they are the model-agnostic framing E1b shipped.
+    """
+    if resolution is None or resolution.is_plain:
+        return f"{SYSTEM_FRAMING}{STATE_HEADER}{render_state(state)}\n"
+    return template_module.render_prompt(chat_messages(state), resolution,
+                                        add_generation_prompt=True,
+                                        enable_thinking=enable_thinking)
 
 
 def build_question(question: Question, *, readout: str = "sequence") -> RenderedQuestion:
