@@ -40,32 +40,32 @@ def data_home() -> pathlib.Path:
     return pathlib.Path.home() / ".local" / "share" / "ggufone"
 
 
-def models_dir() -> pathlib.Path:
-    return data_home() / "models"
+def models_dir(home: pathlib.Path | None = None) -> pathlib.Path:
+    return (home or data_home()) / "models"
 
 
-def downloads_dir() -> pathlib.Path:
-    return data_home() / "downloads"
+def downloads_dir(home: pathlib.Path | None = None) -> pathlib.Path:
+    return (home or data_home()) / "downloads"
 
 
-def runtime_root() -> pathlib.Path:
-    return data_home() / "runtime"
+def runtime_root(home: pathlib.Path | None = None) -> pathlib.Path:
+    return (home or data_home()) / "runtime"
 
 
-def states_dir() -> pathlib.Path:
-    return data_home() / "states"
+def states_dir(home: pathlib.Path | None = None) -> pathlib.Path:
+    return (home or data_home()) / "states"
 
 
-def registry_path() -> pathlib.Path:
-    return data_home() / REGISTRY_NAME
+def registry_path(home: pathlib.Path | None = None) -> pathlib.Path:
+    return (home or data_home()) / REGISTRY_NAME
 
 
-def runtime_record_path() -> pathlib.Path:
-    return data_home() / "runtime.json"
+def runtime_record_path(home: pathlib.Path | None = None) -> pathlib.Path:
+    return (home or data_home()) / "runtime.json"
 
 
-def calibration_path() -> pathlib.Path:
-    return data_home() / "calibration.json"
+def calibration_path(home: pathlib.Path | None = None) -> pathlib.Path:
+    return (home or data_home()) / "calibration.json"
 
 
 # --------------------------------------------------------------------- model

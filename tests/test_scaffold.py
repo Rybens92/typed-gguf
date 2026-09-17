@@ -46,7 +46,7 @@ def test_cli_version_and_unknown_command(capsys) -> None:
     assert cli.main(["version"]) == 0
     assert __version__ in capsys.readouterr().out
     assert cli.main(["nope"]) == 2
-    assert cli.main(["init"]) == 3  # frozen command set, E1a implements it
+    assert cli.main(["run"]) == 3  # frozen command set, E1b implements run/ask
 
 
 def test_cli_command_set_frozen() -> None:

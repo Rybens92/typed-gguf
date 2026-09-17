@@ -1,14 +1,25 @@
 """Command-line surface (SPEC 2.8). Milestone: E1a (init/doctor/models), E1b (run/ask).
 
-The full command set is frozen by SPEC 2.8; unimplemented commands exit 3 with a
+Implemented in E1a: `init`, `doctor`, `models {search,pull,use,ls,rm,verify,recommend-quant}`,
+`version`. The remaining commands keep the frozen names from SPEC 2.8 and exit 3 with a
 milestone pointer instead of pretending to work.
-"""
 
+Exit codes (SPEC 2.5): 0 ok, 2 user error, 3 runtime/model error, 4 internal.
+`doctor` additionally uses 2 for "works, but warnings" and 1 for "broken" (A-E1a-3).
+"""
 from __future__ import annotations
 
+import json
+import pathlib
 import sys
+import time
+from typing import Any
 
 from ggufone import __version__
+from ggufone.errors import GgufoneError, Sha256MismatchError, UserError
+from ggufone.registry import gguf, hf, recommend, store
+from ggufone.registry.gguf import sha256_file
+from ggufone.runtime import capability, finder, install, pins
 
 COMMANDS = ("init", "doctor", "models", "run", "ask", "serve", "mcp", "bench",
             "fit", "calibrate", "version")
@@ -17,31 +28,646 @@ MODELS_SUBCOMMANDS = ("search", "pull", "use", "ls", "rm", "verify", "recommend-
 MILESTONES = {"version": "E0", "init": "E1a", "doctor": "E1a", "models": "E1a",
               "run": "E1b", "ask": "E1b", "fit": "E1c", "serve": "E1b", "mcp": "E1b",
               "bench": "E2", "calibrate": "E2.5"}
+DOCTOR_SCHEMA = "ggufone.doctor/v1"
+MODELS_SCHEMA = "ggufone.models/v1"
 
 
+# --------------------------------------------------------------------- plumbing
 def _usage() -> str:
     lines = [f"ggufone {__version__}", "usage: ggufone <command> [options]", "", "commands:"]
     for cmd in COMMANDS:
         lines.append(f"  {cmd:12s} (implemented in {MILESTONES.get(cmd, 'E1')})")
+    lines.append("")
+    lines.append("models: " + ", ".join(MODELS_SUBCOMMANDS))
     return "\n".join(lines)
 
 
+def _parse_args(args: list[str], *, value_flags: tuple[str, ...] = (),
+                bool_flags: tuple[str, ...] = ()) -> tuple[list[str], dict[str, Any]]:
+    values = {name.replace("-", "_") for name in value_flags}
+    flags = {name.replace("-", "_") for name in bool_flags}
+    positionals: list[str] = []
+    options: dict[str, Any] = {}
+    index = 0
+    while index < len(args):
+        arg = args[index]
+        if arg.startswith("--"):
+            name, _, inline = arg[2:].partition("=")
+            key = name.replace("-", "_")
+            if inline:
+                options[key] = inline
+            elif key in flags:
+                options[key] = True
+            elif key in values:
+                if index + 1 >= len(args):
+                    raise UserError(f"--{name} needs a value", code="E_UNKNOWN_KEY")
+                options[key] = args[index + 1]
+                index += 1
+            else:
+                raise UserError(f"unknown option --{name}", code="E_UNKNOWN_KEY")
+        else:
+            positionals.append(arg)
+        index += 1
+    return positionals, options
+
+
+def _emit(payload: Any, as_json: bool) -> None:
+    if as_json:
+        print(json.dumps(payload, indent=2, sort_keys=False))
+    else:
+        print(_render(payload))
+
+
+def _render(payload: Any, indent: int = 0) -> str:
+    pad = "  " * indent
+    if isinstance(payload, dict):
+        return "\n".join(f"{pad}{key}: {_render(value, indent + 1)}"
+                         for key, value in payload.items())
+    if isinstance(payload, list):
+        return "\n".join(f"{pad}- {_render(item, indent + 1)}" for item in payload) or f"{pad}-"
+    if isinstance(payload, float):
+        return f"{payload:.4g}"
+    return f"{payload}"
+
+
+def _progress_printer(label: str):
+    state = {"last": 0.0}
+
+    def report(done: int, total: int | None) -> None:
+        now = time.monotonic()
+        if now - state["last"] < 0.5 and (total is None or done < total):
+            return
+        state["last"] = now
+        if total:
+            pct = 100.0 * done / total
+            print(f"\r{label}: {pct:5.1f}%  {hf.human_bytes(done)} / {hf.human_bytes(total)}",
+                  end="", file=sys.stderr, flush=True)
+        else:
+            print(f"\r{label}: {hf.human_bytes(done)}", end="", file=sys.stderr, flush=True)
+        if total and done >= total:
+            print("", file=sys.stderr, flush=True)
+
+    return report
+
+
+# --------------------------------------------------------------------- init
+def _cmd_init(args: list[str]) -> int:
+    _, options = _parse_args(args, value_flags=("backend", "offline-cache"),
+                             bool_flags=("force", "dry-run", "json"))
+    backend = options.get("backend", "auto")
+    result = install.install(backend, force=bool(options.get("force")),
+                             dry_run=bool(options.get("dry_run")),
+                             offline_cache=options.get("offline_cache"),
+                             progress=None if options.get("json")
+                             else _progress_printer("downloading runtime"))
+    if result.get("dry_run"):
+        plan = result["plan"]
+        payload = {"dry_run": True, "rung": plan["rung"], "backend": plan["backend"],
+                   "variant": plan["variant"], "asset": plan["asset"], "url": plan["url"],
+                   "size": plan["size"], "size_human": hf.human_bytes(plan["size"]),
+                   "sha256": plan["sha256"], "destination": plan["dest"],
+                   "required_bytes": plan["required_bytes"],
+                   "cached": plan["cached"]}
+        _emit(payload, bool(options.get("json")))
+        if not options.get("json"):
+            print("\n(dry run: nothing downloaded, nothing written)")
+        return 0
+    if result.get("already_installed"):
+        payload = {"already_installed": True, "variant": result["variant"],
+                   "dir": result["dir"], "hint": result["hint"]}
+        _emit(payload, bool(options.get("json")))
+        return 0
+    record = result["record"]
+    payload = {"installed": True, "variant": result["variant"], "dir": result["dir"],
+               "source": result["source"], "asset": record["asset"],
+               "asset_sha256": record["asset_sha256"],
+               "asset_verified": record["asset_verified"],
+               "libllama_sha256": record["libllama_sha256"],
+               "bytes_fetched": result.get("bytes_fetched"),
+               "resumed_from": result.get("resumed_from"),
+               "build": record["build"], "backends": record["backends"],
+               "symbols_ok": record["symbols_ok"], "warmup_ms": record["warmup_ms"],
+               "rung": record["rung"]}
+    _emit(payload, bool(options.get("json")))
+    for warning in record.get("probe_warnings", []):
+        print(f"warning: {warning}", file=sys.stderr)
+    for failure in record.get("probe_failures", []):
+        print(f"warning: {failure}", file=sys.stderr)
+    return 0
+
+
+# --------------------------------------------------------------------- doctor
+def doctor_checks(home: pathlib.Path | None = None,
+                  lock: pins.RuntimeLock | None = None) -> dict[str, Any]:
+    """Build the doctor report (checks + runtime + model). Pure: no printing."""
+    home = home or store.data_home()
+    lock = lock or pins.load_lock()
+    checks: list[dict[str, str]] = []
+
+    def add(check_id: str, status: str, detail: str) -> None:
+        checks.append({"id": check_id, "status": status, "detail": detail})
+
+    try:
+        runtime_dir = finder.find_runtime(home=home)
+        runtime_error = None
+    except GgufoneError as exc:
+        runtime_dir, runtime_error = None, str(exc)
+    probe = None
+    if runtime_dir is None:
+        add("runtime.present", "fail",
+            runtime_error or "no runtime installed under "
+            f"{store.runtime_root(home)}; run `ggufone init` (no compiler needed)")
+    else:
+        probe = capability.probe_runtime(runtime_dir, deep=capability.deep_probe_enabled(),
+                                         lock=lock, expect_backend=capability.host_expectation(),
+                                         run_tools=True)
+        add("runtime.present", "ok", str(runtime_dir))
+        if probe.error:
+            add("runtime.loadable", "fail", probe.error)
+        add("runtime.files", "ok" if not probe.missing_files else "fail",
+            "all required libraries present: " + ", ".join(lock.required_files)
+            if not probe.missing_files else "missing " + ", ".join(probe.missing_files))
+        add("runtime.symbols", "ok" if probe.symbols_checked and not probe.missing_symbols
+            else ("warn" if not probe.symbols_checked else "fail"),
+            f"resolved {len(lock.all_symbols) - len(probe.missing_symbols)}"
+            f"/{len(lock.all_symbols)} required symbols" if probe.symbols_checked
+            else "symbol probe skipped (GGUFONE_DEEP_PROBE=0)")
+        build_state = "ok"
+        build_detail = f"build {probe.tag}"
+        if probe.build is None:
+            build_state, build_detail = "fail", "cannot determine the build number"
+        elif probe.min_build and probe.build < probe.min_build:
+            build_state = "fail"
+            build_detail += f" < b{probe.min_build} (spark2_5 needs b{probe.min_build})"
+        elif probe.tag != lock.tag:
+            build_state = "warn"
+            build_detail += f" != pinned {lock.tag}"
+        add("runtime.build", build_state, build_detail)
+        if "llama-fit-params" in probe.tools:
+            state = "ok" if probe.fit_params_help_exit == 0 else "fail"
+            add("runtime.fit_params", state,
+                f"llama-fit-params --help exit {probe.fit_params_help_exit}")
+        else:
+            add("runtime.fit_params", "warn", "llama-fit-params not bundled (auto-fit limited)")
+        accel = [b for b in probe.backends if b != "cpu"]
+        add("runtime.backends", "ok" if probe.backends else "warn",
+            "backends: " + (", ".join(probe.backends) or "none"))
+        record = finder.runtime_record(home)
+        if not record or not record.get("libllama_sha256"):
+            add("runtime.sha_recorded", "warn",
+                "runtime.json has no libllama.so SHA-256 (re-run `ggufone init --force`)")
+        elif record.get("libllama_sha256") != sha256_file(
+                runtime_dir / finder.library_names()["llama"]):
+            add("runtime.sha_recorded", "fail",
+                "libllama.so SHA-256 differs from the recorded value (re-install)")
+        else:
+            digest = record["libllama_sha256"][:16]
+            add("runtime.sha_recorded", "ok", f"libllama.so sha256 {digest}…")
+        if accel:
+            add("runtime.accelerator", "ok", ", ".join(accel) + " present")
+        else:
+            add("runtime.accelerator", "warn",
+                f"no accelerator in the bundle (expected {capability.host_expectation()}); "
+                f"CPU always works")
+
+    registry, registry_warnings = store.load_registry(store.registry_path(home))
+    for warning in registry_warnings:
+        add("registry.corrupt", "warn", warning)
+    entry = store.resolve(registry, None, use_current=True)
+    model_payload: dict[str, Any] = {"alias": None}
+    if entry is None:
+        add("model.present", "warn",
+            "no model in the registry; run `ggufone models pull` (default model is pinned)")
+    else:
+        model_payload = {"alias": entry.alias, "path": entry.path, "size": entry.size,
+                         "sha256": entry.sha256, "arch": entry.arch, "quant": entry.quant,
+                         "license": entry.license, "source": entry.source}
+        path = pathlib.Path(entry.path)
+        add("model.file", "ok" if path.exists() else "warn",
+            entry.path if path.exists() else f"{entry.path} is missing (re-pull it)")
+        if path.exists() and entry.sha256:
+            actual = sha256_file(path)
+            if actual != entry.sha256:
+                add("model.sha256", "warn",
+                    f"{path.name}: sha256 {actual[:16]}… != recorded {entry.sha256[:16]}…")
+            else:
+                add("model.sha256", "ok", f"{path.name}: sha256 matches the registry")
+        elif not entry.sha256:
+            add("model.sha256", "warn", "registry entry has no SHA-256 recorded")
+        if entry.arch and runtime_dir is not None:
+            try:
+                capability.require_arch(runtime_dir, entry.arch, lock=lock)
+                add("model.arch", "ok", f"{entry.arch} supported by the installed runtime")
+            except GgufoneError as exc:
+                add("model.arch", "fail", str(exc))
+
+    if any(c["status"] == "fail" for c in checks):
+        status, exit_code = "failures", 1
+    elif any(c["status"] == "warn" for c in checks):
+        status, exit_code = "warnings", 2
+    else:
+        status, exit_code = "ok", 0
+    return {
+        "schema": DOCTOR_SCHEMA,
+        "ggufone": __version__,
+        "status": status,
+        "exit_code": exit_code,
+        "checks": checks,
+        "runtime": {
+            "dir": str(runtime_dir) if runtime_dir else None,
+            "installed": runtime_dir is not None,
+            "tag": probe.tag if probe else None,
+            "pinned_tag": lock.tag,
+            "min_build": lock.min_build_for_spark2_5,
+            "variant": (finder.runtime_record(home) or {}).get("variant"),
+            "build": probe.build if probe else None,
+            "backends": list(probe.backends) if probe else [],
+            "symbols_required": len(lock.all_symbols),
+            "symbols_missing": list(probe.missing_symbols) if probe else [],
+            "symbols_probed": bool(probe and probe.symbols_checked),
+            "fit_params_help_exit": probe.fit_params_help_exit if probe else None,
+            "libllama_sha256": (finder.runtime_record(home) or {}).get("libllama_sha256"),
+            "warmup_ms": (finder.runtime_record(home) or {}).get("warmup_ms"),
+        },
+        "model": model_payload,
+        "expected_backend": capability.host_expectation(),
+    }
+
+
+def _cmd_doctor(args: list[str]) -> int:
+    _, options = _parse_args(args, bool_flags=("json",))
+    report = doctor_checks()
+    if options.get("json"):
+        print(json.dumps(report, indent=2))
+    else:
+        print(f"ggufone doctor ({report['status']})")
+        for check in report["checks"]:
+            mark = {"ok": "ok  ", "warn": "warn", "fail": "FAIL"}[check["status"]]
+            print(f"  {mark} {check['id']:22s} {check['detail']}")
+        runtime = report["runtime"]
+        print(f"  runtime: {runtime['dir'] or '<none>'}  build={runtime['tag']}  "
+              f"backends={','.join(runtime['backends']) or 'none'}")
+        print(f"  model:   {report['model'].get('alias') or '<none>'}")
+    return int(report["exit_code"])
+
+
+# --------------------------------------------------------------------- models
+def _models_payload(registry: store.Registry) -> dict[str, Any]:
+    return {
+        "schema": MODELS_SCHEMA,
+        "current": registry.current,
+        "models": [
+            {"alias": entry.alias, "path": entry.path, "size": entry.size,
+             "sha256": entry.sha256, "arch": entry.arch, "quant": entry.quant,
+             "license": entry.license, "source": entry.source, "repo": entry.repo,
+             "added_at": entry.added_at, "current": entry.alias == registry.current}
+            for entry in registry.aliases.values()
+        ],
+    }
+
+
+def _cmd_models(args: list[str]) -> int:
+    if not args or args[0] in ("-h", "--help"):
+        print("usage: ggufone models " + "|".join(MODELS_SUBCOMMANDS))
+        return 0
+    sub, rest = args[0], args[1:]
+    if sub not in MODELS_SUBCOMMANDS:
+        raise UserError(f"unknown models subcommand {sub!r}; known: "
+                        f"{', '.join(MODELS_SUBCOMMANDS)}", code="E_UNKNOWN_KEY")
+    handler = {
+        "search": _models_search, "pull": _models_pull, "use": _models_use,
+        "ls": _models_ls, "rm": _models_rm, "verify": _models_verify,
+        "recommend-quant": _models_recommend_quant,
+    }[sub]
+    return handler(rest)
+
+
+def _models_search(args: list[str]) -> int:
+    positionals, options = _parse_args(args, value_flags=("limit",), bool_flags=("json",))
+    if not positionals:
+        raise UserError("usage: ggufone models search <query>", code="E_UNKNOWN_KEY")
+    limit = int(options.get("limit", 20))
+    results = hf.search(positionals[0], limit=limit)
+    if options.get("json"):
+        print(json.dumps({"schema": MODELS_SCHEMA, "query": positionals[0],
+                          "results": results}, indent=2))
+        return 0
+    if not results:
+        print(f"no GGUF repos matched {positionals[0]!r}")
+        return 0
+    for entry in results:
+        likes = entry.get("likes")
+        downloads = entry.get("downloads")
+        print(f"  {entry['id']:52s} downloads={downloads} likes={likes}")
+    return 0
+
+
+def _split_repo_quant(spec: str | None, lock: pins.RuntimeLock) -> tuple[str, str | None]:
+    if not spec:
+        return lock.default_model.repo, lock.default_model.quant
+    if ":" in spec:
+        repo, _, quant = spec.rpartition(":")
+        return (repo or lock.default_model.repo), (quant or None)
+    return spec, None
+
+
+def _models_pull(args: list[str]) -> int:
+    positionals, options = _parse_args(
+        args, value_flags=("file", "jobs", "alias", "revision"),
+        bool_flags=("no-verify", "json", "offline"))
+    lock = pins.load_lock()
+    repo, quant = _split_repo_quant(positionals[0] if positionals else None, lock)
+    offline = bool(options.get("offline")) or hf.offline_enabled()
+    info = hf.model_info(repo, revision=options.get("revision"), offline=offline)
+    revision = options.get("revision") or (
+        lock.default_model.repo_sha if repo == lock.default_model.repo else (info.sha or "main"))
+    files = [f.to_dict() for f in info.files]
+    budget = recommend.host_budget()
+    choice = recommend.select_file(files, quant=quant, explicit_file=options.get("file"),
+                                   repo=repo, lock=lock, vram_bytes=budget.vram_bytes,
+                                   ram_bytes=budget.ram_bytes)
+    file_info = choice.file
+    name = pathlib.PurePosixPath(file_info["path"]).name
+    size = int(file_info.get("size") or 0)
+    oid = file_info.get("oid")
+    destination = store.models_dir() / name
+    store.models_dir().mkdir(parents=True, exist_ok=True)
+    hf.check_disk_space(store.models_dir(), size)
+
+    progress = None if options.get("json") else _progress_printer(f"pulling {name}")
+    result = hf.download_file(repo, file_info["path"], destination, revision=revision,
+                              size=size or None, sha256=oid,
+                              no_verify=bool(options.get("no_verify")),
+                              progress=progress)
+    metadata = gguf.parse_gguf_metadata(destination)["kv"]
+    arch = gguf.arch_of(metadata)
+    file_type = gguf.file_type_of(metadata)
+    quant_label = choice.quant or (gguf.quant_label(file_type) if file_type is not None else None)
+    registry, warnings = store.load_registry()
+    entry = store.Entry(alias=options.get("alias") or store.slugify(name),
+                        path=str(destination), sha256=result.sha256, arch=arch,
+                        quant=quant_label, size=destination.stat().st_size,
+                        license=info.license, source=repo, fit_plan=None,
+                        file_type=file_type, repo=repo)
+    entry = store.add_entry(registry, entry, alias=options.get("alias"))
+    store.save_registry(registry)
+
+    payload = {
+        "schema": MODELS_SCHEMA,
+        "alias": entry.alias,
+        "path": str(destination),
+        "repo": repo,
+        "revision": revision,
+        "file": file_info["path"],
+        "size": destination.stat().st_size,
+        "size_human": hf.human_bytes(destination.stat().st_size),
+        "sha256": result.sha256,
+        "sha256_verified": result.verified,
+        "license": info.license,
+        "arch": arch,
+        "quant": quant_label,
+        "quant_reason": choice.reason,
+        "bytes_fetched": result.bytes_fetched,
+        "resumed_from": result.resumed_from,
+    }
+    if options.get("json"):
+        print(json.dumps(payload, indent=2))
+    else:
+        print(f"pulled {entry.alias} -> {destination}")
+        print(f"  repo      {repo}@{revision[:12]}")
+        print(f"  file      {file_info['path']} ({hf.human_bytes(destination.stat().st_size)})")
+        print(f"  sha256    {result.sha256}" + (" (verified against lfs.oid)"
+                                                if result.verified else " (not verified)"))
+        print(f"  license   {info.license or 'unknown'}")
+        print(f"  arch      {arch}  quant {quant_label}  [{choice.reason}]")
+        if result.resumed_from:
+            print(f"  resumed   from {hf.human_bytes(result.resumed_from)}")
+        for warning in warnings:
+            print(f"warning: {warning}", file=sys.stderr)
+    return 0
+
+
+def _models_use(args: list[str]) -> int:
+    positionals, options = _parse_args(args, bool_flags=("json",))
+    if not positionals:
+        raise UserError("usage: ggufone models use <alias>", code="E_UNKNOWN_KEY")
+    registry, _ = store.load_registry()
+    entry = store.resolve(registry, positionals[0])
+    if entry is None:
+        raise UserError(f"unknown alias {positionals[0]!r}; known: "
+                        f"{', '.join(sorted(registry.aliases)) or '<none>'}",
+                        code="E_MODEL_NOT_FOUND")
+    registry.current = entry.alias
+    store.save_registry(registry)
+    payload = {"schema": MODELS_SCHEMA, "current": entry.alias, "path": entry.path}
+    _emit(payload, bool(options.get("json")))
+    return 0
+
+
+def _models_ls(args: list[str]) -> int:
+    _, options = _parse_args(args, bool_flags=("json",))
+    registry, warnings = store.load_registry()
+    payload = _models_payload(registry)
+    if options.get("json"):
+        print(json.dumps(payload, indent=2))
+    elif not payload["models"]:
+        print("no models in the registry; run `ggufone models pull`")
+    else:
+        for model in payload["models"]:
+            marker = "*" if model["current"] else " "
+            exists = "ok" if pathlib.Path(model["path"]).exists() else "MISSING"
+            print(f" {marker} {model['alias']:26s} {model['quant'] or '?':10s} "
+                  f"{model['arch'] or '?':12s} {hf.human_bytes(model['size'] or 0):>10s} "
+                  f"{model['license'] or '?':12s} [{exists}] {model['path']}")
+    for warning in warnings:
+        print(f"warning: {warning}", file=sys.stderr)
+    return 0
+
+
+def _models_rm(args: list[str]) -> int:
+    positionals, options = _parse_args(args, bool_flags=("json", "keep-file"))
+    if not positionals:
+        raise UserError("usage: ggufone models rm <alias>", code="E_UNKNOWN_KEY")
+    registry, _ = store.load_registry()
+    entry = store.remove_entry(registry, positionals[0])
+    deleted = False
+    path = pathlib.Path(entry.path)
+    if not options.get("keep_file") and path.exists():
+        path.unlink()
+        deleted = True
+    store.save_registry(registry)
+    payload = {"schema": MODELS_SCHEMA, "removed": entry.alias, "path": entry.path,
+               "file_deleted": deleted, "current": registry.current}
+    _emit(payload, bool(options.get("json")))
+    return 0
+
+
+def _models_verify(args: list[str]) -> int:
+    positionals, options = _parse_args(args, bool_flags=("json",))
+    registry, warnings = store.load_registry()
+    if positionals:
+        entries = [store.resolve(registry, positionals[0])]
+        if entries[0] is None:
+            raise UserError(f"unknown alias {positionals[0]!r}", code="E_MODEL_NOT_FOUND")
+    else:
+        entries = list(registry.aliases.values())
+    results = []
+    for entry in entries:
+        path = pathlib.Path(entry.path)
+        if not path.exists():
+            results.append({"alias": entry.alias, "status": "missing", "path": entry.path})
+            continue
+        actual = sha256_file(path)
+        ok = entry.sha256 is None or actual == entry.sha256
+        results.append({"alias": entry.alias, "status": "ok" if ok else "sha256_mismatch",
+                        "path": entry.path, "size": path.stat().st_size,
+                        "sha256": actual, "expected": entry.sha256})
+    mismatches = [r for r in results if r["status"] == "sha256_mismatch"]
+    missing = [r for r in results if r["status"] == "missing"]
+    payload = {"schema": MODELS_SCHEMA, "verified": len(results) - len(mismatches) - len(missing),
+               "failed": len(mismatches) + len(missing), "results": results}
+    if options.get("json"):
+        print(json.dumps(payload, indent=2))
+    else:
+        for result in results:
+            print(f"  {result['status']:14s} {result['alias']}  {result['path']}")
+    for warning in warnings:
+        print(f"warning: {warning}", file=sys.stderr)
+    if mismatches:
+        raise Sha256MismatchError(
+            f"E_SHA256_MISMATCH: {len(mismatches)} file(s) failed verification "
+            f"({', '.join(r['alias'] for r in mismatches)}); re-run `ggufone models pull`")
+    if missing:
+        raise UserError(
+            f"E_MODEL_NOT_FOUND: {len(missing)} registry file(s) are missing on disk "
+            f"({', '.join(r['alias'] for r in missing)}); re-pull or `ggufone models rm`")
+    return 0
+
+
+def _pinned_candidates(lock: pins.RuntimeLock) -> list[tuple[str, int]]:
+    candidates = [(lock.default_model.file, lock.default_model.size)]
+    for spec in lock.default_model.alternates.values():
+        candidates.append((spec["file"], int(spec["size"])))
+    return candidates
+
+
+def _models_recommend_quant(args: list[str]) -> int:
+    _, options = _parse_args(args, value_flags=("vram", "ram", "n-ctx", "n-seq-max"),
+                             bool_flags=("json", "table"))
+    lock = pins.load_lock()
+    candidates = _pinned_candidates(lock)
+    if options.get("table"):
+        rows = []
+        for scenario in recommend.PINNED_SCENARIOS:
+            plan = recommend.recommend_quant(
+                candidates, vram_bytes=int(scenario["vram_gib"] * 1024 ** 3),
+                ram_bytes=int(scenario["ram_gib"] * 1024 ** 3),
+                kv_per_token_f16=recommend.DEFAULT_KV_PER_TOKEN_F16,
+                n_ctx=scenario["n_ctx"], n_seq_max=scenario["n_seq_max"])
+            rows.append({"scenario": scenario["label"], "n_ctx": scenario["n_ctx"],
+                         "n_seq_max": scenario["n_seq_max"],
+                         "quant": plan["quant"], "kv_type": plan["kv_type"],
+                         "placement": plan["placement"],
+                         "total_bytes": plan.get("total"),
+                         # SPEC 2.7's executed table is decimal GB
+                         "total_gb": round(plan["total"] / 1e9, 2)
+                         if plan.get("total") else None})
+        payload = {"schema": "ggufone.recommend-quant/v1", "source": "pinned-table",
+                   "scenarios": rows}
+        if options.get("json"):
+            print(json.dumps(payload, indent=2))
+        else:
+            for row in rows:
+                total = f"{row['total_gb']:.2f} GB" if row["total_gb"] else "-"
+                print(f"  {row['scenario']:44s} -> {row['quant'] or 'insufficient'} "
+                      f"kv={row['kv_type']} {row['placement']} {total}")
+        return 0
+    budget = recommend.host_budget()
+    vram = int(float(options["vram"]) * 1024 ** 3) if options.get("vram") else budget.vram_bytes
+    ram = int(float(options["ram"]) * 1024 ** 3) if options.get("ram") else budget.ram_bytes
+    n_ctx = int(options.get("n_ctx", recommend.DEFAULT_N_CTX))
+    n_seq_max = int(options.get("n_seq_max", recommend.DEFAULT_N_SEQ_MAX))
+    plan = recommend.recommend_quant(candidates, vram_bytes=vram, ram_bytes=ram,
+                                     kv_per_token_f16=recommend.DEFAULT_KV_PER_TOKEN_F16,
+                                     n_ctx=n_ctx, n_seq_max=n_seq_max)
+    payload = {"schema": "ggufone.recommend-quant/v1", "source": "host",
+               "vram_bytes": vram, "ram_bytes": ram, "n_ctx": n_ctx, "n_seq_max": n_seq_max,
+               "quant": plan["quant"], "kv_type": plan["kv_type"],
+               "placement": plan["placement"],
+               "est_weights_bytes": plan.get("weights"), "est_kv_bytes": plan.get("kv"),
+               "est_total_bytes": plan.get("total"),
+               "est_total_gib": round(plan["total"] / 1024 ** 3, 2) if plan.get("total") else None,
+               "warning": plan.get("warning")}
+    _emit(payload, bool(options.get("json")))
+    return 0
+
+
+# --------------------------------------------------------------------- version
+def _cmd_version(args: list[str]) -> int:
+    _, options = _parse_args(args, bool_flags=("json",))
+    lock = pins.load_lock()
+    record = finder.runtime_record() or {}
+    payload = {"name": "ggufone", "version": __version__, "python": sys.version.split()[0],
+               "lock": {"tag": lock.tag, "min_build_for_spark2_5": lock.min_build_for_spark2_5},
+               "runtime": {"installed": bool(record.get("dir")), "dir": record.get("dir"),
+                           "variant": record.get("variant"), "build": record.get("build"),
+                           "backends": record.get("backends", [])},
+               "home": str(store.data_home())}
+    if options.get("json"):
+        print(json.dumps(payload, indent=2))
+    else:
+        print(f"ggufone {__version__}")
+        if record.get("dir"):
+            print(f"  runtime  {lock.tag} ({record.get('variant')}) at {record['dir']}")
+            print(f"  backends {', '.join(record.get('backends', [])) or 'unknown'}")
+        else:
+            print("  runtime  not installed (`ggufone init`)")
+        print(f"  home     {store.data_home()}")
+    return 0
+
+
+# --------------------------------------------------------------------- main
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if not args or args[0] in ("-h", "--help", "help"):
         print(_usage())
         return 0
-    cmd = args[0]
-    if cmd in ("-V", "--version", "version"):
-        print(f"ggufone {__version__}")
-        return 0
+    cmd, rest = args[0], args[1:]
+    if cmd == "version":
+        try:
+            return _cmd_version(rest)
+        except GgufoneError as exc:
+            return _fail(exc)
     if cmd not in COMMANDS:
         print(f"unknown command: {cmd}", file=sys.stderr)
         print(_usage(), file=sys.stderr)
         return 2
+    try:
+        if cmd == "init":
+            return _cmd_init(rest)
+        if cmd == "doctor":
+            return _cmd_doctor(rest)
+        if cmd == "models":
+            return _cmd_models(rest)
+    except GgufoneError as exc:
+        return _fail(exc)
+    except KeyboardInterrupt:  # pragma: no cover - interactive
+        print("interrupted", file=sys.stderr)
+        return 130
+    except Exception as exc:  # noqa: BLE001 - never show a traceback for an ordinary run
+        print(f"error: E_INTERNAL: {exc.__class__.__name__}: {exc}", file=sys.stderr)
+        return 4
     print(f"'{cmd}' is not implemented yet (milestone {MILESTONES.get(cmd, 'E1')}); "
           f"see SPEC.md 5", file=sys.stderr)
     return 3
+
+
+def _fail(exc: GgufoneError) -> int:
+    message = str(exc)
+    if not message.startswith(exc.code):
+        message = f"{exc.code}: {message}"
+    print(f"error: {message}", file=sys.stderr)
+    return exc.exit_code
 
 
 if __name__ == "__main__":  # pragma: no cover
