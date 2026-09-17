@@ -7,16 +7,24 @@ the decode-spy contract (one prefill + one batch per wave, `logits=1` on branch 
 """
 from __future__ import annotations
 
+import contextlib
+import hashlib
 import json
+import math
+import os
+import pathlib
 
 import pytest
 
 from ggufone import schema
 from ggufone.engine import decide, prompt
+from ggufone.engine import readout
+from ggufone.engine import session as session_module
+from ggufone.engine.decide import Batch
 from ggufone.errors import GgufoneError
+from ggufone.runtime import finder
 from ggufone.schema import Question
-from tests.fake_engine import FakeSession, biased_row
-
+from tests.fake_engine import FakeSession, RowContext, biased_row
 
 # --------------------------------------------------------------------- helpers
 def choice_request(options: dict | None = None) -> dict:
@@ -364,7 +372,8 @@ def test_results_are_deterministic_across_runs() -> None:
     for _ in range(3):
         session = FakeSession(n_vocab=64)
         billing = session.tokenize("billing")[0]
-        session.row_fn = lambda ctx, billing=billing: biased_row(session.n_vocab, {billing: 1.0})
+        session.row_fn = (lambda session=session, billing=billing:
+                          biased_row(session.n_vocab, {billing: 1.0}))
         _, result = run(session, payload)
         payload_dict = result.payload()
         payload_dict.pop("timings")
@@ -428,3 +437,311 @@ def test_plan_context_sizes_the_context_from_the_prompt() -> None:
     assert plan.n_seq_max == 1 + 2                      # one candidate seq per option + prefix
     assert plan.n_ctx > len(plan.prefix_tokens)
     assert plan.kv_type == "auto" and plan.threads == session.threads
+
+
+# --------------------------------------------------------------- real model (A-E1b-2/3/4/5/8)
+# Run with: GGUFONE_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_engine_fork.py
+MODEL_PATHS = {
+    "spark2_5": pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf",
+    "qwen35": pathlib.Path.home() / ".cache" / "llama.cpp" / "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+}
+_HANDLES: dict[str, session_module.ModelHandle] = {}
+
+
+def _runtime_dir() -> pathlib.Path:
+    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    if env and (pathlib.Path(env) / "libllama.so").exists():
+        return pathlib.Path(env)
+    found = finder.find_runtime()
+    if found:
+        return found
+    for base in (pathlib.Path.home() / ".hermes" / "runtime",
+                 pathlib.Path.home() / ".local" / "share" / "ggufone" / "runtime"):
+        for candidate in sorted(base.glob("*/")):
+            if (candidate / "libllama.so").exists():
+                return candidate
+    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR or run `ggufone init`)")
+
+
+@pytest.fixture(scope="module")
+def runtime_dir() -> pathlib.Path:
+    return _runtime_dir()
+
+
+@pytest.fixture(scope="module")
+def handles(runtime_dir: pathlib.Path):
+    """Open each pinned GGUF once for the whole module (model load is the expensive part)."""
+
+    def get(name: str) -> session_module.ModelHandle:
+        path = MODEL_PATHS[name]
+        if not path.exists():
+            pytest.skip(f"{path} is not on this box")
+        if name not in _HANDLES:
+            _HANDLES[name] = session_module.open_model(path, runtime_dir=runtime_dir)
+        return _HANDLES[name]
+
+    yield get
+    for handle in _HANDLES.values():
+        handle.close()
+    _HANDLES.clear()
+
+
+@contextlib.contextmanager
+def live_session(handle, request: schema.Request, *, states_home=None, spy=None):
+    """A fresh context for one request (same plan the CLI would compute)."""
+    plan = decide.plan_context(request, handle)
+    with session_module.ModelSession(handle, plan, states_home=states_home,
+                                     decode_spy=spy) as live:
+        yield plan, live
+
+
+def _compact_answers(result: decide.DecideResult) -> dict:
+    return {qid: {key: value for key, value in answer.items() if key != "decode_steps"}
+            for qid, answer in result.answers.items()}
+
+
+def fork_request() -> dict:
+    return {
+        "state": "The checkout page returns a 500 for every customer since 09:12; "
+                 "the on-call engineer is paged.",
+        "questions": {
+            "area": {"type": "choice", "instructions": "Which area owns this?",
+                     "criteria": {"billing payments": "payments and invoices",
+                                  "api gateway": "the public api"}},
+        },
+        "options": {"threads": 4},
+    }
+
+
+def _sequential_probabilities(session, request: schema.Request, plan) -> dict:
+    """Reference implementation: every candidate re-decodes prefix + suffix on its own seq."""
+    prefix = list(plan.prefix_tokens)
+    session.prefill(prefix)
+    results = {}
+    for question, view, suffix, candidates in decide.question_requirements(request, session):
+        scored = decide.candidate_sequences(candidates, readout_mode=request.options.readout)
+        scores = []
+        for sequence in scored:
+            session.release(1)
+            session.fork(0, 1, len(prefix))
+            rows = session.decode(Batch(
+                tokens=tuple(suffix), seq_ids=(1,) * len(suffix),
+                positions=tuple(len(prefix) + index for index in range(len(suffix))),
+                logits=tuple(index == len(suffix) - 1 for index in range(len(suffix)))))
+            logprobs = [readout.logprob(rows[-1], sequence[0])]
+            if len(sequence) > 1:
+                tail = sequence[:-1]
+                tail_rows = session.decode(Batch(
+                    tokens=tuple(tail), seq_ids=(1,) * len(tail),
+                    positions=tuple(len(prefix) + len(suffix) + index
+                                    for index in range(len(tail))),
+                    logits=tuple(True for _ in tail)))
+                for index, row in enumerate(tail_rows):
+                    logprobs.append(readout.logprob(row, sequence[index + 1]))
+            scores.append(readout.candidate_sequence_score(logprobs,
+                                                           request.options.length_norm))
+        probabilities = readout.restricted_softmax(scores, request.options.temperature)
+        results[question.id] = dict(zip(view.options, probabilities, strict=True))
+        session.release(1)
+    return results
+
+
+@pytest.mark.model
+@pytest.mark.parametrize("name", ["qwen35", "spark2_5"])
+def test_fork_equivalence_against_sequential_decode(name: str, handles, tmp_path) -> None:
+    """A-E1b-2: max |delta| <= 1e-3 on the hybrid (qwen35) and a pure-attention model."""
+    handle = handles(name)
+    request = parse(fork_request())
+    with live_session(handle, request, states_home=tmp_path / "states") as (plan, live):
+        result = decide.DecisionEngine(live).decide(request, plan=plan)
+    with live_session(handle, request, states_home=tmp_path / "states") as (_, reference_session):
+        reference = _sequential_probabilities(reference_session, request, plan)
+    deltas = {}
+    for qid, answer in result.answers.items():
+        for key, value in answer["probabilities"].items():
+            deltas[f"{qid}.{key}"] = abs(value - reference[qid][key])
+    worst = max(deltas.values())
+    print(f"\nfork vs sequential on {name}: max |delta| = {worst:.3e} over {len(deltas)} candidates")
+    assert worst <= 1e-3, deltas
+
+
+@pytest.mark.model
+def test_one_prefill_per_state_and_a_warm_state_costs_no_prefill(handles, tmp_path) -> None:
+    """A-E1b-3: the prefix is decoded once; a warm `state_id` reports prefill_reused + ~0 ms."""
+    handle = handles("qwen35")
+    payload = {
+        "state": "A nightly job failed twice in a row; the report is stale.",
+        "questions": {
+            "area": {"type": "choice", "criteria": {"billing": None, "data": None}},
+            "severity": {"type": "score", "criteria": ["cosmetic", "annoying", "critical"]},
+            "page": {"type": "noul", "criteria": {"true": "page now", "false": "wait"}},
+            "owner": {"type": "choice", "criteria": {"platform": None, "analytics": None}},
+        },
+        "options": {"threads": 4, "state_id": "e1b-warm-state", "save_state": True},
+    }
+    request = parse(payload)
+    captured: list[Batch] = []
+    with live_session(handle, request, states_home=tmp_path / "states",
+                      spy=captured.append) as (plan, live):
+        cold = decide.DecisionEngine(live).decide(request, plan=plan)
+    prefix = tuple(plan.prefix_tokens)
+    assert cold.usage["prefill_tokens"] == len(prefix)
+    assert captured[0].tokens == prefix, "the first decode must be the shared prefix"
+    assert sum(1 for batch in captured if batch.tokens == prefix) == 1
+    assert cold.usage["waves"] == len(captured) - 1
+    assert cold.engine["prefill_reused"] is False
+    assert cold.timings["prefill_ms"] > 0.0
+    assert (tmp_path / "states" / "e1b-warm-state.bin").exists()
+
+    warm_captured: list[Batch] = []
+    with live_session(handle, request, states_home=tmp_path / "states",
+                      spy=warm_captured.append) as (_, warm_session):
+        warm = decide.DecisionEngine(warm_session).decide(request, plan=plan)
+    assert warm.engine["prefill_reused"] is True
+    assert warm.usage["prefill_tokens"] == 0
+    assert not [batch for batch in warm_captured if batch.tokens == prefix]
+    assert warm.timings["prefill_ms"] <= 5.0, warm.timings
+    print(f"\nwarm prefill_ms = {warm.timings['prefill_ms']:.3f}  "
+          f"cold prefill_ms = {cold.timings['prefill_ms']:.1f}")
+    for qid, answer in warm.answers.items():
+        for key, value in answer["probabilities"].items():
+            assert abs(value - cold.answers[qid][key]) <= 1e-3, (qid, key)
+
+
+@pytest.mark.model
+def test_determinism_three_runs_with_one_thread(handles, tmp_path) -> None:
+    """A-E1b-4: three runs, threads=1 -> identical answers JSON after stripping `timings`."""
+    handle = handles("qwen35")
+    payload = {
+        "state": "Two payments were charged twice; the customer wrote in.",
+        "questions": {
+            "area": {"type": "choice", "criteria": {"billing": None, "support": None}},
+            "page": {"type": "noul", "criteria": {"true": "page now", "false": "wait"}},
+        },
+        "options": {"threads": 1},
+    }
+    request = parse(payload)
+    digests = []
+    bodies = []
+    for _ in range(3):
+        with live_session(handle, request, states_home=tmp_path / "states") as (plan, live):
+            result = decide.DecisionEngine(live).decide(request, plan=plan)
+        body = result.payload()
+        body.pop("timings")
+        bodies.append(json.dumps(body, sort_keys=True))
+        digests.append(hashlib.sha256(bodies[-1].encode()).hexdigest())
+    assert len(set(digests)) == 1, digests
+    print(f"\ndeterminism sha256 = {digests[0]}")
+
+
+@pytest.mark.model
+def test_state_round_trip_and_a_corrupt_state_is_a_pinned_error(handles, tmp_path) -> None:
+    """A-E1b-8: save -> fresh context -> same answers (<=1e-3); corrupt -> E_STATE_LOAD_FAILED."""
+    handle = handles("qwen35")
+    payload = {
+        "state": "The export job wrote a truncated CSV for yesterday.",
+        "questions": {
+            "area": {"type": "choice", "criteria": {"billing": None, "data": None}},
+            "severity": {"type": "score", "criteria": ["cosmetic", "annoying", "critical"]},
+        },
+        "options": {"threads": 4, "state_id": "e1b-state", "save_state": True},
+    }
+    request = parse(payload)
+    with live_session(handle, request, states_home=tmp_path / "states") as (plan, live):
+        cold = decide.DecisionEngine(live).decide(request, plan=plan)
+    state_file = tmp_path / "states" / "e1b-state.bin"
+    assert state_file.exists() and state_file.stat().st_size > 0
+
+    with live_session(handle, request, states_home=tmp_path / "states") as (_, fresh):
+        loaded = decide.DecisionEngine(fresh).decide(request, plan=plan)
+    assert loaded.engine["prefill_reused"] is True
+    worst = max(abs(value - cold.answers[qid][key])
+                for qid, answer in loaded.answers.items()
+                for key, value in answer["probabilities"].items())
+    print(f"\nstate round-trip max |delta| = {worst:.3e}")
+    assert worst <= 1e-3
+
+    original = state_file.read_bytes()
+    state_file.write_bytes(original[: max(16, len(original) // 3)])   # truncated
+    with live_session(handle, request, states_home=tmp_path / "states") as (_, broken):
+        with pytest.raises(GgufoneError) as exc:
+            decide.DecisionEngine(broken).decide(request, plan=plan)
+    assert exc.value.code == "E_STATE_LOAD_FAILED"
+    assert exc.value.exit_code == 3
+    assert not state_file.exists(), "the corrupt cache entry must be invalidated"
+
+    with live_session(handle, request, states_home=tmp_path / "states") as (_, retry):
+        recovered = decide.DecisionEngine(retry).decide(request, plan=plan)
+    assert recovered.engine["prefill_reused"] is False
+    assert recovered.usage["prefill_tokens"] > 0
+    assert _compact_answers(recovered) == _compact_answers(cold)
+
+
+@pytest.mark.model
+def test_waves_on_a_real_hybrid_model_match_the_single_wave_run(handles, tmp_path) -> None:
+    """A-E1b-5 with a real model: 8 questions x 4 candidates at n_seq_max=4."""
+    handle = handles("qwen35")
+    options = {"threads": 4, "n_seq_max": 4}
+    payload = {
+        "state": "Route each support ticket to exactly one queue.",
+        "questions": {
+            f"t{index}": {"type": "choice",
+                          "criteria": {"alpha": None, "beta": None, "gamma": None,
+                                       "delta": None}}
+            for index in range(8)
+        },
+        "options": options,
+    }
+    request = parse(payload)
+    captured: list[Batch] = []
+    with live_session(handle, request, states_home=tmp_path / "states",
+                      spy=captured.append) as (plan, live):
+        capped = decide.DecisionEngine(live).decide(request, plan=plan)
+    assert capped.usage["waves"] >= 2
+    assert capped.usage["waves"] == len(captured) - 1
+    for batch in captured[1:]:
+        assert max(batch.seq_ids) < 4, "a wave must never exceed n_seq_max"
+        assert len(set(batch.seq_ids)) <= 3
+
+    wide = {**payload, "options": {"threads": 4, "n_seq_max": 64}}
+    with live_session(handle, parse(wide), states_home=tmp_path / "states") as (plan, live):
+        single = decide.DecisionEngine(live).decide(parse(wide), plan=plan)
+    assert single.usage["waves"] < capped.usage["waves"]
+    worst = 0.0
+    for qid, answer in capped.answers.items():
+        for key, value in answer["probabilities"].items():
+            worst = max(worst, abs(value - single.answers[qid][key]))
+        assert answer["choice"] == single.answers[qid]["choice"]
+    print(f"\nwaves: capped={capped.usage['waves']} single={single.usage['waves']} "
+          f"max |delta| = {worst:.3e}")
+    assert worst <= 1e-3
+
+
+@pytest.mark.model
+def test_both_readouts_on_a_real_model_change_only_the_readout(handles, tmp_path) -> None:
+    """A-E1b-6: identical prompt, identical candidates, different readout math."""
+    handle = handles("qwen35")
+    base = {
+        "state": "The dashboard is blank for every user.",
+        "questions": {"area": {"type": "choice",
+                               "criteria": {"billing": None, "technical": None}}},
+        "options": {"threads": 4},
+    }
+    results = {}
+    for mode in ("sequence", "single_token"):
+        payload = {**base, "options": {**base["options"], "readout": mode}}
+        request = parse(payload)
+        with live_session(handle, request, states_home=tmp_path / "states") as (plan, live):
+            results[mode] = decide.DecisionEngine(live).decide(request, plan=plan)
+        assert results[mode].engine["readout"] == mode
+    single_words = all(len(tokens) == 1 for tokens in
+                       [handle.tokenize("billing"), handle.tokenize("technical")])
+    if single_words:
+        assert results["sequence"].answers["area"]["probabilities"] \
+            == pytest.approx(results["single_token"].answers["area"]["probabilities"])
+    else:  # the readout math differs, the prompt does not
+        assert results["sequence"].answers["area"]["probabilities"] \
+            != results["single_token"].answers["area"]["probabilities"]
+    question = parse(base).questions[0]
+    assert prompt.build_question(question, readout="sequence").suffix \
+        == prompt.build_question(question, readout="single_token").suffix

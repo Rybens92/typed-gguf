@@ -1,0 +1,39 @@
+{
+  "_provenance": {
+    "what": "TypeSafe documentation captures used as adapter fixtures (A-E1b-11).",
+    "source": "docs.typesafe.ai response examples, captured 2026-09-17; the same rows are executed by docs/verify_runtime_contract.py section C (TS_CONFIDENCE_EXAMPLES, tolerance 0.02)",
+    "probabilities": "verbatim from the captured examples",
+    "documented_confidence": "verbatim from the captured examples",
+    "option_names": "illustrative labels (the captures publish the probabilities and the confidence, not the request); the adapter only has to keep key sets and numbers identical between native and typesafe",
+    "outlier": {
+      "id": "quickstart/department",
+      "probabilities": [0.159, 0.84, 0.001],
+      "documented_confidence": 0.596,
+      "note": "kept in the table and reproduced verbatim; ggufone makes no parity claim (SPEC 2.4) — our statistic is 0.760"
+    }
+  },
+  "captures": [
+    {"id": "returns-ticket", "type": "choice",
+     "criteria": {"refund": null, "exchange": null, "other": null},
+     "probabilities": [0.02, 0.38, 0.6], "documented_confidence": 0.39},
+    {"id": "return_reason", "type": "choice",
+     "criteria": {"wrong_size": null, "damaged": null, "changed_mind": null, "late": null,
+                  "other": null},
+     "probabilities": [1.0, 0.0, 0.0, 0.0, 0.0], "documented_confidence": 1.0},
+    {"id": "shipping_issue", "type": "choice",
+     "criteria": {"late": null, "damaged": null, "missing": null, "other": null, "none": null},
+     "probabilities": [0.63, 0.37, 0.0, 0.0, 0.0], "documented_confidence": 0.53},
+    {"id": "requested_resolution", "type": "choice",
+     "criteria": {"refund": null, "replacement": null, "repair": null, "other": null},
+     "probabilities": [0.37, 0.24, 0.29, 0.1], "documented_confidence": 0.16},
+    {"id": "tone", "type": "choice",
+     "criteria": {"happy": null, "neutral": null, "upset": null},
+     "probabilities": [0.92, 0.08, 0.0], "documented_confidence": 0.88},
+    {"id": "bug_severity", "type": "score",
+     "criteria": ["cosmetic", "annoying", "blocking"],
+     "probabilities": [0.0, 0.7, 0.3], "documented_confidence": 0.54},
+    {"id": "spinner_examples", "type": "score",
+     "criteria": ["cosmetic", "annoying", "blocking"],
+     "probabilities": [0.0, 0.94, 0.06], "documented_confidence": 0.91}
+  ]
+}
