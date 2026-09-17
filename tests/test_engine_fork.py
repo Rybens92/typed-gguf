@@ -372,7 +372,7 @@ def test_results_are_deterministic_across_runs() -> None:
     for _ in range(3):
         session = FakeSession(n_vocab=64)
         billing = session.tokenize("billing")[0]
-        session.row_fn = (lambda session=session, billing=billing:
+        session.row_fn = (lambda ctx, session=session, billing=billing:
                           biased_row(session.n_vocab, {billing: 1.0}))
         _, result = run(session, payload)
         payload_dict = result.payload()
@@ -605,7 +605,7 @@ def test_one_prefill_per_state_and_a_warm_state_costs_no_prefill(handles, tmp_pa
           f"cold prefill_ms = {cold.timings['prefill_ms']:.1f}")
     for qid, answer in warm.answers.items():
         for key, value in answer["probabilities"].items():
-            assert abs(value - cold.answers[qid][key]) <= 1e-3, (qid, key)
+            assert abs(value - cold.answers[qid]["probabilities"][key]) <= 1e-3, (qid, key)
 
 
 @pytest.mark.model
@@ -655,7 +655,7 @@ def test_state_round_trip_and_a_corrupt_state_is_a_pinned_error(handles, tmp_pat
     with live_session(handle, request, states_home=tmp_path / "states") as (_, fresh):
         loaded = decide.DecisionEngine(fresh).decide(request, plan=plan)
     assert loaded.engine["prefill_reused"] is True
-    worst = max(abs(value - cold.answers[qid][key])
+    worst = max(abs(value - cold.answers[qid]["probabilities"][key])
                 for qid, answer in loaded.answers.items()
                 for key, value in answer["probabilities"].items())
     print(f"\nstate round-trip max |delta| = {worst:.3e}")
@@ -710,7 +710,7 @@ def test_waves_on_a_real_hybrid_model_match_the_single_wave_run(handles, tmp_pat
     worst = 0.0
     for qid, answer in capped.answers.items():
         for key, value in answer["probabilities"].items():
-            worst = max(worst, abs(value - single.answers[qid][key]))
+            worst = max(worst, abs(value - single.answers[qid]["probabilities"][key]))
         assert answer["choice"] == single.answers[qid]["choice"]
     print(f"\nwaves: capped={capped.usage['waves']} single={single.usage['waves']} "
           f"max |delta| = {worst:.3e}")

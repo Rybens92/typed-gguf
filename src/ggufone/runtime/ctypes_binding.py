@@ -207,10 +207,14 @@ def _bind(runtime: Runtime) -> None:
         "llama_memory_seq_rm": ([C.c_void_p, llama_seq_id, llama_pos, llama_pos], C.c_bool),
         "llama_memory_seq_keep": ([C.c_void_p, llama_seq_id], None),
         "llama_state_seq_get_size": ([C.c_void_p, llama_seq_id], C.c_size_t),
-        "llama_state_seq_save_file": ([C.c_void_p, C.c_char_p, llama_seq_id, C.c_void_p,
-                                       C.c_size_t], C.c_size_t),
-        "llama_state_seq_load_file": ([C.c_void_p, C.c_char_p, llama_seq_id, C.c_void_p,
-                                       C.c_size_t], C.c_size_t),
+        # Header @ b11026 (include/llama.h:897/905): these two take the SEQUENCE'S TOKENS, not a
+        # raw buffer. Getting this wrong is silent — the file is written with garbage and the
+        # loader rejects it much later ("token count in sequence state file exceeded capacity").
+        "llama_state_seq_save_file": ([C.c_void_p, C.c_char_p, llama_seq_id,
+                                       C.POINTER(llama_token), C.c_size_t], C.c_size_t),
+        "llama_state_seq_load_file": ([C.c_void_p, C.c_char_p, llama_seq_id,
+                                       C.POINTER(llama_token), C.c_size_t,
+                                       C.POINTER(C.c_size_t)], C.c_size_t),
         "llama_batch_init": ([C.c_int32, C.c_int32, C.c_int32], llama_batch),
         "llama_batch_free": ([llama_batch], None),
         "llama_batch_get_one": ([C.POINTER(llama_token), C.c_int32], llama_batch),

@@ -21,6 +21,8 @@ takes a fully materialised batch, and it never feeds its own output back in (A-E
 from __future__ import annotations
 
 import ctypes as C  # noqa: N812
+import hashlib
+import json
 import os
 import pathlib
 import time
@@ -38,10 +40,19 @@ LLAMA_FLASH_ATTN_TYPE_AUTO = 0
 LLAMA_FLASH_ATTN_TYPE_ENABLED = 1
 DEFAULT_N_BATCH = 512
 STATE_SUFFIX = ".bin"
+META_SUFFIX = ".meta.json"
+STATE_META_SCHEMA = "ggufone.state/v1"
 
 
 def _safe_state_name(state_id: str) -> str:
     return "".join(ch if ch.isalnum() or ch in "-_.@" else "_" for ch in state_id)
+
+
+def _token_digest(tokens: Sequence[int]) -> str:
+    digest = hashlib.sha256()
+    for token in tokens:
+        digest.update(int(token).to_bytes(4, "little", signed=True))
+    return digest.hexdigest()
 
 
 class ModelHandle:
@@ -183,7 +194,7 @@ class ModelSession:
             raise PrefillFailedError("E_PREFILL_FAILED: the prefix tokenized to zero tokens")
         path = self._state_path(state_id) if state_id else None
         if state_cache and path is not None and path.exists():
-            if self._load_state(path):
+            if self._load_state(path, tokens):
                 self.loaded_states.append(state_id or path.name)
                 return PrefillInfo(prefill_tokens=0, prefill_ms=0.0, prefill_reused=True,
                                    state_id=state_id, state_path=str(path))
@@ -193,7 +204,7 @@ class ModelSession:
                           logits=tuple(False for _ in tokens)))
         prefill_ms = (time.perf_counter() - started) * 1000.0
         if save_state and path is not None:
-            self._save_state(path)
+            self._save_state(path, tokens)
         return PrefillInfo(prefill_tokens=len(tokens), prefill_ms=prefill_ms,
                            prefill_reused=False, state_id=state_id,
                            state_path=str(path) if path else None)
@@ -242,41 +253,96 @@ class ModelSession:
         directory = self.states_home or store.states_dir()
         return directory / f"{_safe_state_name(state_id)}{STATE_SUFFIX}"
 
-    def _load_state(self, path: pathlib.Path) -> bool:
+    def _state_meta_path(self, path: pathlib.Path) -> pathlib.Path:
+        return path.with_name(path.name + META_SUFFIX)
+
+    def _load_state(self, path: pathlib.Path, expected_tokens: Sequence[int]) -> bool:
+        """Restore a saved prefix state into seq 0 after checking our own integrity metadata.
+
+        `llama_state_seq_load_file(ctx, filepath, dest_seq_id, tokens_out, n_token_capacity,
+        n_token_count_out)` both restores the state and hands back the tokens the file carries
+        (include/llama.h @ b11026:905). Two guards run BEFORE that call, because libllama
+        *aborts the process* on a state file whose declared token count or payload is wrong
+        (measured: a truncated file killed the interpreter with SIGABRT): the sidecar metadata
+        must match the file byte-for-byte, and the file must declare this prefix's token count.
+        A rejected entry is removed, so the caller re-prefills instead of crashing.
+        """
+        meta_path = self._state_meta_path(path)
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise self._bad_state(path, f"no usable metadata sidecar ({exc.__class__.__name__})")
         size = path.stat().st_size
-        if size <= 0:
-            raise self._bad_state(path, "the file is empty")
-        buffer = (C.c_char * size)()
-        read = self.handle.runtime.llama.llama_state_seq_load_file(self.ctx, str(path).encode(),
-                                                                  0, buffer, size)
+        if meta.get("bytes") != size:
+            raise self._bad_state(
+                path, f"the file is {size} bytes but the entry recorded {meta.get('bytes')} "
+                      f"(truncated or overwritten)")
+        if meta.get("tokens") != len(expected_tokens) or meta.get("sha256_tokens") != \
+                _token_digest(expected_tokens):
+            raise self._bad_state(path, "the entry belongs to a different prefix")
+        with open(path, "rb") as handle:
+            header = handle.read(4)
+        declared = int.from_bytes(header, "little") if len(header) == 4 else -1
+        if declared != len(expected_tokens):
+            raise self._bad_state(
+                path, f"the file declares {declared} tokens, this prefix has "
+                      f"{len(expected_tokens)}")
+
+        capacity = max(len(expected_tokens), 1)
+        tokens_out = (ctypes_binding.llama_token * capacity)()
+        count_out = C.c_size_t(0)
+        read = self.handle.runtime.llama.llama_state_seq_load_file(
+            self.ctx, str(path).encode(), 0, tokens_out, capacity, C.byref(count_out))
         if read <= 0:
-            raise self._bad_state(path, f"llama_state_seq_load_file read {read} bytes")
+            raise self._bad_state(path, f"llama_state_seq_load_file returned {read} bytes")
+        got = list(tokens_out[:int(count_out.value)])
+        if got != list(expected_tokens):
+            raise self._bad_state(
+                path, f"the file holds {len(got)} tokens that do not match this prefix "
+                      f"({len(expected_tokens)} tokens)")
         return True
 
     def _bad_state(self, path: pathlib.Path, detail: str) -> StateLoadFailedError:
         """Invalidate the cache entry (A-E1b-8: the next call must re-prefill, not crash)."""
-        try:
-            path.unlink()
-        except OSError:  # pragma: no cover - the caller still gets the pinned code
-            pass
+        for target in (path, self._state_meta_path(path)):
+            try:
+                target.unlink()
+            except OSError:  # pragma: no cover - the caller still gets the pinned code
+                pass
         return StateLoadFailedError(
             f"E_STATE_LOAD_FAILED: {path} is not a usable prefix state ({detail}); the cache "
             f"entry was removed — retry and the prefix will be decoded again")
 
-    def _save_state(self, path: pathlib.Path) -> None:
+    def _save_state(self, path: pathlib.Path, tokens: Sequence[int]) -> None:
+        """Persist seq 0's state for `tokens` (the C call writes the file itself).
+
+        `llama_state_seq_save_file(ctx, filepath, seq_id, tokens, n_tokens)` stores the tokens
+        next to the KV/recurrent state, which is what lets `_load_state` prove the file belongs
+        to this prefix. The temp-file + rename keeps a crashed write from poisoning the cache,
+        and the sidecar records the exact byte size so a truncated file is detectable without
+        asking libllama (which aborts instead of returning an error).
+        """
         llama = self.handle.runtime.llama
-        size = int(llama.llama_state_seq_get_size(self.ctx, 0))
-        if size <= 0:
-            return
-        buffer = (C.c_char * size)()
-        written = int(llama.llama_state_seq_save_file(self.ctx, str(path).encode(), 0, buffer,
-                                                     size))
-        if written <= 0:
-            return
         path.parent.mkdir(parents=True, exist_ok=True)
+        token_array = (ctypes_binding.llama_token * len(tokens))(*tokens)
         tmp = path.with_name(path.name + ".tmp")
-        tmp.write_bytes(bytes(buffer[:written]))
+        tmp.unlink(missing_ok=True)
+        written = int(llama.llama_state_seq_save_file(self.ctx, str(tmp).encode(), 0,
+                                                      token_array, len(tokens)))
+        if written <= 0:
+            tmp.unlink(missing_ok=True)
+            raise PrefillFailedError(
+                f"E_PREFILL_FAILED: llama_state_seq_save_file wrote {written} bytes to {tmp}; "
+                f"the prefix state was not persisted")
         os.replace(tmp, path)
+        self._state_meta_path(path).write_text(json.dumps({
+            "schema": STATE_META_SCHEMA,
+            "tokens": len(tokens),
+            "sha256_tokens": _token_digest(tokens),
+            "bytes": path.stat().st_size,
+            "model_path": self.handle.path,
+            "saved_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }, indent=1), encoding="utf-8")
 
 
 def _runtime_name(handle: ModelHandle) -> str:

@@ -95,3 +95,43 @@ def test_library_names_default_to_the_running_platform() -> None:
     if platform.system().lower() == "linux":
         assert got["llama"] == "libllama.so"
     assert set(got) == {"llama", "ggml", "ggml_base"}
+
+
+# ------------------------------------------------------------------ live ABI pin (needs runtime)
+def _runtime_dir() -> pathlib.Path:
+    import os
+    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    if env and (pathlib.Path(env) / "libllama.so").exists():
+        return pathlib.Path(env)
+    for base in (pathlib.Path.home() / ".hermes" / "runtime",
+                 pathlib.Path.home() / ".local" / "share" / "ggufone" / "runtime"):
+        for candidate in sorted(base.glob("*/")):
+            if (candidate / "libllama.so").exists():
+                return candidate
+    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR)")
+
+
+@pytest.mark.model
+def test_state_seq_file_signatures_match_the_header() -> None:
+    """include/llama.h @ b11026:897/905 — the state-file pair takes the sequence's TOKENS.
+
+    The scaffold's first guess (a raw `void * dst/size` buffer pair) is silently wrong: the save
+    writes a file the loader then rejects ("token count in sequence state file exceeded
+    capacity"), which is exactly how E1b's A-E1b-8 caught it. This pin needs a bundle on disk
+    because ctypes only exposes `argtypes` after `load_libraries()`.
+    """
+    import ctypes as C
+    before = dict(ctypes_binding._LOADED)          # keep `loaded_runtimes()` honest for the
+    try:                                           # no-eager-load test that follows
+        runtime = ctypes_binding.load_libraries(_runtime_dir())
+        save = runtime.bindings["llama_state_seq_save_file"]
+        load = runtime.bindings["llama_state_seq_load_file"]
+        assert list(save.argtypes) == [C.c_void_p, C.c_char_p, ctypes_binding.llama_seq_id,
+                                       C.POINTER(ctypes_binding.llama_token), C.c_size_t]
+        assert list(load.argtypes) == [C.c_void_p, C.c_char_p, ctypes_binding.llama_seq_id,
+                                       C.POINTER(ctypes_binding.llama_token), C.c_size_t,
+                                       C.POINTER(C.c_size_t)]
+        assert save.restype is C.c_size_t and load.restype is C.c_size_t
+    finally:
+        ctypes_binding._LOADED.clear()
+        ctypes_binding._LOADED.update(before)
