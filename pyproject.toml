@@ -79,6 +79,7 @@ also_copy = ["tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README
              "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 pytest_add_cli_args_test_selection = ["tests/test_pins.py",
+                                      "tests/test_host_purity.py",
                                       "tests/test_capability.py",
                                       "tests/test_probe_isolation.py",
                                       "tests/test_runtime_fallback.py",
