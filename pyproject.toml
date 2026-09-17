@@ -41,9 +41,12 @@ packages = ["src/ggufone"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+# E1a: the gate is `uv run pytest -q`; make the package importable without requiring an
+# installed dist (the venv may only carry the editable install via .pth).
+pythonpath = ["src"]
 markers = [
-  "network: needs network (deselected by default via -m 'not network')",
-  "model: needs a real GGUF model on disk",
+  "network: needs network (skipped unless --run-network is passed)",
+  "model: needs a real GGUF model on disk (skipped unless --run-network is passed)",
 ]
 filterwarnings = ["error"]
 

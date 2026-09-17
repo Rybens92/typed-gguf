@@ -30,6 +30,55 @@ class RuntimeError_(GgufoneError):
     exit_code = 3
 
 
+# --- named errors for the codes this milestone uses (SPEC 2.5 catalog + E1a additions) ---
+class ModelNotFoundError(UserError):
+    code = "E_MODEL_NOT_FOUND"
+
+
+class AmbiguousQuantError(UserError):
+    code = "E_AMBIGUOUS_QUANT"
+
+
+class GgufCorruptError(UserError):
+    code = "E_GGUF_CORRUPT"
+
+
+class HfAuthError(UserError):
+    code = "E_HF_AUTH_REQUIRED"
+
+
+class InsufficientDiskError(UserError):
+    code = "E_INSUFFICIENT_DISK"
+
+
+class RegistryCorruptError(UserError):
+    code = "E_REGISTRY_CORRUPT"
+
+
+class RuntimeMissingError(RuntimeError_):
+    code = "E_RUNTIME_MISSING"
+
+
+class RuntimeSymbolsError(RuntimeError_):
+    code = "E_RUNTIME_SYMBOLS"
+
+
+class RuntimeBuildOldError(RuntimeError_):
+    code = "E_RUNTIME_BUILD_OLD"
+
+
+class ModelArchUnsupportedError(RuntimeError_):
+    code = "E_MODEL_ARCH_UNSUPPORTED"
+
+
+class DownloadError(RuntimeError_):
+    code = "E_DOWNLOAD_FAILED"
+
+
+class Sha256MismatchError(RuntimeError_):
+    code = "E_SHA256_MISMATCH"
+
+
 # Codes are frozen by SPEC 2.5; implementations must use exactly these strings.
 ERROR_CODES = (
     "E_UNKNOWN_KEY", "E_STATE_EMPTY", "E_QID_INVALID", "E_Q_TYPE_UNKNOWN",
@@ -38,6 +87,10 @@ ERROR_CODES = (
     "E_RUNTIME_MISSING", "E_RUNTIME_SYMBOLS", "E_RUNTIME_BUILD_OLD", "E_CTX_TOO_SMALL",
     "E_SEQ_MAX_EXCEEDED", "E_PREFILL_FAILED", "E_DECODE_FAILED", "E_GGUF_CORRUPT",
     "E_SHA256_MISMATCH", "E_DOWNLOAD_FAILED", "E_AMBIGUOUS_QUANT", "E_TEMPLATE_UNRESOLVED",
+    # E1a additions (coordinator completeness pass, operator-approved):
+    "E_HF_AUTH_REQUIRED",   # gated/private HF repo without a usable token
+    "E_INSUFFICIENT_DISK",  # download precheck: required bytes > free bytes
+    "E_REGISTRY_CORRUPT",   # registry.json unreadable (quarantined, never silently lost)
 )
 WARNING_CODES = (
     "W_LOW_MASS", "W_LOW_CONFIDENCE", "W_UNKNOWN_OPTION", "W_TRUNCATED_STATE",
