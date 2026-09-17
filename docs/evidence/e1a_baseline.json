@@ -457,7 +457,7 @@
    "note": "not comparable to the E1a baseline's 72.7% (that scope was errors/gguf/recommend/store/pins); cli.py alone (print-heavy, never mutation-tuned) contributes ~800 survivors"
   },
   "host": {
-   "status": "COMPLETE (round 2 green on the operator's RTX 3060 Ti, recorded by the coordinator) + container corroboration of every gate step executed by code-e2e t_3831b7b3 on eb1cde3. This worker has no GPU (nvidia-smi absent, /dev/dri not creatable, no /dev/nvidia*) and cannot reach the operator's host from its podman container, so the host numbers below are quoted verbatim from the board comment that reported the run; the corroboration block is raw command+tail evidence executed in the container.",
+   "status": "COMPLETE - round 3: a FRESH-install gate run at head 05f3ee4 executed FIRST HAND on the operator's RTX 3060 Ti by the root closer (t_eae35404 run 138; this process runs on the host itself): 10/10 green - init.exit 0 (2 s, asset_verified true, the 168.81 MB CUDA archive never downloaded), doctor.exit 2 (warnings per the 0/2/1 contract), oracle.exit 0 with section B skips 0, suites 333 passed/12 skipped + 334/11 + 345 network, poisoned PATH 0 shims. It closes the one path rounds 1-2 left unexercised (round 1 aborted on the fresh install; round 2 exited 0 on the already_installed branch). Round 2's numbers were quoted from the coordinator's board comment (see round_2_host_result); the container corroboration block below re-executes every gate step (by code-e2e t_3831b7b3 on eb1cde3 - a container worker with no GPU, so its numbers are container-side).",
    "why": "round 1's host run: 10/11 steps green but `init.exit 134` — SIGABRT (`double free or corruption (!prev)`) *after* init printed its JSON, reproducibly, also on the idempotent re-run. Round 2 removed every dlopen of a bundle from the command process (deep probe + warm-up run in a disposable child), so the expected init.exit is 0.",
    "cmd": "bash tools/host_gate_e1a.sh        # writes raw logs + host_gate_e1a.json into $HOME/.ggufone-host-gate-<utc>",
    "then": "python3 tools/host_gate_summary.py <that log dir>   # prints the summary block to paste here",
@@ -513,6 +513,59 @@
     },
     "host_suite_before_the_gate": "uv run pytest -q -> 319 passed, 11 skipped (reported with the run)",
     "caveat": "the raw log dir lives on the operator's host and is NOT mounted into this worker's container (only the repo workspace is), so the raw files could not be re-read here; the summary is quoted verbatim from the board comment. The per-step .elapsed files exist in that directory for the reviewer/operator. The container_corroboration block below re-executes the same gate, with commands and output tails produced here."
+   },
+   "round_3_host_result": {
+    "recorded_by": "worker 'default' (root closer, card t_eae35404 run 138) - executed FIRST HAND on the operator's RTX 3060 Ti: this process runs ON the host (nvidia-smi 3060 Ti, /dev/dri/renderD128, real network). The ggufone data home was moved aside first (backup: ~/.local/share/ggufone.pre-round3-backup), so this is a genuinely FRESH install - the path that aborted with SIGABRT in round 1 - at head 05f3ee4.",
+    "head_at_the_run": "05f3ee46ce78c12f13a06144f4752a3f746f0185",
+    "log_dir": "/home/rybens/.ggufone-host-gate-20260917T193126Z",
+    "cmd": "bash tools/host_gate_e1a.sh   # default LOG_DIR; per-step <name>.{out,err,exit,elapsed} + host_facts.txt + fallback_evidence.txt + host_gate_e1a.json in the log dir",
+    "raw_summary_quoted": {
+     "init.exit": 0,
+     "init.variant": "linux-x64-vulkan",
+     "init.fallback": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+     "doctor.exit": 2,
+     "oracle.exit": 0,
+     "oracle.section_b_skips": 0,
+     "pytest_before.exit": 0,
+     "pytest_after.exit": 0,
+     "pytest_network.exit": 0,
+     "poisoned_init.exit": 0,
+     "poison_shims_invoked": 0
+    },
+    "fresh_install_raw_keys": {
+     "installed": true,
+     "asset_verified": true,
+     "asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz",
+     "asset_sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708",
+     "bytes_fetched": 30294625,
+     "resumed_from": 0,
+     "source": "url",
+     "fallback_reason_code": "system_libs_missing",
+     "symbols_ok": true
+    },
+    "per_step_elapsed_s": {
+     "pytest_before": 7,
+     "init_dry_run": 1,
+     "init": 2,
+     "doctor": 0,
+     "version": 1,
+     "pytest_after": 16,
+     "oracle": 4,
+     "pytest_network": 27,
+     "init_poisoned_path": 1,
+     "gate_total": 59
+    },
+    "suite_tails": {
+     "pytest_before": "333 passed, 12 skipped in 6.88s",
+     "pytest_after": "334 passed, 11 skipped in 16.23s",
+     "pytest_network": "345 passed in 27.16s"
+    },
+    "init_dry_run_host_facts": "backend=cuda, variant=linux-x64-cuda-12.8, size=168811114, sha256=5b2d30d7..., host.has_nvidia_smi=true, dri_nodes=[/dev/dri/renderD128]",
+    "no_cuda_download_proof": "after the run <data home>/downloads contains exactly ONE archive: llama-b11026-bin-ubuntu-vulkan-x64.tar.gz (30 294 625 B, sha256 1b40310b...); the 168.81 MB CUDA archive was never fetched (pre-flight)",
+    "named_regression_nodes": "uv run pytest -q 'tests/test_pins.py::test_detect_backend[probes2-vulkan]' 'tests/test_pins.py::test_host_variant_mapping[auto-linux-x86_64-linux-x64-cpu]' tests/test_cli_e1a.py tests/test_cli_doctor_branches.py -> 59 passed in 0.50s (the 7 failures the pre-fix head had on this host are green)",
+    "doctor_expectations": "backend=vulkan, backends=[cpu,rpc,vulkan], expected_backend=cuda; runtime.accelerator=warn quotes the pre-flight reason; runtime.fallback=warn carries code system_libs_missing; runtime.symbols ok 34/34; build b11026",
+    "round_2_cross_check": "the round-2 logdir's own host_facts records git_head 12c6393 (contains 77e40ee) and its init.out shows already_installed: true against the round-1 install, so round 2 exercised the already-installed branch only; round 3 closes exactly that gap on a fresh home",
+    "why_round_3": "round 1 aborted on the fresh install (exit 134, SIGABRT) and round 2 exited 0 on the already_installed branch, so no fresh install had run on the host after the 77e40ee fix; round 3 is that run at the final head, and it is green end to end"
    },
    "container_corroboration": {
     "worker": "code-e2e t_3831b7b3",
