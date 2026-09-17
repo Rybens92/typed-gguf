@@ -18,4 +18,9 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 coverage.xml
+.coverage
+.coverage.*
 .hermes/
+# mutation testing workspace (mutmut copies the tree here)
+/mutants/
+.gauntlet/

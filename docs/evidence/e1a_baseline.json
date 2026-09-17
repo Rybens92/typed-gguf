@@ -1,0 +1,178 @@
+{
+ "schema": "ggufone.evidence.e1a/v1",
+ "milestone": "E1a - runtime + model registry (init/doctor/models, no engine yet)",
+ "card": "t_541fdedb",
+ "recorded_at": "2026-09-17",
+ "recorded_in": {
+  "sandbox": "container (podman), NOT the host: 2-CPU cgroup quota (cpu.max=200000/100000), 31 GiB RAM, no /dev/dri, no nvidia-smi",
+  "home": "$GGUFONE_HOME=/var/home/rybens/.hermes == $HOME/.hermes (the oracle's pinned local-model path)",
+  "repo_commit_at_measurement": "210da65 (E1a implementation; see the card's final handoff for the shipped head)"
+ },
+ "tagging": "every number here is [executed] in this sandbox unless it says [recon] or 'not measurable here'",
+
+ "runtime": {
+  "tag": "b11026",
+  "variant": "linux-x64-cpu",
+  "asset": "llama-b11026-bin-ubuntu-x64.tar.gz",
+  "asset_size": 16855810,
+  "asset_sha256": "219cf1c726bae1da4289b96a6378314d5485c6bc74c43891a4203e30906afb06",
+  "asset_sha256_matches_pin": true,
+  "libllama_sha256": "8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975",
+  "dir": "/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu",
+  "build": 11026,
+  "backends": ["cpu", "rpc"],
+  "tools": ["llama-cli", "llama-fit-params", "llama-tokenize"],
+  "note": "GPU detection in this sandbox returns cpu (no /dev/dri, no nvidia-smi); the host's Vulkan/CUDA variants stay untested here."
+ },
+
+ "init": {
+  "poisoned_path": true,
+  "poisoned_tools": ["cc", "gcc", "g++", "clang", "clang++", "nvcc", "cmake", "ninja", "make"],
+  "compiler_shims_invoked": 0,
+  "offline_cache": "/var/home/rybens/.hermes/cache-bundles",
+  "source": "offline-cache",
+  "elapsed_ms": 1093,
+  "budget_s": 180,
+  "dry_run": {"exit": 0, "asset": "llama-b11026-bin-ubuntu-x64.tar.gz", "size": 16855810,
+              "destination": "/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu",
+              "required_bytes": 50567430}
+ },
+
+ "doctor": {
+  "exit_pre_pull": 2,
+  "exit_post_pull": 0,
+  "status_post_pull": "ok",
+  "checks": ["runtime.present", "runtime.files", "runtime.symbols", "runtime.build",
+             "runtime.fit_params", "runtime.backends", "runtime.sha_recorded",
+             "runtime.accelerator", "model.file", "model.sha256", "model.arch"],
+  "symbols": "34/34",
+  "build": "b11026 (>= b10828)",
+  "fit_params_help_exit": 0,
+  "json_schema": "ggufone.doctor/v1",
+  "exit_codes_exercised": {"0": "all checks ok", "2": "warnings (no model / shallow probe / missing sha record)",
+                           "1": "failures (no runtime, missing lib, drifted libllama sha, arch unsupported)"}
+ },
+
+ "oracle": {
+  "offline": {"cmd": "python3 docs/verify_runtime_contract.py", "exit": 0, "failures": 0, "skips": 1,
+              "skip_note": "section D: readout functions land in E1b"},
+  "live": {"cmd": "GGUFONE_RUNTIME_DIR=<runtime> python3 docs/verify_runtime_contract.py",
+           "exit": 0, "failures": 0, "section_b_skips": 0,
+           "section_b": ["32/32 required libllama.so symbols resolve",
+                         "2/2 libggml.so loader symbols (PoC pitfall 1)",
+                         "llama-cli build == 11026 (pinned release)",
+                         "libllama.so carries the spark2_5 implementation",
+                         "llama-fit-params present",
+                         "local Spark Q8_0 size + sha256 == HF pin"]}
+ },
+
+ "pull_resume": {
+  "repo": "XHToken/Spark-X2.5-4B-GGUF",
+  "revision": "902d865994943ab9235670e24f01846ee06091f2",
+  "file": "Spark-X2.5-4B-Q8_0.gguf",
+  "size": 4375021152,
+  "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+  "sha256_equals_hf_lfs_oid": true,
+  "independent_check": "sha256sum of the published file == the pin (log 09-pull-verify)",
+  "interruption": {"how": "SIGKILL after 10 s (timeout -s KILL)",
+                   "part_bytes": 660602880, "part_percent": 15.10,
+                   "registry_json_written": false},
+  "resume": {"resumed_from": 660602880, "bytes_fetched": 3714418272, "elapsed_s": 58,
+             "sha256_verified_by_downloader": true},
+  "registry_entry": {"alias": "spark-x2.5-4b-q8_0", "arch": "spark2_5", "quant": "Q8_0",
+                     "file_type": 7, "license": "apache-2.0", "size": 4375021152,
+                     "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2"}
+ },
+
+ "kv_footprint": {
+  "method": "ctypes on the pinned bundle; KV = VmRSS delta across llama_init_from_model (kv_unified=True); prefill = one llama_decode of a 217-token shared prefix; warm decode = median of 5 single-token decodes",
+  "model": "Spark-X2.5-4B-Q8_0.gguf",
+  "arch": "spark2_5",
+  "sliding_window": 512,
+  "sliding_window_layers": 27,
+  "kv_bytes_per_token_f16_from_header": 147456,
+  "n_ctx": 2048,
+  "measurements": [
+   {"n_seq_max": 1, "kv_unified": true, "measured_kv_bytes": 302219264,
+    "conservative_bound_bytes": 301989888, "measured_over_bound": 1.0008},
+   {"n_seq_max": 4, "kv_unified": true, "measured_kv_bytes": 302006272,
+    "conservative_bound_bytes": 1207959552, "measured_over_bound": 0.25}
+  ],
+  "finding": "with kv_unified=True the measured KV is identical for n_seq_max=1 and 4: the cache is n_ctx cells shared by every sequence, exactly as S-4 hypothesised. The conservative planner charges n_ctx * n_seq_max, i.e. 4x too much at n_seq_max=4, and agrees with the measurement to 0.1% at n_seq_max=1. The recommender stays conservative (S-4) until E2.5 consumes this number.",
+  "secondary": "llama.cpp splits this arch into a SWA cache (27 layers) + a non-SWA cache (9 layers): at n_ctx=2048/f16 that is 216 MiB + 72 MiB = 288 MiB, matching the 302 MB measured (decimal)."
+ },
+
+ "cpu_baseline": {
+  "model_load_ms": 508.1,
+  "prefill_tokens": 217,
+  "prefill_tokens_per_s_1_thread": 5.9,
+  "prefill_tokens_per_s_24_threads": 3.2,
+  "warm_single_token_decode_ms_1_thread": 398.0,
+  "warm_single_token_decode_ms_24_threads": 41082.0,
+  "ctx_init_ms": 148.2,
+  "caveat": "the sandbox is cgroup-limited to 2 CPUs (cpu.max=200000/100000) while os.cpu_count() reports 24, so the 24-thread run thrashes and is SLOWER than threads=1. These are sandbox numbers, not this box's numbers: the [recon] host figures (prefill ~2k tokens in 5.9 s CPU = ~340 tok/s, warm decision 14-20 ms) are NOT reproduced here and remain [recon]."
+ },
+
+ "vulkan_baseline": {
+  "measured": false,
+  "reason": "no DRM device (/dev/dri absent) and no nvidia-smi inside the sandbox: the Vulkan bundle cannot be exercised here",
+  "recon_reference": "prefill ~4.6k tok/s, warm decision 14-20 ms, first call 23-30 s shader compile [recon]",
+  "vehicle_that_will_measure_it": "a host run of tools/measure_kv_footprint.py with `ggufone init --backend vulkan`, or the CI runtime-matrix job that runs the oracle live section per platform"
+ },
+
+ "gates": {
+  "uv run pytest -q": {"exit": 0, "result": "262 passed, 10 skipped"},
+  "uv run pytest -q --run-network": {"exit": 0, "result": "260 passed, 1 skipped",
+                                     "skip": "pinned Qwen3.5-0.8B GGUF not present on this box"},
+  "uv run ruff check src tests tools": {"exit": 0}
+ },
+
+ "coverage": {
+  "tool": "uv run --with pytest-cov pytest -q --cov=src/ggufone",
+  "total": "87% (1821 statements, 234 missed)",
+  "per_module": {"cli.py": "91%", "registry/gguf.py": "95%", "registry/store.py": "93%",
+                 "runtime/pins.py": "97%", "runtime/finder.py": "96%",
+                 "registry/hf.py": "87%", "runtime/capability.py": "87%",
+                 "registry/recommend.py": "83%", "runtime/install.py": "76%",
+                 "runtime/ctypes_binding.py": "55%", "__main__.py": "0% (1 statement)"},
+  "caveat": "ctypes_binding/install cover the real-library paths that the subprocess-isolated live tests exercise outside the pytest process (see docs/evidence/e1a_qa.md)"
+ },
+
+ "mutation": {
+  "tool": "mutmut 3.8, one scoped pass + one hardening round",
+  "scope": ["errors.py", "runtime/pins.py", "registry/gguf.py", "registry/recommend.py",
+            "registry/store.py"],
+  "selection": ["tests/test_recommend_quant.py", "tests/test_gguf_header.py",
+                "tests/test_registry_store.py", "tests/test_pins.py",
+                "tests/test_mutation_hardening.py"],
+  "mutants": 1182,
+  "killed": 859,
+  "score_percent": 72.7,
+  "hardening_round": "killed the budget/parsing boundary survivors (gguf.py 39 -> 32 mutants survive; recommend_quant survivors are now message-string or equivalent only)",
+  "survivor_classes": {"message-string or equivalent": "~60% of survivors",
+                       "data-integrity": "none remaining"},
+  "report": "docs/evidence/e1a_qa.md (Mutation section)"
+ },
+
+ "coordinator_additions": {
+  "hf_auth": {"live_evidence": "gated repo blob without a token -> E_HF_AUTH_REQUIRED (HTTP 401), no file written",
+              "token_sources": ["HF_TOKEN", "HUGGING_FACE_HUB_TOKEN", "HUGGINGFACE_HUB_TOKEN", "~/.cache/huggingface/token"]},
+  "disk_precheck": {"live_evidence": "4.38 GB model vs 512 MB tmpfs -> E_INSUFFICIENT_DISK naming 4375021152 and 333410304 bytes, exit 2, nothing downloaded"},
+  "license_surfacing": {"registry_field": true, "printed_by": ["models pull", "models ls --json", "doctor --json"],
+                        "value": "apache-2.0 (from the HF model card)"},
+  "credits": "README.md -> Credits and attribution (llama.cpp MIT, TypeSafe docs, parallel-decisions/openjev, RLCD, Spark)"
+ },
+
+ "measurement_commands": [
+  "uv run ggufone init --dry-run --json",
+  "PATH=<poisoned-bin> GGUFONE_OFFLINE_CACHE=<dir> uv run ggufone init   # 1093 ms, 0 compiler shims hit",
+  "GGUFONE_RUNTIME_DIR=<rt> python3 docs/verify_runtime_contract.py   # exit 0, no SKIP in section B",
+  "uv run ggufone doctor --json   # exit 0 after the pull, exit 2 before it",
+  "timeout -s KILL 10 uv run ggufone models pull XHToken/Spark-X2.5-4B-GGUF:Q8_0   # killed at 15.10%",
+  "uv run ggufone models pull XHToken/Spark-X2.5-4B-GGUF:Q8_0   # resumed from 660602880 B, sha verified",
+  "sha256sum $GGUFONE_HOME/models/Spark-X2.5-4B-Q8_0.gguf",
+  "uv run ggufone models verify --json",
+  "python3 tools/measure_kv_footprint.py --json <out>",
+  "uv run pytest -q ; uv run pytest -q --run-network"
+ ]
+}

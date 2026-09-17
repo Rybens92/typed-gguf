@@ -209,7 +209,8 @@ def doctor_checks(home: pathlib.Path | None = None,
                 f"llama-fit-params --help exit {probe.fit_params_help_exit}")
         else:
             add("runtime.fit_params", "warn", "llama-fit-params not bundled (auto-fit limited)")
-        accel = [b for b in probe.backends if b != "cpu"]
+        accel = [b for b in probe.backends if b not in ("cpu", "rpc", "base")]
+        expected_backend = capability.host_expectation()
         add("runtime.backends", "ok" if probe.backends else "warn",
             "backends: " + (", ".join(probe.backends) or "none"))
         record = finder.runtime_record(home)
@@ -225,10 +226,14 @@ def doctor_checks(home: pathlib.Path | None = None,
             add("runtime.sha_recorded", "ok", f"libllama.so sha256 {digest}…")
         if accel:
             add("runtime.accelerator", "ok", ", ".join(accel) + " present")
+        elif expected_backend == "cpu":
+            add("runtime.accelerator", "ok",
+                "no GPU on this host; CPU placement is the expected backend")
         else:
             add("runtime.accelerator", "warn",
-                f"no accelerator in the bundle (expected {capability.host_expectation()}); "
-                f"CPU always works")
+                f"expected accelerator {expected_backend!r} is not in this bundle "
+                f"(backends: {', '.join(probe.backends) or 'none'}); re-run `ggufone init "
+                f"--backend {expected_backend}`")
 
     registry, registry_warnings = store.load_registry(store.registry_path(home))
     for warning in registry_warnings:

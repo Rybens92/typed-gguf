@@ -206,13 +206,7 @@ def select_file(files: Iterable[dict[str, Any]], *, quant: str | None = None,
             raise AmbiguousQuantError(
                 f"E_AMBIGUOUS_QUANT: {repo or 'repo'}:{quant} matches {len(matches)} files "
                 f"({names}); pass --file NAME to choose one")
-        # 3. a quant equal to the whole stem (repos that name files after the quant)
-        exact = [f for f in ggufs
-                 if quant_token_of(f["path"]) is None
-                 and normalize_quant(pathlib.PurePosixPath(f["path"]).stem) == want]
-        if len(exact) == 1:
-            return FileChoice(file=exact[0], quant=want, reason="quant")
-        # 4. unquantized-file shorthand: F16/BF16/F32 files often have no token
+        # 3. unquantized-file shorthand: F16/BF16/F32 files often have no token at all
         if want in ("F16", "BF16", "F32"):
             bare = [f for f in ggufs if quant_token_of(f["path"]) is None]
             if len(bare) == 1:

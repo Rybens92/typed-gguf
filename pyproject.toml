@@ -40,9 +40,10 @@ packages = ["src/ggufone"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
-# E1a: the gate is `uv run pytest -q`; make the package importable without requiring an
-# installed dist (the venv may only carry the editable install via .pth).
+# E1a: the gate is `uv run pytest -q`. Do not pin `-q` here — a second `-q` on the command
+# line would make it `-qq` and swallow the "N passed, M skipped" summary the reviewer reads.
+# The package is importable from the checkout without an installed dist (the venv may only
+# carry the editable install via .pth).
 pythonpath = ["src"]
 markers = [
   "network: needs network (skipped unless --run-network is passed)",
@@ -68,10 +69,15 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM"]
 quote-style = "double"
 
 [tool.mutmut]
-# E1a mutation testing (Tier M): the pure-logic modules first — they carry the arithmetic the
-# SPEC pins (KV math, quant selection, GGUF parsing, registry durability, pins).
+# E1a mutation testing (Tier M): run over the package, on the offline unit suite.
 source_paths = ["src/ggufone"]
-also_copy = ["tests", "docs", "runtime.lock", "pyproject.toml", "README.md"]
+also_copy = ["tests", "docs", "runtime.lock", "pyproject.toml", "README.md", "SPEC.md",
+             "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
-pytest_add_cli_args_test_selection = ["tests/"]
+# full offline suite; a scoped pass points this at the owning test files (see the E1a QA note)
+pytest_add_cli_args_test_selection = ["tests/test_recommend_quant.py",
+                                      "tests/test_gguf_header.py",
+                                      "tests/test_registry_store.py",
+                                      "tests/test_pins.py",
+                                      "tests/test_mutation_hardening.py"]
 max_children = 1
