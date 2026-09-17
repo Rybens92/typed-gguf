@@ -344,3 +344,22 @@ def test_option_value_edges_are_inclusive_where_documented() -> None:
         with pytest.raises(UserError) as exc:
             schema.parse_request(request(options={name: True}))
         assert code_of(exc) == "E_UNKNOWN_KEY", name
+
+
+def test_instructions_and_structured_values_survive_parsing() -> None:
+    parsed = schema.parse_request(request(questions={
+        "q": {"type": "choice", "instructions": "Which area owns this?",
+              "criteria": {"x": None, "y": None}}}))
+    assert parsed.questions[0].instructions == "Which area owns this?"
+    structured = schema.parse_request(request(questions={
+        "q": {"type": "choice", "instructions": {"tone": "short", "n": 2},
+              "criteria": {"x": None, "y": None}}}))
+    assert structured.questions[0].instructions == {"tone": "short", "n": 2}
+    assert structured.questions[0].criteria == {"x": None, "y": None}
+
+
+def test_adapter_model_ref_treats_a_bare_gguf_name_as_a_path() -> None:
+    assert schema.adapter_model_ref("model.gguf", known_aliases=(),
+                                    default_alias="default") == "model.gguf"
+    assert schema.adapter_model_ref("model.GGUF", known_aliases=(),
+                                    default_alias="default") == "default"   # case matters
