@@ -194,6 +194,10 @@ class ProbeResult:
     fit_params_help_exit: int | None = None
     expect_backend: str | None = None
     error: str | None = None
+    #: The isolated probe could not run at all (died, hung, answered garbage). Kept apart from
+    #: `backend_errors` so the fallback chain can say *why* a tier was skipped: an unverifiable
+    #: bundle is not the same finding as a bundle whose library does not dlopen here.
+    child_error: str | None = None
 
     @property
     def tag(self) -> str | None:
@@ -359,6 +363,7 @@ def probe_runtime(runtime_dir: str | os.PathLike[str] | None = None, *, deep: bo
             # The probe never ran: nothing was verified. Record what the child said and treat
             # every accelerator as unusable, so the fallback chain can still pick a tier that
             # does load here instead of installing something nobody could check (req. 4).
+            result.child_error = found.child_error
             result.error = result.error or f"E_RUNTIME_SYMBOLS: {found.child_error}"
             for name in result.backends:
                 if name != "cpu":

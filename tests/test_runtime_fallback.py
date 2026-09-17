@@ -17,12 +17,13 @@ import hashlib
 import json
 import pathlib
 import stat
+import sys
 import tarfile
 
 import pytest
 
 from ggufone import cli
-from ggufone.runtime import capability, finder, install, pins
+from ggufone.runtime import capability, finder, install, isolated, pins
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ASSET = {
@@ -177,6 +178,7 @@ def test_install_falls_back_from_cuda_to_vulkan_and_records_why(
     assert result["fallback_reason"].startswith("cuda does not load on this host")
     assert result["fallback_attempts"] == [{"backend": "cuda",
                                             "variant": "linux-x64-cuda-12.8",
+                                            "code": install.REASON_LOADER_ERROR,
                                             "reason": result["fallback_reason"]}]
     assert "libcudart.so.12" in result["fallback_attempts"][0]["reason"]
     assert (tmp_path / "home" / "runtime" / "b11026-linux-x64-vulkan" / "libllama.so").exists()
@@ -382,3 +384,183 @@ def test_doctor_marks_the_expected_backend_ok_when_it_really_loads(
     assert "cuda" in checks["runtime.accelerator"]["detail"]
     assert "runtime.fallback" not in checks
     assert report["runtime"]["backend_errors"] == {}
+
+
+# ------------------------------------------------------------------ machine-readable reasons
+# The card asks for the machine-readable reason of *each* step, not one prose blob: every
+# attempt carries a stable `code` (a member of `install.REASON_CODES`) next to the human text,
+# and the record + `init --json` + `doctor --json` repeat the code of the first fallback.
+def test_a_backend_that_does_not_load_here_is_coded_loader_error(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, in_process_scan: None) -> None:
+    cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
+    lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
+    monkeypatch.setattr(capability, "load_backend_library", fake_loader({"cuda": CUDA_LOAD_ERROR}))
+
+    result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                             free_bytes=1 << 40, probes=GPU_HOST)
+
+    assert result["variant"] == "linux-x64-vulkan"
+    assert result["fallback_reason_code"] == install.REASON_LOADER_ERROR
+    attempt = result["fallback_attempts"][0]
+    assert attempt["code"] == install.REASON_LOADER_ERROR
+    assert attempt["code"] in install.REASON_CODES
+    assert set(attempt) == {"backend", "variant", "code", "reason"}
+    assert CUDA_LOAD_ERROR in attempt["reason"]          # the code never replaces the loader text
+    record = json.loads((tmp_path / "home" / "runtime.json").read_text())
+    assert record["fallback_reason_code"] == install.REASON_LOADER_ERROR
+    assert record["fallback_attempts"][0]["code"] == install.REASON_LOADER_ERROR
+    assert record["fallback_attempts"][0]["variant"] == "linux-x64-cuda-12.8"
+
+
+def test_the_preflight_skip_is_coded_system_libs_missing(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
+    lock_path = multi_lock(cache, ("cuda", "vulkan", "cpu"))
+    payload = json.loads(lock_path.read_text(encoding="utf-8"))
+    payload["llama_cpp"]["system_libs"] = {"linux-x64-cuda-12.8": ["libcudart.so.12"]}
+    lock_path.write_text(json.dumps(payload), encoding="utf-8")
+    lock = pins.load_lock(lock_path)
+    monkeypatch.setattr(install, "PREFLIGHT_SYSTEM_LIBS", lambda names: {
+        name: f"{name}: cannot open shared object file: No such file or directory"
+        for name in names})
+
+    result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                             free_bytes=1 << 40, probes=GPU_HOST)
+
+    attempt = result["fallback_attempts"][0]
+    assert attempt["backend"] == "cuda"
+    assert attempt["code"] == install.REASON_SYSTEM_LIBS_MISSING
+    assert "libcudart.so.12: cannot open shared object file" in attempt["reason"]
+    assert result["fallback_reason_code"] == install.REASON_SYSTEM_LIBS_MISSING
+
+
+def test_a_tier_this_lock_does_not_pin_is_coded_no_asset(tmp_path: pathlib.Path) -> None:
+    """The chain continues past a variant the lock has no asset for — and says so by code."""
+    cache = bundle_cache(tmp_path, ("cuda", "cpu"))
+    lock = pins.load_lock(multi_lock(cache, ("cuda", "cpu")))
+
+    result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                             free_bytes=1 << 40, probes=GPU_HOST)
+
+    assert result["variant"] == "linux-x64-cpu"
+    codes = [attempt["code"] for attempt in result["fallback_attempts"]]
+    assert codes == [install.REASON_LOADER_ERROR, install.REASON_NO_ASSET]
+    assert "E_RUNTIME_MISSING" in result["fallback_attempts"][1]["reason"]
+
+
+def test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent(
+        tmp_path: pathlib.Path) -> None:
+    cache = bundle_cache(tmp_path, ("cuda", "cpu"))
+    # the cpu layout under a vulkan name: the variant says vulkan, the archive says cpu
+    (cache / ASSET["vulkan"]).write_bytes((cache / ASSET["cpu"]).read_bytes())
+    lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
+
+    result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                             free_bytes=1 << 40, probes=GPU_HOST)
+
+    by_backend = {attempt["backend"]: attempt for attempt in result["fallback_attempts"]}
+    assert by_backend["vulkan"]["code"] == install.REASON_BACKEND_ABSENT
+    assert "carries no vulkan backend" in by_backend["vulkan"]["reason"]
+
+
+def test_a_dead_probe_child_is_coded_probe_failed(monkeypatch: pytest.MonkeyPatch,
+                                                  tmp_path: pathlib.Path) -> None:
+    """A probe that cannot run is data: every accelerator is unusable, with the code to match."""
+    cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
+    lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
+    monkeypatch.setattr(isolated, "child_command",
+                        lambda: [sys.executable, "-c", "raise SystemExit(9)"])
+
+    result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                             free_bytes=1 << 40, probes=GPU_HOST)
+
+    assert result["variant"] == "linux-x64-cpu"
+    assert [attempt["code"] for attempt in result["fallback_attempts"]] == [
+        install.REASON_PROBE_FAILED, install.REASON_PROBE_FAILED]
+    assert all("isolated probe" in attempt["reason"]
+               for attempt in result["fallback_attempts"])
+
+
+def test_reason_codes_are_a_closed_set() -> None:
+    assert frozenset({
+        install.REASON_LOADER_ERROR, install.REASON_SYSTEM_LIBS_MISSING, install.REASON_NO_ASSET,
+        install.REASON_BACKEND_ABSENT, install.REASON_PROBE_FAILED,
+        install.REASON_UNUSABLE}) == install.REASON_CODES
+
+
+def test_doctor_reports_the_working_backend_the_list_and_the_fallback_code(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
+    home = tmp_path / "home"
+    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
+
+    rt = home / "runtime" / "b11026-linux-x64-vulkan"
+    rt.mkdir(parents=True)
+    for lib in ("libllama.so", "libggml.so", "libggml-base.so", "libggml-cpu.so",
+                "libggml-vulkan.so"):
+        (rt / lib).write_bytes(b"\x7fELF fake\nllama_model_spark2_5\x00build 11026\n")
+    (home / "runtime.json").write_text(json.dumps({
+        "schema": "ggufone.runtime/v1", "variant": "linux-x64-vulkan", "build": 11026,
+        "backend_requested": "cuda", "backend_working": "vulkan",
+        "fallback_reason": f"cuda does not load on this host ({CUDA_LOAD_ERROR})",
+        "fallback_reason_code": install.REASON_LOADER_ERROR,
+        "fallback_attempts": [{"backend": "cuda", "variant": "linux-x64-cuda-12.8",
+                               "code": install.REASON_LOADER_ERROR,
+                               "reason": f"cuda does not load on this host ({CUDA_LOAD_ERROR})"}]}))
+
+    assert cli.main(["doctor", "--json"]) == 2
+    report = json.loads(capsys.readouterr().out)
+    # the acceptance reads `doctor --json` for the WORKING backend + the probed list
+    assert report["runtime"]["working_backend"] == "vulkan"
+    assert report["runtime"]["backends"] == ["cpu", "vulkan"]
+    assert report["backend"] == "vulkan"
+    assert report["backends"] == ["cpu", "vulkan"]
+    assert report["runtime"]["fallback_reason_code"] == install.REASON_LOADER_ERROR
+    checks = {check["id"]: check for check in report["checks"]}
+    assert checks["runtime.fallback"]["status"] == "warn"
+    assert install.REASON_LOADER_ERROR in checks["runtime.fallback"]["detail"]
+    assert "libcudart.so.12" in checks["runtime.fallback"]["detail"]
+
+
+def test_doctor_reads_the_backends_off_the_bundle_it_found(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
+    """No table of backends: the list follows the files (and the dlopen result) of this bundle."""
+    home = tmp_path / "home"
+    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
+    rt = home / "runtime" / "b11026-linux-x64-cpu"
+    rt.mkdir(parents=True)
+    for lib in ("libllama.so", "libggml.so", "libggml-base.so", "libggml-cpu.so"):
+        (rt / lib).write_bytes(b"\x7fELF fake\nllama_model_spark2_5\x00build 11026\n")
+
+    assert cli.main(["doctor", "--json"]) == 2
+    first = json.loads(capsys.readouterr().out)
+    assert first["backends"] == ["cpu"] and first["runtime"]["working_backend"] == "cpu"
+
+    (rt / "libggml-vulkan.so").write_bytes(b"\x7fELF fake\n")   # the same dir, one more backend
+    assert cli.main(["doctor", "--json"]) == 2
+    second = json.loads(capsys.readouterr().out)
+    assert second["backends"] == ["cpu", "vulkan"]
+    assert second["runtime"]["working_backend"] == "vulkan"
+
+
+def test_the_working_backend_is_decided_by_dlopen_not_by_the_file_list(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, in_process_scan: None) -> None:
+    """`backends` is what the bundle carries; `accelerator()` is what this host can drive."""
+    rt = tmp_path / "rt"
+    rt.mkdir()
+    for lib in ("libllama.so", "libggml.so", "libggml-base.so", "libggml-cpu.so",
+                "libggml-cuda.so"):
+        (rt / lib).write_bytes(b"\x7fELF fake\n")
+    monkeypatch.setattr(capability, "load_backend_library", fake_loader({"cuda": CUDA_LOAD_ERROR}))
+
+    probe = capability.probe_runtime(rt, deep=True, run_tools=False)
+
+    assert probe.backends == ("cpu", "cuda")
+    assert probe.usable("cuda") is False
+    assert probe.accelerator() == "cpu"
+    assert probe.backend_errors["cuda"] == CUDA_LOAD_ERROR

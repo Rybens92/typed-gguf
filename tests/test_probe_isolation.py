@@ -312,6 +312,40 @@ def test_cli_init_on_an_installed_runtime_prints_the_fallback_reason(
     assert payload["fallback_reason"] == payload["fallback_attempts"][0]["reason"]
 
 
+def test_init_without_a_record_names_the_backend_this_run_asked_for(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
+    """Runtime dirs copied in without `runtime.json`: still `cuda -> vulkan`, never `None -> …`."""
+    cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
+    lock = multi_lock(cache, ("cuda", "vulkan", "cpu"))
+    home = tmp_path / "home"
+    (home / "runtime").mkdir(parents=True)
+    cuda = home / "runtime" / "b11026-linux-x64-cuda-12.8"
+    cuda.mkdir()
+    for lib in ("libllama.so", "libggml.so", "libggml-base.so", "libggml-cuda.so"):
+        (cuda / lib).write_bytes(b"\x7fELF fake\n")
+    vulkan = home / "runtime" / "b11026-linux-x64-vulkan"
+    vulkan.mkdir()
+    for lib in ("libllama.so", "libggml.so", "libggml-base.so"):
+        (vulkan / lib).write_bytes(b"\x7fELF fake\n")
+    real = real_system_lib()
+    if real is None:  # pragma: no cover - exotic platform
+        pytest.skip("no system shared library available")
+    (vulkan / "libggml-vulkan.so").symlink_to(real)
+    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    monkeypatch.setenv("GGUFONE_LOCK", str(lock))
+    monkeypatch.delenv("GGUFONE_DEEP_PROBE", raising=False)
+    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
+
+    assert cli.main(["init", "--json"]) == 0
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert payload["backend_requested"] == "cuda"      # what THIS run detected and asked for
+    assert payload["fallback_reason_code"] == install.REASON_LOADER_ERROR
+    assert "from cuda to linux-x64-vulkan" in captured.err
+
+
 def test_host_gate_summary_reads_the_fallback_from_the_record(tmp_path: pathlib.Path) -> None:
     """`init.fallback` must not be null when the record carries the reason (finding 3)."""
     spec = importlib.util.spec_from_file_location("host_gate_summary", SUMMARY_TOOL)

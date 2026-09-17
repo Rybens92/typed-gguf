@@ -281,6 +281,27 @@ FALLBACK_CHAIN: dict[str, tuple[str, ...]] = {
     "metal": (),
 }
 
+#: Machine-readable reason codes for `fallback_attempts` (requirement 4: "record the
+#: machine-readable reason for each step"). Stable strings: `init --json`, `doctor --json` and
+#: `runtime.json` all carry the code next to the prose `reason`, so a caller can branch on the
+#: *kind* of failure (a bundle that does not dlopen here vs. one the lock never pinned) without
+#: parsing the loader's message.
+REASON_LOADER_ERROR = "loader_error"                  # present, but does not dlopen on this host
+REASON_SYSTEM_LIBS_MISSING = "system_libs_missing"    # pre-flight: links what this host lacks
+REASON_NO_ASSET = "no_asset"                          # the lock pins no bundle for that variant
+REASON_BACKEND_ABSENT = "backend_absent"              # the bundle carries no libggml-<backend>
+REASON_PROBE_FAILED = "probe_failed"                  # the isolated probe could not verify it
+REASON_UNUSABLE = "unusable"                          # unusable for another reason
+REASON_CODES = frozenset({REASON_LOADER_ERROR, REASON_SYSTEM_LIBS_MISSING, REASON_NO_ASSET,
+                          REASON_BACKEND_ABSENT, REASON_PROBE_FAILED, REASON_UNUSABLE})
+
+
+def _attempt(backend: str, variant: str, code: str, reason: str) -> dict[str, str]:
+    """One recorded step of the chain: which tier, and (by code *and* text) why it was skipped."""
+    assert code in REASON_CODES, f"unknown fallback reason code {code!r}"
+    return {"backend": backend, "variant": variant, "code": code, "reason": reason}
+
+
 #: How the warm-up number is produced: a disposable child by default, so `init` never leaves a
 #: loaded model (and a GPU driver) behind in its own process.
 DEFAULT_WARMUP = isolated.warmup_in_child
@@ -291,18 +312,24 @@ DEFAULT_WARMUP = isolated.warmup_in_child
 PREFLIGHT_SYSTEM_LIBS = isolated.system_libs
 
 
-def _unusable_reason(probe: capability.ProbeResult, backend: str) -> str:
-    """Why `backend` cannot be used, from a real probe (goes into the record verbatim)."""
+def _unusable_reason(probe: capability.ProbeResult, backend: str) -> tuple[str, str]:
+    """(code, why) `backend` cannot be used, from a real probe (goes into the record verbatim)."""
+    if probe.child_error:
+        return (REASON_PROBE_FAILED,
+                f"the isolated probe could not verify the {backend} backend "
+                f"({probe.child_error}); treated as unusable here")
     if backend in probe.backend_errors:
-        return f"{backend} does not load on this host ({probe.backend_errors[backend]})"
+        return (REASON_LOADER_ERROR,
+                f"{backend} does not load on this host ({probe.backend_errors[backend]})")
     if backend not in probe.backends:
-        return (f"the bundle carries no {backend} backend (backends: "
+        return (REASON_BACKEND_ABSENT,
+                f"the bundle carries no {backend} backend (backends: "
                 f"{', '.join(probe.backends) or 'none'})")
-    return f"the {backend} backend reported unusable"
+    return REASON_UNUSABLE, f"the {backend} backend reported unusable"
 
 
-def _preflight_reason(plan: InstallPlan, lock: pins.RuntimeLock) -> str | None:
-    """Why this tier's download is pointless *before* downloading it, or `None`.
+def _preflight_reason(plan: InstallPlan, lock: pins.RuntimeLock) -> tuple[str, str] | None:
+    """(code, why) this tier's download is pointless *before* downloading it, or `None`.
 
     The pinned bundle links system libraries it does not ship (`runtime.lock` -> `system_libs`:
     libcudart.so.12/libcublas.so.12/libcuda.so.1 for CUDA). If this host cannot load one of
@@ -315,9 +342,10 @@ def _preflight_reason(plan: InstallPlan, lock: pins.RuntimeLock) -> str | None:
     missing = [errors[name] for name in required if errors.get(name)]
     if not missing:
         return None
-    return (f"pre-flight: the pinned {plan.variant} bundle links "
-            f"{', '.join(required)}, which this host cannot load ({missing[0]}); skipped the "
-            f"{hf.human_bytes(plan.size)} download and moved to the next tier")
+    return REASON_SYSTEM_LIBS_MISSING, (
+        f"pre-flight: the pinned {plan.variant} bundle links "
+        f"{', '.join(required)}, which this host cannot load ({missing[0]}); skipped the "
+        f"{hf.human_bytes(plan.size)} download and moved to the next tier")
 
 
 def _drop_rejected(plan: InstallPlan) -> None:
@@ -415,6 +443,7 @@ def _build_record(plan: InstallPlan, *, lock: pins.RuntimeLock, probe: capabilit
         "backend_errors": dict(probe.backend_errors),
         "fallback_attempts": [dict(attempt) for attempt in attempts],
         "fallback_reason": attempts[0]["reason"] if attempts else None,
+        "fallback_reason_code": attempts[0]["code"] if attempts else None,
     }
 
 
@@ -454,7 +483,7 @@ def install(backend: str = "auto", *, home: pathlib.Path | None = None,
         except RuntimeMissingError as exc:
             if last:
                 raise
-            attempts.append({"backend": candidate, "variant": "", "reason": str(exc)})
+            attempts.append(_attempt(candidate, "", REASON_NO_ASSET, str(exc)))
             continue
 
         if candidate_plan.dest.exists() and not force:
@@ -467,12 +496,18 @@ def install(backend: str = "auto", *, home: pathlib.Path | None = None,
                         "backend": candidate, "dir": str(candidate_plan.dest),
                         "record": record,
                         "working_backend": probe.accelerator(),
+                        # What this run asked for when it fell back (the record may be absent:
+                        # a runtime directory can be copied in without one).
+                        "backend_requested": (requested if attempts
+                                              else record.get("backend_requested")),
                         "fallback_attempts": list(attempts),
                         "fallback_reason": (attempts[0]["reason"] if attempts
                                             else record.get("fallback_reason")),
+                        "fallback_reason_code": (attempts[0]["code"] if attempts
+                                                 else record.get("fallback_reason_code")),
                         "hint": "pass --force to re-download and re-extract"}
-            attempts.append({"backend": candidate, "variant": candidate_plan.variant,
-                             "reason": _unusable_reason(probe, candidate)})
+            code, reason = _unusable_reason(probe, candidate)
+            attempts.append(_attempt(candidate, candidate_plan.variant, code, reason))
             if not last:
                 _drop_rejected(candidate_plan)
             continue
@@ -480,10 +515,9 @@ def install(backend: str = "auto", *, home: pathlib.Path | None = None,
         if auto and not last:
             # Answer it before spending the bandwidth (finding 2). `--backend X` is an explicit
             # instruction and skips this: the probe then records the truth about the bundle.
-            reason = _preflight_reason(candidate_plan, lock)
-            if reason:
-                attempts.append({"backend": candidate, "variant": candidate_plan.variant,
-                                 "reason": reason})
+            preflight = _preflight_reason(candidate_plan, lock)
+            if preflight:
+                attempts.append(_attempt(candidate, candidate_plan.variant, *preflight))
                 continue
 
         source, stats = _unpack_one(candidate_plan, home=home, lock=lock, url=url,
@@ -491,8 +525,8 @@ def install(backend: str = "auto", *, home: pathlib.Path | None = None,
         probe = capability.probe_runtime(candidate_plan.dest, deep=deep_probe, lock=lock,
                                          expect_backend=requested, run_tools=True, system=system)
         if not probe.usable(candidate) and not last:
-            attempts.append({"backend": candidate, "variant": candidate_plan.variant,
-                             "reason": _unusable_reason(probe, candidate)})
+            code, reason = _unusable_reason(probe, candidate)
+            attempts.append(_attempt(candidate, candidate_plan.variant, code, reason))
             _drop_rejected(candidate_plan)
             continue
 
@@ -510,6 +544,7 @@ def install(backend: str = "auto", *, home: pathlib.Path | None = None,
             "backend_errors": dict(probe.backend_errors),
             "fallback_attempts": list(attempts),
             "fallback_reason": attempts[0]["reason"] if attempts else None,
+            "fallback_reason_code": attempts[0]["code"] if attempts else None,
             "warmup_ms": warmup_ms, "probe_failures": probe.failures(),
             "probe_warnings": probe.warnings(),
             **{k: stats.get(k) for k in ("bytes_fetched", "bytes_total", "resumed_from")},

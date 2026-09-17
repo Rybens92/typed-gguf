@@ -101,6 +101,8 @@ def main(argv: list[str]) -> int:
         "bytes_fetched": init_payload.get("bytes_fetched"),
         "fallback_attempts": init_payload.get("fallback_attempts", []),
         "fallback_reason": fallback_reason,
+        "fallback_reason_code": init_payload.get("fallback_reason_code")
+        or (record.get("fallback_reason_code") if isinstance(record, dict) else None),
         "record": record or None,
     }
 

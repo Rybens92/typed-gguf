@@ -137,13 +137,15 @@ def _cmd_init(args: list[str]) -> int:
         payload = {"already_installed": True, "variant": result["variant"],
                    "backend": result.get("backend"), "dir": result["dir"],
                    "working_backend": result.get("working_backend"),
-                   "backend_requested": record.get("backend_requested"),
+                   "backend_requested": (result.get("backend_requested")
+                                         or record.get("backend_requested")),
                    "fallback_attempts": result.get("fallback_attempts", []),
                    "fallback_reason": result.get("fallback_reason"),
+                   "fallback_reason_code": result.get("fallback_reason_code"),
                    "hint": result["hint"]}
         _emit(payload, bool(options.get("json")))
         if result.get("fallback_reason"):
-            print(f"warning: fell back from {record.get('backend_requested')} to "
+            print(f"warning: fell back from {payload['backend_requested']} to "
                   f"{result['variant']}: {result['fallback_reason']}", file=sys.stderr)
         for warning in record.get("probe_warnings", []):
             print(f"warning: {warning}", file=sys.stderr)
@@ -162,6 +164,7 @@ def _cmd_init(args: list[str]) -> int:
                "backend_errors": record.get("backend_errors", {}),
                "fallback_attempts": record.get("fallback_attempts", []),
                "fallback_reason": record.get("fallback_reason"),
+               "fallback_reason_code": record.get("fallback_reason_code"),
                "symbols_ok": record["symbols_ok"], "warmup_ms": record["warmup_ms"],
                "rung": record["rung"]}
     _emit(payload, bool(options.get("json")))
@@ -281,9 +284,10 @@ def doctor_checks(home: pathlib.Path | None = None,
                 f"no accelerator in this bundle (expected {expected_backend!r}); CPU works "
                 f"but decoding is slower")
         if record and record.get("fallback_reason"):
+            code = record.get("fallback_reason_code") or "unknown"
             add("runtime.fallback", "warn",
                 f"installed {record.get('variant')} after {record.get('backend_requested')} "
-                f"was unusable here: {record['fallback_reason']}")
+                f"was unusable here [{code}]: {record['fallback_reason']}")
         if not record or not record.get("libllama_sha256"):
             add("runtime.sha_recorded", "warn",
                 "runtime.json has no libllama.so SHA-256 (re-run `ggufone init --force`)")
@@ -351,6 +355,8 @@ def doctor_checks(home: pathlib.Path | None = None,
             "backend_errors": dict(probe.backend_errors) if probe else {},
             "backend_requested": (finder.runtime_record(home) or {}).get("backend_requested"),
             "fallback_reason": (finder.runtime_record(home) or {}).get("fallback_reason"),
+            "fallback_reason_code": (finder.runtime_record(home) or {}).get(
+                "fallback_reason_code"),
             "fallback_attempts": (finder.runtime_record(home) or {}).get("fallback_attempts", []),
             "symbols_required": len(lock.all_symbols),
             "symbols_missing": list(probe.missing_symbols) if probe else [],
@@ -360,6 +366,11 @@ def doctor_checks(home: pathlib.Path | None = None,
             "warmup_ms": (finder.runtime_record(home) or {}).get("warmup_ms"),
         },
         "model": model_payload,
+        # The requirement-4 acceptance reads `doctor --json` for the backend that actually works
+        # here and the full list the probe found (aliases of `runtime.working_backend` /
+        # `runtime.backends`, kept top-level so a caller does not have to know the layout).
+        "backend": probe.accelerator() if probe else None,
+        "backends": list(probe.backends) if probe else [],
         "expected_backend": capability.host_expectation(),
     }
 
@@ -376,7 +387,11 @@ def _cmd_doctor(args: list[str]) -> int:
             print(f"  {mark} {check['id']:22s} {check['detail']}")
         runtime = report["runtime"]
         print(f"  runtime: {runtime['dir'] or '<none>'}  build={runtime['tag']}  "
+              f"backend={report['backend'] or 'none'}  "
               f"backends={','.join(runtime['backends']) or 'none'}")
+        if runtime.get("fallback_reason"):
+            print(f"  fallback: {runtime['backend_requested']} -> "
+                  f"{runtime['backend_working']} [{runtime.get('fallback_reason_code')}]")
         print(f"  model:   {report['model'].get('alias') or '<none>'}")
     return int(report["exit_code"])
 
