@@ -54,16 +54,20 @@ Environment for every live number: pinned runtime
 $ uv run pytest -q --run-network -s tests/test_engine_fork.py tests/test_ctypes_binding.py tests/test_cli.py
 fork vs sequential on qwen35: max |delta| = 0.000e+00 over 2 candidates
 fork vs sequential on spark2_5: max |delta| = 0.000e+00 over 2 candidates
-warm prefill_ms = 0.000  cold prefill_ms = 2246.4
-determinism sha256 = f4158c0f26d1c23dda1a3d7cc607b20c8433b6790a305dbb519282fb51598eb6
+warm prefill_ms = 0.000  cold prefill_ms = 2504.3
+determinism sha256 = 5eea4f2b582e55f7ef6497135347ffff3248d9c63fb6a4d7919ae25f2e110ce9
 state round-trip max |delta| = 0.000e+00
 waves: capped=16 single=8 max |delta| = 0.000e+00
-61 passed in 209.56s
+62 passed in 203.11s
 ```
+
+(The digest covers the answers JSON with `timings` stripped; it is a property of this tree, so it
+changed when the readout hot path was optimized — the *within-run* equality of three runs is
+what A-E1b-4 asserts, and it holds at every measured head.)
 
 ```
 $ uv run pytest -q                                  # offline canonical gate
-488 passed, 21 skipped in 8.31s
+503 passed, 21 skipped in 15.69s
 
 $ uv run ruff check src tests
 All checks passed!

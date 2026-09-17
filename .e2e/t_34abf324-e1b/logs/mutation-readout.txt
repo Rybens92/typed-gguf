@@ -1,0 +1,13 @@
+readout.py mutants: 174  killed=170  survived=4  other={}
+mutation score (killed/total): 97.7%
+killed/killed+survived: 97.7%
+
+survivors:
+  [0] ggufone.engine.readout.x_softmax__mutmut_14
+  [0] ggufone.engine.readout.x_restricted_softmax__mutmut_5
+  [0] ggufone.engine.readout.x_score_weighted_mean__mutmut_4
+  [0] ggufone.engine.readout.x_argmax_first__mutmut_10
+
+readout.py sha256: 0fd94e62068dd7802a38465f921227726ab58daf56d04fb810ba9db8e8a29787
+log emoji counts: {'🎉': 313, '🙁': 211, '⏳': 0, '🕒': 0}
+duration mentions: []
