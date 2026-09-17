@@ -337,22 +337,19 @@ class DecisionEngine:
         _check_collisions(question, view, scored)
         per_wave = max(1, plan.n_seq_max - 1)
         logprobs: list[list[float]] = [[] for _ in candidates]
-        coverage_pairs: list[tuple[list[float], int]] = []
+        coverage = 0.0
         for group in _chunks(list(range(len(candidates))), per_wave):
             rows = self._score_group(plan, suffix_tokens,
                                      [candidates[index] for index in group],
                                      [scored[index] for index in group])
-            decision_row = rows["decision_row"]
             for offset, index in enumerate(group):
                 logprobs[index] = rows["logprobs"][offset]
-                coverage_pairs.append((decision_row, scored[index][0]))
+            coverage += readout.coverage_from_scale(rows["decision_row"], rows["coverage_ids"],
+                                                    rows["decision_scale"])
 
         z = [readout.candidate_sequence_score(values, options.length_norm)
              for values in logprobs]
         probabilities = readout.restricted_softmax(z, options.temperature)
-        coverage = 0.0
-        for row, token_id in coverage_pairs:
-            coverage += readout.coverage_from_row(row, [token_id])
         coverage = min(1.0, coverage)
         confidence_value = readout.confidence(probabilities, options.confidence_mode)
         reliability = readout.reliability(coverage, coverage_floor=coverage_floor,
@@ -420,7 +417,10 @@ class DecisionEngine:
             logits=tuple(index == n_suffix - 1 for index in range(n_suffix)),
         ))
         decision_row = rows[-1]
-        logprobs = [[readout.logprob(decision_row, tokens[0])] for tokens in scored]
+        decision_scale = readout.logsumexp(decision_row)
+        logprobs = [[readout.logprob_from_scale(decision_row, tokens[0], decision_scale)]
+                    for tokens in scored]
+        coverage_ids = [tokens[0] for tokens in scored]
         for offset in range(1, len(candidates)):
             seq = head_seq + offset
             self.session.release(seq)
@@ -444,10 +444,13 @@ class DecisionEngine:
                                            positions=tuple(positions),
                                            logits=tuple(True for _ in tokens)))
             for row, offset in zip(step_rows, targets, strict=True):
-                logprobs[offset].append(readout.logprob(row, scored[offset][step]))
+                scale = readout.logsumexp(row)          # one full pass per row, not per token
+                logprobs[offset].append(
+                    readout.logprob_from_scale(row, scored[offset][step], scale))
         for offset in range(len(candidates)):
             self.session.release(head_seq + offset)
-        return {"decision_row": decision_row, "logprobs": logprobs}
+        return {"decision_row": decision_row, "decision_scale": decision_scale,
+                "coverage_ids": coverage_ids, "logprobs": logprobs}
 
 
 def _chunks(indices: list[int], size: int) -> Iterable[list[int]]:

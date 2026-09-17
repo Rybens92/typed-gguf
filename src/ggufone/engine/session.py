@@ -20,18 +20,23 @@ takes a fully materialised batch, and it never feeds its own output back in (A-E
 """
 from __future__ import annotations
 
+import contextlib
 import ctypes as C  # noqa: N812
 import hashlib
 import json
 import os
 import pathlib
+import struct
 import time
 from collections.abc import Callable, Sequence
-from typing import Any
 
 from ggufone.engine.decide import Batch, ContextPlan, PrefillInfo, SessionMeta
-from ggufone.errors import (DecodeFailedError, PrefillFailedError, RuntimeMissingError,
-                            StateLoadFailedError)
+from ggufone.errors import (
+    DecodeFailedError,
+    PrefillFailedError,
+    RuntimeMissingError,
+    StateLoadFailedError,
+)
 from ggufone.registry import gguf, store
 from ggufone.runtime import capability, ctypes_binding, finder
 
@@ -193,11 +198,11 @@ class ModelSession:
         if not tokens:
             raise PrefillFailedError("E_PREFILL_FAILED: the prefix tokenized to zero tokens")
         path = self._state_path(state_id) if state_id else None
-        if state_cache and path is not None and path.exists():
-            if self._load_state(path, tokens):
-                self.loaded_states.append(state_id or path.name)
-                return PrefillInfo(prefill_tokens=0, prefill_ms=0.0, prefill_reused=True,
-                                   state_id=state_id, state_path=str(path))
+        if state_cache and path is not None and path.exists() \
+                and self._load_state(path, tokens):
+            self.loaded_states.append(state_id or path.name)
+            return PrefillInfo(prefill_tokens=0, prefill_ms=0.0, prefill_reused=True,
+                               state_id=state_id, state_path=str(path))
         started = time.perf_counter()
         self.decode(Batch(tokens=tuple(tokens), seq_ids=(0,) * len(tokens),
                           positions=tuple(range(len(tokens))),
@@ -239,13 +244,14 @@ class ModelSession:
             raise DecodeFailedError(f"E_DECODE_FAILED: llama_decode returned {rc}")
         self.handle.runtime.llama.llama_synchronize(self.ctx)
         rows: list[list[float]] = []
+        n_vocab = self.handle.n_vocab
         for index in batch.logits_indices():
             pointer = self.handle.runtime.llama.llama_get_logits_ith(self.ctx, index)
             if not pointer:
                 raise DecodeFailedError(
                     f"E_DECODE_FAILED: no logits at batch position {index} (logits=1 was set "
                     f"there, but the context returned a null row)")
-            rows.append([float(pointer[token]) for token in range(self.handle.n_vocab)])
+            rows.append(list(struct.unpack(f"<{n_vocab}f", C.string_at(pointer, 4 * n_vocab))))
         return rows
 
     # ---- saved prefix states (SPEC 2.3.10)
@@ -271,7 +277,8 @@ class ModelSession:
         try:
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
-            raise self._bad_state(path, f"no usable metadata sidecar ({exc.__class__.__name__})")
+            raise self._bad_state(
+                path, f"no usable metadata sidecar ({exc.__class__.__name__})") from exc
         size = path.stat().st_size
         if meta.get("bytes") != size:
             raise self._bad_state(
@@ -281,8 +288,9 @@ class ModelSession:
                 _token_digest(expected_tokens):
             raise self._bad_state(path, "the entry belongs to a different prefix")
         with open(path, "rb") as handle:
-            header = handle.read(4)
-        declared = int.from_bytes(header, "little") if len(header) == 4 else -1
+            header = handle.read(12)
+        # layout (llama-context.cpp @ b11026:3280): [u32 magic][u32 version][u32 n_tokens][tokens]
+        declared = int.from_bytes(header[8:12], "little") if len(header) == 12 else -1
         if declared != len(expected_tokens):
             raise self._bad_state(
                 path, f"the file declares {declared} tokens, this prefix has "
@@ -305,10 +313,8 @@ class ModelSession:
     def _bad_state(self, path: pathlib.Path, detail: str) -> StateLoadFailedError:
         """Invalidate the cache entry (A-E1b-8: the next call must re-prefill, not crash)."""
         for target in (path, self._state_meta_path(path)):
-            try:
+            with contextlib.suppress(OSError):
                 target.unlink()
-            except OSError:  # pragma: no cover - the caller still gets the pinned code
-                pass
         return StateLoadFailedError(
             f"E_STATE_LOAD_FAILED: {path} is not a usable prefix state ({detail}); the cache "
             f"entry was removed — retry and the prefix will be decoded again")

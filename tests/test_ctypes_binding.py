@@ -54,8 +54,25 @@ def test_context_params_expose_the_mandatory_kv_unified_flag() -> None:
 
 
 def test_importing_the_module_loads_no_library() -> None:
-    assert ctypes_binding.loaded_runtimes() == ()
-    assert not hasattr(ctypes_binding, "llama_decode_enabled", )  # no eager binding side effect
+    """Importing must never dlopen a bundle — checked in a fresh interpreter.
+
+    In-process this can only be asserted before anything else loads the runtime; the E1b model
+    tests (which legitimately call `load_libraries`) run in the same session, so the invariant
+    that matters — "import is inert" — is pinned in a child process.
+    """
+    import os
+    import subprocess
+    import sys
+    root = pathlib.Path(__file__).resolve().parents[1]
+    environment = {**os.environ, "PYTHONPATH": str(root / "src")}
+    code = ("import ggufone.runtime.ctypes_binding as b;"
+            "assert b.loaded_runtimes() == (), b.loaded_runtimes();"
+            "assert not hasattr(b, 'llama_decode_enabled');"
+            "print('inert')")
+    done = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                          env=environment, check=False, timeout=120)
+    assert done.returncode == 0, done.stderr
+    assert done.stdout.strip() == "inert"
 
 
 def test_mandatory_call_order_is_documented_and_pinned() -> None:

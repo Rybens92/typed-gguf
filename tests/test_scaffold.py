@@ -46,7 +46,10 @@ def test_cli_version_and_unknown_command(capsys) -> None:
     assert cli.main(["version"]) == 0
     assert __version__ in capsys.readouterr().out
     assert cli.main(["nope"]) == 2
-    assert cli.main(["run"]) == 3  # frozen command set, E1b implements run/ask
+    # E1b implemented `run`/`ask`: a bare `run` is now a user error (missing --questions),
+    # and the still-unimplemented commands keep the frozen "stub" exit code 3.
+    assert cli.main(["run"]) == 2
+    assert cli.main(["serve"]) == 3
 
 
 def test_cli_command_set_frozen() -> None:

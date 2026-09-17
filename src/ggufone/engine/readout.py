@@ -162,6 +162,21 @@ def argmax_first(values: Sequence[float]) -> int:
     return best
 
 
+def logprob_from_scale(row: Sequence[float], token_id: int, scale: float) -> float:
+    """`logprob` with the row's logsumexp computed once by the caller (engine hot path)."""
+    return float(row[token_id]) - scale
+
+
+def coverage_from_scale(row: Sequence[float], token_ids: Sequence[int], scale: float) -> float:
+    """`coverage_from_row` with the row's logsumexp computed once by the caller."""
+    if not token_ids:
+        return 0.0
+    total = 0.0
+    for token_id in token_ids:
+        total += math.exp(float(row[token_id]) - scale)
+    return min(1.0, total)
+
+
 def reliability(coverage_value: float, *, coverage_floor: float = 0.10,
                 low_confidence: bool = False, confidence_floor: float | None = None,
                 confidence_value: float | None = None) -> str:

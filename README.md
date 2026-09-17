@@ -27,13 +27,39 @@ Default model: [`XHToken/Spark-X2.5-4B-GGUF`](https://huggingface.co/XHToken/Spa
   compiler on the path), `ggufone doctor`, `ggufone models {search,pull,use,ls,rm,verify,
   recommend-quant}`, the GGUF header reader, the conservative fit planner and the executed
   oracle green with the live runtime section.
-- **E1b (next)** — the engine core: `run`/`ask`, fork readout, typesafe adapter.
+- **E1b (done)** — the engine core: `ggufone run` / `ggufone ask`, `--format native|typesafe`,
+  the fork readout (one prefill per state, waves bounded by `n_seq_max`, prefix states cached on
+  disk), the schema/error catalog and the typesafe adapter. Measured numbers:
+  `docs/evidence/e1b_perf.json`, gate-by-gate report `docs/evidence/e1b_t_34abf324_engine.md`.
+
+## Quickstart (decide)
+
+```bash
+ggufone models pull XHToken/Spark-X2.5-4B-GGUF:Q8_0      # once (4.4 GB, SHA-256 verified)
+ggufone ask --state "The billing page is blank for every user since 09:12." \
+            --choice "area=Which team owns this?:billing|technical|platform" \
+            --score  "severity=How severe?:cosmetic|annoying|critical" \
+            --noul   "page=Should we page the on-call engineer?"
+```
+
+```json
+{"area": {"type": "choice", "choice": "billing", "probabilities": {"billing": 0.95, …},
+          "confidence": 0.91, "coverage": 0.93, "reliability": "ok", "decode_steps": 3}}
+```
+
+`run` takes a whole request file (`--questions q.json`, with `--state`/`--state-json` to override
+the state), `--format typesafe` emits the adapter's shape, `--out r.json` writes the response to
+a file. Reuse a prefix across calls with `--state-id my-screen` (+ `--save-state`): the second
+call reports `prefill_reused: true` and costs no prefill (the state file lives under
+`$GGUFONE_HOME/states/`).
 
 ## Verification
 
 ```bash
 uv run pytest -q                                    # unit gate (offline: live tests are skipped)
 uv run pytest -q --run-network                      # + real HF downloads / real GGUF headers
+uv run pytest -q --run-network tests/test_engine_fork.py tests/test_cli.py   # fork equivalence,
+                                                    # waves, determinism, state save/load, CLI e2e
 python3 docs/verify_runtime_contract.py             # oracle: pinned facts + formulas
 GGUFONE_RUNTIME_DIR=<runtime> python3 docs/verify_runtime_contract.py   # + live ctypes probes
 ```

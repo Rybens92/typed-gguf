@@ -264,8 +264,16 @@ def test_cli_run_and_ask_end_to_end_on_a_real_gguf(tmp_path, capsys) -> None:
                           "--choice", "broken"], capture_output=True, text=True,
                          env=environment, timeout=120, check=False)
     assert bad.returncode == 2 and "E_QID_INVALID" in bad.stderr
+    # E_MODEL_NOT_FOUND is a user error (exit 2, E1a's registry classification)
     missing = subprocess.run([sys.executable, "-m", "ggufone", "run", "--questions",
                               str(questions), "--state", "S", "--model", "not-a-model"],
                              capture_output=True, text=True, env=environment, timeout=120,
                              check=False)
-    assert missing.returncode == 3 and "E_MODEL_NOT_FOUND" in missing.stderr
+    assert missing.returncode == 2 and "E_MODEL_NOT_FOUND" in missing.stderr
+    # a runtime problem is exit 3
+    broken = {**environment, "GGUFONE_RUNTIME_DIR": str(tmp_path / "no-runtime")}
+    no_runtime = subprocess.run([sys.executable, "-m", "ggufone", "run", "--questions",
+                                 str(questions), "--state", "S", "--model", str(model)],
+                                capture_output=True, text=True, env=broken, timeout=120,
+                                check=False)
+    assert no_runtime.returncode == 3 and "E_RUNTIME_MISSING" in no_runtime.stderr

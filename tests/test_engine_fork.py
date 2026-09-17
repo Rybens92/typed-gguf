@@ -10,21 +10,20 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import json
-import math
 import os
 import pathlib
 
 import pytest
 
 from ggufone import schema
-from ggufone.engine import decide, prompt
-from ggufone.engine import readout
+from ggufone.engine import decide, prompt, readout
 from ggufone.engine import session as session_module
 from ggufone.engine.decide import Batch
 from ggufone.errors import GgufoneError
 from ggufone.runtime import finder
 from ggufone.schema import Question
-from tests.fake_engine import FakeSession, RowContext, biased_row
+from tests.fake_engine import FakeSession, biased_row
+
 
 # --------------------------------------------------------------------- helpers
 def choice_request(options: dict | None = None) -> dict:
@@ -463,6 +462,19 @@ def _runtime_dir() -> pathlib.Path:
     pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR or run `ggufone init`)")
 
 
+def scratch_states(name: str) -> pathlib.Path:
+    """A scratch dir for saved prefix states: they are ~20 MB and `/tmp` here is a 512 MB tmpfs.
+
+    Override the location with `GGUFONE_TEST_STATE_HOME` (used by the reviewer/host run).
+    """
+    import tempfile
+    root = os.environ.get("GGUFONE_TEST_STATE_HOME") or "/var/tmp"
+    base = pathlib.Path(tempfile.mkdtemp(prefix=f"ggufone-e1b-{name}-", dir=root))
+    path = base / "states"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 @pytest.fixture(scope="module")
 def runtime_dir() -> pathlib.Path:
     return _runtime_dir()
@@ -561,7 +573,8 @@ def test_fork_equivalence_against_sequential_decode(name: str, handles, tmp_path
         for key, value in answer["probabilities"].items():
             deltas[f"{qid}.{key}"] = abs(value - reference[qid][key])
     worst = max(deltas.values())
-    print(f"\nfork vs sequential on {name}: max |delta| = {worst:.3e} over {len(deltas)} candidates")
+    print(f"\nfork vs sequential on {name}: max |delta| = {worst:.3e} "
+          f"over {len(deltas)} candidates")
     assert worst <= 1e-3, deltas
 
 
@@ -569,6 +582,7 @@ def test_fork_equivalence_against_sequential_decode(name: str, handles, tmp_path
 def test_one_prefill_per_state_and_a_warm_state_costs_no_prefill(handles, tmp_path) -> None:
     """A-E1b-3: the prefix is decoded once; a warm `state_id` reports prefill_reused + ~0 ms."""
     handle = handles("qwen35")
+    states = scratch_states("warm")
     payload = {
         "state": "A nightly job failed twice in a row; the report is stale.",
         "questions": {
@@ -581,7 +595,7 @@ def test_one_prefill_per_state_and_a_warm_state_costs_no_prefill(handles, tmp_pa
     }
     request = parse(payload)
     captured: list[Batch] = []
-    with live_session(handle, request, states_home=tmp_path / "states",
+    with live_session(handle, request, states_home=states,
                       spy=captured.append) as (plan, live):
         cold = decide.DecisionEngine(live).decide(request, plan=plan)
     prefix = tuple(plan.prefix_tokens)
@@ -591,10 +605,10 @@ def test_one_prefill_per_state_and_a_warm_state_costs_no_prefill(handles, tmp_pa
     assert cold.usage["waves"] == len(captured) - 1
     assert cold.engine["prefill_reused"] is False
     assert cold.timings["prefill_ms"] > 0.0
-    assert (tmp_path / "states" / "e1b-warm-state.bin").exists()
+    assert (states / "e1b-warm-state.bin").exists()
 
     warm_captured: list[Batch] = []
-    with live_session(handle, request, states_home=tmp_path / "states",
+    with live_session(handle, request, states_home=states,
                       spy=warm_captured.append) as (_, warm_session):
         warm = decide.DecisionEngine(warm_session).decide(request, plan=plan)
     assert warm.engine["prefill_reused"] is True
@@ -638,6 +652,7 @@ def test_determinism_three_runs_with_one_thread(handles, tmp_path) -> None:
 def test_state_round_trip_and_a_corrupt_state_is_a_pinned_error(handles, tmp_path) -> None:
     """A-E1b-8: save -> fresh context -> same answers (<=1e-3); corrupt -> E_STATE_LOAD_FAILED."""
     handle = handles("qwen35")
+    states = scratch_states("roundtrip")
     payload = {
         "state": "The export job wrote a truncated CSV for yesterday.",
         "questions": {
@@ -647,12 +662,12 @@ def test_state_round_trip_and_a_corrupt_state_is_a_pinned_error(handles, tmp_pat
         "options": {"threads": 4, "state_id": "e1b-state", "save_state": True},
     }
     request = parse(payload)
-    with live_session(handle, request, states_home=tmp_path / "states") as (plan, live):
+    with live_session(handle, request, states_home=states) as (plan, live):
         cold = decide.DecisionEngine(live).decide(request, plan=plan)
-    state_file = tmp_path / "states" / "e1b-state.bin"
+    state_file = states / "e1b-state.bin"
     assert state_file.exists() and state_file.stat().st_size > 0
 
-    with live_session(handle, request, states_home=tmp_path / "states") as (_, fresh):
+    with live_session(handle, request, states_home=states) as (_, fresh):
         loaded = decide.DecisionEngine(fresh).decide(request, plan=plan)
     assert loaded.engine["prefill_reused"] is True
     worst = max(abs(value - cold.answers[qid]["probabilities"][key])
@@ -663,18 +678,26 @@ def test_state_round_trip_and_a_corrupt_state_is_a_pinned_error(handles, tmp_pat
 
     original = state_file.read_bytes()
     state_file.write_bytes(original[: max(16, len(original) // 3)])   # truncated
-    with live_session(handle, request, states_home=tmp_path / "states") as (_, broken):
-        with pytest.raises(GgufoneError) as exc:
-            decide.DecisionEngine(broken).decide(request, plan=plan)
+    with live_session(handle, request, states_home=states) as (_, broken), \
+            pytest.raises(GgufoneError) as exc:
+        decide.DecisionEngine(broken).decide(request, plan=plan)
     assert exc.value.code == "E_STATE_LOAD_FAILED"
     assert exc.value.exit_code == 3
     assert not state_file.exists(), "the corrupt cache entry must be invalidated"
 
-    with live_session(handle, request, states_home=tmp_path / "states") as (_, retry):
+    with live_session(handle, request, states_home=states) as (_, retry):
         recovered = decide.DecisionEngine(retry).decide(request, plan=plan)
     assert recovered.engine["prefill_reused"] is False
     assert recovered.usage["prefill_tokens"] > 0
     assert _compact_answers(recovered) == _compact_answers(cold)
+
+    # a garbage file (wrong size AND wrong header) takes the same path, with no abort
+    state_file.write_bytes(b"not a llama state at all")
+    with live_session(handle, request, states_home=states) as (_, garbage), \
+            pytest.raises(GgufoneError) as exc:
+        decide.DecisionEngine(garbage).decide(request, plan=plan)
+    assert exc.value.code == "E_STATE_LOAD_FAILED"
+    assert not state_file.exists()
 
 
 @pytest.mark.model

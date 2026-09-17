@@ -1,0 +1,79 @@
+{
+  "schema": "ggufone.evidence.e1b-perf/v1",
+  "captured_at": "2026-09-17T20:14:09Z",
+  "runtime_dir": "/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu",
+  "cpu_count": 24,
+  "gates": "report-only (A-E1b-14)",
+  "rows": [
+    {
+      "model": "qwen35",
+      "path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+      "threads": 8,
+      "prefix_tokens": 59,
+      "cold_prefill_ms": 2499.438,
+      "cold_prefill_tok_per_s": 23.6,
+      "cold_wall_ms": 5438.4,
+      "warm_prefill_ms": 0.0,
+      "warm_prefill_reused": true,
+      "warm_questions_ms": 2346.3,
+      "warm_wall_ms": 2766.3,
+      "warm_wall_ms_all": [
+        2246.6,
+        2976.2,
+        2766.3
+      ],
+      "note": "4 candidates, 1 question, CPU (n_gpu_layers=0); the recon reference point is 14-20 ms warm on Vulkan with a warm state cache [recon]",
+      "answers": {
+        "area": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9930168965046084,
+            "technical": 0.00038700282979208965,
+            "platform": 0.0018696190799282952,
+            "support": 0.004726481585671062
+          },
+          "confidence": 0.990689195339478,
+          "coverage": 0.05605553022585678,
+          "reliability": "low_mass",
+          "decode_steps": 4
+        }
+      }
+    },
+    {
+      "model": "spark2_5",
+      "path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+      "threads": 8,
+      "prefix_tokens": 61,
+      "cold_prefill_ms": 13001.923,
+      "cold_prefill_tok_per_s": 4.7,
+      "cold_wall_ms": 22023.2,
+      "warm_prefill_ms": 0.0,
+      "warm_prefill_reused": true,
+      "warm_questions_ms": 9090.7,
+      "warm_wall_ms": 9266.4,
+      "warm_wall_ms_all": [
+        9266.4,
+        9204.5,
+        10327.4
+      ],
+      "note": "4 candidates, 1 question, CPU (n_gpu_layers=0); the recon reference point is 14-20 ms warm on Vulkan with a warm state cache [recon]",
+      "answers": {
+        "area": {
+          "type": "choice",
+          "choice": "billing",
+          "probabilities": {
+            "billing": 0.9360850057054314,
+            "technical": 0.06391077353291336,
+            "platform": 4.0646913070412924e-08,
+            "support": 4.180114742187016e-06
+          },
+          "confidence": 0.9147800076072419,
+          "coverage": 0.005079755611859894,
+          "reliability": "low_mass",
+          "decode_steps": 6
+        }
+      }
+    }
+  ]
+}
