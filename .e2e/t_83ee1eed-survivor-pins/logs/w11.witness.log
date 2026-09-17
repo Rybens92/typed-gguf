@@ -1,0 +1,10 @@
+== w11.py base
+M11 capability.backends(<dir with libggml-cpu.so>, system=windows) -> []
+== w11.py m08
+M11 capability.backends(<dir with libggml-cpu.so>, system=windows) -> []
+== w11.py m09
+M11 capability.backends(<dir with libggml-cpu.so>, system=windows) -> []
+== w11.py m10
+M11 capability.backends(<dir with libggml-cpu.so>, system=windows) -> []
+== w11.py m11
+M11 capability.backends(<dir with libggml-cpu.so>, system=windows) -> ['cpu']

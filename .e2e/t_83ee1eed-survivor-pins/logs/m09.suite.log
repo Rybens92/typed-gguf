@@ -1,0 +1,89 @@
+........................................................................ [ 20%]
+............................................ss.......................sss [ 41%]
+s..............F.............................................F.......... [ 62%]
+.......................................................s................ [ 83%]
+........................sssss............................                [100%]
+=================================== FAILURES ===================================
+______________ test_omitted_dri_nodes_never_list_the_real_dev_dri ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7d67f6d250>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-14364/test_omitted_dri_nodes_never_l0')
+
+    def test_omitted_dri_nodes_never_list_the_real_dev_dri(monkeypatch: pytest.MonkeyPatch,
+                                                           tmp_path: pathlib.Path) -> None:
+        """B2 (duel t_0fc576df, m09): a supplied ICD without `dri_nodes` does not make this box Vulkan.
+    
+        m09 listed the real `/dev/dri` when `dri_nodes` was omitted — the file's own "facts not
+        supplied count as absent" clause. The simulated world really does carry a render node, so the
+        mutant answers `vulkan`; the Trap additionally makes any such listing loud.
+        """
+        simulate_host(monkeypatch, tmp_path, world="vulkan")   # a render node IS present on this box
+        icd = tmp_path / "caller-icd.d"
+        icd.mkdir()
+    
+>       assert pins.detect_backend(system="linux", has_nvidia_smi=False, icd_dir=str(icd)) == "cpu"
+E       AssertionError: assert 'vulkan' == 'cpu'
+E         
+E         - cpu
+E         + vulkan
+
+tests/test_host_purity.py:327: AssertionError
+_________________ test_probes_never_fall_back_to_the_real_host _________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7d67de2910>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-14364/test_probes_never_fall_back_to0')
+
+    def test_probes_never_fall_back_to_the_real_host(monkeypatch: pytest.MonkeyPatch,
+                                                    tmp_path: pathlib.Path) -> None:
+        """With probes supplied nothing on the real machine may be read (E1a FIX t_eae35404).
+    
+        Every host source is replaced by a tripwire: any leak (`shutil.which`, `platform.*`,
+        the `/dev/dri` glob, the Vulkan ICD stat) raises instead of quietly answering 'cuda'.
+        """
+    
+        class Trap:
+            def __init__(self, what: str) -> None:
+                self.what = what
+    
+            def __getattr__(self, name: str) -> object:
+                raise AssertionError(f"host access leaked: {self.what}.{name}")
+    
+        def tripwire(*args: object, **kwargs: object) -> object:
+            raise AssertionError(f"host access leaked: {args} {kwargs}")
+    
+        monkeypatch.setattr(pins.shutil, "which", tripwire)
+        monkeypatch.setattr(pins.platform, "system", tripwire)
+        monkeypatch.setattr(pins.platform, "machine", tripwire)
+        monkeypatch.setattr(pins, "DRI_DIR", Trap("/dev/dri"))
+        monkeypatch.setattr(pins, "ICD_DIR", Trap("/usr/share/vulkan/icd.d"))
+        icd = tmp_path / "icd.d"
+        icd.mkdir()
+    
+        assert pins.detect_backend(system="linux", has_nvidia_smi=True) == "cuda"
+        assert pins.detect_backend(system="linux", dri_nodes=["/dev/dri/renderD128"],
+                                   icd_dir=str(icd)) == "vulkan"
+>       assert pins.detect_backend(system="linux", dri_nodes=[], has_nvidia_smi=False) == "cpu"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_pins.py:237: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/ggufone/runtime/pins.py:188: in detect_backend
+    icd_dir=icd_dir).detect_backend()
+                     ^^^^^^^^^^^^^^^^
+src/ggufone/runtime/pins.py:258: in detect_backend
+    if not dri_nodes and DRI_DIR.is_dir():  # BUG: list the real /dev/dri
+                         ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tests.test_pins.test_probes_never_fall_back_to_the_real_host.<locals>.Trap object at 0x7f7d67e35250>
+name = 'is_dir'
+
+    def __getattr__(self, name: str) -> object:
+>       raise AssertionError(f"host access leaked: {self.what}.{name}")
+E       AssertionError: host access leaked: /dev/dri.is_dir
+
+tests/test_pins.py:221: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_host_purity.py::test_omitted_dri_nodes_never_list_the_real_dev_dri
+FAILED tests/test_pins.py::test_probes_never_fall_back_to_the_real_host - Ass...
+2 failed, 331 passed, 12 skipped in 21.51s

@@ -1,0 +1,45 @@
+........................................................................ [ 20%]
+............................................ss.......................sss [ 41%]
+s...............F....................................................... [ 62%]
+.......................................................s................ [ 83%]
+........................sssss............................                [100%]
+=================================== FAILURES ===================================
+_______ test_an_empty_injected_vram_probe_never_reaches_the_real_driver ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe813c1a650>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-14365/test_an_empty_injected_vram_pr0')
+
+    def test_an_empty_injected_vram_probe_never_reaches_the_real_driver(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        """B3 (duel t_0fc576df, m10): the `nvidia_smi=` seam owns vram — an empty answer stays empty.
+    
+        m10 fell through to the real driver when the injected probe answered empty (`vram 0 ->
+        8589934592` on the operator's RTX box; on a GPU-less CI box the same fall-through is a hidden
+        host read). The tripwire keeps this pin host-independent, so it fails on the mutant here too.
+        """
+        meminfo = tmp_path / "meminfo"
+        meminfo.write_text("MemTotal:       32761996 kB\n")
+    
+        def tripwire() -> int | None:
+            raise AssertionError("host access leaked: recommend._query_nvidia_smi()")
+    
+        monkeypatch.setattr(recommend, "_query_nvidia_smi", tripwire)
+    
+>       budget = recommend.host_budget(meminfo_path=meminfo, nvidia_smi=lambda: None)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_host_purity.py:353: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/ggufone/registry/recommend.py:116: in host_budget
+    vram = probe() or _query_nvidia_smi()  # BUG: empty answer -> real driver
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def tripwire() -> int | None:
+>       raise AssertionError("host access leaked: recommend._query_nvidia_smi()")
+E       AssertionError: host access leaked: recommend._query_nvidia_smi()
+
+tests/test_host_purity.py:349: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_host_purity.py::test_an_empty_injected_vram_probe_never_reaches_the_real_driver
+1 failed, 332 passed, 12 skipped in 20.74s

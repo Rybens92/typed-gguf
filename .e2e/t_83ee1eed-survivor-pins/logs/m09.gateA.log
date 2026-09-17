@@ -1,0 +1,29 @@
+..............F.                                                         [100%]
+=================================== FAILURES ===================================
+______________ test_omitted_dri_nodes_never_list_the_real_dev_dri ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f18143c64d0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-14359/test_omitted_dri_nodes_never_l0')
+
+    def test_omitted_dri_nodes_never_list_the_real_dev_dri(monkeypatch: pytest.MonkeyPatch,
+                                                           tmp_path: pathlib.Path) -> None:
+        """B2 (duel t_0fc576df, m09): a supplied ICD without `dri_nodes` does not make this box Vulkan.
+    
+        m09 listed the real `/dev/dri` when `dri_nodes` was omitted — the file's own "facts not
+        supplied count as absent" clause. The simulated world really does carry a render node, so the
+        mutant answers `vulkan`; the Trap additionally makes any such listing loud.
+        """
+        simulate_host(monkeypatch, tmp_path, world="vulkan")   # a render node IS present on this box
+        icd = tmp_path / "caller-icd.d"
+        icd.mkdir()
+    
+>       assert pins.detect_backend(system="linux", has_nvidia_smi=False, icd_dir=str(icd)) == "cpu"
+E       AssertionError: assert 'vulkan' == 'cpu'
+E         
+E         - cpu
+E         + vulkan
+
+tests/test_host_purity.py:327: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_host_purity.py::test_omitted_dri_nodes_never_list_the_real_dev_dri
+1 failed, 15 passed in 0.50s

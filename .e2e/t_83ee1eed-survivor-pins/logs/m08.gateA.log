@@ -1,0 +1,48 @@
+.............F..                                                         [100%]
+=================================== FAILURES ===================================
+____ test_an_unnamed_machine_is_a_caller_error_not_a_platform_machine_read _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fe966e79150>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-14358/test_an_unnamed_machine_is_a_c0')
+
+    def test_an_unnamed_machine_is_a_caller_error_not_a_platform_machine_read(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        """B2 (duel t_0fc576df, m08): a synthetic world without an arch is the caller's mistake to fix.
+    
+        m08 filled the omitted `machine` from `platform.machine()`, so a caller who described only the
+        OS silently got a plan for the real box's arch. The tripwire makes the read loud; HEAD answers
+        the caller error (`host_variant`'s "no pinned bundle for platform linux-") instead of planning.
+        """
+        simulate_host(monkeypatch, tmp_path, world="cuda")   # the GPU box is the adversarial case
+        read: list[str] = []
+    
+        def tripwire(*args: object, **kwargs: object) -> str:
+            read.append("platform.machine()")
+            raise AssertionError("host access leaked: platform.machine()")
+    
+        monkeypatch.setattr(pins.platform, "machine", tripwire)
+    
+        with pytest.raises(RuntimeMissingError) as excinfo:
+>           pins.host_variant("auto", system="linux")
+
+tests/test_host_purity.py:309: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/ggufone/runtime/pins.py:213: in host_variant
+    host = resolve_host(probes=probes, system=system, machine=machine, **detect_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/runtime/pins.py:305: in resolve_host
+    given.setdefault("machine", platform.machine())  # BUG: ask the real box
+                                ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+
+    def tripwire(*args: object, **kwargs: object) -> str:
+        read.append("platform.machine()")
+>       raise AssertionError("host access leaked: platform.machine()")
+E       AssertionError: host access leaked: platform.machine()
+
+tests/test_host_purity.py:304: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_host_purity.py::test_an_unnamed_machine_is_a_caller_error_not_a_platform_machine_read
+1 failed, 15 passed in 0.50s

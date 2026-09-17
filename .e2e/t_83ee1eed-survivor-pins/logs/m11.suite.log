@@ -1,0 +1,71 @@
+........................................................................ [ 20%]
+............................................ss.......................sss [ 41%]
+s...........FF.......................................................... [ 62%]
+.......................................................s................ [ 83%]
+........................sssss............................                [100%]
+=================================== FAILURES ===================================
+______________ test_backends_answers_the_system_the_caller_named _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-14366/test_backends_answers_the_syst0')
+
+    def test_backends_answers_the_system_the_caller_named(tmp_path: pathlib.Path) -> None:
+        """B1 (duel t_0fc576df, m11): `capability.backends(system=…)` is a pure function of `system`.
+    
+        m11 dropped the argument (`finder.library_glob()` — `platform.system()`), so a caller stating
+        "windows" got this host's Linux-shaped glob: `['vulkan']` became `['cpu']`. Both directions
+        are asserted because either one alone is host-dependent: only the pair differs from the host
+        platform in *every* world.
+        """
+        runtime = distractor_bundle(tmp_path)
+    
+        assert capability.backends(runtime, system="linux") == ["cpu"]
+>       assert capability.backends(runtime, system="windows") == ["vulkan"]
+E       AssertionError: assert ['cpu'] == ['vulkan']
+E         
+E         At index 0 diff: 'cpu' != 'vulkan'
+E         Use -v to get more diff
+
+tests/test_host_purity.py:270: AssertionError
+_____ test_backends_never_asks_this_host_for_a_system_the_caller_supplied ______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fc9e68ba850>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-14366/test_backends_never_asks_this_0')
+
+    def test_backends_never_asks_this_host_for_a_system_the_caller_supplied(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        """B1 as a tripwire: with `system=` given, `platform.system()` must not be read at all.
+    
+        `pins.platform` is the process-wide `platform` module `finder` also imports, so this makes the
+        m11 fall-through loud instead of host-dependent (it would otherwise pass on Windows hosts).
+        """
+        runtime = distractor_bundle(tmp_path)
+    
+        def tripwire(*args: object, **kwargs: object) -> str:
+            raise AssertionError("host access leaked: platform.system()")
+    
+        monkeypatch.setattr(pins.platform, "system", tripwire)
+    
+>       assert capability.backends(runtime, system="linux") == ["cpu"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_host_purity.py:287: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/ggufone/runtime/capability.py:138: in backends
+    for path in sorted(runtime_dir.glob(finder.library_glob())):  # BUG: host platform
+                                        ^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/runtime/finder.py:46: in library_glob
+    (system or platform.system()).lower(), ".so")
+               ^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+
+    def tripwire(*args: object, **kwargs: object) -> str:
+>       raise AssertionError("host access leaked: platform.system()")
+E       AssertionError: host access leaked: platform.system()
+
+tests/test_host_purity.py:283: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_host_purity.py::test_backends_answers_the_system_the_caller_named
+FAILED tests/test_host_purity.py::test_backends_never_asks_this_host_for_a_system_the_caller_supplied
+2 failed, 331 passed, 12 skipped in 22.10s

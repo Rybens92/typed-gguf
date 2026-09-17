@@ -1,0 +1,4 @@
+== w10.py base
+M10 host_budget(nvidia_smi=<injected, returns None>) -> vram_bytes=0 ram_bytes=33548283904
+== w10.py m10
+M10 host_budget(nvidia_smi=<injected, returns None>) -> vram_bytes=0 ram_bytes=33548283904

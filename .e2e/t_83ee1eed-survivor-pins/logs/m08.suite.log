@@ -1,0 +1,103 @@
+........................................................................ [ 20%]
+............................................ss.......................sss [ 41%]
+s.............F..............................................F.......... [ 62%]
+.......................................................s................ [ 83%]
+........................sssss............................                [100%]
+=================================== FAILURES ===================================
+____ test_an_unnamed_machine_is_a_caller_error_not_a_platform_machine_read _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8bbad06090>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-14363/test_an_unnamed_machine_is_a_c0')
+
+    def test_an_unnamed_machine_is_a_caller_error_not_a_platform_machine_read(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        """B2 (duel t_0fc576df, m08): a synthetic world without an arch is the caller's mistake to fix.
+    
+        m08 filled the omitted `machine` from `platform.machine()`, so a caller who described only the
+        OS silently got a plan for the real box's arch. The tripwire makes the read loud; HEAD answers
+        the caller error (`host_variant`'s "no pinned bundle for platform linux-") instead of planning.
+        """
+        simulate_host(monkeypatch, tmp_path, world="cuda")   # the GPU box is the adversarial case
+        read: list[str] = []
+    
+        def tripwire(*args: object, **kwargs: object) -> str:
+            read.append("platform.machine()")
+            raise AssertionError("host access leaked: platform.machine()")
+    
+        monkeypatch.setattr(pins.platform, "machine", tripwire)
+    
+        with pytest.raises(RuntimeMissingError) as excinfo:
+>           pins.host_variant("auto", system="linux")
+
+tests/test_host_purity.py:309: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/ggufone/runtime/pins.py:213: in host_variant
+    host = resolve_host(probes=probes, system=system, machine=machine, **detect_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/runtime/pins.py:305: in resolve_host
+    given.setdefault("machine", platform.machine())  # BUG: ask the real box
+                                ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+
+    def tripwire(*args: object, **kwargs: object) -> str:
+        read.append("platform.machine()")
+>       raise AssertionError("host access leaked: platform.machine()")
+E       AssertionError: host access leaked: platform.machine()
+
+tests/test_host_purity.py:304: AssertionError
+_________________ test_probes_never_fall_back_to_the_real_host _________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8bba7cc590>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-14363/test_probes_never_fall_back_to0')
+
+    def test_probes_never_fall_back_to_the_real_host(monkeypatch: pytest.MonkeyPatch,
+                                                    tmp_path: pathlib.Path) -> None:
+        """With probes supplied nothing on the real machine may be read (E1a FIX t_eae35404).
+    
+        Every host source is replaced by a tripwire: any leak (`shutil.which`, `platform.*`,
+        the `/dev/dri` glob, the Vulkan ICD stat) raises instead of quietly answering 'cuda'.
+        """
+    
+        class Trap:
+            def __init__(self, what: str) -> None:
+                self.what = what
+    
+            def __getattr__(self, name: str) -> object:
+                raise AssertionError(f"host access leaked: {self.what}.{name}")
+    
+        def tripwire(*args: object, **kwargs: object) -> object:
+            raise AssertionError(f"host access leaked: {args} {kwargs}")
+    
+        monkeypatch.setattr(pins.shutil, "which", tripwire)
+        monkeypatch.setattr(pins.platform, "system", tripwire)
+        monkeypatch.setattr(pins.platform, "machine", tripwire)
+        monkeypatch.setattr(pins, "DRI_DIR", Trap("/dev/dri"))
+        monkeypatch.setattr(pins, "ICD_DIR", Trap("/usr/share/vulkan/icd.d"))
+        icd = tmp_path / "icd.d"
+        icd.mkdir()
+    
+>       assert pins.detect_backend(system="linux", has_nvidia_smi=True) == "cuda"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_pins.py:234: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/ggufone/runtime/pins.py:186: in detect_backend
+    return resolve_host(probes=probes, system=system, machine=machine,
+src/ggufone/runtime/pins.py:305: in resolve_host
+    given.setdefault("machine", platform.machine())  # BUG: ask the real box
+                                ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+
+    def tripwire(*args: object, **kwargs: object) -> object:
+>       raise AssertionError(f"host access leaked: {args} {kwargs}")
+E       AssertionError: host access leaked: () {}
+
+tests/test_pins.py:224: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_host_purity.py::test_an_unnamed_machine_is_a_caller_error_not_a_platform_machine_read
+FAILED tests/test_pins.py::test_probes_never_fall_back_to_the_real_host - Ass...
+2 failed, 331 passed, 12 skipped in 25.93s
