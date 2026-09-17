@@ -1,0 +1,1 @@
+error: E_INTERNAL: FileNotFoundError: [Errno 2] No such file or directory: '/proc/ggufone-cannot-write'

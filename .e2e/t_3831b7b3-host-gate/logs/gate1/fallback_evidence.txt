@@ -1,0 +1,68 @@
+# installed runtime record (<data home>/runtime.json)
+{
+ "asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz",
+ "asset_sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708",
+ "asset_sha256_observed": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708",
+ "asset_size": 30294625,
+ "asset_verified": true,
+ "backend_errors": {},
+ "backend_requested": "cuda",
+ "backend_working": "vulkan",
+ "backends": [
+  "cpu",
+  "rpc",
+  "vulkan"
+ ],
+ "build": 11026,
+ "dir": "/work/e2e-t3831b7b3/home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+ "fallback_attempts": [
+  {
+   "backend": "cuda",
+   "code": "system_libs_missing",
+   "reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+   "variant": "linux-x64-cuda-12.8"
+  }
+ ],
+ "fallback_reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+ "fallback_reason_code": "system_libs_missing",
+ "fit_params_help_exit": 0,
+ "installed_at": "2026-09-17T19:04:58Z",
+ "libllama_sha256": "8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975",
+ "missing_symbols": [],
+ "probe_failures": [],
+ "probe_warnings": [
+  "expected accelerator 'cuda' is not in the bundle (backends: cpu, rpc, vulkan)",
+  "W_VULKAN_WARMUP: the first Vulkan decode pays the shader compilation (23-30 s measured); `ggufone init`/`serve` warm up before serving"
+ ],
+ "required_files": [
+  "libllama.so",
+  "libggml.so",
+  "libggml-base.so"
+ ],
+ "rung": "prebuilt",
+ "schema": "ggufone.runtime/v1",
+ "source": "url",
+ "symbols_ok": true,
+ "symbols_probed": true,
+ "tag": "b11026",
+ "tools": {
+  "llama-cli": "/work/e2e-t3831b7b3/home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/llama-cli",
+  "llama-fit-params": "/work/e2e-t3831b7b3/home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/llama-fit-params",
+  "llama-tokenize": "/work/e2e-t3831b7b3/home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/llama-tokenize"
+ },
+ "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-ubuntu-vulkan-x64.tar.gz",
+ "variant": "linux-x64-vulkan",
+ "warmup_error": null,
+ "warmup_model": null,
+ "warmup_ms": null
+}
+
+# installed runtime dirs
+total 0
+drwxr-xr-x. 1 root root 2190 Sep 17 19:04 b11026-linux-x64-vulkan
+
+# downloaded archives + sha256 (the pins the installer verified)
+1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708  /work/e2e-t3831b7b3/home/.local/share/ggufone/downloads/llama-b11026-bin-ubuntu-vulkan-x64.tar.gz
+
+# section B of the oracle: skips?
+  skips_in_section_B: 1

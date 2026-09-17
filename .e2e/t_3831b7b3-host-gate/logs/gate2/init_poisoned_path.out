@@ -1,0 +1,34 @@
+{
+  "installed": true,
+  "variant": "linux-x64-vulkan",
+  "dir": "/work/e2e-t3831b7b3/logs/gate2/poison-home/runtime/b11026-linux-x64-vulkan",
+  "backend": "vulkan",
+  "working_backend": "vulkan",
+  "source": "offline-cache",
+  "asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz",
+  "asset_sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708",
+  "asset_verified": true,
+  "libllama_sha256": "8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975",
+  "bytes_fetched": 30294625,
+  "resumed_from": 0,
+  "build": 11026,
+  "backends": [
+    "cpu",
+    "rpc",
+    "vulkan"
+  ],
+  "backend_errors": {},
+  "fallback_attempts": [
+    {
+      "backend": "cuda",
+      "variant": "linux-x64-cuda-12.8",
+      "code": "system_libs_missing",
+      "reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier"
+    }
+  ],
+  "fallback_reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+  "fallback_reason_code": "system_libs_missing",
+  "symbols_ok": true,
+  "warmup_ms": null,
+  "rung": "prebuilt"
+}

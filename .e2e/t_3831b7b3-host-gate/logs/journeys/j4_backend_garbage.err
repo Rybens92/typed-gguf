@@ -1,0 +1,1 @@
+error: E_RUNTIME_MISSING: backend 'bogus' has no pinned bundle for linux-x86_64; available: linux-x64-cpu, linux-x64-vulkan, linux-x64-cuda-12.8 (use --backend auto or GGUFONE_RUNTIME_DIR)

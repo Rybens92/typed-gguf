@@ -1,0 +1,23 @@
+# host facts
+date_utc: 2026-09-17T19:04:50Z
+uname: Linux c7f6bae50f80 7.2.4-ogc3.1.fc44.x86_64 #1 SMP PREEMPT_DYNAMIC Sun Sep 13 01:41:06 UTC 2026 x86_64 GNU/Linux
+git_head: eb1cde370f158a968258266c06b3b4cdac075031 
+python: Python 3.11.15  uv: uv 0.12.0 (x86_64-unknown-linux-gnu)
+freedisk_home_bytes: 596839358464
+nvidia_smi_which: /work/e2e-t3831b7b3/bin/nvidia-smi
+nvidia_smi_L:
+  NVIDIA-SMI 550.127.05   Driver Version: 550.127.05   CUDA Version: 12.4
+  GPU 0: NVIDIA GeForce RTX 3060 Ti (UUID: GPU-xxxx)
+dri_nodes:
+  total 0
+vulkan_icd:
+  gfxstream_vk_icd.json
+  intel_hasvk_icd.json
+  intel_icd.json
+  lvp_icd.json
+  nouveau_icd.json
+  radeon_icd.json
+  virtio_icd.json
+cudart_in_ldconfig:
+    <none>
+ggufone_home: /work/e2e-t3831b7b3/home/.local/share/ggufone

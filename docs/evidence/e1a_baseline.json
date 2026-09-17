@@ -457,7 +457,7 @@
    "note": "not comparable to the E1a baseline's 72.7% (that scope was errors/gguf/recommend/store/pins); cli.py alone (print-heavy, never mutation-tuned) contributes ~800 survivors"
   },
   "host": {
-   "status": "PENDING — operator re-run required (this sandbox still has no GPU: /dev/dri absent, no /dev/nvidia*, no nvidia-smi, no libcudart/libcublas/libcuda)",
+   "status": "COMPLETE (round 2 green on the operator's RTX 3060 Ti, recorded by the coordinator) + container corroboration of every gate step executed by code-e2e t_3831b7b3 on eb1cde3. This worker has no GPU (nvidia-smi absent, /dev/dri not creatable, no /dev/nvidia*) and cannot reach the operator's host from its podman container, so the host numbers below are quoted verbatim from the board comment that reported the run; the corroboration block is raw command+tail evidence executed in the container.",
    "why": "round 1's host run: 10/11 steps green but `init.exit 134` — SIGABRT (`double free or corruption (!prev)`) *after* init printed its JSON, reproducibly, also on the idempotent re-run. Round 2 removed every dlopen of a bundle from the command process (deep probe + warm-up run in a disposable child), so the expected init.exit is 0.",
    "cmd": "bash tools/host_gate_e1a.sh        # writes raw logs + host_gate_e1a.json into $HOME/.ggufone-host-gate-<utc>",
    "then": "python3 tools/host_gate_summary.py <that log dir>   # prints the summary block to paste here",
@@ -491,8 +491,149 @@
      "doctor suggested `init --backend cuda` although libcudart is missing"
     ]
    },
-   "recorded_at": null,
-   "recorded_by": null
+   "recorded_at": "2026-09-17T19:15Z",
+   "recorded_by": "code-e2e (t_3831b7b3); host numbers quoted from the coordinator's board comment, container numbers executed here",
+   "round_2_host_result": {
+    "recorded_by": "bots-coordinator, on the operator's RTX 3060 Ti (board comment 2026-09-17 20:22 local, mirrored onto t_3831b7b3 and #33 on t_eae35404)",
+    "head_at_the_run": "77e40ee (round-2 fix; round 1 ran on the pre-fix head and is in round_1_host_result)",
+    "log_dir": "/home/rybens/.ggufone-host-gate-20260917T182117Z",
+    "cmd": "bash tools/host_gate_e1a.sh   # default LOG_DIR, real downloads, real probes",
+    "raw_summary_quoted": {
+     "init.exit": 0,
+     "init.variant": "linux-x64-vulkan",
+     "init.fallback": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+     "doctor.exit": 2,
+     "oracle.exit": 0,
+     "oracle.section_b_skips": 0,
+     "pytest_before.exit": 0,
+     "pytest_after.exit": 0,
+     "pytest_network.exit": 0,
+     "poisoned_init.exit": 0,
+     "poison_shims_invoked": 0
+    },
+    "host_suite_before_the_gate": "uv run pytest -q -> 319 passed, 11 skipped (reported with the run)",
+    "caveat": "the raw log dir lives on the operator's host and is NOT mounted into this worker's container (only the repo workspace is), so the raw files could not be re-read here; the summary is quoted verbatim from the board comment. The per-step .elapsed files exist in that directory for the reviewer/operator. The container_corroboration block below re-executes the same gate, with commands and output tails produced here."
+   },
+   "container_corroboration": {
+    "worker": "code-e2e t_3831b7b3",
+    "environment": "podman container, no GPU: `nvidia-smi` absent, /dev/nvidia* absent, `mknod /dev/dri/renderD128` -> EPERM. The GPU world is simulated with a fake `nvidia-smi` first on PATH (the exact host fact `shutil.which` reads in pins.current_host). cpu.max 200000/100000 (2 CPUs), memory.max 8 GiB, pids.max 256. Network real (huggingface.co 200 in 0.15 s).",
+    "head": "eb1cde370f158a968258266c06b3c4cdac075031 (main; `git worktree add --detach` snapshot at /work/e2e-t3831b7b3/repo, so the attacker card running concurrently in the shared worktree could not mutate the sources under the run)",
+    "gate_runs": [
+     {
+      "log": ".e2e/t_3831b7b3-host-gate/logs/gate1",
+      "layout": "HOME=scratch, GGUFONE_HOME=$HOME/.local/share/ggufone (default store), no model",
+      "result": "init 0 (vulkan, pre-flight fallback), doctor 2, oracle 0 but section B skips 1 (model absent), pytest_before 0 (328 passed, 12 skipped), pytest_after 1 (1 failed, 328 passed, 11 skipped - the no-SKIP test), pytest_network 1, poisoned 0 with 0 shims",
+      "meaning": "init/doctor/poisoned green on a fresh box; the model-absent red steps are P2 in e2e_findings"
+     },
+     {
+      "log": ".e2e/t_3831b7b3-host-gate/logs/gate2",
+      "layout": "HOME=scratch, GGUFONE_HOME=$HOME/.hermes (operator layout), model pulled there for real (4.38 GB, sha 5c2c3c19...9dea2 verified against the LFS oid)",
+      "result": "init 0, doctor 2, oracle 0 but section B SKIPPED entirely ('no runtime installed' although init had just installed one), pytest_before 0, pytest_after 0 (328 passed, 12 skipped), pytest_network 0 (338 passed, 2 skipped), poisoned 0 with 0 shims",
+      "meaning": "the gate's step-8 oracle does not resolve a runtime installed under GGUFONE_HOME - P1 in e2e_findings"
+     },
+     {
+      "log": ".e2e/t_3831b7b3-host-gate/logs/gate3",
+      "layout": "HOME=scratch, GGUFONE_HOME=$HOME/.local/share/ggufone (default store), model symlinked at $HOME/.hermes/models",
+      "result": "init 0, doctor 2, oracle 0 with section_b_skips 0, pytest_before 0, pytest_after 0 (329 passed, 11 skipped), pytest_network 1 (2 failed, 337 passed, 1 skipped), poisoned 0",
+      "meaning": "oracle fully live; the 2 network failures are the live probe looking for the model in $GGUFONE_HOME/models while it only existed in ~/.hermes - P1 in e2e_findings"
+     },
+     {
+      "log": ".e2e/t_3831b7b3-host-gate/logs/gate4",
+      "layout": "HOME=scratch, default store, model readable both in the store and at $HOME/.hermes/models (the host's state: a runtime in the default location + the model at ~/.hermes/models)",
+      "result": "10/10 GREEN: init.exit 0, init.variant linux-x64-vulkan, init.fallback = the pre-flight skip (168.81 MB CUDA archive never downloaded), doctor.exit 2 (warnings, per the 0/2/1 contract), oracle.exit 0 with section_b_skips 0, pytest_before 0 (329 passed, 11 skipped, 14 s), pytest_after 0 (329 passed, 11 skipped, 15 s), pytest_network 0 (339 passed, 1 skipped, 24 s), poisoned_init 0 with 0 compiler shims (1 s)",
+      "meaning": "reproduces the coordinator's round-2 host summary step for step on the same head"
+     }
+    ],
+    "init_json_contract_keys_seen (gate2/gate4)": {
+     "top_level": [
+      "variant=linux-x64-vulkan",
+      "backend=vulkan",
+      "working_backend=vulkan",
+      "backends=[cpu, rpc, vulkan]",
+      "asset_verified=true",
+      "bytes_fetched=30294625",
+      "fallback_reason_code=system_libs_missing"
+     ],
+     "doctor_json": "backend=vulkan, backends=[cpu, rpc, vulkan], expected_backend=cuda, runtime.working_backend=vulkan, runtime.fallback_reason_code=system_libs_missing, checks runtime.backends=ok / runtime.accelerator=warn / runtime.fallback=warn",
+     "fallback_attempts_entry": "{\"backend\": \"cuda\", \"variant\": \"linux-x64-cuda-12.8\", \"code\": \"system_libs_missing\", \"reason\": \"pre-flight: ... skipped the 168.81 MB download and moved to the next tier\"}"
+    },
+    "journeys": [
+     {
+      "id": "j1",
+      "what": "`ggufone init --json` re-run on an installed home",
+      "exit": 0,
+      "evidence": "already_installed true, variant linux-x64-vulkan, fallback_reason AND fallback_reason_code present (finding 3 stays fixed)"
+     },
+     {
+      "id": "j2",
+      "what": "`ggufone doctor --json`",
+      "exit": 2,
+      "evidence": "status=warnings; every key the t_f3637b8e handoff promised is present"
+     },
+     {
+      "id": "j3",
+      "what": "`ggufone init --dry-run --json`",
+      "exit": 0,
+      "evidence": "backend=cuda, variant=linux-x64-cuda-12.8, size=168811114, sha256=5b2d30d7..., host.has_nvidia_smi=true, dri_nodes=[]"
+     },
+     {
+      "id": "j4",
+      "what": "`init --backend bogus`",
+      "exit": 3,
+      "evidence": "E_RUNTIME_MISSING: backend 'bogus' has no pinned bundle for linux-x86_64; available: linux-x64-cpu, linux-x64-vulkan, linux-x64-cuda-12.8 (no traceback)"
+     },
+     {
+      "id": "j5",
+      "what": "`models ls --json` + `models verify --json`",
+      "exit": 0,
+      "evidence": "verified 1, failed 0, sha256 matches the pin; alias/path/size/arch/quant/license fields present"
+     },
+     {
+      "id": "j6",
+      "what": "`doctor --json` on an empty home",
+      "exit": 1,
+      "evidence": "backend null, backends [], expected_backend cuda (the 0/2/1 contract's failure leg)"
+     },
+     {
+      "id": "j7",
+      "what": "`init` with GGUFONE_HOME=/proc/ggufone-cannot-write",
+      "exit": 4,
+      "evidence": "E_INTERNAL: FileNotFoundError ... (see P3)"
+     },
+     {
+      "id": "j8",
+      "what": "SIGKILL after 1 s mid-download, then re-run",
+      "exit": 0,
+      "evidence": "kill left exit 137; the re-run resumed (resumed_from=15728640, bytes_fetched=14565985), asset_verified true; doctor after the recovery exit 2"
+     },
+     {
+      "id": "j9",
+      "what": "`init --backend cuda` (pre-flight bypassed) with the pinned CUDA archive in the offline cache",
+      "exit": 0,
+      "evidence": "installs linux-x64-cuda-12.8 (asset_verified true), backend_errors.cuda = 'libggml-cuda.so: libcudart.so.12: cannot open shared object file', working_backend=cpu, warning W_BACKEND_LOAD (the truth is recorded, no silent downgrade, exit 0)"
+     },
+     {
+      "id": "j10",
+      "what": "3 x init in a row on the installed home",
+      "exit": 0,
+      "evidence": "identical exit 0 and identical stderr (549 bytes of warnings) each time - idempotent"
+     },
+     {
+      "id": "j11",
+      "what": "2 x doctor --json byte-compared",
+      "exit": 2,
+      "evidence": "output identical (cmp) - deterministic"
+     },
+     {
+      "id": "j12",
+      "what": "`models pull '🔥not/a-repo:Q9_9'`",
+      "exit": 3,
+      "evidence": "E_DOWNLOAD_FAILED leaking an ascii codec error (see P4)"
+     }
+    ],
+    "pull (real download, this container)": "`uv run ggufone models pull XHToken/Spark-X2.5-4B-GGUF:Q8_0` -> 4.38 GB, sha256 5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2 (verified against lfs.oid), license apache-2.0, arch spark2_5, quant Q8_0; registry entry written (models ls/verify follow-up both ok)",
+    "conclusion": "every gate number the host reported is reproducible in this container once the host's artifact layout is reconstructed (default-location runtime + model at ~/.hermes/models); init/doctor/oracle/pytest/poisoned all behave as the round-2 host summary says, and no ggufone command process dlopens a bundle (the SIGABRT class stays unobservable here by construction: init exits 0 with an empty stderr tail)"
+   }
   },
   "crash_fix_round_2": {
    "what": "round 2 of the E1a FIX: the host SIGABRT (init exit 134 after printing its JSON) + the four secondary findings from the coordinator's host run",
@@ -694,6 +835,36 @@
     ]
    },
    "environment_caveat": "this container shares a 256-pid cgroup with sibling cards; a sibling Stryker (node) run plus mutmut's 8 workers killed two full-scope runs mid-flight with `BlockingIOError: [Errno 11]` in os.fork() and a third needed max_children=2. The scores above are from the cache that survived; `not_checked` mutants are simply not part of the denominator (mutmut's exit_code_by_key)."
-  }
+  },
+  "e2e_findings_t_3831b7b3": [
+   {
+    "id": "P1",
+    "severity": "P3 (tooling, out of the card's scope)",
+    "what": "`docs/verify_runtime_contract.py::find_runtime()` resolves $GGUFONE_RUNTIME_DIR -> $XDG_DATA_HOME/ggufone/runtime -> ~/.local/share/ggufone/runtime and never consults $GGUFONE_HOME, while the product resolves $GGUFONE_HOME first (registry/store.py). With the operator layout (GGUFONE_HOME=~/.hermes) the gate's step-8 oracle reports 'SKIP no runtime installed' right after init installed one (gate2), and tools/live_probe.py resolves the model as $GGUFONE_HOME/models else ~/.hermes/models so the --run-network model tests fail when the store is not ~/.hermes (gate3: 2 failed).",
+    "repro": "bash tools/host_gate_e1a.sh with GGUFONE_HOME=$HOME/.hermes -> oracle.steps skipped; or see .e2e/t_3831b7b3-host-gate/logs/gate2|gate3",
+    "suggest": "have the oracle use ggufone.registry.store.data_home() (or export GGUFONE_RUNTIME_DIR in the gate script for step 8) and pin the model path rule in one place"
+   },
+   {
+    "id": "P2",
+    "severity": "P3 (docs/gate precondition)",
+    "what": "On a fresh box without the pinned 4.4 GB model, the gate is red: pytest_after fails `test_oracle_live_section_is_green_without_skips` (section B model check SKIPs) and pytest_network too; the host passes only because the model is already in ~/.hermes/models.",
+    "repro": ".e2e/t_3831b7b3-host-gate/logs/gate1 (no model) -> pytest_after exit 1, 'section B skipped: [...] Spark-X2.5-4B-Q8_0.gguf absent'",
+    "suggest": "state the model as a gate precondition in the script header, or skip that assertion with an explicit reason when the model is absent"
+   },
+   {
+    "id": "P3",
+    "severity": "P3 (cosmetic)",
+    "what": "`GGUFONE_HOME=/proc/ggufone-cannot-write uv run ggufone init` -> exit 4 with 'error: E_INTERNAL: FileNotFoundError: [Errno 2] No such file or directory: /proc/ggufone-cannot-write'",
+    "repro": ".e2e/t_3831b7b3-host-gate/logs/journeys/j7_unwritable_home.err",
+    "suggest": "map an uncreatable data home to a named error (e.g. E_DATA_HOME_UNWRITABLE) with the path in the message"
+   },
+   {
+    "id": "P4",
+    "severity": "P3 (cosmetic)",
+    "what": "`models pull '🔥not/a-repo:Q9_9'` -> exit 3 with \"E_DOWNLOAD_FAILED: 🔥not/a-repo: 'ascii' codec can't encode character '\\U0001f525'\" - a Python codec error leaking into user output",
+    "repro": ".e2e/t_3831b7b3-host-gate/logs/journeys/j12_pull_garbage.err",
+    "suggest": "validate the repo ref (charset) before the request and report E_INVALID_REPO with the raw value"
+   }
+  ]
  }
 }

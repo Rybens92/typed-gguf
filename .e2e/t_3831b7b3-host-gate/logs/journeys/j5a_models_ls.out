@@ -1,0 +1,19 @@
+{
+  "schema": "ggufone.models/v1",
+  "current": "spark-x2.5-4b-q8_0",
+  "models": [
+    {
+      "alias": "spark-x2.5-4b-q8_0",
+      "path": "/work/e2e-t3831b7b3/home2/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+      "size": 4375021152,
+      "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+      "arch": "spark2_5",
+      "quant": "Q8_0",
+      "license": "apache-2.0",
+      "source": "XHToken/Spark-X2.5-4B-GGUF",
+      "repo": "XHToken/Spark-X2.5-4B-GGUF",
+      "added_at": "2026-09-17T19:07:23Z",
+      "current": true
+    }
+  ]
+}

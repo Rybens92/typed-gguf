@@ -1,0 +1,188 @@
+ggufone runtime contract oracle — repo /work/e2e-t3831b7b3/repo
+
+[A] distribution + model evidence pins (offline, from docs/evidence/)
+  ok   release tag == b11026
+  ok   published_at == 2026-09-17T13:31:47Z
+  ok   asset count == 33
+  ok   llama-b11026-bin-ubuntu-x64.tar.gz == 16855810 B
+  ok   llama-b11026-bin-ubuntu-vulkan-x64.tar.gz == 30294625 B
+  ok   llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz == 168811114 B
+  ok   llama-b11026-bin-ubuntu-cuda-13.3-x64.tar.gz == 149113548 B
+  ok   llama-b11026-bin-win-cpu-x64.zip == 18439911 B
+  ok   llama-b11026-bin-win-vulkan-x64.zip == 31766385 B
+  ok   llama-b11026-bin-win-cuda-12.4-x64.zip == 254193665 B
+  ok   llama-b11026-bin-macos-arm64.tar.gz == 11156751 B
+  ok   llama-b11026-bin-macos-x64.tar.gz == 11204942 B
+  ok   b11026 >= min build b10828 (spark2_5 arch gate)
+  ok   include/llama.h == 1645 lines
+  ok   header pin llama_model_load_from_file:516
+  ok   header pin llama_init_from_model:543
+  ok   header pin llama_n_seq_max:573
+  ok   header pin llama_vocab_n_tokens:581
+  ok   header pin llama_get_memory:584
+  ok   header pin llama_model_meta_val_str:621
+  ok   header pin llama_model_desc:636
+  ok   header pin llama_model_chat_template:646
+  ok   header pin llama_model_n_params:649
+  ok   header pin llama_memory_seq_rm:755
+  ok   header pin llama_memory_seq_cp:764
+  ok   header pin llama_memory_seq_keep:772
+  ok   header pin llama_state_seq_get_size:876
+  ok   header pin llama_state_seq_save_file:897
+  ok   header pin llama_state_seq_load_file:905
+  ok   header pin llama_batch_init:967
+  ok   header pin llama_decode:997
+  ok   header pin llama_get_logits_ith:1048
+  ok   header pin llama_tokenize:1179
+  ok   header pin llama_detokenize:1207
+  ok   header pin llama_chat_apply_template:1230
+  ok   header pin llama_print_system_info:1567
+  ok   ubuntu-x64 tarball sha256
+  ok   tarball entries == 61
+  ok   tarball provides libllama.so
+  ok   tarball provides libggml.so
+  ok   tarball provides libggml-base.so
+  ok   tarball provides llama-server
+  ok   tarball provides llama-fit-params
+  ok   tarball provides llama-tokenize
+  ok   XHToken/Spark-X2.5-4B-GGUF@902d86599494
+  ok   Spark repo is not gated
+  ok   Spark license == apache-2.0
+  ok   Spark-X2.5-4B-Q4_K_M.gguf: 2600224352 B sha256 adfcfa19a4ed…
+  ok   Spark-X2.5-4B-Q8_0.gguf: 4375021152 B sha256 5c2c3c190e43…
+  ok   Spark-X2.5-4B.gguf: 8229920352 B sha256 8cecf405a41a…
+  ok   HF lfs.oid == sha256(file) — verified by downloading a real LFS file
+  ok   runtime.lock committed (single source of truth for the pin)
+  ok   runtime.lock tag == oracle pin
+  ok   runtime.lock spark2_5 minimum build
+  ok   runtime.lock asset size matches evidence: linux-x64-cpu
+  ok   runtime.lock asset size matches evidence: linux-x64-vulkan
+  ok   runtime.lock asset size matches evidence: linux-x64-cuda-12.8
+  ok   runtime.lock asset size matches evidence: linux-x64-cuda-13.3
+  ok   runtime.lock asset size matches evidence: windows-x64-cpu
+  ok   runtime.lock asset size matches evidence: windows-x64-vulkan
+  ok   runtime.lock asset size matches evidence: windows-x64-cuda-12.4
+  ok   runtime.lock asset size matches evidence: macos-arm64-metal
+  ok   runtime.lock asset size matches evidence: macos-x64-metal
+  ok   runtime.lock required llama symbols == oracle symbol list
+  ok   runtime.lock required ggml symbols == oracle symbol list
+  ok   runtime.lock default model matches the HF pin
+  ok   executed PoC artifact committed (docs/evidence/poc-ctypes-20260917.py)
+  ok   PoC contains required call-sequence marker: 'ggml_backend_load_all_from_path'
+  ok   PoC contains required call-sequence marker: 'kv_unified = True'
+  ok   PoC contains required call-sequence marker: 'llama_memory_seq_cp'
+  ok   PoC contains required call-sequence marker: 'llama_get_logits_ith'
+  ok   PoC contains required call-sequence marker: 'batched decode'
+  ok   PoC: fork vs sequential readout max |Δ| == 0.00e+00 (isomorphism)
+  ok   PoC ran on the pinned runtime with a hybrid (DeltaNet) model
+  ok   pitfall documented: ggml_backend_load_all_from_path(<dir with libs>)…
+  ok   pitfall documented: llama_context_params.kv_unified MUST be true: wi…
+  ok   pitfall documented: llama_get_logits_ith(ctx, i) takes the TOKEN IND…
+  PoC                                qwen35 fork Δ=0.0
+  llama.cpp release                  b11026 (2026-09-17T13:31:47Z)
+  assets / ubuntu-x64 bytes          33 / 16855810
+  default model pin                  XHToken/Spark-X2.5-4B-GGUF:Q8_0 4375021152 B
+
+[B] live runtime probes (ctypes vs pinned release)
+  runtime dir: /work/e2e-t3831b7b3/home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+  ok   ctypes resolves all 32 required symbols (0 missing)
+  ok   libggml.so resolves the backend loader (2/2) — PoC pitfall 1
+  ok   llama-cli --version reports build >= b10828
+  ok   llama-cli build == 11026 (pinned release, not a stale lib)
+  llama-cli version                  version: 0.4.1-dev (build 11026, commit b49650adb)
+  ok   libllama.so carries the spark2_5 arch implementation
+  ok   llama-fit-params available for auto-fit
+  SKIP /work/e2e-t3831b7b3/home/.hermes/models/Spark-X2.5-4B-Q8_0.gguf absent — sha256 download-verify evidence not re-run
+
+[C] arithmetic mirror (executed reference values)
+  ok   restricted softmax sums to 1
+  ok   restricted softmax preserves logit order
+  softmax([2,1,0])                   0.665241, 0.244728, 0.090031
+  ok   flat logits -> uniform
+  ok   confidence[choice/returns-ticket] 0.4000 ~ documented 0.39 (Δ0.010)
+  confidence choice/returns-ticket   0.4000 vs doc 0.39
+  ok   confidence[choice/return_reason] 1.0000 ~ documented 1.0 (Δ0.000)
+  confidence choice/return_reason    1.0000 vs doc 1.0
+  ok   confidence[choice/shipping_issue] 0.5375 ~ documented 0.53 (Δ0.007)
+  confidence choice/shipping_issue   0.5375 vs doc 0.53
+  ok   confidence[choice/requested_resolution] 0.1600 ~ documented 0.16 (Δ0.000)
+  confidence choice/requested_resolution 0.1600 vs doc 0.16
+  ok   confidence[choice/tone] 0.8800 ~ documented 0.88 (Δ0.000)
+  confidence choice/tone             0.8800 vs doc 0.88
+  ok   confidence[score/bug_severity] 0.5500 ~ documented 0.54 (Δ0.010)
+  confidence score/bug_severity      0.5500 vs doc 0.54
+  ok   confidence[score/spinner+examples] 0.9100 ~ documented 0.91 (Δ0.000)
+  confidence score/spinner+examples  0.9100 vs doc 0.91
+  ok   documented outlier kept honest: quickstart/department ours 0.760 vs doc 0.596 (SPEC 2.3 — no parity claim)
+  ok   peak -> confidence 1.0
+  ok   flat -> confidence 0.0
+  ok   score/choice share one confidence statistic (0.55 for 0.7 peak over 3 levels)
+  ok   score == sum(level * p) == 1.30 (documented worked example)
+  ok   score(0,0.94,0.06) == 1.06
+  ok   score of level 0 == 0.0
+  score = Σ i·p_i                    1.30 / 1.06 / 0.0 reproduced
+  ok   coverage in [0,1]
+  ok   coverage == candidate mass under full softmax
+  coverage(cands={0,1})              0.880797
+  ok   length_norm=1 -> equal per-token logp gives equal z regardless of length
+  ok   length_norm=0 -> plain log-prob sum
+  candidate z (-1.0 x3, norm=1)      -1.0000
+  ok   spark2_5 f16 KV bytes/token/seq == 147456
+  ok   q8_0 KV halves the footprint
+  spark2_5 KV/token/seq (f16|q8_0)   147456 | 73728 B
+  ok   8 GiB VRAM / ctx 4096 / n_seq_max 8 -> Q8_0 + q8_0 KV on GPU
+  recommend_quant 8GiB               Spark-X2.5-4B-Q8_0.gguf kv=q8_0 total=7.33 GB
+  ok   8 GiB VRAM / ctx 2048 / n_seq_max 4 -> Q8_0 + f16 KV on GPU
+  recommend_quant 8GiB small-ctx     Spark-X2.5-4B-Q8_0.gguf kv=f16 total=6.12 GB
+  ok   recommend_quant always returns a covered placement
+  recommend_quant huge ctx           None kv=None placement=insufficient
+  ok   GGUF file_type -> quant labels (7=Q8_0, 15=Q4_K_M)
+  SKIP local Spark GGUF absent — header-parse pins not re-run
+
+[D] package + contract surface (post-scaffold / post-implementation)
+  ok   pyproject declares no training dependency (torch)
+  ok   pyproject declares no training dependency (peft)
+  ok   pyproject declares no training dependency (trl)
+  ok   pyproject declares no training dependency (unsloth)
+  ok   pyproject declares no training dependency (bitsandbytes)
+  ok   pyproject declares no training dependency (deepspeed)
+  ok   pyproject declares no training dependency (accelerate)
+  ok   pyproject declares no training dependency (lightning)
+  ok   pyproject declares no training dependency (sentence-transformers)
+  ok   pyproject declares no training dependency (axolotl)
+  ok   pyproject pins requires-python
+  ok   ggufone.__version__ is a str
+  ok   module ggufone.schema imports
+  ok   module ggufone.errors imports
+  ok   module ggufone.cli imports
+  ok   module ggufone.engine imports
+  ok   module ggufone.runtime imports
+  ok   module ggufone.registry imports
+  ok   module ggufone.calibration imports
+  ok   module ggufone.api imports
+  ok   module ggufone.bench imports
+  SKIP readout functions not implemented yet (E1b) — mirror values stand alone
+
+=== reference table (executed) ===
+  PoC                                  qwen35 fork Δ=0.0
+  llama.cpp release                    b11026 (2026-09-17T13:31:47Z)
+  assets / ubuntu-x64 bytes            33 / 16855810
+  default model pin                    XHToken/Spark-X2.5-4B-GGUF:Q8_0 4375021152 B
+  llama-cli version                    version: 0.4.1-dev (build 11026, commit b49650adb)
+  softmax([2,1,0])                     0.665241, 0.244728, 0.090031
+  confidence choice/returns-ticket     0.4000 vs doc 0.39
+  confidence choice/return_reason      1.0000 vs doc 1.0
+  confidence choice/shipping_issue     0.5375 vs doc 0.53
+  confidence choice/requested_resolution 0.1600 vs doc 0.16
+  confidence choice/tone               0.8800 vs doc 0.88
+  confidence score/bug_severity        0.5500 vs doc 0.54
+  confidence score/spinner+examples    0.9100 vs doc 0.91
+  score = Σ i·p_i                      1.30 / 1.06 / 0.0 reproduced
+  coverage(cands={0,1})                0.880797
+  candidate z (-1.0 x3, norm=1)        -1.0000
+  spark2_5 KV/token/seq (f16|q8_0)     147456 | 73728 B
+  recommend_quant 8GiB                 Spark-X2.5-4B-Q8_0.gguf kv=q8_0 total=7.33 GB
+  recommend_quant 8GiB small-ctx       Spark-X2.5-4B-Q8_0.gguf kv=f16 total=6.12 GB
+  recommend_quant huge ctx             None kv=None placement=insufficient
+
+failures: 0  skips: 3

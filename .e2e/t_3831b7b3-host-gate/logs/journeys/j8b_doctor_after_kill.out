@@ -1,0 +1,101 @@
+{
+  "schema": "ggufone.doctor/v1",
+  "ggufone": "0.1.0",
+  "status": "warnings",
+  "exit_code": 2,
+  "checks": [
+    {
+      "id": "runtime.present",
+      "status": "ok",
+      "detail": "/work/e2e-t3831b7b3/home5/.hermes/runtime/b11026-linux-x64-vulkan"
+    },
+    {
+      "id": "runtime.files",
+      "status": "ok",
+      "detail": "all required libraries present: libllama.so, libggml.so, libggml-base.so"
+    },
+    {
+      "id": "runtime.symbols",
+      "status": "ok",
+      "detail": "resolved 34/34 required symbols"
+    },
+    {
+      "id": "runtime.build",
+      "status": "ok",
+      "detail": "build b11026"
+    },
+    {
+      "id": "runtime.fit_params",
+      "status": "ok",
+      "detail": "llama-fit-params --help exit 0"
+    },
+    {
+      "id": "runtime.backends",
+      "status": "ok",
+      "detail": "backends: cpu, rpc, vulkan (driveable here: vulkan)"
+    },
+    {
+      "id": "runtime.accelerator",
+      "status": "warn",
+      "detail": "expected accelerator 'cuda' is not in this bundle (backends: cpu, rpc, vulkan): pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier; install the cuda runtime it needs and re-run `ggufone init`, or keep 'vulkan' (driveable here)"
+    },
+    {
+      "id": "runtime.fallback",
+      "status": "warn",
+      "detail": "installed linux-x64-vulkan after cuda was unusable here [system_libs_missing]: pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier"
+    },
+    {
+      "id": "runtime.sha_recorded",
+      "status": "ok",
+      "detail": "libllama.so sha256 8d72d777d9406945\u2026"
+    },
+    {
+      "id": "model.present",
+      "status": "warn",
+      "detail": "no model in the registry; run `ggufone models pull` (default model is pinned)"
+    }
+  ],
+  "runtime": {
+    "dir": "/work/e2e-t3831b7b3/home5/.hermes/runtime/b11026-linux-x64-vulkan",
+    "installed": true,
+    "tag": "b11026",
+    "pinned_tag": "b11026",
+    "min_build": 10828,
+    "variant": "linux-x64-vulkan",
+    "build": 11026,
+    "backends": [
+      "cpu",
+      "rpc",
+      "vulkan"
+    ],
+    "working_backend": "vulkan",
+    "backend_errors": {},
+    "backend_requested": "cuda",
+    "fallback_reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+    "fallback_reason_code": "system_libs_missing",
+    "fallback_attempts": [
+      {
+        "backend": "cuda",
+        "code": "system_libs_missing",
+        "reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+        "variant": "linux-x64-cuda-12.8"
+      }
+    ],
+    "symbols_required": 34,
+    "symbols_missing": [],
+    "symbols_probed": true,
+    "fit_params_help_exit": 0,
+    "libllama_sha256": "8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975",
+    "warmup_ms": null
+  },
+  "model": {
+    "alias": null
+  },
+  "backend": "vulkan",
+  "backends": [
+    "cpu",
+    "rpc",
+    "vulkan"
+  ],
+  "expected_backend": "cuda"
+}

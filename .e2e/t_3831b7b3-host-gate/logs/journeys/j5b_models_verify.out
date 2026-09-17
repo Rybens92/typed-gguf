@@ -1,0 +1,15 @@
+{
+  "schema": "ggufone.models/v1",
+  "verified": 1,
+  "failed": 0,
+  "results": [
+    {
+      "alias": "spark-x2.5-4b-q8_0",
+      "status": "ok",
+      "path": "/work/e2e-t3831b7b3/home2/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+      "size": 4375021152,
+      "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+      "expected": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "dry_run": true,
+  "rung": "prebuilt",
+  "backend": "cuda",
+  "variant": "linux-x64-cuda-12.8",
+  "asset": "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz",
+  "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz",
+  "size": 168811114,
+  "size_human": "168.81 MB",
+  "sha256": "5b2d30d7a5e448fbe0aceda360c8f9ed2949aa1734e94db078e6d0b722521e2b",
+  "destination": "/work/e2e-t3831b7b3/home2/.hermes/runtime/b11026-linux-x64-cuda-12.8",
+  "required_bytes": 506433342,
+  "cached": null,
+  "host": {
+    "system": "linux",
+    "machine": "x86_64",
+    "has_nvidia_smi": true,
+    "dri_nodes": [],
+    "icd_dir": "/usr/share/vulkan/icd.d",
+    "backend": "cuda"
+  }
+}

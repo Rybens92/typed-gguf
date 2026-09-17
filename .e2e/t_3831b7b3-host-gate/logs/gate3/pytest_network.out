@@ -1,0 +1,70 @@
+........................................................................ [ 21%]
+.............................................s.......................... [ 42%]
+........................................................................ [ 63%]
+........................................................................ [ 84%]
+......................FF............................                     [100%]
+=================================== FAILURES ===================================
+_____________________ test_warmup_decodes_the_pinned_model _____________________
+
+    @pytest.mark.model
+    @pytest.mark.skipif(not PINNED_MODEL.exists(), reason="pinned Spark GGUF not present")
+    def test_warmup_decodes_the_pinned_model() -> None:
+>       payload = run_probe("warmup")
+                  ^^^^^^^^^^^^^^^^^^^
+
+tests/test_runtime_live.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+timeout = 300, args = ('warmup',)
+
+    def run_probe(*args: str, timeout: int = 300) -> dict:
+        if finder.find_runtime() is None:
+            pytest.skip("no runtime installed (run `ggufone init` or set GGUFONE_RUNTIME_DIR)")
+        result = subprocess.run(  # noqa: S603
+            [sys.executable, str(PROBE), *args], capture_output=True, text=True,
+            errors="replace",  # llama.cpp dumps tokenizer pieces: not always valid UTF-8
+            cwd=str(ROOT), timeout=timeout, check=False)
+>       assert result.returncode == 0, (
+            f"live_probe {args} exited {result.returncode}\n"
+            f"stdout: {result.stdout[-2000:]}\nstderr: {result.stderr[-2000:]}")
+E       AssertionError: live_probe ('warmup',) exited 1
+E         stdout: 
+E         stderr: load_backend: loaded RPC backend from /work/e2e-t3831b7b3/home3/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+E         ggml_vulkan: No devices found.
+E         load_backend: loaded Vulkan backend from /work/e2e-t3831b7b3/home3/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-vulkan.so
+E         load_backend: loaded CPU backend from /work/e2e-t3831b7b3/home3/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+E         gguf_init_from_file: failed to open GGUF file '/work/e2e-t3831b7b3/home3/.local/share/ggufone/models/Spark-X2.5-4B-Q8_0.gguf' (No such file or directory)
+E         llama_model_load: error loading model: llama_model_loader: failed to load model from /work/e2e-t3831b7b3/home3/.local/share/ggufone/models/Spark-X2.5-4B-Q8_0.gguf
+E         llama_model_load_from_file_impl: failed to load model
+E         Traceback (most recent call last):
+E           File "/work/e2e-t3831b7b3/repo/tools/live_probe.py", line 84, in <module>
+E             raise SystemExit(main())
+E                              ^^^^^^
+E           File "/work/e2e-t3831b7b3/repo/tools/live_probe.py", line 65, in main
+E             payload["warmup_ms"] = install.warmup(rt, pathlib.Path(args.model), n_ctx=128)
+E                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/work/e2e-t3831b7b3/repo/src/ggufone/runtime/install.py", line 242, in warmup
+E             raise RuntimeMissingError(
+E         ggufone.errors.RuntimeMissingError: E_RUNTIME_MISSING: warm-up could not load /work/e2e-t3831b7b3/home3/.local/share/ggufone/models/Spark-X2.5-4B-Q8_0.gguf with /work/e2e-t3831b7b3/home3/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/work/e2e-t3831b7b3/repo/.venv/bin/python', '/work/e2e-t3831b7b3/repo/tools/live_probe.py', 'w.../models/Spark-X2.5-4B-Q8_0.gguf with /work/e2e-t3831b7b3/home3/.local/share/ggufone/runtime/b11026-linux-x64-vulkan\n').returncode
+
+tests/test_runtime_live.py:36: AssertionError
+_____________________ test_init_records_the_warmup_number ______________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-8/test_init_records_the_warmup_n0')
+
+    @pytest.mark.model
+    @pytest.mark.skipif(not PINNED_MODEL.exists(), reason="pinned Spark GGUF not present")
+    def test_init_records_the_warmup_number(tmp_path: pathlib.Path) -> None:
+        """`init` writes warmup_ms into runtime.json when a model is present (R2 / A13)."""
+        payload = run_probe("install", "--home", str(tmp_path / "home"))
+>       assert payload["warmup_ms"] and payload["warmup_ms"] > 0
+E       assert (None)
+
+tests/test_runtime_live.py:95: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_runtime_live.py::test_warmup_decodes_the_pinned_model - Ass...
+FAILED tests/test_runtime_live.py::test_init_records_the_warmup_number - asse...
+2 failed, 337 passed, 1 skipped in 19.91s

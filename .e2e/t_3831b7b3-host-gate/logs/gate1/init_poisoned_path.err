@@ -1,0 +1,3 @@
+warning: fell back from cuda to linux-x64-vulkan: pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier
+warning: expected accelerator 'cuda' is not in the bundle (backends: cpu, rpc, vulkan)
+warning: W_VULKAN_WARMUP: the first Vulkan decode pays the shader compilation (23-30 s measured); `ggufone init`/`serve` warm up before serving

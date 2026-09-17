@@ -1,0 +1,29 @@
+{
+  "installed": true,
+  "variant": "linux-x64-cuda-12.8",
+  "dir": "/work/e2e-t3831b7b3/home6/.hermes/runtime/b11026-linux-x64-cuda-12.8",
+  "backend": "cuda",
+  "working_backend": "cpu",
+  "source": "offline-cache",
+  "asset": "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz",
+  "asset_sha256": "5b2d30d7a5e448fbe0aceda360c8f9ed2949aa1734e94db078e6d0b722521e2b",
+  "asset_verified": true,
+  "libllama_sha256": "c1b8add942be056d25896b9bf78a97bc74dff847ab7fd76855c2b04fc7be5687",
+  "bytes_fetched": 168811114,
+  "resumed_from": 0,
+  "build": 11026,
+  "backends": [
+    "cpu",
+    "cuda",
+    "rpc"
+  ],
+  "backend_errors": {
+    "cuda": "libggml-cuda.so: libcudart.so.12: cannot open shared object file: No such file or directory"
+  },
+  "fallback_attempts": [],
+  "fallback_reason": null,
+  "fallback_reason_code": null,
+  "symbols_ok": true,
+  "warmup_ms": null,
+  "rung": "prebuilt"
+}

@@ -1,0 +1,145 @@
+ggufone E1a host gate
+  repo    : /work/e2e-t3831b7b3/repo
+  logs    : /work/e2e-t3831b7b3/logs/gate4
+  started : 2026-09-17T19:09:45Z
+
+# host facts
+date_utc: 2026-09-17T19:09:45Z
+uname: Linux c7f6bae50f80 7.2.4-ogc3.1.fc44.x86_64 #1 SMP PREEMPT_DYNAMIC Sun Sep 13 01:41:06 UTC 2026 x86_64 GNU/Linux
+git_head: eb1cde370f158a968258266c06b3b4cdac075031 
+python: Python 3.11.15  uv: uv 0.12.0 (x86_64-unknown-linux-gnu)
+freedisk_home_bytes: 591708995584
+nvidia_smi_which: /work/e2e-t3831b7b3/bin/nvidia-smi
+nvidia_smi_L:
+  NVIDIA-SMI 550.127.05   Driver Version: 550.127.05   CUDA Version: 12.4
+  GPU 0: NVIDIA GeForce RTX 3060 Ti (UUID: GPU-xxxx)
+dri_nodes:
+  total 0
+vulkan_icd:
+  gfxstream_vk_icd.json
+  intel_hasvk_icd.json
+  intel_icd.json
+  lvp_icd.json
+  nouveau_icd.json
+  radeon_icd.json
+  virtio_icd.json
+cudart_in_ldconfig:
+    <none>
+ggufone_home: /work/e2e-t3831b7b3/home3/.local/share/ggufone
+
+== [pytest_before] uv run pytest -q (budget 900s)
+   -> exit=0 elapsed=14s  (/work/e2e-t3831b7b3/logs/gate4/pytest_before.out)
+
+== [init_dry_run] uv run ggufone init --dry-run --json (budget 120s)
+   -> exit=0 elapsed=0s  (/work/e2e-t3831b7b3/logs/gate4/init_dry_run.out)
+
+== [poison] 15 compiler shims installed in /work/e2e-t3831b7b3/logs/gate4/poison
+poison check: poisoned: gcc must not be called by ggufone init
+
+== [init] uv run ggufone init --json (budget 1800s)
+   -> exit=0 elapsed=0s  (/work/e2e-t3831b7b3/logs/gate4/init.out)
+
+== [doctor] uv run ggufone doctor --json (budget 600s)
+   -> exit=2 elapsed=0s  (/work/e2e-t3831b7b3/logs/gate4/doctor.out)
+
+== [version] uv run ggufone version --json (budget 120s)
+   -> exit=0 elapsed=0s  (/work/e2e-t3831b7b3/logs/gate4/version.out)
+
+== [pytest_after] uv run pytest -q (budget 900s)
+   -> exit=0 elapsed=15s  (/work/e2e-t3831b7b3/logs/gate4/pytest_after.out)
+
+== [oracle] python3 docs/verify_runtime_contract.py (budget 900s)
+   -> exit=0 elapsed=3s  (/work/e2e-t3831b7b3/logs/gate4/oracle.out)
+
+== [pytest_network] uv run pytest -q --run-network (budget 1800s)
+   -> exit=0 elapsed=24s  (/work/e2e-t3831b7b3/logs/gate4/pytest_network.out)
+
+== [init_poisoned_path] env PATH=/work/e2e-t3831b7b3/logs/gate4/poison:/work/e2e-t3831b7b3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin uv run ggufone init --json (budget 180s)
+   -> exit=0 elapsed=1s  (/work/e2e-t3831b7b3/logs/gate4/init_poisoned_path.out)
+   poison shims invoked: 0
+
+# installed runtime record (<data home>/runtime.json)
+{
+ "asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz",
+ "asset_sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708",
+ "asset_sha256_observed": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708",
+ "asset_size": 30294625,
+ "asset_verified": true,
+ "backend_errors": {},
+ "backend_requested": "cuda",
+ "backend_working": "vulkan",
+ "backends": [
+  "cpu",
+  "rpc",
+  "vulkan"
+ ],
+ "build": 11026,
+ "dir": "/work/e2e-t3831b7b3/home3/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+ "fallback_attempts": [
+  {
+   "backend": "cuda",
+   "code": "system_libs_missing",
+   "reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+   "variant": "linux-x64-cuda-12.8"
+  }
+ ],
+ "fallback_reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+ "fallback_reason_code": "system_libs_missing",
+ "fit_params_help_exit": 0,
+ "installed_at": "2026-09-17T19:08:36Z",
+ "libllama_sha256": "8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975",
+ "missing_symbols": [],
+ "probe_failures": [],
+ "probe_warnings": [
+  "expected accelerator 'cuda' is not in the bundle (backends: cpu, rpc, vulkan)",
+  "W_VULKAN_WARMUP: the first Vulkan decode pays the shader compilation (23-30 s measured); `ggufone init`/`serve` warm up before serving"
+ ],
+ "required_files": [
+  "libllama.so",
+  "libggml.so",
+  "libggml-base.so"
+ ],
+ "rung": "prebuilt",
+ "schema": "ggufone.runtime/v1",
+ "source": "url",
+ "symbols_ok": true,
+ "symbols_probed": true,
+ "tag": "b11026",
+ "tools": {
+  "llama-cli": "/work/e2e-t3831b7b3/home3/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/llama-cli",
+  "llama-fit-params": "/work/e2e-t3831b7b3/home3/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/llama-fit-params",
+  "llama-tokenize": "/work/e2e-t3831b7b3/home3/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/llama-tokenize"
+ },
+ "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-ubuntu-vulkan-x64.tar.gz",
+ "variant": "linux-x64-vulkan",
+ "warmup_error": null,
+ "warmup_model": null,
+ "warmup_ms": null
+}
+
+# installed runtime dirs
+total 0
+drwxr-xr-x. 1 root root 2190 Sep 17 19:08 b11026-linux-x64-vulkan
+
+# downloaded archives + sha256 (the pins the installer verified)
+1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708  /work/e2e-t3831b7b3/home3/.local/share/ggufone/downloads/llama-b11026-bin-ubuntu-vulkan-x64.tar.gz
+
+# section B of the oracle: skips?
+  skips_in_section_B: 0
+wrote /work/e2e-t3831b7b3/logs/gate4/host_gate_e1a.json
+{
+ "init.exit": 0,
+ "init.variant": "linux-x64-vulkan",
+ "init.fallback": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+ "doctor.exit": 2,
+ "oracle.exit": 0,
+ "oracle.section_b_skips": 0,
+ "pytest_before.exit": 0,
+ "pytest_after.exit": 0,
+ "pytest_network.exit": 0,
+ "poisoned_init.exit": 0,
+ "poison_shims_invoked": 0
+}
+
+host gate finished: 2026-09-17T19:10:43Z
+raw logs + host_gate_e1a.json: /work/e2e-t3831b7b3/logs/gate4

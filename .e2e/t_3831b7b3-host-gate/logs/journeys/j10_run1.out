@@ -1,0 +1,19 @@
+{
+  "already_installed": true,
+  "variant": "linux-x64-vulkan",
+  "backend": "vulkan",
+  "dir": "/work/e2e-t3831b7b3/home2/.hermes/runtime/b11026-linux-x64-vulkan",
+  "working_backend": "vulkan",
+  "backend_requested": "cuda",
+  "fallback_attempts": [
+    {
+      "backend": "cuda",
+      "variant": "linux-x64-cuda-12.8",
+      "code": "system_libs_missing",
+      "reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier"
+    }
+  ],
+  "fallback_reason": "pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier",
+  "fallback_reason_code": "system_libs_missing",
+  "hint": "pass --force to re-download and re-extract"
+}

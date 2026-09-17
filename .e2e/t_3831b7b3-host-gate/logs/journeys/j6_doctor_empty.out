@@ -1,0 +1,46 @@
+{
+  "schema": "ggufone.doctor/v1",
+  "ggufone": "0.1.0",
+  "status": "failures",
+  "exit_code": 1,
+  "checks": [
+    {
+      "id": "runtime.present",
+      "status": "fail",
+      "detail": "no runtime installed under /work/e2e-t3831b7b3/home4/.hermes/runtime; run `ggufone init` (no compiler needed)"
+    },
+    {
+      "id": "model.present",
+      "status": "warn",
+      "detail": "no model in the registry; run `ggufone models pull` (default model is pinned)"
+    }
+  ],
+  "runtime": {
+    "dir": null,
+    "installed": false,
+    "tag": null,
+    "pinned_tag": "b11026",
+    "min_build": 10828,
+    "variant": null,
+    "build": null,
+    "backends": [],
+    "working_backend": null,
+    "backend_errors": {},
+    "backend_requested": null,
+    "fallback_reason": null,
+    "fallback_reason_code": null,
+    "fallback_attempts": [],
+    "symbols_required": 34,
+    "symbols_missing": [],
+    "symbols_probed": false,
+    "fit_params_help_exit": null,
+    "libllama_sha256": null,
+    "warmup_ms": null
+  },
+  "model": {
+    "alias": null
+  },
+  "backend": null,
+  "backends": [],
+  "expected_backend": "cuda"
+}

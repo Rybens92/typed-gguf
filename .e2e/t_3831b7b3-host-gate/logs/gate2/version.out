@@ -1,0 +1,21 @@
+{
+  "name": "ggufone",
+  "version": "0.1.0",
+  "python": "3.11.15",
+  "lock": {
+    "tag": "b11026",
+    "min_build_for_spark2_5": 10828
+  },
+  "runtime": {
+    "installed": true,
+    "dir": "/work/e2e-t3831b7b3/home2/.hermes/runtime/b11026-linux-x64-vulkan",
+    "variant": "linux-x64-vulkan",
+    "build": 11026,
+    "backends": [
+      "cpu",
+      "rpc",
+      "vulkan"
+    ]
+  },
+  "home": "/work/e2e-t3831b7b3/home2/.hermes"
+}
