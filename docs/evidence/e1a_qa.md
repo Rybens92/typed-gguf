@@ -149,3 +149,160 @@ truthfully *outside this sandbox's reach* rather than unverified claims: the Vul
 need a host/CI run, and the child-process coverage is a reporting artifact of a deliberate
 isolation choice. Fixing the coverage attribution is a nice-to-have; re-measuring on the host
 is the item a human should schedule before the E1a baseline is quoted anywhere public.
+
+---
+
+# E1a FIX QA — t_eae35404: host-dependent detection + recorded backend fallback
+
+Date: 2026-09-17 | Tier: M (default — no tier declared on the card) | Author: code-tdd
+Commits: `f3ae67d` (probe purity), `6ef79d2` + this commit (fallback, doctor, host gate)
+
+## Why (the coordinator's finding, reproduced)
+
+On the operator's RTX 3060 Ti host the E1a suite had 7 failures: `detect_backend` read the
+real machine *behind* injected probes, so `detect_backend({system: linux, dri_nodes: [...]})`
+answered `cuda` (test wanted `vulkan`) and `host_variant("auto", linux, x86_64)` answered
+`linux-x64-cuda-12.8` (test wanted `linux-x64-cpu`); 5 CLI tests use that same mapping.
+The E1a worker had verified in a GPU-less podman sandbox, where the same code was green.
+
+## What changed
+
+1. **Probe purity** (`runtime/pins.py`). Detection is a pure function of a `HostProbes`
+   object. `current_host()` is the single function in the package that reads the machine
+   (`platform.system/machine`, `shutil.which("nvidia-smi")`, `DRI_DIR.glob("renderD*")`,
+   `ICD_DIR`); supplying *any* probe argument (or `probes=`) switches to a synthetic world in
+   which unset facts count as ABSENT, so no host read can leak behind injected probes. Only
+   `detect_backend()` / `host_variant("auto")` with no probes at all read the real host, so
+   production behaviour on a GPU box is unchanged.
+2. **`InstallPlan.backend`** is the accelerator (`cuda`/`vulkan`/`metal`/`cpu`) via
+   `pins.accelerator_of()`, not the version suffix (`"12.8"`); `--dry-run --json` also reports
+   the probe facts it decided from (`host`).
+3. **Recorded fallback** (`runtime/capability.py`, `runtime/install.py`). A deep probe dlopens
+   every `libggml-<backend>` library it finds and keeps the raw error in
+   `ProbeResult.backend_errors`. `install(backend="auto")` walks `cuda → vulkan → cpu`,
+   records `backend_requested` / `backend_working` / `backend_errors` / `fallback_attempts` /
+   `fallback_reason` in `runtime.json`, **removes** a bundle this host cannot drive (it would
+   otherwise shadow the working tier in `find_runtime()`), and installs the first tier that
+   loads. An explicit `--backend` is honoured as asked (no silent substitution).
+4. **`doctor --json`** reports `runtime.working_backend`, per-backend load errors and a
+   `runtime.fallback` check naming what was tried and why.
+5. **`finder.find_runtime()`** prefers the variant `runtime.json` records.
+
+## Tests added (each written first as RED)
+
+| Test | What it pins |
+|---|---|
+| `test_pins.py::test_the_whole_mapping_in_a_fake_host_world[cpu/vulkan/cuda]` | detect → variant → pinned asset/size → install plan, GPU-absent **and** GPU worlds |
+| `test_pins.py::test_probes_never_fall_back_to_the_real_host` | tripwires on `shutil.which`/`platform.*`/`/dev/dri`/ICD — any leak raises |
+| `test_pins.py::test_current_host_is_the_only_reader_of_the_real_machine` | real vs synthetic probe object |
+| `test_cli_e1a.py::test_init_dry_run_on_a_gpu_host_plans_the_pinned_cuda_bundle` | GPU-world CLI plan: variant, asset, 168 811 114 B, pin sha, probe facts |
+| `test_runtime_fallback.py` (9 cases) | chain stops at vulkan, chain to cpu, no fallback when cuda loads, explicit backend honoured, rejected dir dropped, `find_runtime` preference, doctor on both paths, real dlopen seam |
+| offline CLI suites | run in an explicit fake CPU machine (assertions unchanged) |
+
+## Gate results — container, GPU simulated with a fake `nvidia-smi` on PATH
+
+`tools/host_gate_e1a.sh /work/e1a/logs/gate-final`, all numbers from its logs (final code):
+
+| step | exit | elapsed | result |
+|---|---|---|---|
+| `uv run pytest -q` (CPU-only container, no runtime) | 0 | 2.0 s | 283 passed, 11 skipped |
+| `uv run pytest -q` (fake nvidia-smi on PATH) | 0 | 3.4 s | 283 passed, 11 skipped |
+| `init --dry-run --json` | 0 | 1 s | `variant=linux-x64-cuda-12.8`, 168 811 114 B |
+| `init --json` | 0 | 2 s | `variant=linux-x64-vulkan`; CUDA tier rejected + recorded (`fallback_attempts`) |
+| `doctor --json` | 2 | 0 s | warnings; `backends: cpu, rpc, vulkan (driveable here: vulkan)`, `runtime.fallback` warn |
+| `version --json` | 0 | 0 s | record read back |
+| `uv run pytest -q` (runtime installed) | 0 | 17 s | 284 passed, 10 skipped (oracle section B live) |
+| `python3 docs/verify_runtime_contract.py` | 0 | 5 s | failures: 0, **section B skips: 0** |
+| `uv run pytest -q --run-network` | 0 | 28 s | 293 passed, 1 skipped (pinned Qwen3.5 GGUF absent) |
+| poisoned PATH `init` (fresh home, offline cache) | 0 | 3 s | **0** compiler shims, budget 180 s |
+
+The first full install of the CUDA tier in this sandbox (fresh home, real download) took 2 s wall
+time end-to-end and produced the fallback below; the `already_installed` path is what the table
+above shows for the re-run.
+
+Fallback evidence, verbatim from `init.json` / `runtime.json`:
+
+```
+fallback_reason: cuda does not load on this host
+  (libggml-cuda.so: libcudart.so.12: cannot open shared object file: No such file or directory)
+backend_requested: cuda   backend_working: vulkan   backends: [cpu, rpc, vulkan]
+```
+
+Real assets measured in the sandbox (sha256 of the files on disk):
+
+```
+5b2d30d7a5e448fbe0aceda360c8f9ed2949aa1734e94db078e6d0b722521e2b  llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz (168 811 114 B == pin)
+1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708  llama-b11026-bin-ubuntu-vulkan-x64.tar.gz (30 294 625 B == pin)
+5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2  Spark-X2.5-4B-Q8_0.gguf (4 375 021 152 B == HF lfs.oid)
+ldd libggml-cuda.so → libcudart.so.12 => not found ; libcublas.so.12 => not found ; libcuda.so.1 => not found
+```
+
+## What this FIX does NOT verify (and why)
+
+* **Real GPU execution.** The sandbox has no `/dev/dri`, no `/dev/nvidia*`, no GPU: the CUDA
+  bundle's *dlopen* failure above is real, but device enumeration, Vulkan shader warm-up and
+  CUDA kernels are not exercised. A-E1a-1's host half is a **pending operator run**:
+  `tools/host_gate_e1a.sh` + `tools/host_gate_summary.py` (raw logs + `host_gate_e1a.json`).
+* **Whether the host's CUDA bundle loads.** On the operator's box the driver is present; if
+  libcudart/libcublas are not, the same fallback will fire there and the gate will record
+  `variant=linux-x64-vulkan` + `fallback_reason` — that is a pass for requirement 4 and a
+  finding for requirement 3's "per dry-run" expectation, not a silent downgrade.
+
+## Mutation (Tier M, soft threshold)
+
+mutmut 3.8, `source_paths = ["src/ggufone"]` with the test selection reduced to the tests that own
+the touched modules (`tests/test_pins.py`, `tests/test_runtime_fallback.py`,
+`tests/test_runtime_install.py`, `tests/test_cli_e1a.py`, `tests/test_cli_doctor_branches.py`),
+scoped by name filter to the touched modules (`mutmut run 'ggufone.runtime.pins*'
+'ggufone.runtime.capability*' 'ggufone.runtime.install*' 'ggufone.runtime.finder*' 'ggufone.cli*'`):
+
+```
+killed 2405 | survived 1759 | no tests 136 | timeout 3   ->  score 57.7%
+(1803 mutants outside the filter: "not checked")
+```
+
+**Soft threshold, recorded not looped on.** Survivor triage (the method: `mutmut results`, then
+`mutmut show <id>` on every survivor whose name touches the new decision path —
+`detect_backend`/`resolve_host`/`fake_host`/`HostProbes`/`accelerator_of`/`usable`/`accelerator`/
+`load_backend_library`/`install`/`_unusable_reason`/`_drop_rejected`/`find_runtime`):
+
+* **Critical path: none.** No surviving mutant can silently accept an unloadable backend, install
+  a rejected variant, skip a SHA-256 check, or break the atomic extract-then-move.
+* **Real gaps found and closed in this commit** (tests added after the run, so the recorded score
+  is the *pre-closure* one): `load_backend_library` dropping `RTLD_GLOBAL` (the pinned libs must
+  load global — `test_load_backend_library_uses_rtld_global` spies on `CDLL`) and
+  `ProbeResult.accelerator()` mis-handling the `("cpu","rpc","base")` tuple
+  (`test_usable_and_accelerator_semantics` now pins `backends=("base","cpu","rpc")`).
+* **Message-string / equivalent class (the bulk).** `ProbeResult.failures()`/`_unusable_reason`
+  text, `find_runtime` error prose, docstring edits of `install()`, `system=None`/`machine=...`
+  kwargs that are masked by an explicit `probes=` object.
+* **Masked-by-design.** `_drop_rejected(ignore_errors=...)`, `runtime_dirs` ordering and
+  `library_names(None)`: behaviour identical on every path the suite exercises.
+
+The E1a baseline's own 72.7% was a different scope (`errors/gguf/recommend/store/pins`); modules
+like `cli.py` (print-heavy) and `install.py` were never mutation-tuned before, which is where most
+of the 57.7% comes from — `cli.py` alone contributes ~800 survivors, nearly all of them output
+strings. Score is reported for the reviewer's call, not used as a gate here (Tier M).
+
+## Risks
+
+🔴 **None known.** The failing behaviour the coordinator found is reproduced by the new
+fake-host tests and cannot recur without failing them.
+
+🟡 **`runtime.fallback` warns whenever a GPU tier was rejected** — on a host where CUDA cannot
+load, `init`/`doctor` deliberately stay at exit 2 (warnings) rather than pretending the GPU is
+in use. Intended, but it means "doctor exit 0 on this host" needs the CUDA bundle to load.
+
+🟡 **Fallback is probe-based, not device-based.** E1a proves a backend *loads*; that a GPU is
+present and drives it is E1b's context init. Documented in `capability.load_backend_library`.
+
+🟢 **Test edits were environment pins, not expectation changes.** The 5 CLI tests that failed
+on the host assert the same plan as before; their autouse fixture now names the fake CPU
+machine they always assumed. No assertion was weakened (verified by diff review).
+
+## Recommendation
+
+**Option A (ship the FIX), with the host gate as the single outstanding item.** Every
+sandbox-observable criterion has a command + output behind it and the suite is green in both
+worlds; the only acceptance criterion this worker cannot execute is the real-GPU run, which is
+prepared as a one-command script with a machine-readable summary.

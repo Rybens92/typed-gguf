@@ -111,6 +111,24 @@ def fake_loader(errors: dict[str, str]):
 
 
 # ------------------------------------------------------------------ dlopen check
+def test_usable_and_accelerator_semantics() -> None:
+    """The two helpers the fallback chain decides with, pinned directly."""
+    cuda_only = capability.ProbeResult(backends=("cuda",))
+    assert cuda_only.usable("cpu") is True          # cpu needs no accelerator library
+    assert cuda_only.usable("cuda") is True
+    assert cuda_only.usable("vulkan") is False      # the bundle carries no vulkan backend
+    assert cuda_only.accelerator() == "cuda"
+
+    broken_cuda = capability.ProbeResult(backends=("cuda", "vulkan"),
+                                        backend_errors={"cuda": "libcudart.so.12: no such file"})
+    assert broken_cuda.usable("cuda") is False      # present but not loadable here
+    assert broken_cuda.usable("vulkan") is True
+    assert broken_cuda.accelerator() == "vulkan"    # what this host can actually drive
+    assert capability.ProbeResult(backends=("cpu", "rpc")).accelerator() == "cpu"
+    assert capability.ProbeResult(backends=("base", "cpu", "rpc")).accelerator() == "cpu"
+    assert capability.ProbeResult().accelerator() == "cpu"
+
+
 def test_load_backend_library_reports_a_bundle_the_host_cannot_dlopen(
         tmp_path: pathlib.Path) -> None:
     broken = tmp_path / "libggml-cuda.so"
@@ -119,6 +137,20 @@ def test_load_backend_library_reports_a_bundle_the_host_cannot_dlopen(
     assert error is not None and "libggml-cuda.so" in error
     missing = capability.load_backend_library(tmp_path / "libggml-vulkan.so")
     assert missing is not None and "libggml-vulkan.so" in missing
+
+
+def test_load_backend_library_uses_rtld_global(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The pinned backends must load RTLD_GLOBAL: libllama resolves their symbols at load."""
+    seen: dict[str, object] = {}
+
+    class FakeCDLL:
+        def __init__(self, path: str, **kwargs: object) -> None:
+            seen.update({"path": path, **kwargs})
+
+    monkeypatch.setattr(capability.C, "CDLL", FakeCDLL)
+    assert capability.load_backend_library("/nowhere/libggml-cuda.so") is None
+    assert str(seen["path"]).endswith("libggml-cuda.so")
+    assert seen.get("mode") == getattr(capability.C, "RTLD_GLOBAL", 0)
 
 
 def test_load_backend_library_accepts_a_real_shared_object() -> None:

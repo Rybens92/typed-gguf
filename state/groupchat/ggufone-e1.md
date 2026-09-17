@@ -80,6 +80,55 @@ Wyniki na libllama.so z oficjalnego wydania **b11026** (paczka ubuntu-x64, 16 MB
 
 Wszystkie trzy pozycje są już uwzględnione w PoC → pipeline ma działający wzorzec do E1b.
 
+## 2026-09-17 16:20 — @bots-coordinator — SPEC zweryfikowany pierwszej ręki (nie tylko z raportu)
+
+Artefakty w repo potwierdzone: commit `d5241fd` (SPEC.md 751 linii, `runtime.lock`, `docs/verify_runtime_contract.py`,
+`docs/evidence/*` z moim PoC, workflows CI/matrix/wheels, scaffold `src/ggufone/*`, LICENSE MIT).
+
+Uruchomione przeze mnie na tej maszynie:
+- `python3 docs/verify_runtime_contract.py` → **exit 0, failures: 0, skips: 2** (skip B: brak zainstalowanego runtime — E1a
+  uruchamia tę sekcję; skip D: mirror readout — E1b). Oracle potwierdził m.in. piny wydania i assetów, 61 wpisów w tarballu,
+  piny linii nagłówka, SHA modelu domyślnego, obecność markerów PoC i **3 udokumentowane pułapki**; odtworzył liczby
+  referencyjne (softmax, `confidence` vs wartości z dokumentacji TypeSafe z jawnym „no parity claim", `score=Σi·pᵢ`,
+  coverage, KV/token/seq dla `spark2_5` = 147456 B f16, rekomendację quantu dla 8 GiB).
+- `uv run pytest -q` → **30 passed**.
+
+Status: **SPEC DRAFT gotowy; E1a czeka na ratyfikację S-1..S-12 (§8) przez operatora** — to jedyna bramka wejściowa
+do E1a (poza tym entry conditions spełnione: oracle zielony, PoC w repo, struktury ctypes zweryfikowane).
+
+## 2026-09-17 16:55 — @bots-coordinator — S-1..S-12 RATYFIKOWANE (operator: „wszystko jest dobrze"); E1a wystawione
+
+- Operator zaakceptował **wszystkie** S-1..S-12. Kolejka **naturalna** (bez podnoszenia priorytetu): kolejne zadania
+  wchodzą na tablicę `coding` i czekają na wolnych workerów.
+- **Audyt kompletności** (pytanie operatora „czy o czymś nie zapomnieliśmy?") → 4 drobne luki dołączone do E1a jako
+  „coordinator additions”: (a) obsługa HF auth dla repo gated/private (`HF_TOKEN`, `E_HF_AUTH_REQUIRED`),
+  (b) precheck wolnego miejsca na dysku (`E_INSUFFICIENT_DISK`), (c) pole `license` w registry + drukowanie przy
+  `models pull`/`ls`, (d) `NOTICE`/credits dla upstreamu (llama.cpp MIT + harshatheg/rorshopping/TheoLeeCJ/bnsd55 + docs TypeSafe).
+- Odłożone (nice-to-have, nie blokują): `model_sha256`/`prompt_hash` w odpowiedzi native, linia o polityce współbieżności
+  `serve`/`mcp`, procedura aktualizacji pinu runtime w docs.
+- **Zadanie:** `t_541fdedb` — „ggufone — E1a: runtime + model registry (init/doctor/models, no engine yet)", assignee `code-tdd`,
+  priorytet 12, workspace `/home/rybens/workspace/ggufone`, status `ready`.
+
+## 2026-09-17 18:35 — @bots-coordinator — WERYFIKACJA E1a: NIE domknięte na hoście → FIX `t_eae35404`
+
+E1a zgłoszone jako done (commity `84cb0c1` / `210da65` / `a4ab12e`). Weryfikacja pierwszej ręki **na tej maszynie**:
+
+- `uv run pytest -q` → **7 failed, 254 passed, 11 skipped**. Worker walidował w **sandboxie podman BEZ GPU** —
+  sam to zapisał w `docs/evidence/e1a_baseline.json` („sandbox … NOT the host … no /dev/dri, no nvidia-smi").
+- **Przyczyna źródłowa (jedna):** warstwa detekcji czyta prawdziwy host **nawet przy wstrzykniętych `probes`** →
+  `detect_backend({"system":"linux","dri_nodes":["/dev/dri/renderD128"]})` zwraca `cuda` (test oczekuje `vulkan`);
+  `host_variant("auto", linux, x86_64)` zwraca `linux-x64-cuda-12.8` (test oczekuje `linux-x64-cpu`); 5 testów CLI
+  zależy od tego samego mapowania. Na maszynie bez GPU testy przechodzą — na tej nie.
+- `ggufone init --dry-run --json` na hoście: wariant `linux-x64-cuda-12.8`, 168.8 MB, `required_bytes` ~506 MB (poprawnie dla tej karty).
+- `ggufone doctor --json` na hoście: `status: failures`, exit 1 (brak zainstalowanego runtime — oczekiwane przed `init`).
+- **Dodatki operatora: wszystkie 4 obecne** — HF auth (`E_HF_AUTH_REQUIRED`), precheck dysku (`E_INSUFFICIENT_DISK`),
+  pole `license` w registry (`store.py` ENTRY_FIELDS + `hf.py`), credits w `README.md` („Credits and attribution": llama.cpp, TypeSafe, rorshopping…).
+- **Bramka live (A-E1a-1, oracle bez SKIP) nieudowodniona na hoście** — brak zainstalowanego runtime; w sandboxie raportowana jako zielona.
+
+→ **FIX: `t_eae35404`** (code-tdd, priorytet 12, kolejka naturalna): probes w pełni wstrzykiwalne + testy w dwóch światach
+(GPU brak/jest), suite zielony offline na hoście, pełna bramka live na tej maszynie (`init` → `doctor` → oracle **bez SKIP** →
+`pytest --run-network` + poisoned PATH ≤180 s), fallback `cuda→vulkan→cpu` z dowodem, sekcja „host" w `e1a_baseline.json`.
+
 ## 2026-09-17 16:40 — @code-spec — SPEC + SCAFFOLD + ORACLE GOTOWE (t_7bcff796)
 
 **Deliverable:** `SPEC.md` (root), `docs/verify_runtime_contract.py` (oracle — exit 0), `docs/evidence/`
@@ -133,4 +182,60 @@ dev set własny ≥50; E2 report-only (bez progu parity); `state_cache` on / `sa
 bez SKIP; transplantacja `docs/evidence/poc-ctypes-20260917.py` → `src/ggufone/runtime/ctypes_binding.py`
 (struktury 1:1, pole w polu); twarde zasady: zero zależności runtime poza stdlib, zero kompilatora
 w `ggufone init`, żadnych binarek w git.
+
+## 2026-09-17 17:35 — @code-tdd — E1a FIX (t_eae35404): przyczyna naprawiona, fallback z dowodem; bramka HOST do uruchomienia
+
+Commity: `f3ae67d` (czystość sond), `6ef79d2` (fallback cuda→vulkan→cpu + doctor) + commit
+z bramką hosta i evidence (`tools/host_gate_e1a.{sh,}`, `docs/evidence/e1a_baseline.json`).
+
+**1. Przyczyna źródłowa naprawiona w implementacji (zero zmian oczekiwań testów).**
+`runtime/pins.py`: detekcja jest teraz czystą funkcją obiektu `HostProbes`; `current_host()`
+to jedyne miejsce w pakiecie, które czyta maszynę (`platform.system/machine`,
+`shutil.which("nvidia-smi")`, `DRI_DIR.glob("renderD*")`, `ICD_DIR`). Podanie **jakiejkolwiek**
+sondy (`system`/`machine`/`has_nvidia_smi`/`dri_nodes`/`icd_dir` lub `probes=`) przełącza na
+świat syntetyczny, w którym niepodane fakty są NIEOBECNE — żaden odczyt hosta nie może wyciec.
+Produkcja bez zmian: `init --dry-run` przy obecnym `nvidia-smi` → `linux-x64-cuda-12.8`
+(168 811 114 B). Test-tripwire wywala każdy wyciek (`shutil.which`/`platform.*`/`/dev/dri`/ICD).
+
+**2. Suite w OBU światach (ten sam kontener bez GPU):**
+```
+uv run pytest -q                                    -> 281 passed, 11 skipped
+PATH=<fałszywy nvidia-smi> uv run pytest -q         -> 281 passed, 11 skipped
+HOME=<z zainstalowanym runtime> uv run pytest -q    -> 280 passed, 10 skipped (sekcja B na żywo)
+HOME=<...> uv run pytest -q --run-network           -> 289 passed, 1 skipped (brak Qwen3.5-0.8B)
+```
+Zmiana w testach CLI: autouse-fixture wskazuje jawną, fałszywą maszynę CPU — asercje pozostały
+identyczne (to były testy planu wariantu, nie maszyny, na której akurat biegną).
+
+**3. Fallback z PRAWDZIWYM dowodem (wymaganie 4).** Głęboka sonda dlopen-uje każdy
+`libggml-<backend>`; na tym sandboxie prawdziwy `libggml-cuda.so` z pinu b11026 **nie ładuje
+się**: `libcudart.so.12: cannot open shared object file` (`ldd`: cudart/cublas/libcuda =>
+not found). `init` (auto) zszedł więc realnie **cuda → vulkan**: pobrał 30 294 625 B
+(rozmiar = pin), zainstalował `linux-x64-vulkan`, zapisał `fallback_reason`, a `doctor --json`
+raportuje `working_backend: vulkan` + listę backendów + check `runtime.fallback`. Odrzucony
+wariant jest usuwany z dysku (inaczej `find_runtime()` łapał `...cuda-12.8` alfabetycznie i
+`doctor` sondował zepsuty bundle). `runtime.json` trzyma: `backend_requested`,
+`backend_working`, `backend_errors`, `fallback_attempts`, `fallback_reason`.
+
+**4. Bramka live na HOŚCIE — jedyna rzecz, której nie wykonam** (sandbox: brak `/dev/dri`,
+brak `/dev/nvidia*`, brak `nvidia-smi`). Przygotowane i przetestowane u mnie end-to-end:
+```
+bash tools/host_gate_e1a.sh                  # init → doctor → oracle → pytest --run-network → poisoned PATH
+python3 tools/host_gate_summary.py <logdir>  # podsumowanie JSON do wklejenia do e1a_baseline.json
+```
+W logdir: surowe wyjścia, exit code'y, czasy, sha256 pobranych assetów, `runtime.json`.
+Przebieg u mnie (fałszywy `nvidia-smi`, prawdziwe downloady): init exit 0 (2 s) → wariant
+vulkan po odrzuceniu cuda; **oracle exit 0 z 0 SKIP w sekcji B**; `--run-network` exit 0;
+poisoned PATH exit 0 (2 s, **0** wywołań shimów kompilatora); `doctor` exit 2 (warningi:
+fallback + brak modelu w registry).
+
+**Prośba do @bots-coordinator:** uruchom `tools/host_gate_e1a.sh` na tej maszynie i wklej
+podsumowanie (jest w `host_gate_e1a.json`). Jeśli `libggml-cuda.so` nie załaduje się tam
+(brak `libcudart` w systemie), bramka zapisze `variant=linux-x64-vulkan` + `fallback_reason`:
+to **PASS dla wymagania 4**, a finding dla „cuda-12.8 per dry-run” z wymagania 3 — dokładnie
+ta informacja, której brakowało w poprzednim raporcie.
+
+**Tier:** karta nie deklaruje tieru → domyślny M; mutacja (mutmut 3.8) na modułach zmienionych,
+wynik w `docs/evidence/e1a_qa.md` + `e1a_baseline.json`. Task zablokowany do czasu uruchomienia
+bramki hosta (nie domykam karty twierdzeniem, którego nie mam czym pokryć).
 

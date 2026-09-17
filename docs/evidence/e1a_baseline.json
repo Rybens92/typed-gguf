@@ -174,5 +174,92 @@
   "uv run ggufone models verify --json",
   "python3 tools/measure_kv_footprint.py --json <out>",
   "uv run pytest -q ; uv run pytest -q --run-network"
- ]
+ ],
+
+ "e1a_fix_t_eae35404": {
+  "what": "probes fully injectable (HostProbes / current_host() / fake_host()) and a recorded cuda -> vulkan -> cpu fallback; host gate prepared as tools/host_gate_e1a.sh + tools/host_gate_summary.py",
+  "commits": ["f3ae67d", "6ef79d2"],
+  "why": "the E1a detection layer read the real host behind injected probes: on the operator's RTX 3060 Ti host host_variant('auto', linux, x86_64) answered linux-x64-cuda-12.8 where the test expects linux-x64-cpu (7 failures there, green in this GPU-less sandbox)",
+
+  "sandbox_host_simulated": {
+   "vehicle": "container (podman) in the same sandbox class as the E1a run: no /dev/dri, no /dev/nvidia*, no GPU. The GPU world is simulated by putting a fake `nvidia-smi` first on PATH — the exact host fact detection reads (shutil.which) — and the CUDA dlopen failure below is REAL (measured on the pinned b11026 asset), not simulated.",
+   "suite": {
+    "cpu_world": {"cmd": "uv run pytest -q", "exit": 0, "result": "283 passed, 11 skipped", "elapsed_s": 2.0},
+    "gpu_world": {"cmd": "PATH=<fake-bin> uv run pytest -q", "exit": 0, "result": "283 passed, 11 skipped", "elapsed_s": 3.4},
+    "gpu_world_runtime_installed": {"cmd": "HOME=<gate home> uv run pytest -q", "exit": 0, "result": "284 passed, 10 skipped (oracle section B live)", "elapsed_s": 17},
+    "gpu_world_run_network": {"cmd": "HOME=<gate home> uv run pytest -q --run-network", "exit": 0, "result": "293 passed, 1 skipped (pinned Qwen3.5 GGUF absent)", "elapsed_s": 28}
+   },
+   "gate_script": {
+    "cmd": "bash tools/host_gate_e1a.sh /work/e1a/logs/gate-final",
+    "script_exit": 0,
+    "steps": {
+     "pytest_before": {"exit": 0, "elapsed_s": 21, "result": "284 passed, 10 skipped"},
+     "init_dry_run": {"exit": 0, "elapsed_s": 1, "result": "backend=cuda variant=linux-x64-cuda-12.8 size=168811114"},
+     "init": {"exit": 0, "elapsed_s": 2, "result": "variant=linux-x64-vulkan (already_installed; CUDA tier rejected and recorded in fallback_attempts); a fresh-home run installed it from a real 30 294 625 B download"},
+     "doctor": {"exit": 2, "elapsed_s": 0, "result": "status=warnings; backends: cpu, rpc, vulkan (driveable here: vulkan); symbols 34/34; build b11026"},
+     "version": {"exit": 0, "elapsed_s": 0},
+     "pytest_after": {"exit": 0, "elapsed_s": 17, "result": "284 passed, 10 skipped"},
+     "oracle": {"exit": 0, "elapsed_s": 5, "result": "failures: 0, skips: 1 (section D = E1b), section B skips: 0"},
+     "pytest_network": {"exit": 0, "elapsed_s": 28, "result": "293 passed, 1 skipped"},
+     "init_poisoned_path": {"exit": 0, "elapsed_s": 3, "budget_s": 180, "compiler_shims_invoked": 0}
+    }
+   },
+   "fallback_evidence": {
+    "from_init_json": {"backend_requested": "cuda", "backend_working": "vulkan", "variant": "linux-x64-vulkan", "build": 11026, "symbols_ok": true, "backends": ["cpu", "rpc", "vulkan"]},
+    "fallback_reason": "cuda does not load on this host (libggml-cuda.so: libcudart.so.12: cannot open shared object file: No such file or directory)",
+    "from_runtime_json": {"asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz", "asset_sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708", "bytes_fetched": 30294625, "library_names": ["libllama.so", "libggml.so", "libggml-base.so"]},
+    "doctor_runtime": {"dir": "<data home>/runtime/b11026-linux-x64-vulkan", "working_backend": "vulkan", "build": 11026, "symbols_probed": true, "symbols_missing": []},
+    "ldd_of_the_cuda_backend": ["libcudart.so.12 => not found", "libcublas.so.12 => not found", "libcuda.so.1 => not found"]
+   },
+   "assets_on_disk_sha256": {
+    "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz": {"sha256": "5b2d30d7a5e448fbe0aceda360c8f9ed2949aa1734e94db078e6d0b722521e2b", "size": 168811114, "size_matches_pin": true, "sha256_pin": null},
+    "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz": {"sha256": "1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708", "size": 30294625, "size_matches_pin": true, "sha256_pin": null},
+    "Spark-X2.5-4B-Q8_0.gguf": {"sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2", "size": 4375021152, "sha256_equals_hf_lfs_oid": true}
+   },
+   "caveat": "A backend *loading* is what E1a can prove here; that a GPU is present and drives it is E1b's context init. Device enumeration, Vulkan shader warm-up and CUDA kernels stay unverified in this sandbox."
+  },
+
+  "coverage": {
+   "tool": "uv run --with pytest-cov pytest -q --cov=src/ggufone",
+   "total": "88% (1926 statements, 235 missed)",
+   "changed_modules": {"runtime/pins.py": "97%", "runtime/capability.py": "90%",
+                       "runtime/install.py": "78%", "runtime/finder.py": "96%", "cli.py": "91%"},
+   "uncovered_paths": "install.py's real warmup()/ctypes call path (live-only) plus one staging-cleanup branch; capability.py's ctypes symbol paths (live-only) — same class as the E1a baseline"
+  },
+
+  "mutation_fix": {
+   "tool": "mutmut 3.8, one scoped run (Tier M, soft threshold — recorded, not looped on)",
+   "cmd": "uv run --extra dev --with mutmut mutmut run 'ggufone.runtime.pins*' 'ggufone.runtime.capability*' 'ggufone.runtime.install*' 'ggufone.runtime.finder*' 'ggufone.cli*'",
+   "selection": ["tests/test_pins.py", "tests/test_runtime_fallback.py",
+                 "tests/test_runtime_install.py", "tests/test_cli_e1a.py",
+                 "tests/test_cli_doctor_branches.py"],
+   "killed": 2405, "survived": 1759, "no_tests": 136, "timeout": 3,
+   "not_checked_outside_the_filter": 1803,
+   "score_percent": 57.7,
+   "survivor_classes": {
+    "message-string or equivalent": "the bulk (ProbeResult.failures/_unusable_reason text, find_runtime prose, install() docstrings, kwargs masked by an explicit probes=)",
+    "critical path": "none — no survivor can accept an unloadable backend, install a rejected variant, skip a SHA-256 check or break extract-then-move",
+    "real gaps closed right after the run": ["load_backend_library dropping RTLD_GLOBAL (now pinned by a CDLL spy test)",
+                                             "ProbeResult.accelerator() handling of the (cpu, rpc, base) tuple (now pinned directly)"]
+   },
+   "note": "not comparable to the E1a baseline's 72.7% (that scope was errors/gguf/recommend/store/pins); cli.py alone (print-heavy, never mutation-tuned) contributes ~800 survivors"
+  },
+
+  "host": {
+   "status": "PENDING — operator run required (no GPU in the worker sandbox: /dev/dri absent, no /dev/nvidia*, nvidia-smi absent)",
+   "cmd": "bash tools/host_gate_e1a.sh        # writes raw logs + host_gate_e1a.json into $HOME/.ggufone-host-gate-<utc>",
+   "then": "python3 tools/host_gate_summary.py <that log dir>   # prints the summary block to paste here",
+   "expected_shape": {
+    "pytest_before": "0 - the offline suite must be green on the GPU host (this is the regression the card is about)",
+    "init_dry_run": "backend=cuda variant=linux-x64-cuda-12.8 (nvidia-smi present)",
+    "init": "variant depends on whether libggml-cuda.so really dlopens here: linux-x64-cuda-12.8 (works) or linux-x64-vulkan + fallback_reason (cudart/driver missing)",
+    "doctor": "reports runtime.working_backend + backends from the real probe; exit 0 only if no warnings remain",
+    "oracle": "exit 0 with section B skips: 0",
+    "pytest_network": "0",
+    "init_poisoned_path": "0 with compiler shims invoked: 0 and elapsed <= 180 s"
+   },
+   "recorded_at": null,
+   "recorded_by": null
+  }
+ }
 }

@@ -245,6 +245,10 @@ def test_probes_never_fall_back_to_the_real_host(monkeypatch: pytest.MonkeyPatch
     assert pins.host_variant("auto", probes=pins.fake_host(has_nvidia_smi=True,
                                                            machine="x86_64")) == \
         "linux-x64-cuda-12.8"
+    # the probes= keyword of detect_backend() itself, not just its individual facts
+    assert pins.detect_backend(probes=pins.fake_host(system="linux", has_nvidia_smi=True)) \
+        == "cuda"
+    assert pins.detect_backend(probes=probes) == "metal"
 
 
 def test_current_host_is_the_only_reader_of_the_real_machine(monkeypatch: pytest.MonkeyPatch,
