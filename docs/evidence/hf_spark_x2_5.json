@@ -1,0 +1,67 @@
+{
+ "captured_at": "2026-09-17",
+ "source": "https://huggingface.co/api/models/XHToken/Spark-X2.5-4B-GGUF",
+ "repo": "XHToken/Spark-X2.5-4B-GGUF",
+ "repo_sha": "902d865994943ab9235670e24f01846ee06091f2",
+ "last_modified": "2026-09-15T03:27:04.000Z",
+ "gated": false,
+ "license": "apache-2.0",
+ "tags": [
+  "gguf",
+  "llama.cpp",
+  "ollama",
+  "lm-studio",
+  "sparkx2_5",
+  "text-generation",
+  "en",
+  "zh",
+  "base_model:XHToken/Spark-X2.5-4B",
+  "base_model:quantized:XHToken/Spark-X2.5-4B",
+  "license:apache-2.0",
+  "endpoints_compatible",
+  "region:us",
+  "conversational"
+ ],
+ "files": [
+  {
+   "path": ".gitattributes",
+   "size": 1776
+  },
+  {
+   "path": "README.md",
+   "size": 1612
+  },
+  {
+   "path": "Spark-X2.5-4B-Q4_K_M.gguf",
+   "size": 2600224352,
+   "lfs_oid_sha256": "adfcfa19a4ed6a5985da8bf565fe15f8e1a7e131d79bae2d19d48d1c40109428",
+   "lfs_size": 2600224352,
+   "xet_hash": "3ec20ece466c50235e07bcd3fdbe99f7d11fbe473b20de29a8b33d6ef6f5e45e"
+  },
+  {
+   "path": "Spark-X2.5-4B-Q8_0.gguf",
+   "size": 4375021152,
+   "lfs_oid_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+   "lfs_size": 4375021152,
+   "xet_hash": "33cdf9a668b09c6958ff98bd3a97c4e1c1dc26ec74601fbb0ef690e7797cd940"
+  },
+  {
+   "path": "Spark-X2.5-4B.gguf",
+   "size": 8229920352,
+   "lfs_oid_sha256": "8cecf405a41a4a10f833530910c2e13fde9fb39c325c8afc3c5d10e4181e1a14",
+   "lfs_size": 8229920352,
+   "xet_hash": "fb702a4969fdf3045b8ae81f83b3edd2fa5bd8a9f1a40e0877171dc1a454d9e5"
+  },
+  {
+   "path": "images/post_training_pipeline.svg",
+   "size": 10324
+  },
+  {
+   "path": "images/spark3-hybrid-architecture-light.png",
+   "size": 429073,
+   "lfs_oid_sha256": "5eddac6baf8e8460cc2a75b96070eff4074428674f3c33665bc2ff9479756bbd",
+   "lfs_size": 429073,
+   "xet_hash": "b05cfd6b38fc1463ba7c1f39b0f4ff493ab81cbdcbc7935d9d098e9d32d44fd9"
+  }
+ ]
+}

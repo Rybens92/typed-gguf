@@ -1,0 +1,62 @@
+{
+ "schema": "ggufone.runtime.lock/v1",
+ "why": "Pins the runtime the engine is built and tested against. Nothing in this file is ever downloaded implicitly: ggufone init reads this lock, picks the asset for the host and verifies size + SHA-256 before extracting. Kept in git; binaries never are.",
+ "llama_cpp": {
+  "repo": "ggml-org/llama.cpp",
+  "tag": "b11026",
+  "published_at": "2026-09-17T13:31:47Z",
+  "commit": "b49650adb",
+  "version_string": "version: 0.4.1-dev (build 11026, commit b49650adb)",
+  "min_build_for_spark2_5": 10828,
+  "assets": {
+   "linux-x64-cpu": {"asset": "llama-b11026-bin-ubuntu-x64.tar.gz", "size": 16855810, "sha256": "219cf1c726bae1da4289b96a6378314d5485c6bc74c43891a4203e30906afb06", "verified_locally": true},
+   "linux-x64-vulkan": {"asset": "llama-b11026-bin-ubuntu-vulkan-x64.tar.gz", "size": 30294625, "sha256": null},
+   "linux-x64-cuda-12.8": {"asset": "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz", "size": 168811114, "sha256": null},
+   "linux-x64-cuda-13.3": {"asset": "llama-b11026-bin-ubuntu-cuda-13.3-x64.tar.gz", "size": 149113548, "sha256": null},
+   "windows-x64-cpu": {"asset": "llama-b11026-bin-win-cpu-x64.zip", "size": 18439911, "sha256": null},
+   "windows-x64-vulkan": {"asset": "llama-b11026-bin-win-vulkan-x64.zip", "size": 31766385, "sha256": null},
+   "windows-x64-cuda-12.4": {"asset": "llama-b11026-bin-win-cuda-12.4-x64.zip", "size": 254193665, "sha256": null},
+   "macos-arm64-metal": {"asset": "llama-b11026-bin-macos-arm64.tar.gz", "size": 11156751, "sha256": null},
+   "macos-x64-metal": {"asset": "llama-b11026-bin-macos-x64.tar.gz", "size": 11204942, "sha256": null}
+  },
+  "url_template": "https://github.com/ggml-org/llama.cpp/releases/download/{tag}/{asset}",
+  "required_files": ["libllama.so", "libggml.so", "libggml-base.so"],
+  "required_tools": ["llama-fit-params", "llama-tokenize"],
+  "required_symbols_llama": [
+   "llama_backend_init", "llama_backend_free", "llama_model_default_params",
+   "llama_context_default_params", "llama_model_load_from_file", "llama_model_free",
+   "llama_init_from_model", "llama_free", "llama_model_get_vocab", "llama_model_meta_val_str",
+   "llama_model_chat_template", "llama_model_n_layer", "llama_model_n_embd", "llama_n_ctx",
+   "llama_n_seq_max", "llama_get_memory", "llama_memory_seq_cp", "llama_memory_seq_rm",
+   "llama_memory_seq_keep", "llama_state_seq_get_size", "llama_state_seq_save_file",
+   "llama_state_seq_load_file", "llama_batch_init", "llama_batch_free", "llama_batch_get_one",
+   "llama_decode", "llama_get_logits_ith", "llama_tokenize", "llama_token_to_piece",
+   "llama_vocab_n_tokens", "llama_chat_apply_template", "llama_synchronize"
+  ],
+  "required_symbols_ggml": ["ggml_backend_load_all", "ggml_backend_load_all_from_path"],
+  "mandatory_call_order": [
+   "CDLL(libggml.so, RTLD_GLOBAL)",
+   "ggml_backend_load_all_from_path(<runtime_dir>)",
+   "llama_backend_init()",
+   "llama_model_load_from_file()",
+   "llama_init_from_model() with kv_unified=True"
+  ]
+ },
+ "default_model": {
+  "repo": "XHToken/Spark-X2.5-4B-GGUF",
+  "repo_sha": "902d865994943ab9235670e24f01846ee06091f2",
+  "quant": "Q8_0",
+  "file": "Spark-X2.5-4B-Q8_0.gguf",
+  "size": 4375021152,
+  "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+  "arch": "spark2_5",
+  "license": "apache-2.0",
+  "alternates": {
+   "Q4_K_M": {"file": "Spark-X2.5-4B-Q4_K_M.gguf", "size": 2600224352, "sha256": "adfcfa19a4ed6a5985da8bf565fe15f8e1a7e131d79bae2d19d48d1c40109428"},
+   "F16": {"file": "Spark-X2.5-4B.gguf", "size": 8229920352, "sha256": "8cecf405a41a4a10f833530910c2e13fde9fb39c325c8afc3c5d10e4181e1a14"}
+  }
+ },
+ "oracle": "docs/verify_runtime_contract.py",
+ "evidence": "docs/evidence/",
+ "note": "sha256 values not yet computed (null) are downloaded-and-hashed by ggufone init on first use and written into the local runtime.json; the oracle fails if a *pinned* value drifts."
+}

@@ -1,0 +1,25 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Sync (dev)
+        run: uv sync --extra dev
+      - name: Lint
+        run: uv run ruff check .
+      - name: Unit gate (offline, no model downloads)
+        run: uv run pytest -q -m "not network and not model"
+      - name: Runtime contract oracle (offline pins)
+        run: python3 docs/verify_runtime_contract.py
+      - name: No-fine-tuning / no-sampling gate
+        run: uv run pytest -q tests/test_no_finetune.py

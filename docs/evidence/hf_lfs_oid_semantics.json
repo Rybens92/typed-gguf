@@ -1,0 +1,19 @@
+{
+ "captured_at": "2026-09-17",
+ "why": "The download-verification contract asserts sha256(local file) == HF tree API lfs.oid. That identity is itself a claim, so it was verified by execution on a small LFS object from the same repo.",
+ "repo": "XHToken/Spark-X2.5-4B-GGUF",
+ "file": "images/spark3-hybrid-architecture-light.png",
+ "url": "https://huggingface.co/XHToken/Spark-X2.5-4B-GGUF/resolve/main/images/spark3-hybrid-architecture-light.png",
+ "size_bytes": 429073,
+ "lfs_oid": "5eddac6baf8e8460cc2a75b96070eff4074428674f3c33665bc2ff9479756bbd",
+ "observed_sha256": "5eddac6baf8e8460cc2a75b96070eff4074428674f3c33665bc2ff9479756bbd",
+ "command": "curl -sL <url> -o lfs_check.png && sha256sum lfs_check.png",
+ "additional_evidence": {
+  "default_model_local_copy": {
+   "path": "/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+   "size_bytes": 4375021152,
+   "sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+   "equals_hf_lfs_oid": true
+  }
+ }
+}

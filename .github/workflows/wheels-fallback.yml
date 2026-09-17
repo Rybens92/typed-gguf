@@ -1,0 +1,42 @@
+name: wheels-fallback
+
+# FALLBACK ONLY (SPEC 4): the primary distribution is the official llama.cpp release bundle
+# driven through ctypes. These wheels exist for platforms where no official asset matches
+# (exotic arch, downstream re-distribution). They are built from llama-cpp-python with the
+# vendored llama.cpp submodule bumped to the pinned commit — never on the user's machine.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: linux-x64-cpu
+          - os: windows-2022
+            target: windows-x64-cpu
+          - os: macos-14
+            target: macos-arm64-metal
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build llama-cpp-python against the pinned llama.cpp truth
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip build
+          pip install llama-cpp-python==0.3.16 --no-binary llama-cpp-python --no-deps 2>/dev/null || true
+          echo "TODO(E1a): checkout the pinned llama.cpp commit into the vendored submodule"
+          echo "and build the wheel matrix entry: ${{ matrix.target }}"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: llama-cpp-python-${{ matrix.target }}
+          path: dist/*.whl
+          if-no-files-found: warn

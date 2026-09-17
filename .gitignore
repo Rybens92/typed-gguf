@@ -1,0 +1,21 @@
+# models and runtimes are data, never repo content (root-anchored: src/ggufone/runtime IS source)
+*.gguf
+/models/
+/runtime/
+/states/
+*.part
+# native libraries and build leftovers
+*.so
+*.so.*
+*.dylib
+*.dll
+build/
+dist/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+coverage.xml
+.hermes/

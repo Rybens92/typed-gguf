@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ggufone"
+version = "0.1.0"
+description = "GGUF-native typed decision engine: state + typed questions -> typed answers with probabilities, on frozen models (no fine-tuning, no text generation)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "ggufone contributors" }]
+keywords = ["gguf", "llama.cpp", "decisions", "llm", "local"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+# Hard rule: the core engine has ZERO third-party runtime dependencies (stdlib only).
+# cf. SPEC.md 2.11 ("no fine-tuning guarantee") and A2/A7.
+dependencies = []
+
+[project.optional-dependencies]
+# accelerated HuggingFace downloads (Xet / hf_transfer); download works without it
+network = ["hf_transfer>=0.1.6"]
+# optional compatibility runtime backend (degraded: no spark2_5, no Vulkan wheels, no fit)
+llamacpp = ["llama-cpp-python>=0.3.16"]
+dev = ["pytest>=8.0", "pytest-timeout>=2.3", "ruff>=0.6"]
+
+[project.scripts]
+ggufone = "ggufone.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Rybens92/ggufone"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ggufone"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+  "network: needs network (deselected by default via -m 'not network')",
+  "model: needs a real GGUF model on disk",
+]
+filterwarnings = ["error"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+# docs/evidence/ holds captured third-party artifacts (e.g. the operator's PoC). Frozen
+# evidence, not our code: it is pinned by the oracle and never edited.
+exclude = ["docs/evidence", "state", ".venv", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# the oracle mirrors reference implementations in one long, readable script
+"docs/verify_runtime_contract.py" = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"

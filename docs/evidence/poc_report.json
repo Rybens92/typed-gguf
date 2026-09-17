@@ -1,0 +1,34 @@
+{
+ "captured_at": "2026-09-17",
+ "author": "bots-coordinator",
+ "runtime": "llama.cpp b11026",
+ "runtime_asset": "llama-b11026-bin-ubuntu-x64.tar.gz",
+ "runtime_dir": "/tmp/llamalib/llama-b11026",
+ "model": "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+ "model_arch": "qwen35",
+ "backend": "cpu",
+ "measurements": {
+  "model_load_s": 0.67,
+  "prefill_tokens": 44,
+  "prefill_ms": 279,
+  "batched_branch_tokens": 63,
+  "batched_branch_decode_ms": 397,
+  "vocab_size": 248320,
+  "n_layer": 24
+ },
+ "fork_vs_sequential_max_abs_delta": 0.0,
+ "readout_examples": {
+  "branch_1_severity": {"A": 0.295, "B": 0.291, "C": 0.266, "D": 0.148},
+  "branch_2_oncall": {"B": 0.494, "A": 0.41}
+ },
+ "pitfalls": [
+  "ggml_backend_load_all_from_path(<dir with libs>) MUST run before llama_model_load_from_file, otherwise it returns NULL ('no backends are loaded')",
+  "llama_context_params.kv_unified MUST be true: without it each sequence gets its own KV stream and llama_memory_seq_cp across streams hits GGML_ASSERT(is_full) and kills the process",
+  "llama_get_logits_ith(ctx, i) takes the TOKEN INDEX WITHIN THE BATCH, not the order of the logits flags"
+ ],
+ "notes": [
+  "Two branches (different questions) were decoded in ONE llama_batch: tokens of both suffixes in the same batch, each with its own seq_id, logits flag only on the last token of each branch.",
+  "Positions: both branches start at len(prefix) — cross-sequence positions may coincide.",
+  "Equivalence test: the same question decoded sequentially on a fresh context produced probabilities identical to the fork readout (max |delta| = 0.00e+00)."
+ ]
+}

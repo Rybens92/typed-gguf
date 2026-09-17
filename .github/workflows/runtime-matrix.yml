@@ -1,0 +1,78 @@
+name: runtime-matrix
+
+# Downloads the PINNED official llama.cpp release asset per platform and runs the oracle's
+# live section against it. A job FAILS if the live section skips (that would mean the
+# distribution path silently regressed). This is the acceptance harness for SPEC A1 / A6
+# and milestone E1a.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * 1"
+
+jobs:
+  linux-cpu:
+    runs-on: ubuntu-24.04
+    steps: &steps
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --extra dev
+      - name: Download the pinned bundle
+        run: |
+          set -euo pipefail
+          ver=$(python3 -c "import re,pathlib;print(re.search(r'LLAMA_TAG = \"(b[0-9]+)\"', pathlib.Path('src/ggufone/runtime/pins.py').read_text()).group(1))" 2>/dev/null || echo b11026)
+          curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/${ver}/llama-${ver}-bin-ubuntu-x64.tar.gz"
+          mkdir -p /tmp/ggufone-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/ggufone-rt
+      - name: Oracle (live, skips are failures)
+        run: |
+          set -euo pipefail
+          out=$(GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt python3 docs/verify_runtime_contract.py)
+          echo "$out"
+          ! grep -q "SKIP" <<< "$out"
+
+  linux-vulkan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: sudo apt-get update && sudo apt-get install -y libvulkan1
+      - run: uv sync --extra dev
+      - name: Download the pinned Vulkan bundle
+        run: |
+          set -euo pipefail
+          curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-ubuntu-vulkan-x64.tar.gz"
+          mkdir -p /tmp/ggufone-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/ggufone-rt
+      - name: Oracle (live)
+        run: |
+          set -euo pipefail
+          out=$(GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt python3 docs/verify_runtime_contract.py)
+          echo "$out"
+          ! grep -q "SKIP" <<< "$out"
+
+  windows-cpu:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --extra dev
+      - name: Download the pinned CPU bundle
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-win-cpu-x64.zip" -OutFile runtime.zip
+          Expand-Archive -Path runtime.zip -DestinationPath /tmp/ggufone-rt
+      # The oracle's live section loads .so paths (linux); Windows runs the doctor smoke
+      # once E1a lands: `uv run ggufone init --runtime-dir /tmp/ggufone-rt && uv run ggufone doctor`
+
+  macos-metal:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --extra dev
+      - name: Download the pinned Metal bundle
+        run: |
+          set -euo pipefail
+          curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-macos-arm64.tar.gz"
+          mkdir -p /tmp/ggufone-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/ggufone-rt
+      - name: Doctor smoke (E1a)
+        run: uv run ggufone doctor --help
