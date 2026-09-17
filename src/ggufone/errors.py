@@ -79,6 +79,39 @@ class Sha256MismatchError(RuntimeError_):
     code = "E_SHA256_MISMATCH"
 
 
+# --- E1b: engine-side codes (SPEC 2.5 catalog + the E_STATE_LOAD_FAILED addition) ---
+class CandidateCollisionError(UserError):
+    """Two candidates of one question score the same token sequence (exit 2)."""
+
+    code = "E_CANDIDATE_COLLISION"
+
+
+class ContextTooSmallError(RuntimeError_):
+    code = "E_CTX_TOO_SMALL"
+
+
+class SeqMaxExceededError(RuntimeError_):
+    code = "E_SEQ_MAX_EXCEEDED"
+
+
+class PrefillFailedError(RuntimeError_):
+    code = "E_PREFILL_FAILED"
+
+
+class DecodeFailedError(RuntimeError_):
+    code = "E_DECODE_FAILED"
+
+
+class StateLoadFailedError(RuntimeError_):
+    """A saved prefix state could not be loaded (corrupt/truncated) — A-E1b-8.
+
+    Not in the SPEC 2.5 catalog: added in E1b because the acceptance criterion requires a
+    pinned code, and the cache must be invalidated instead of crashing.
+    """
+
+    code = "E_STATE_LOAD_FAILED"
+
+
 # Codes are frozen by SPEC 2.5; implementations must use exactly these strings.
 ERROR_CODES = (
     "E_UNKNOWN_KEY", "E_STATE_EMPTY", "E_QID_INVALID", "E_Q_TYPE_UNKNOWN",
@@ -91,6 +124,8 @@ ERROR_CODES = (
     "E_HF_AUTH_REQUIRED",   # gated/private HF repo without a usable token
     "E_INSUFFICIENT_DISK",  # download precheck: required bytes > free bytes
     "E_REGISTRY_CORRUPT",   # registry.json unreadable (quarantined, never silently lost)
+    # E1b addition (A-E1b-8 requires a pinned code for a corrupt/truncated state file):
+    "E_STATE_LOAD_FAILED",
 )
 WARNING_CODES = (
     "W_LOW_MASS", "W_LOW_CONFIDENCE", "W_UNKNOWN_OPTION", "W_TRUNCATED_STATE",

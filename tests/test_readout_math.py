@@ -52,7 +52,8 @@ def test_confidence_normalized_peak_reference_values() -> None:
 
 def test_confidence_modes_exist_and_are_bounded() -> None:
     probs = [0.6, 0.3, 0.1]
-    assert readout.CONFIDENCE_MODES["normalized_peak"](probs) == readout.confidence_normalized_peak(probs)
+    assert readout.CONFIDENCE_MODES["normalized_peak"](probs) \
+        == readout.confidence_normalized_peak(probs)
     assert readout.CONFIDENCE_MODES["entropy"](probs) == readout.confidence_entropy(probs)
     assert readout.CONFIDENCE_MODES["margin"](probs) == readout.confidence_margin(probs)
     assert readout.confidence(probs, "entropy") == readout.confidence_entropy(probs)
@@ -86,7 +87,8 @@ def test_coverage_matches_the_full_vocab_softmax_mass() -> None:
 
 def test_coverage_from_row_uses_token_ids_not_positions() -> None:
     row = [2.0, 1.0, 0.0, -1.0]
-    assert readout.coverage_from_row(row, [0, 1]) == pytest.approx(readout.coverage([2.0, 1.0], row))
+    assert readout.coverage_from_row(row, [0, 1]) \
+        == pytest.approx(readout.coverage([2.0, 1.0], row))
     # ids out of the prefix select their own slots (engine path: arbitrary vocab ids)
     assert readout.coverage_from_row(row, [3]) == pytest.approx(readout.softmax(row)[3])
     assert readout.coverage_from_row(row, [3, 3]) == pytest.approx(2 * readout.softmax(row)[3])
