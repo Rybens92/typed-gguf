@@ -134,11 +134,16 @@ def _cmd_init(args: list[str]) -> int:
         return 0
     if result.get("already_installed"):
         payload = {"already_installed": True, "variant": result["variant"],
-                   "dir": result["dir"], "hint": result["hint"]}
+                   "backend": result.get("backend"), "dir": result["dir"],
+                   "working_backend": result.get("working_backend"),
+                   "fallback_attempts": result.get("fallback_attempts", []),
+                   "hint": result["hint"]}
         _emit(payload, bool(options.get("json")))
         return 0
     record = result["record"]
     payload = {"installed": True, "variant": result["variant"], "dir": result["dir"],
+               "backend": result.get("backend"),
+               "working_backend": result.get("working_backend"),
                "source": result["source"], "asset": record["asset"],
                "asset_sha256": record["asset_sha256"],
                "asset_verified": record["asset_verified"],
@@ -146,9 +151,15 @@ def _cmd_init(args: list[str]) -> int:
                "bytes_fetched": result.get("bytes_fetched"),
                "resumed_from": result.get("resumed_from"),
                "build": record["build"], "backends": record["backends"],
+               "backend_errors": record.get("backend_errors", {}),
+               "fallback_attempts": record.get("fallback_attempts", []),
+               "fallback_reason": record.get("fallback_reason"),
                "symbols_ok": record["symbols_ok"], "warmup_ms": record["warmup_ms"],
                "rung": record["rung"]}
     _emit(payload, bool(options.get("json")))
+    if record.get("fallback_reason"):
+        print(f"warning: fell back from {record.get('backend_requested')} to "
+              f"{result['variant']}: {record['fallback_reason']}", file=sys.stderr)
     for warning in record.get("probe_warnings", []):
         print(f"warning: {warning}", file=sys.stderr)
     for failure in record.get("probe_failures", []):
@@ -211,9 +222,36 @@ def doctor_checks(home: pathlib.Path | None = None,
             add("runtime.fit_params", "warn", "llama-fit-params not bundled (auto-fit limited)")
         accel = [b for b in probe.backends if b not in ("cpu", "rpc", "base")]
         expected_backend = capability.host_expectation()
+        working_backend = probe.accelerator()
         add("runtime.backends", "ok" if probe.backends else "warn",
-            "backends: " + (", ".join(probe.backends) or "none"))
+            "backends: " + (", ".join(probe.backends) or "none")
+            + (f" (driveable here: {working_backend})" if probe.backends else ""))
+        for name, load_error in sorted(probe.backend_errors.items()):
+            add(f"runtime.backend.{name}", "warn",
+                f"the {name} backend does not load on this host: {load_error}")
         record = finder.runtime_record(home)
+        if expected_backend == "cpu":
+            add("runtime.accelerator", "ok",
+                "no GPU on this host; CPU placement is the expected backend")
+        elif probe.usable(expected_backend):
+            add("runtime.accelerator", "ok", f"{expected_backend} present and loadable")
+        elif expected_backend in probe.backend_errors:
+            add("runtime.accelerator", "warn",
+                f"expected accelerator {expected_backend!r} does not load here "
+                f"({probe.backend_errors[expected_backend]}); using {working_backend!r}")
+        elif accel:
+            add("runtime.accelerator", "warn",
+                f"expected accelerator {expected_backend!r} is not in this bundle "
+                f"(backends: {', '.join(probe.backends) or 'none'}); re-run `ggufone init "
+                f"--backend {expected_backend}`")
+        else:
+            add("runtime.accelerator", "warn",
+                f"no accelerator in this bundle (expected {expected_backend!r}); CPU works "
+                f"but decoding is slower")
+        if record and record.get("fallback_reason"):
+            add("runtime.fallback", "warn",
+                f"installed {record.get('variant')} after {record.get('backend_requested')} "
+                f"was unusable here: {record['fallback_reason']}")
         if not record or not record.get("libllama_sha256"):
             add("runtime.sha_recorded", "warn",
                 "runtime.json has no libllama.so SHA-256 (re-run `ggufone init --force`)")
@@ -224,16 +262,6 @@ def doctor_checks(home: pathlib.Path | None = None,
         else:
             digest = record["libllama_sha256"][:16]
             add("runtime.sha_recorded", "ok", f"libllama.so sha256 {digest}…")
-        if accel:
-            add("runtime.accelerator", "ok", ", ".join(accel) + " present")
-        elif expected_backend == "cpu":
-            add("runtime.accelerator", "ok",
-                "no GPU on this host; CPU placement is the expected backend")
-        else:
-            add("runtime.accelerator", "warn",
-                f"expected accelerator {expected_backend!r} is not in this bundle "
-                f"(backends: {', '.join(probe.backends) or 'none'}); re-run `ggufone init "
-                f"--backend {expected_backend}`")
 
     registry, registry_warnings = store.load_registry(store.registry_path(home))
     for warning in registry_warnings:
@@ -287,6 +315,11 @@ def doctor_checks(home: pathlib.Path | None = None,
             "variant": (finder.runtime_record(home) or {}).get("variant"),
             "build": probe.build if probe else None,
             "backends": list(probe.backends) if probe else [],
+            "working_backend": probe.accelerator() if probe else None,
+            "backend_errors": dict(probe.backend_errors) if probe else {},
+            "backend_requested": (finder.runtime_record(home) or {}).get("backend_requested"),
+            "fallback_reason": (finder.runtime_record(home) or {}).get("fallback_reason"),
+            "fallback_attempts": (finder.runtime_record(home) or {}).get("fallback_attempts", []),
             "symbols_required": len(lock.all_symbols),
             "symbols_missing": list(probe.missing_symbols) if probe else [],
             "symbols_probed": bool(probe and probe.symbols_checked),

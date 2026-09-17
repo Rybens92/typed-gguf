@@ -141,6 +141,23 @@ def backends(runtime_dir: str | os.PathLike[str], *, system: str | None = None) 
     return sorted(found)
 
 
+def load_backend_library(path: str | os.PathLike[str] | pathlib.Path) -> str | None:
+    """dlopen one backend shared object: `None` when it loads, else the error text.
+
+    This is the check that decides whether a GPU bundle is usable *on this host*: the pinned
+    CUDA build fails with `libcudart.so.12: cannot open shared object file` on a box without
+    the CUDA runtime/driver, which is what makes `init` fall back cuda -> vulkan -> cpu and
+    what makes `doctor` report the working backend (E1a FIX requirement 4). Real dlopen in
+    production; tests inject this seam instead of shipping a loadable ELF per backend.
+    """
+    path = pathlib.Path(path)
+    try:
+        C.CDLL(str(path), mode=getattr(C, "RTLD_GLOBAL", 0))
+    except OSError as exc:
+        return f"{path.name}: {exc}"
+    return None
+
+
 # --------------------------------------------------------------------- probe
 @dataclass
 class ProbeResult:
@@ -154,6 +171,7 @@ class ProbeResult:
     expected_tag: str = ""
     min_build: int = 0
     backends: tuple[str, ...] = ()
+    backend_errors: dict[str, str] = field(default_factory=dict)
     tools: dict[str, str] = field(default_factory=dict)
     fit_params_help_exit: int | None = None
     expect_backend: str | None = None
@@ -162,6 +180,19 @@ class ProbeResult:
     @property
     def tag(self) -> str | None:
         return build_tag(self.build)
+
+    def usable(self, backend: str) -> bool:
+        """Is `backend` both present in this bundle *and* loadable on this host?"""
+        if backend == "cpu":
+            return True
+        return backend in self.backends and backend not in self.backend_errors
+
+    def accelerator(self) -> str:
+        """The best accelerator this bundle can actually drive here (cpu is always driveable)."""
+        for name in self.backends:
+            if name not in ("cpu", "rpc", "base") and name not in self.backend_errors:
+                return name
+        return "cpu"
 
     def failures(self) -> list[str]:
         out: list[str] = []
@@ -193,6 +224,10 @@ class ProbeResult:
                        f"(the oracle pins the pinned build; re-run `ggufone init --force`)")
         if not self.symbols_checked:
             out.append("symbol probe skipped (deep probe disabled via GGUFONE_DEEP_PROBE=0)")
+        for name, error in sorted(self.backend_errors.items()):
+            out.append(f"W_BACKEND_LOAD: the {name} backend of this bundle does not load on "
+                       f"this host ({error}); ggufone uses {self.accelerator()} instead "
+                       f"(backend_errors in `doctor --json` has the raw dlopen error)")
         if self.missing_files:
             return out
         if self.expect_backend and self.expect_backend not in self.backends:
@@ -267,6 +302,17 @@ def probe_runtime(runtime_dir: str | os.PathLike[str] | None = None, *, deep: bo
             rt, lock.required_symbols_llama, lock.required_symbols_ggml, system=system)
         result.missing_symbols = tuple(missing_llama + missing_ggml)
         result.error = error
+    if deep and not missing:
+        # Independent of the symbol scan: each accelerator backend has to dlopen *on this host*
+        # or `init` falls back to the next tier (E1a FIX requirement 4). A CUDA build fails here
+        # with `libcudart.so.12: cannot open shared object file` when the runtime/driver is absent.
+        for path in sorted(rt.glob(finder.library_glob(system))):
+            name = _backend_name(path.name)
+            if name in (None, "cpu"):
+                continue
+            backend_error = load_backend_library(path)
+            if backend_error:
+                result.backend_errors[name] = backend_error
     if run_tools:
         fit = rt / "llama-fit-params"
         if "llama-fit-params" in layout.tools:
