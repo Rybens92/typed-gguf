@@ -66,12 +66,6 @@ class DeviceUsage:
     kv_buffers: dict[str, int] = field(default_factory=dict)
     layers: dict[str, int] = field(default_factory=dict)
 
-    def to_dict(self) -> dict[str, Any]:
-        return {"compute_buffers": dict(self.compute_buffers),
-                "model_buffers": dict(self.model_buffers),
-                "kv_buffers": dict(self.kv_buffers),
-                "layers": dict(self.layers)}
-
     @property
     def devices(self) -> tuple[str, ...]:
         """Every device name the log mentions (sorted) — what the engine touched."""

@@ -184,7 +184,8 @@ def _mismatch_note(claimed: str, attribution: Mapping[str, Any]) -> str:
         detail = ("carries no compute-buffer line for that backend, so the row cannot be "
                   "corroborated; re-run one backend per process (`--backend <one>`) before "
                   "publishing it.")
-    return f"W_BACKEND_MISMATCH: the row claims backend `{claimed}` but the engine's own log {detail}"
+    return (f"W_BACKEND_MISMATCH: the row claims backend `{claimed}` but the engine's own log "
+            f"{detail}")
 
 
 def _attribution(report: dict[str, Any], claimed: str, model: harness.ModelLike) -> None:
