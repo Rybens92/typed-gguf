@@ -1,0 +1,15 @@
+{
+  "schema": "ggufone.bench.threads-probe/v1",
+  "note": "Independent 5-point threads probe run before the suite existed, on the same box and the same engine code path (direct `session_module.open_model` + `ModelEngine.decide`, 78-token prefix, 4-candidate choice, warm prefix state cache). It corroborates the suite's --threads sweep (spark_t{1,4,24}_latency.json) and shows the whole curve.",
+  "command": "GGUFONE_RUNTIME_DIR=<bundle> python3 /tmp/probe1.py threads   # scratch probe, logs in /tmp/probe_threads.log",
+  "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "backend": "cpu",
+  "prefix_tokens": 78,
+  "rows": [
+    {"threads": 1, "model_load_ms": 1187, "prefill_ms": 11314, "prefill_tok_per_s": 6.9, "questions_ms": 4403, "total_ms": 15718, "waves": 2, "forks": 4, "decode_steps": 6},
+    {"threads": 2, "model_load_ms": 1038, "prefill_ms": 9384, "prefill_tok_per_s": 8.3, "questions_ms": 4100, "total_ms": 13486, "waves": 2, "forks": 4, "decode_steps": 6},
+    {"threads": 4, "model_load_ms": 764, "prefill_ms": 6040, "prefill_tok_per_s": 12.9, "questions_ms": 3748, "total_ms": 9790, "waves": 2, "forks": 4, "decode_steps": 6},
+    {"threads": 8, "model_load_ms": 1226, "prefill_ms": 8900, "prefill_tok_per_s": 8.8, "questions_ms": 5599, "total_ms": 14501, "waves": 2, "forks": 4, "decode_steps": 6},
+    {"threads": 24, "model_load_ms": 1085, "prefill_ms": 43461, "prefill_tok_per_s": 1.8, "questions_ms": 73429, "total_ms": 116892, "waves": 2, "forks": 4, "decode_steps": 6}
+  ]
+}

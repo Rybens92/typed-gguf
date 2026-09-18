@@ -582,9 +582,9 @@ def render_report(report: Mapping[str, Any]) -> str:
              f"threads={config.get('threads')}",
              f"- reproduce: `{report.get('commands', {}).get('reproduce')}`",
              ""]
-    summary_header = ["row", "n", "p50", "p95", "min", "max"]
+    summary_header = ["n", "p50", "p95", "min", "max"]
     if report.get("suite") == "latency":
-        lines += _table("model load (ms)", summary_header,
+        lines += _table("model load (ms)", ["row"] + summary_header,
                         [_summary_row("model_load_ms", report.get("model_load", {}))])
         lines += _table("prefill", ["tokens"] + summary_header,
                         [_summary_row(str(row["tokens"]), row["ms"], []) for row in
@@ -592,16 +592,15 @@ def render_report(report: Mapping[str, Any]) -> str:
         lines += _table("prefill throughput (tok/s)", ["tokens"] + summary_header,
                         [_summary_row(str(row["tokens"]), row["tok_per_s"])
                          for row in report.get("prefill", [])])
-        lines += _table("per question", ["candidates"] + summary_header,
+        lines += _table("per question", ["candidates", "waves", "forks"] + summary_header,
                         [_summary_row(str(row["candidates"]), row["ms"],
-                                      [f"{row['waves']} waves", f"{row['forks']} forks"])
+                                      [row["waves"], row["forks"]])
                          for row in report.get("per_question", [])])
-        lines += _table("wave scaling (N questions)", ["questions"] + summary_header,
-                        [_summary_row(str(row["questions"]), row["ms"],
-                                      [f"{row['waves']} waves"])
+        lines += _table("wave scaling (N questions)", ["questions", "waves"] + summary_header,
+                        [_summary_row(str(row["questions"]), row["ms"], [row["waves"]])
                          for row in report.get("wave_scaling", [])])
         warm = report.get("warm_cache", {})
-        lines += _table("warm cache (state reuse)", summary_header,
+        lines += _table("warm cache (state reuse)", ["row"] + summary_header,
                         [_summary_row("prefill_ms", warm.get("prefill_ms", {})),
                          _summary_row("questions_ms", warm.get("questions_ms", {}))])
         amortised = report.get("load_amortisation", {})

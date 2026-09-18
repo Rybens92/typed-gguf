@@ -350,6 +350,19 @@ def test_a_cpu_only_bundle_is_not_mistaken_for_an_accelerator(tmp_path, monkeypa
     assert "libggml-vulkan.so" in harness.backend_unavailable_reason("vulkan")
 
 
+def test_the_reproduce_tool_parses_sizes_like_the_cli():
+    """`tools/e2_reproduce.py` builds the same config the CLI does; keep the two parsers equal."""
+    import importlib.util
+
+    root = pathlib.Path(__file__).resolve().parents[1]
+    tool = root / "tools" / "e2_reproduce.py"
+    spec = importlib.util.spec_from_file_location("e2_reproduce", tool)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert module.parse_sizes("128, 512") == cli._bench_sizes("128, 512") == (128, 512)
+    assert module.parse_sizes(None) == cli._bench_sizes(None) == harness.PREFILL_SIZES
+
+
 def test_latency_records_the_threads_per_row_because_they_change_everything():
     report = suites.run_suite(harness.BenchConfig(suite="latency", model_path="/tmp/fake.gguf",
                                                   runs=3, threads=1),
@@ -376,6 +389,8 @@ def test_throughput_measures_each_local_backend_and_reports_the_missing_ones():
     assert row["decision_ms"]["p50"] > 0
     assert row["decision_tok_per_s"]["p50"] > 0
     assert row["placement"] == "n_gpu_layers=0"                # cpu placement is explicit
+    # one prefill size is enough to compare backends (the size sweep is the latency suite's job)
+    assert [entry["tokens"] for entry in row["prefill"]] == [harness.PREFILL_SIZES[0]]
 
 
 def test_a_forced_backend_without_a_bundle_is_an_error_not_a_silent_fallback():
@@ -600,6 +615,38 @@ def test_render_report_produces_a_markdown_table_per_section():
     assert "| p50 | p95 |" in markdown
     assert "| 256 |" in markdown and "| 8192 |" in markdown
     assert "latency" in markdown
+
+
+def test_every_rendered_table_has_columns_that_line_up():
+    """A table whose rows have a different cell count than its header is a lie — pin it."""
+    factories = {
+        "latency": (harness.BenchConfig(suite="latency", model_path="/tmp/fake.gguf", runs=2),
+                    bench_factory()),
+        "throughput": (harness.BenchConfig(suite="throughput", model_path="/tmp/fake.gguf",
+                                           runs=2, backend="all"), bench_factory()),
+        "quality": (harness.BenchConfig(suite="quality", model_path="/tmp/fake.gguf", runs=1,
+                                        items=6), bench_factory(script=devset_script(right=True))),
+        "calibration": (harness.BenchConfig(suite="calibration", model_path="/tmp/fake.gguf",
+                                            runs=1, items=8),
+                        bench_factory(script=devset_script(right=True))),
+        "determinism": (harness.BenchConfig(suite="determinism", model_path="/tmp/fake.gguf"),
+                        bench_factory()),
+    }
+    checked = 0
+    for suite, (config, factory) in factories.items():
+        markdown = harness.render_report(suites.run_suite(config, factory=factory))
+        block: list[str] = []
+        for line in [*markdown.splitlines(), ""]:
+            if line.startswith("|"):
+                block.append(line)
+                continue
+            if block:
+                widths = {len(row.split("|")) for row in block}
+                assert len(widths) == 1, f"{suite}: table rows disagree ({widths}):\n" + \
+                    "\n".join(block)
+                checked += 1
+                block = []
+    assert checked >= 8
 
 
 def test_render_report_covers_the_other_four_suites():

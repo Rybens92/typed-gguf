@@ -36,10 +36,19 @@ def _runtime() -> pathlib.Path:
 
 
 def _model() -> pathlib.Path:
+    """A benchmarkable GGUF: `GGUFONE_BENCH_MODEL` first, then the two known local models.
+
+    The env override is deliberate — a live run must not depend on `$HOME` matching the box that
+    holds the models (this container runs with a scratch HOME).
+    """
+    explicit = os.environ.get("GGUFONE_BENCH_MODEL")
+    if explicit and pathlib.Path(explicit).exists():
+        return pathlib.Path(explicit)
     for candidate in (QWEN, SPARK):
         if candidate.exists():
             return candidate
-    pytest.skip(f"no benchmarkable GGUF on this box ({QWEN} / {SPARK})")
+    pytest.skip(f"no benchmarkable GGUF on this box ({QWEN} / {SPARK}); "
+                f"set GGUFONE_BENCH_MODEL")
 
 
 @pytest.mark.model

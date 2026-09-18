@@ -40,7 +40,25 @@ def build_config(args: argparse.Namespace, suite: str) -> harness.BenchConfig:
         n_seq_max=args.n_seq_max,
         kv_type=args.kv_type,
         gpu_layers=args.gpu_layers,
-        n_bins=args.n_bins)
+        n_bins=args.n_bins,
+        prefill_sizes=parse_sizes(args.sizes))
+
+
+def parse_sizes(value: str | None) -> tuple[int, ...]:
+    """`--sizes 256,2048` -> the prefill sizes of this run (the CLI's parser, kept in sync)."""
+    if not value:
+        return harness.PREFILL_SIZES
+    sizes: list[int] = []
+    for part in str(value).split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if not part.isdigit() or int(part) <= 0:
+            raise SystemExit(f"--sizes takes positive token counts (got {part!r})")
+        sizes.append(int(part))
+    if not sizes:
+        raise SystemExit("--sizes needs at least one token count")
+    return tuple(sizes)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -59,6 +77,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--kv-type", dest="kv_type", default="auto")
     parser.add_argument("--gpu-layers", dest="gpu_layers", type=int, default=None)
     parser.add_argument("--n-bins", dest="n_bins", type=int, default=harness.N_BINS)
+    parser.add_argument("--sizes", default=None,
+                        help="prefill sizes of the latency table, e.g. 256,2048 (default: "
+                             + ",".join(str(size) for size in harness.PREFILL_SIZES) + ")")
     parser.add_argument("--out", default=None, help="write the JSON report here")
     parser.add_argument("--out-dir", dest="out_dir", default=None,
                         help="write each report as <out-dir>/e2_<suite>.json")

@@ -1,0 +1,22 @@
+{
+ "schema": "ggufone.bench.vulkan-probe/v1",
+ "captured_at": "2026-09-18T10:14:06Z",
+ "tag": "[executed: lavapipe]",
+ "cache_before": {},
+ "cache_after": {},
+ "runs": [
+  {
+   "label": "process 1",
+   "error": "ack (most recent call last):\n  File \"/work/e2repo/tools/e2_vulkan_probe.py\", line 158, in <module>\n    raise SystemExit(main())\n                     ^^^^^^\n  File \"/work/e2repo/tools/e2_vulkan_probe.py\", line 119, in main\n    print(json.dumps(run_once(runtime, model)))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/e2repo/tools/e2_vulkan_probe.py\", line 98, in run_once\n    live.prefill(tokens, state_cache=False)\n  File \"/work/e2repo/src/ggufone/engine/session.py\", line 219, in prefill\n    self.decode(Batch(tokens=tuple(tokens), seq_ids=(0,) * len(tokens),\n  File \"/work/e2repo/src/ggufone/engine/session.py\", line 256, in decode\n    raise DecodeFailedError(f\"E_DECODE_FAILED: llama_decode returned {rc}\")\nggufone.errors.DecodeFailedError: E_DECODE_FAILED: llama_decode returned -1\n"
+  },
+  {
+   "label": "process 2",
+   "error": "ack (most recent call last):\n  File \"/work/e2repo/tools/e2_vulkan_probe.py\", line 158, in <module>\n    raise SystemExit(main())\n                     ^^^^^^\n  File \"/work/e2repo/tools/e2_vulkan_probe.py\", line 119, in main\n    print(json.dumps(run_once(runtime, model)))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/e2repo/tools/e2_vulkan_probe.py\", line 98, in run_once\n    live.prefill(tokens, state_cache=False)\n  File \"/work/e2repo/src/ggufone/engine/session.py\", line 219, in prefill\n    self.decode(Batch(tokens=tuple(tokens), seq_ids=(0,) * len(tokens),\n  File \"/work/e2repo/src/ggufone/engine/session.py\", line 256, in decode\n    raise DecodeFailedError(f\"E_DECODE_FAILED: llama_decode returned {rc}\")\nggufone.errors.DecodeFailedError: E_DECODE_FAILED: llama_decode returned -1\n"
+  },
+  {
+   "label": "process 3",
+   "error": "ack (most recent call last):\n  File \"/work/e2repo/tools/e2_vulkan_probe.py\", line 158, in <module>\n    raise SystemExit(main())\n                     ^^^^^^\n  File \"/work/e2repo/tools/e2_vulkan_probe.py\", line 119, in main\n    print(json.dumps(run_once(runtime, model)))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/e2repo/tools/e2_vulkan_probe.py\", line 98, in run_once\n    live.prefill(tokens, state_cache=False)\n  File \"/work/e2repo/src/ggufone/engine/session.py\", line 219, in prefill\n    self.decode(Batch(tokens=tuple(tokens), seq_ids=(0,) * len(tokens),\n  File \"/work/e2repo/src/ggufone/engine/session.py\", line 256, in decode\n    raise DecodeFailedError(f\"E_DECODE_FAILED: llama_decode returned {rc}\")\nggufone.errors.DecodeFailedError: E_DECODE_FAILED: llama_decode returned -1\n"
+  }
+ ],
+ "note": "Software Vulkan (Mesa lavapipe) on a container with no GPU: this measures the *mechanism* (first-decode pipeline creation inside a process, reuse afterwards, and whether the driver's on-disk cache grows/carries across processes), not a GPU's absolute shader-compile time."
+}

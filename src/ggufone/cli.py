@@ -17,8 +17,7 @@ import time
 from typing import Any
 
 from ggufone import __version__, schema
-from ggufone.bench import harness
-from ggufone.bench import suites
+from ggufone.bench import harness, suites
 from ggufone.engine import decide
 from ggufone.engine import session as session_module
 from ggufone.errors import GgufoneError, ModelNotFoundError, Sha256MismatchError, UserError

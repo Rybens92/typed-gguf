@@ -38,6 +38,12 @@ Default model: [`XHToken/Spark-X2.5-4B-GGUF`](https://huggingface.co/XHToken/Spa
   `(model sha256, host fingerprint)`, applied on load unless `--no-fit`) and `docs/TEMPLATES.md`.
   Measured numbers: `docs/evidence/e1c_e2e.json` (four example question sets end to end),
   `docs/evidence/e1c_t_c8e36cad_*.md` (gate table + receipts).
+- **E2 (done)** — benchmarks: `ggufone bench --suite latency|throughput|quality|calibration|
+  determinism` over the pinned runtime, a committed 60-item labeled dev set
+  (`src/ggufone/bench/devset.jsonl`, authored here, provenance recorded), and the published
+  tables in `docs/BENCHMARKS.md` (raw reports `docs/evidence/e2_*.json`). A benchmark never reads
+  the model registry and never opens a socket: `--model` is a path on disk. One command
+  reproduces each table — `python3 tools/e2_reproduce.py --suite <name> --model <path.gguf>`.
 
 ## Thinking models are supported, thinking is off by default
 

@@ -28,6 +28,7 @@ Measurement conventions, pinned so a published number can be reproduced by hand:
 """
 from __future__ import annotations
 
+import dataclasses
 import time
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any
@@ -355,6 +356,13 @@ def _run_throughput(config: harness.BenchConfig, make: Factory) -> dict[str, Any
 
 def _throughput_row(config: harness.BenchConfig, make: Factory,
                     spec: harness.ModelSpec) -> dict[str, Any]:
+    """One backend's row: load, prefill throughput, decision cost, decision throughput.
+
+    The prefill measurement uses **one** size (`config.prefill_sizes[0]`, i.e. 256 tokens by
+    default): the point of this table is backend-vs-backend on the same model, and the size sweep
+    is the latency suite's job — measuring all three sizes here would spend an hour of the 4B
+    model's 8k prefill to answer a question this table does not ask.
+    """
     model = make(spec)
     row: dict[str, Any] = {"backend": spec.backend, "measured": True,
                            "runtime_dir": spec.runtime_dir,
@@ -363,7 +371,8 @@ def _throughput_row(config: harness.BenchConfig, make: Factory,
     try:
         loads = [float(model.load()) for _ in range(max(1, config.runs))]
         row["load_ms"] = harness.summarise(loads)
-        prefill_rows = _prefill_rows(config, model)
+        single = dataclasses.replace(config, prefill_sizes=tuple(config.prefill_sizes[:1]))
+        prefill_rows = _prefill_rows(single, model)
         row["prefill"] = prefill_rows
         row["prefill_tok_per_s"] = prefill_rows[0]["tok_per_s"] if prefill_rows else \
             harness.summarise([])

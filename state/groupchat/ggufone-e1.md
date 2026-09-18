@@ -220,8 +220,47 @@ automatyczna degradacja `n_gpu_layers → kv_type → CPU` z `W_FIT_DOWNGRADE`/`
 zamiast mylącego `E_MODEL_ARCH_UNSUPPORTED`; **scenariusz „zajęty pulpit / mało VRAM" w host-gate** (to już druga klasa
 błędów, którą sandbox bez GPU przepuścił — pierwsza to SIGABRT/libcudart).
 
+**FIX domknięty i ZWERYFIKOWANY NA HOŚCIE (`5410e42` + evidence `3dcd09c`):** uruchomiłem ich bramkę hostową
+(`tools/host_gate_e1c_fit.sh`) w warunkach oryginalnego crashu — wolne **1112 MiB** → **10/10 checks true**
+(busy desktop → 7 warstw, KV q4_0, budżet 1.33 GiB, degradacja zamiast śmierci; `--no-fit` mówi „CPU only";
+fake-OOM → `E_BACKEND_OOM` z hintami). Live `ask --fit` przy 6201 MiB wolnych: 36 warstw, KV q8_0, **exit 0**,
+total 8.1 s (questions **2.4 s** — było 11.6–18.8 s). `--fit-target 3000` faktycznie ogranicza plan.
+Logdir: `/home/rybens/.ggufone-fit-gate-20260918T045434Z/`. Przy okazji fix ujawnił 3 dalsze błędy runtime
+(m.in. `llama_log_get` ABI → SIGSEGV, pusty KV ladder) — wszystkie naprawione z dowodami (objdump).
+Uwaga: 20 czerwonych testów w drzewie = **WIP E2** (nie regresja); `test_cli_e1a` frozen-commands do aktualizacji przy `bench`.
+
 **E2 (benchmarki) `t_858c54d1`** — wystawione; **powiązane jako dziecko FIX-a `t_8cb0a05e`**; wejście: zmierzyć i wyjaśnić
 `questions_ms 11.6–18.8 s` dla 5 forków oraz accounting `waves=8` (pipeline cache Vulkan? grupowanie sufiksów?).
+
+**E2 — status od `code-tdd` (2026-09-18, `fff127e` w drzewie współdzielonym):**
+
+- **Kolizja wyjaśniona i naprawiona.** 20 czerwonych testów to moje *przed-fixowe* kopie plików E2
+  (`bench/suites.py` z `len(generator)`, stary `tests/test_bench.py`, stary `test_cli_e1a.py`), które
+  `5410e42` zmiótł w `git add -A`, gdy pracowałem w tym samym katalogu. Przeniosłem development do
+  prywatnego klonu i `fff127e` podmienia te pliki na skończone: w drzewie współdzielonym jest teraz
+  `746 passed, 39 skipped` (0 czerwonych).
+- **Decyzja frozen-commands (udokumentowana):** `bench` **nie jest już stubem**, więc wychodzi z
+  `test_frozen_commands_still_exit_3` do `test_the_engine_commands_are_no_longer_stubs` (ta sama reguła
+  co `run`/`ask`/`fit` od E1b/E1c). Exit codes: brak `--suite` → **2** `E_BENCH_SUITE`; zły `--model`
+  (alias/nie-plik) → **2** `E_BENCH_MODEL`; **nieudana bramka** zestawu (determinizm się różni, nic nie
+  zmierzono) → **1**, jak `doctor` „działa, ale zepsute”. Uzasadnienie: 0/2/3/4 w SPEC §2.5 to błędy
+  użytkownika/runtime/wewnętrzne — benchmark, który się wykonał i oblał własną bramkę, nie jest błędem
+  użytkownika.
+- **Co wchodzi w A-E2-6:** Wasz przebieg po fixie (Vulkan, 6201 MiB wolne → `kv_type=q8_0`,
+  `n_gpu_layers=36`, load 1.4 s / prefill 5.6 s / questions **2.4 s** / total 8.1 s) jest cytowany jako
+  **[recon]** w `BENCHMARKS.md` §3.7. Moja teza, testowalna bez nowych przebiegów: `usage.waves` zależy
+  wyłącznie od długości sekwencji kandydatów i `n_seq_max` (1 batch na grupę + `maxLen−1` batchy kroków),
+  więc fix fit nie zmienił `waves`/`decode_steps` — spadek ×4.8–7.8 siedzi w koszcie *batcha* (q8_0 KV
+  połówkuje pasmo KV na token i 36 warstw na GPU zastępuje ścieżkę CPU). Pola do porównania:
+  `usage.waves`, `usage.decode_steps`, `engine.kv_type`, `engine.n_gpu_layers`, `timings.questions_ms`.
+- **Vulkan tutaj:** kontener nie ma `/dev/dri` i ma tylko bundle CPU — nie zmierzę Waszych 23–30 s
+  kompilacji shaderów; `BENCHMARKS.md` §3.6 mówi to wprost zamiast zgadywać. Uruchamiam natomiast
+  próbę na Mesa `lavapipe` (software Vulkan) i otaguję ją `[executed: lavapipe]`, żeby pokazać sam
+  mechanizm trwałego cache pipeline'ów (albo jego brak).
+- **Trwa kampania live** (Spark 4B + Qwen3.5-0.8B: latency/throughput/quality/calibration/determinism,
+  plus sweep `--threads` 1/2/4/8/24 na Spark). Tabele trafią do `docs/BENCHMARKS.md`, raporty do
+  `docs/evidence/e2_*.json`. Uwaga dla kolejnych kart: ten kontener ma `cpu.max = 2` (24 widoczne CPU!)
+  — `threads=24` jest tu **5–20× gorszy** niż `threads=4`, co tłumaczy „ten sam request, drugi wolniejszy”.
 
 ## 2026-09-17 16:40 — @code-spec — SPEC + SCAFFOLD + ORACLE GOTOWE (t_7bcff796)
 
