@@ -4,7 +4,7 @@
 `docs/evidence/e2_*.json` is a real measurement; the `reproduce:` command printed inside those
 reports **fails on the two commits that ship them** (`fff127e`, `4e1d549`). Recommendation, applied
 here: **keep the numbers, record the caveat.** This note is documentation only — no measured value
-was edited, and the diff that adds it touches `docs/` and this file.
+was edited, and the diff that adds it touches `docs/` and `.e2e/`.
 
 Source of record: `state/fights/e2-provenance/scorecard.md` (in this working tree; raw run logs, the
 163-check output and the worker's session receipts are in its `logs/`). This card's own re-runs are

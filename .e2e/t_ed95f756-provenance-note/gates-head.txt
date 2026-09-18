@@ -1,0 +1,38 @@
+# Gates on a clone at the card's HEAD — pytest + ruff, 2026-09-18
+
+Clone: `/work/e2prov-head` (clone of the shared tree), reset to `origin/main` = `d77a135`.
+Commands: `uv run --frozen --extra dev pytest -q` and `uv run --frozen --extra dev ruff check .`.
+
+## pytest
+
+```
+.............................................sssss...................... [ 86%]
+........................................................................ [ 94%]
+.............................ssss................                        [100%]
+875 passed, 38 skipped in 93.60s (0:01:33)
+```
+
+(The same suite on `1205c0b`, the first commit of this card, was also 875 passed / 38 skipped,
+95.80 s. This card changes no Python file, so the counts are the tree's, not this card's.)
+
+## ruff check .
+
+8 findings, all **pre-existing** and all in committed scratch scripts from earlier cards —
+`.e2e/t_34abf324-e1b/logs/survivor-buckets.py` (1 × E741) and
+`.e2e/t_c8e36cad-e1c/logs/mutation_triage.py` + `survivor-buckets.py` (7 × E501).
+No file touched by this card is Python; `ruff` is therefore unaffected by the diff.
+
+```
+.e2e/t_34abf324-e1b/logs/survivor-buckets.py:43:31: E741 Ambiguous variable name: `l`
+.e2e/t_c8e36cad-e1c/logs/mutation_triage.py:7:101: E501 Line too long (101 > 100)
+.e2e/t_c8e36cad-e1c/logs/mutation_triage.py:97:101: E501 Line too long (106 > 100)
+.e2e/t_c8e36cad-e1c/logs/mutation_triage.py:155:101: E501 Line too long (106 > 100)
+.e2e/t_c8e36cad-e1c/logs/mutation_triage.py:162:101: E501 Line too long (149 > 100)
+.e2e/t_c8e36cad-e1c/logs/mutation_triage.py:163:101: E501 Line too long (158 > 100)
+.e2e/t_c8e36cad-e1c/logs/mutation_triage.py:180:101: E501 Line too long (165 > 100)
+.e2e/t_c8e36cad-e1c/logs/survivor-buckets.py:28:101: E501 Line too long (103 > 100)
+Found 8 errors.
+```
+
+Note: `ruff format --check` is **not** this repo's gate (82 files "would be reformatted" on a clean
+tree); the project gate is `uv run pytest -q` (pyproject comment, E1a) plus `ruff check`.
