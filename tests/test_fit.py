@@ -8,11 +8,11 @@ cross-check) are in `tests/test_fit_live.py` and `docs/evidence/e1c_*.md`.
 """
 from __future__ import annotations
 
-from collections.abc import Callable
 import json
 import pathlib
 import stat
 import struct
+from collections.abc import Callable
 
 import pytest
 

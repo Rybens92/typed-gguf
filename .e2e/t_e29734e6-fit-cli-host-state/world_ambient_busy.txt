@@ -1,0 +1,3 @@
+# world at RED capture: 2026-09-18T14:09:05Z
+# nvidia-smi --query-gpu=memory.total,memory.free --format=csv,noheader,nounits (MiB)
+8192, 161

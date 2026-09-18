@@ -1,0 +1,49 @@
+# live plan-only gates, PRE-FIX test file (no host=), ambient busy world
+2026-09-18T14:12:57Z
+8192, 1031
+# git stash push -- tests/test_fit_live.py -> 7aa6ebb
+F
+weights: tensor index 4369633280 vs binary 4369416192 (delta 217088 B)
+.F
+=================================== FAILURES ===================================
+__________ test_the_pinned_default_model_gets_a_plan_from_the_binary ___________
+
+    @pytest.mark.model
+    def test_the_pinned_default_model_gets_a_plan_from_the_binary() -> None:
+        model_path = _model()
+        plan = fit.plan_for_path(model_path, runtime_dir=_runtime_dir(), home=None)
+        assert tuple(field for field in fit.FIT_FIELDS if field not in plan.to_dict()) == ()
+        assert plan.arch == "spark2_5"
+        assert plan.kv_type in fit.KV_DOWNGRADE_ORDER
+        assert plan.n_ctx >= 1024 and plan.n_seq_max >= 3
+        assert plan.est_weights_bytes > 4 * 1024 ** 3          # a 4B Q8_0 model
+        assert plan.est_kv_bytes > 0 and plan.est_total_bytes > plan.est_weights_bytes
+        if fit.fit_binary(_runtime_dir()) is not None:
+            assert plan.source == "llama-fit-params"
+>           assert plan.warnings == ()
+E           AssertionError: assert ('W_KV_TYPE_D...IT_DOWNGRADE') == ()
+E             
+E             Left contains 2 more items, first extra item: 'W_KV_TYPE_DOWNGRADE'
+E             Use -v to get more diff
+
+tests/test_fit_live.py:81: AssertionError
+______________ test_the_estimate_alone_still_answers_the_contract ______________
+
+    @pytest.mark.model
+    def test_the_estimate_alone_still_answers_the_contract() -> None:
+        """`source=estimate` (no runtime handed in) keeps every field and warns."""
+        plan = fit.plan_for_path(_model(), host=fit.host_facts(), runtime_dir=None,
+                                 use_cache=False, home=None)
+        assert plan.source == "estimate"
+>       assert plan.warnings == ("W_FIT_ESTIMATED",)
+E       AssertionError: assert ('W_KV_TYPE_D...IT_ESTIMATED') == ('W_FIT_ESTIMATED',)
+E         
+E         At index 0 diff: 'W_KV_TYPE_DOWNGRADE' != 'W_FIT_ESTIMATED'
+E         Left contains 2 more items, first extra item: 'W_FIT_DOWNGRADE'
+E         Use -v to get more diff
+
+tests/test_fit_live.py:111: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_fit_live.py::test_the_pinned_default_model_gets_a_plan_from_the_binary
+FAILED tests/test_fit_live.py::test_the_estimate_alone_still_answers_the_contract
+2 failed, 1 passed, 7 deselected in 40.40s

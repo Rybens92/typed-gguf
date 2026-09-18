@@ -1,0 +1,56 @@
+# scratch RED probe (unpinned gates) run in the ambient world
+2026-09-18T14:11:02Z
+8192, 1243
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+__________________________ test_a_old_shape_unpinned ___________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_a_old_shape_unpinned0')
+capsys = <_pytest.capture.CaptureFixture object at 0x7ff3f682ce50>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ff3f6820490>
+
+    def test_a_old_shape_unpinned(tmp_path: pathlib.Path,
+                                  capsys: pytest.CaptureFixture[str],
+                                  monkeypatch: pytest.MonkeyPatch) -> None:
+        model = write_gguf(tmp_path / "synthetic.gguf")
+        monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+        monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+        assert cli.main(["fit", str(model), "--json"]) == 0
+        payload = json.loads(capsys.readouterr().out)
+>       assert payload["warnings"] == ["W_FIT_ESTIMATED"]          # the pre-fix assertion
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert ['W_KV_TYPE_D...IT_ESTIMATED'] == ['W_FIT_ESTIMATED']
+E         
+E         At index 0 diff: 'W_KV_TYPE_DOWNGRADE' != 'W_FIT_ESTIMATED'
+E         Left contains 2 more items, first extra item: 'W_FIT_DOWNGRADE'
+E         Use -v to get more diff
+
+tests/test_zz_tripwire_scratch.py:35: AssertionError
+__________________________ test_b_new_shape_unpinned ___________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-23/test_b_new_shape_unpinned0')
+capsys = <_pytest.capture.CaptureFixture object at 0x7ff3f680f310>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ff3f6aa6b10>
+
+    def test_b_new_shape_unpinned(tmp_path: pathlib.Path,
+                                  capsys: pytest.CaptureFixture[str],
+                                  monkeypatch: pytest.MonkeyPatch) -> None:
+        model = write_gguf(tmp_path / "synthetic.gguf")
+        monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+        monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+        # pin_host_facts(gpu_host(free_gib=1.5)) is MISSING on purpose
+        assert cli.main(["fit", str(model), "--json"]) == 0
+        payload = json.loads(capsys.readouterr().out)
+        assert "W_FIT_ESTIMATED" in payload["warnings"]
+        assert "W_KV_TYPE_DOWNGRADE" in payload["warnings"]
+        assert "W_FIT_DOWNGRADE" in payload["warnings"]
+>       assert payload["host"]["vram_free_bytes"] == int(1.5 * 1024 ** 3)   # the pinned world
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 1326448640 == 1610612736
+E        +  where 1610612736 = int((1.5 * (1024 ** 3)))
+
+tests/test_zz_tripwire_scratch.py:51: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_zz_tripwire_scratch.py::test_a_old_shape_unpinned - Asserti...
+FAILED tests/test_zz_tripwire_scratch.py::test_b_new_shape_unpinned - assert ...
+2 failed in 0.30s

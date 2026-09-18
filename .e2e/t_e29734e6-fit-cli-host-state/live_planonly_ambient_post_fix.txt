@@ -1,0 +1,11 @@
+# live plan-only gates, ambient busy world (card t_e29734e6, post-fix tree)
+2026-09-18T14:12:02Z
+8192, 1275
+
+live plan: {"n_gpu_layers": 36, "n_ctx": 4096, "kv_type": "f16", "n_seq_max": 8, "est_weights_bytes": 4369416192, "est_kv_bytes": 264241152, "est_total_bytes": 4912578560, "backend": "vulkan", "source": "llama-fit-params"}
+.
+weights: tensor index 4369633280 vs binary 4369416192 (delta 217088 B)
+.
+estimate: kv 576 MiB for 4096 ctx tokens
+.
+3 passed, 7 deselected in 48.90s

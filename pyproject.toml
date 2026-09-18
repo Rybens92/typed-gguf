@@ -81,8 +81,11 @@ quote-style = "double"
 # Card t_630f32a3 (E2.5) swept `source_paths = ["src/ggufone/calibration"]` with both calibration
 # gate files and max_children = 3 (3 crashed the container's pid cap at 1726/2728 mutants; the
 # completed sweep ran with 2, which is what stays here); this pair is the most recent sweep.
+# Card t_e29734e6 (E1c FIX) is a *test-only* change (no production line moved), so its sweep is the
+# fit pair again — time-boxed on a box shared with a sibling benchmark, so the score is reported
+# with its not-run count, never as a full-sweep number.
 # Restore a bench or a fit/resolver sweep by swapping both lines back.
-source_paths = ["src/ggufone/calibration"]
+source_paths = ["src/ggufone/runtime/fit.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -96,5 +99,6 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # both of its gate files are the selection (test_calibration.py drives the math/fit/store/CLI,
 # test_routing.py the router and the escalation policy); this pair is the most recent sweep, and
 # a bench sweep only has to restore the three bench gate files above.
-pytest_add_cli_args_test_selection = ["tests/test_calibration.py", "tests/test_routing.py"]
+pytest_add_cli_args_test_selection = ["tests/test_fit.py", "tests/test_fit_free_vram.py",
+                                      "tests/test_fit_oom_recovery.py"]
 max_children = 2

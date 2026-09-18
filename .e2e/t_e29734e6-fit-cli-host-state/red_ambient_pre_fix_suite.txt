@@ -1,0 +1,60 @@
+# world=ambient  at 2026-09-18T14:20:30Z
+# which nvidia-smi: /usr/bin/nvidia-smi
+# nvidia-smi --query-gpu=memory.total,memory.free --format=csv,noheader,nounits:
+8192, 2073
+# command: uv run --extra dev pytest -q -rs
+..........................................ssssss........................ [  7%]
+........................................................................ [ 15%]
+........................................................................ [ 22%]
+.....s.................................................................. [ 30%]
+........................ss.............................................. [ 37%]
+.........................................................sssssss........ [ 45%]
+.........................................sssssss.ss..................... [ 53%]
+.....................ss.......................ssss...................... [ 60%]
+........................................................................ [ 68%]
+........................................................................ [ 75%]
+........................................................................ [ 83%]
+........sssss........................................................... [ 91%]
+................................................................ssss.... [ 98%]
+............                                                             [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_bench_live.py:89: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:105: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:121: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:133: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:171: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:208: live test: pass --run-network to run
+SKIPPED [1] tests/test_cli.py:235: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:131: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:157: live test: pass --run-network to run
+SKIPPED [2] tests/test_engine_fork.py:561: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:581: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:625: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:651: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:703: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:743: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:69: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:89: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:105: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:120: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:137: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:165: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:182: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:219: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:239: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:219: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:235: pinned Qwen3.5 GGUF not present
+SKIPPED [1] tests/test_hf_network.py:33: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:40: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:51: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:80: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:42: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:50: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:59: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:83: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:90: live test: pass --run-network to run
+SKIPPED [2] tests/test_templates.py:423: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:442: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:478: live test: pass --run-network to run
+908 passed, 40 skipped in 108.59s (0:01:48)
+# exit=0

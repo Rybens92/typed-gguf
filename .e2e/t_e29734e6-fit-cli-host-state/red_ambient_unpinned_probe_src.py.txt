@@ -1,0 +1,54 @@
+"""SCRATCH RED probe for card t_e29734e6 — never committed, deleted after the capture.
+
+Two probe bodies, both asserting what the fixed gate asserts, but with the host pin missing:
+
+  * `test_a_old_shape_unpinned` — the pre-fix assertion (`warnings == ["W_FIT_ESTIMATED"]`),
+    on whatever device this box has right now;
+  * `test_b_new_shape_unpinned` — the new busy-device gate with `pin_host_facts(...)` removed.
+
+Both must fail on a busy device: (a) because the ambient downgrade fires, (b) because the CLI
+read the real card instead of the pinned one. The fixed gates pass in the same world.
+"""
+from __future__ import annotations
+
+import json
+import pathlib
+
+import pytest
+
+from ggufone import cli
+from ggufone.runtime import fit
+
+from tests.test_fit import write_gguf
+
+MIB = 1024 ** 2
+
+
+def test_a_old_shape_unpinned(tmp_path: pathlib.Path,
+                              capsys: pytest.CaptureFixture[str],
+                              monkeypatch: pytest.MonkeyPatch) -> None:
+    model = write_gguf(tmp_path / "synthetic.gguf")
+    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    assert cli.main(["fit", str(model), "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["warnings"] == ["W_FIT_ESTIMATED"]          # the pre-fix assertion
+    assert payload["host"]["vram_free_bytes"] > 1536 * MIB     # the device it really saw
+
+
+def test_b_new_shape_unpinned(tmp_path: pathlib.Path,
+                              capsys: pytest.CaptureFixture[str],
+                              monkeypatch: pytest.MonkeyPatch) -> None:
+    model = write_gguf(tmp_path / "synthetic.gguf")
+    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    # pin_host_facts(gpu_host(free_gib=1.5)) is MISSING on purpose
+    assert cli.main(["fit", str(model), "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert "W_FIT_ESTIMATED" in payload["warnings"]
+    assert "W_KV_TYPE_DOWNGRADE" in payload["warnings"]
+    assert "W_FIT_DOWNGRADE" in payload["warnings"]
+    assert payload["host"]["vram_free_bytes"] == int(1.5 * 1024 ** 3)   # the pinned world
+    assert payload["host_fingerprint"] == fit.HostFacts(
+        backend="vulkan", ram_bytes=31 * 1024 ** 3, vram_bytes=8 * 1024 ** 3,
+        vram_free_bytes=int(1.5 * 1024 ** 3), n_cpu=8, fingerprint="vulkan:test").fingerprint

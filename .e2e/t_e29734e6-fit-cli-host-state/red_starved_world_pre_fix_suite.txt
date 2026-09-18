@@ -1,0 +1,87 @@
+# world=starved  at 2026-09-18T14:22:25Z
+# which nvidia-smi: /work/shim-starved/nvidia-smi
+# nvidia-smi --query-gpu=memory.total,memory.free --format=csv,noheader,nounits:
+8192, 1024
+# command: uv run --extra dev pytest -q -rs
+..........................................ssssss........................ [  7%]
+........................................................................ [ 15%]
+........................................................................ [ 22%]
+.....s.................................................................. [ 30%]
+........................ss.............................................. [ 37%]
+.........................................................sssssss........ [ 45%]
+................F........................sssssss.ss..................... [ 53%]
+.....................ss.......................ssss...................... [ 60%]
+........................................................................ [ 68%]
+........................................................................ [ 75%]
+........................................................................ [ 83%]
+........sssss........................................................... [ 91%]
+................................................................ssss.... [ 98%]
+............                                                             [100%]
+=================================== FAILURES ===================================
+_____________ test_the_cli_fit_command_returns_the_documented_json _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-54/test_the_cli_fit_command_retur0')
+capsys = <_pytest.capture.CaptureFixture object at 0x7f42d8fa1a90>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f42d8fa0150>
+
+    def test_the_cli_fit_command_returns_the_documented_json(tmp_path: pathlib.Path,
+                                                             capsys: pytest.CaptureFixture[str],
+                                                             monkeypatch: pytest.MonkeyPatch) -> None:
+        model = write_gguf(tmp_path / "synthetic.gguf")
+        monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+        monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+        code = cli.main(["fit", str(model), "--json"])
+        assert code == 0
+        payload = json.loads(capsys.readouterr().out)
+        for field in fit.FIT_FIELDS:
+            assert field in payload, field
+        assert payload["source"] == "estimate"
+>       assert payload["warnings"] == ["W_FIT_ESTIMATED"]
+E       AssertionError: assert ['W_KV_TYPE_D...IT_ESTIMATED'] == ['W_FIT_ESTIMATED']
+E         
+E         At index 0 diff: 'W_KV_TYPE_DOWNGRADE' != 'W_FIT_ESTIMATED'
+E         Left contains 2 more items, first extra item: 'W_FIT_DOWNGRADE'
+E         Use -v to get more diff
+
+tests/test_fit.py:349: AssertionError
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_bench_live.py:89: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:105: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:121: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:133: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:171: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:208: live test: pass --run-network to run
+SKIPPED [1] tests/test_cli.py:235: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:131: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:157: live test: pass --run-network to run
+SKIPPED [2] tests/test_engine_fork.py:561: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:581: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:625: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:651: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:703: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:743: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:69: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:89: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:105: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:120: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:137: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:165: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:182: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:219: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:239: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:219: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:235: pinned Qwen3.5 GGUF not present
+SKIPPED [1] tests/test_hf_network.py:33: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:40: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:51: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:80: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:42: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:50: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:59: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:83: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:90: live test: pass --run-network to run
+SKIPPED [2] tests/test_templates.py:423: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:442: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:478: live test: pass --run-network to run
+1 failed, 907 passed, 40 skipped in 117.60s (0:01:57)
+# exit=1

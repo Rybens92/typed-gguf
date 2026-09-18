@@ -1,0 +1,12 @@
+# live device-loading gate (forbidden warning set), ambient world, host UNPINNED (as committed)
+2026-09-18T14:14:23Z
+8192, 3133
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+ggml_vulkan: No devices found.
+load_backend: loaded Vulkan backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-vulkan.so
+load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is  75.4010 MiB, matches expectation of  75.4010 MiB
+
+choice=billing p={'billing': 0.839831, 'technical': 0.160169} conf=0.680 coverage=0.003 timings={'model_load_ms': 4674.34, 'prefill_ms': 23893.9, 'questions_ms': 17025.7, 'total_ms': 40921.8}
+.
+1 passed, 9 deselected in 83.00s (0:01:23)

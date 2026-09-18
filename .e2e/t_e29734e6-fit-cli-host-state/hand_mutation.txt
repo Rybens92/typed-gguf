@@ -1,0 +1,7 @@
+# hand-mutation proof: the changed gates must kill each mutation of the warning branches they pin
+# selection = tests/test_fit.py + tests/test_fit_free_vram.py + tests/test_fit_oom_recovery.py (pytest -q -x)
+2026-09-18T14:38:01Z
+KILLED: M1 drop W_FIT_ESTIMATED (the estimate mark the CLI gate now asserts is PRESENT)  (pytest exit 1)
+KILLED: M2 never warn W_FIT_DOWNGRADE (the free-vs-nominal branch the busy gate requires)  (pytest exit 1)
+KILLED: M3 drop W_KV_TYPE_DOWNGRADE (the ladder mark the busy gate requires)  (pytest exit 1)
+KILLED: M4 invert the ladder trigger (warn when nothing downgraded)  (pytest exit 1)

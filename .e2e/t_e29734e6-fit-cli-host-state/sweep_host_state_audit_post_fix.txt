@@ -1,0 +1,154 @@
+
+## A exact warning collection
+tests/test_bench_placement.py:134: assert set(handle.warnings) == {"W_BACKEND_OOM", "W_FIT_DOWNGRADE"}
+tests/test_bench_placement.py:168: assert handle.warnings == ()
+tests/test_e1c_mutation_pins.py:445: assert last.warnings == ("W_FIT_ESTIMATED",)
+tests/test_e1c_mutation_pins.py:488: assert plan.warnings == ()
+tests/test_e1c_mutation_pins.py:502: assert plan.warnings == ("W_KV_TYPE_DOWNGRADE",)
+tests/test_fit.py:163: assert plan.warnings == ("W_FIT_ESTIMATED",)          # no downgrade warning: not downgraded
+tests/test_fit.py:212: assert plan.warnings == ()
+tests/test_fit.py:360: part of the card, so `warnings == ["W_FIT_ESTIMATED"]` was an assertion about the box, not
+tests/test_fit_live.py:94: assert plan.warnings == ()
+tests/test_fit_live.py:124: assert plan.warnings == ("W_FIT_ESTIMATED",)
+tests/test_fit_live.py:277: assert handle.warnings == ()
+tests/test_fit_oom_recovery.py:216: assert set(handle.warnings) == {"W_BACKEND_OOM", "W_FIT_DOWNGRADE"}
+tests/test_fit_oom_recovery.py:236: assert handle.warnings == ()
+tests/test_fit_oom_recovery.py:471: assert live.extra_warnings == []       # auto -> f16 is not a downgrade
+tests/test_registry_store.py:70: assert warnings == []
+tests/test_registry_store.py:88: assert got.aliases == {} and got.current is None and warnings == []
+tests/test_registry_store.py:149: assert len(warnings) == 1
+tests/test_schema.py:117: assert parsed.warnings == ("W_UNKNOWN_OPTION",)
+tests/test_templates.py:83: assert resolution.warnings == ()
+tests/test_templates.py:98: assert resolution.warnings == ("W_TEMPLATE_FALLBACK",)
+tests/test_templates.py:431: assert resolution.warnings == ()                       # no fallback was needed
+tests/test_templates.py:505: assert resolution.warnings == ("W_TEMPLATE_FALLBACK",)
+
+## B ambient host reader
+tests/test_bench_live.py:78: ceiling = harness.host_facts().get("cgroup_memory_bytes")
+tests/test_bench_live.py:193: f"(cgroup cpu.max {harness.host_facts().get('cgroup_cpu_max')}, "
+tests/test_e1c_mutation_pins.py:564: host = fit.host_facts(meminfo_path=meminfo, vram_probe=lambda: 0, backend="cpu", n_cpu=7)
+tests/test_e1c_mutation_pins.py:575: gpu = fit.host_facts(meminfo_path=meminfo, vram_probe=lambda: 6 * GIB, backend="vulkan",
+tests/test_e1c_mutation_pins.py:578: cpu = fit.host_facts(meminfo_path=meminfo, vram_probe=lambda: 0, backend="cpu", n_cpu=2)
+tests/test_fit.py:311: host = fit.host_facts(meminfo_path=tmp_path / "meminfo", vram_probe=lambda: 8 * GIB)
+tests/test_fit.py:313: again = fit.host_facts(meminfo_path=tmp_path / "meminfo", vram_probe=lambda: 8 * GIB)
+tests/test_fit.py:315: other = fit.host_facts(meminfo_path=tmp_path / "meminfo", vram_probe=lambda: None)
+tests/test_fit_free_vram.py:143: host = fit.host_facts(meminfo_path=meminfo, backend="vulkan", n_cpu=8,
+tests/test_fit_free_vram.py:158: roomy = fit.host_facts(meminfo_path=meminfo, backend="vulkan", n_cpu=8,
+tests/test_fit_free_vram.py:161: busy = fit.host_facts(meminfo_path=meminfo, backend="vulkan", n_cpu=8,
+tests/test_fit_free_vram.py:170: host = fit.host_facts(meminfo_path=tmp_path / "meminfo", vram_probe=lambda: 6 * GIB,
+tests/test_fit_live.py:264: busy = fit.host_facts(backend="vulkan", device_probe=lambda: recommend.DeviceMemory(
+
+## C device-memory answer
+tests/test_bench_placement.py:58: return fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_bench_placement.py:238: fit_plan=harness.Placement(LAYERS), free_probe=lambda: 1112 * MIB)
+tests/test_e1c_mutation_pins.py:376: return fit.HostFacts(backend="cpu", ram_bytes=int(ram_gib * GIB), vram_bytes=0, n_cpu=24,
+tests/test_e1c_mutation_pins.py:510: gpu = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB, n_cpu=24,
+tests/test_e1c_mutation_pins.py:569: assert host.ram_bytes == 32768000 * 1024 and host.vram_bytes == 0 and host.n_cpu == 7
+tests/test_e1c_mutation_pins.py:584: gpu = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB, n_cpu=24,
+tests/test_fit.py:75: return fit.HostFacts(backend="cpu", ram_bytes=int(ram_gib * GIB), vram_bytes=0, n_cpu=24,
+tests/test_fit.py:79: def gpu_host(*, total_gib: float = 8.0, free_gib: float | None = None) -> fit.HostFacts:
+tests/test_fit.py:80: """A synthetic RTX-3060-Ti-class device; `free_gib=None` is an idle card.
+tests/test_fit.py:87: return fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=total,
+tests/test_fit.py:88: vram_free_bytes=total if free_gib is None else int(free_gib * GIB),
+tests/test_fit.py:294: other = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB, n_cpu=24,
+tests/test_fit.py:316: assert other.fingerprint != host.fingerprint or other.vram_bytes == host.vram_bytes
+tests/test_fit.py:320: gpu = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=24 * GIB, n_cpu=24,
+tests/test_fit.py:376: assert payload["host"]["vram_free_bytes"] == roomy.vram_free_bytes
+tests/test_fit.py:394: busy = pin_host_facts(gpu_host(free_gib=1.5))
+tests/test_fit.py:400: assert payload["host"]["vram_free_bytes"] == busy.vram_free_bytes
+tests/test_fit.py:402: assert payload["budget_bytes"] == max(0, busy.vram_free_bytes
+tests/test_fit_free_vram.py:59: memory = recommend.device_memory()
+tests/test_fit_free_vram.py:79: memory = recommend.device_memory()
+tests/test_fit_free_vram.py:95: memory = recommend.device_memory(probe=lambda: (8 * GIB, 1112 * MIB))
+tests/test_fit_free_vram.py:107: memory = recommend.device_memory(probe=lambda: None)
+tests/test_fit_free_vram.py:122: memory = recommend.device_memory(drm_root=drm)
+tests/test_fit_free_vram.py:132: memory = recommend.device_memory(drm_root=tmp_path / "no-drm")
+tests/test_fit_free_vram.py:145: total_bytes=8 * GIB, free_bytes=1112 * MIB,
+tests/test_fit_free_vram.py:148: assert host.vram_bytes == 8 * GIB          # the identity fact stays nominal
+tests/test_fit_free_vram.py:149: assert host.vram_free_bytes == 1112 * MIB
+tests/test_fit_free_vram.py:172: assert host.vram_bytes == 6 * GIB and host.vram_free_bytes == 0
+tests/test_fit_free_vram.py:177: host = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_free_vram.py:178: vram_free_bytes=1112 * MIB, n_cpu=8, fingerprint="vulkan:busy")
+tests/test_fit_free_vram.py:186: host = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_free_vram.py:187: vram_free_bytes=1112 * MIB, n_cpu=8, fingerprint="vulkan:busy")
+tests/test_fit_free_vram.py:199: host = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_free_vram.py:200: vram_free_bytes=8 * GIB, n_cpu=8, fingerprint="vulkan:roomy")
+tests/test_fit_free_vram.py:214: host = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_free_vram.py:215: vram_free_bytes=8 * GIB, n_cpu=8, fingerprint="vulkan:roomy")
+tests/test_fit_free_vram.py:232: host = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_free_vram.py:233: vram_free_bytes=1112 * MIB, n_cpu=8, fingerprint="vulkan:busy")
+tests/test_fit_free_vram.py:246: roomy = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_free_vram.py:247: vram_free_bytes=8 * GIB, n_cpu=8, fingerprint="vulkan:identical")
+tests/test_fit_free_vram.py:248: busy = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_free_vram.py:249: vram_free_bytes=1112 * MIB, n_cpu=8, fingerprint="vulkan:identical")
+tests/test_fit_free_vram.py:269: host = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_free_vram.py:270: vram_free_bytes=8 * GIB, n_cpu=8, fingerprint="vulkan:roomy")
+tests/test_fit_free_vram.py:284: backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_free_vram.py:285: vram_free_bytes=NVIDIA_FREE_MIB * MIB, n_cpu=8, fingerprint="vulkan:busy"))
+tests/test_fit_free_vram.py:289: assert payload["host"]["vram_free_bytes"] == NVIDIA_FREE_MIB * MIB
+tests/test_fit_free_vram.py:290: assert payload["host"]["vram_bytes"] == 8 * GIB
+tests/test_fit_live.py:34: return fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_live.py:35: vram_free_bytes=7 * GIB, n_cpu=8, fingerprint="vulkan:live-test")
+tests/test_fit_live.py:265: total_bytes=8 * 1024 ** 3, free_bytes=1112 * 1024 ** 2, source="injected"))
+tests/test_fit_live.py:272: free_probe=lambda: 1112 * 1024 ** 2)
+tests/test_fit_oom_recovery.py:123: return fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+tests/test_fit_oom_recovery.py:124: vram_free_bytes=free_mib * MIB, n_cpu=8, fingerprint="vulkan:busy")
+tests/test_fit_oom_recovery.py:168: error = fit.backend_oom_error(plan, free_bytes=1112 * MIB, needed_bytes=1058982400,
+tests/test_fit_oom_recovery.py:210: fit_plan=plan, free_probe=lambda: 1112 * MIB)
+tests/test_fit_oom_recovery.py:231: fit_plan=plan, free_probe=lambda: 8 * GIB)
+tests/test_fit_oom_recovery.py:285: fit_plan=plan, free_probe=lambda: 1112 * MIB)
+tests/test_fit_oom_recovery.py:303: fit_plan=plan, free_probe=lambda: 1112 * MIB)
+tests/test_fit_oom_recovery.py:322: free_probe=lambda: 1112 * MIB)
+tests/test_fit_oom_recovery.py:338: degrade=False, free_probe=lambda: 0)
+tests/test_fit_oom_recovery.py:492: assert payload["host"]["vram_free_bytes"] == 1112 * MIB
+tests/test_fit_oom_recovery.py:493: assert payload["host"]["vram_bytes"] == 8 * GIB
+tests/test_hf.py:306: hf.check_disk_space("/tmp", 4_375_021_152, free_bytes=int(1.2e9))
+tests/test_hf.py:313: hf.check_disk_space(tmp_path, 1024, free_bytes=1 << 30)  # must not raise
+tests/test_host_purity.py:355: assert budget.vram_bytes == 0
+tests/test_mutation_hardening.py:21: [("m.gguf", 8_000_000)], vram_bytes=10_000_000, ram_bytes=1,
+tests/test_mutation_hardening.py:30: [("m.gguf", 9_000_001)], vram_bytes=10_000_000, ram_bytes=1,
+tests/test_mutation_hardening.py:38: [("m.gguf", 8_500_000)], vram_bytes=10_000_000, ram_bytes=1,
+tests/test_mutation_hardening.py:49: [("m.gguf", 7_000_000)], vram_bytes=1, ram_bytes=10_000_000,
+tests/test_mutation_hardening.py:60: [("m.gguf", 9_500_000)], vram_bytes=1, ram_bytes=10_000_000,
+tests/test_mutation_hardening.py:68: [("m.gguf", 8_000_000)], vram_bytes=10_000_000, ram_bytes=1,
+tests/test_probe_isolation.py:177: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_probe_isolation.py:203: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_probe_isolation.py:226: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_probe_isolation.py:240: free_bytes=1 << 40)
+tests/test_probe_isolation.py:567: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_recommend_quant.py:54: got = recommend_quant(cands(), vram_bytes=8 * GIB, ram_bytes=31 * GIB,
+tests/test_recommend_quant.py:65: got = recommend_quant(cands(), vram_bytes=8 * GIB, ram_bytes=31 * GIB,
+tests/test_recommend_quant.py:75: got = recommend_quant(cands(), vram_bytes=8 * GIB, ram_bytes=31 * GIB,
+tests/test_recommend_quant.py:83: got = recommend_quant(cands(), vram_bytes=1024 ** 3, ram_bytes=31 * GIB,
+tests/test_recommend_quant.py:93: got = recommend_quant(shuffled, vram_bytes=8 * GIB, ram_bytes=31 * GIB,
+tests/test_recommend_quant.py:101: got = recommend_quant(cands(), vram_bytes=5 * GIB, ram_bytes=31 * GIB,
+tests/test_recommend_quant.py:112: got = recommend_quant(cands(), vram_bytes=6 * GIB, ram_bytes=31 * GIB,
+tests/test_recommend_quant.py:125: assert budget.vram_bytes == 0  # probe reported no GPU
+tests/test_recommend_quant.py:132: assert budget.vram_bytes == 8 * GIB
+tests/test_recommend_quant.py:180: choice = select_file(files, quant=None, vram_bytes=8 * GIB, ram_bytes=31 * GIB,
+tests/test_routing.py:46: vram_bytes=vram_mib * MIB, n_cpu=8, fingerprint="test-host",
+tests/test_routing.py:47: vram_free_bytes=free * MIB)
+tests/test_runtime_fallback.py:174: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:200: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:219: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:235: free_bytes=1 << 40)
+tests/test_runtime_fallback.py:256: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:272: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:319: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:334: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:412: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:440: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:455: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:471: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_fallback.py:487: free_bytes=1 << 40, probes=GPU_HOST)
+tests/test_runtime_install.py:124: free_bytes=1 << 40)
+tests/test_runtime_install.py:147: first = install.install("cpu", home=home, lock=lock, offline_cache=cache, free_bytes=1 << 40)
+tests/test_runtime_install.py:151: second = install.install("cpu", home=home, lock=lock, offline_cache=cache, free_bytes=1 << 40)
+tests/test_runtime_install.py:163: install.install("cpu", home=home, lock=lock, offline_cache=cache, free_bytes=1 << 40)
+tests/test_runtime_install.py:165: free_bytes=1 << 40)
+tests/test_runtime_install.py:178: free_bytes=1 << 40)
+tests/test_runtime_install.py:189: free_bytes=1 << 40)
+tests/test_runtime_install.py:196: install.install("cpu", home=tmp_path / "home", lock=lock, free_bytes=1024)
+tests/test_runtime_install.py:218: free_bytes=1 << 40)
+tests/test_runtime_install.py:227: free_bytes=1 << 40)
+tests/test_runtime_install.py:242: free_bytes=1 << 40)

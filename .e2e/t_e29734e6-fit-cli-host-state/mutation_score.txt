@@ -1,0 +1,31 @@
+# mutmut 1884/1884 mutants, full sweep (3.76 mut/s), scored from .meta artifacts:
+src/ggufone/runtime/fit.py.meta                  total  1884  killed  1157  survived   707  score  62.1 %  not-run     0  no-tests   20
+--------------------------------------------------------------------------------------------------------------
+TOTAL total 1884  {'killed': 1157, 'survived': 707, 'no-tests': 20}
+SCORE killed/scored = 62.1 %   (scored=1864, score-minus-no-tests-and-not-run)
+survivors by symbol (top 25):
+    212  ggufone.runtime.fit.x_coerce_plan
+     58  ggufone.runtime.fit.x_read_tensor_index
+     51  ggufone.runtime.fit.x_replan_for_host
+     47  ggufone.runtime.fit.x.ModelFacts.read
+     37  ggufone.runtime.fit.x_estimate_plan
+     34  ggufone.runtime.fit.x_backend_oom_error
+     29  ggufone.runtime.fit.x_degrade_ladder
+     26  ggufone.runtime.fit.x_run_llama_fit_params
+     26  ggufone.runtime.fit.x_plan_for_model
+     22  ggufone.runtime.fit.x_host_facts
+     22  ggufone.runtime.fit.x_plan_from_binary
+     18  ggufone.runtime.fit.x__kv_from_budget
+     16  ggufone.runtime.fit.x.FitPlan.from_dict
+     12  ggufone.runtime.fit.x_store_plan
+     11  ggufone.runtime.fit.x_measured_rss_bytes
+      9  ggufone.runtime.fit.x__gpu_layers
+      9  ggufone.runtime.fit.x_plan_device_bytes
+      9  ggufone.runtime.fit.x_kv_start
+      8  ggufone.runtime.fit.x.HostFacts.to_dict
+      6  ggufone.runtime.fit.x_planned_layers
+      6  ggufone.runtime.fit.x_parse_fit_table
+      6  ggufone.runtime.fit.x_plan_for_path
+      5  ggufone.runtime.fit.x_size_of_tensor
+      5  ggufone.runtime.fit.x__run
+      4  ggufone.runtime.fit.x__timestamp

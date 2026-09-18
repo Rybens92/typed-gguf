@@ -1,0 +1,179 @@
+# mutants whose mutated line touches a warning branch this card's gates pin (fit.py)
+== x__kv_bytes_for: 12 mutants (11 not-survived, 1 survived)
+    x__kv_bytes_for__mutmut_10: copy length differs (4 vs 5) — not line-comparable
+== x__kv_from_budget: 49 mutants (31 not-survived, 18 survived)
+    x__kv_from_budget__mutmut_12: copy length differs (16 vs 17) — not line-comparable
+    x__kv_from_budget__mutmut_15: copy length differs (16 vs 17) — not line-comparable
+    x__kv_from_budget__mutmut_24: copy length differs (16 vs 17) — not line-comparable
+    x__kv_from_budget__mutmut_46: copy length differs (16 vs 17) — not line-comparable
+== x__plan_bytes: 13 mutants (13 not-survived, 0 survived)
+    x__plan_bytes__mutmut_12: copy length differs (5 vs 6) — not line-comparable
+== x__run: 16 mutants (11 not-survived, 5 survived)
+    x__run__mutmut_1: copy length differs (10 vs 11) — not line-comparable
+    x__run__mutmut_10: copy length differs (10 vs 11) — not line-comparable
+== x_backend_oom_error: 55 mutants (21 not-survived, 34 survived)
+    x_backend_oom_error__mutmut_28: copy length differs (25 vs 27) — not line-comparable
+    x_backend_oom_error__mutmut_37: copy length differs (26 vs 27) — not line-comparable
+    x_backend_oom_error__mutmut_38: copy length differs (26 vs 27) — not line-comparable
+    x_backend_oom_error__mutmut_47: copy length differs (26 vs 27) — not line-comparable
+== x_coerce_plan: 214 mutants (2 not-survived, 212 survived)
+    x_coerce_plan__mutmut_17: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_18: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_19: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_20: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_21: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_22: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_23: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_24: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_25: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_26: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_27: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_28: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_29: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_30: copy length differs (34 vs 35) — not line-comparable
+    x_coerce_plan__mutmut_31: copy length differs (34 vs 35) — not line-comparable
+== x_degrade_ladder: 92 mutants (63 not-survived, 29 survived)
+    offset 21: 'if "W_FIT_DOWNGRADE" not in warnings:' -> 'if "XXW_FIT_DOWNGRADEXX" not in warnings:'   [SURVIVED]
+    offset 21: 'if "W_FIT_DOWNGRADE" not in warnings:' -> 'if "w_fit_downgrade" not in warnings:'   [SURVIVED]
+    offset 21: 'if "W_FIT_DOWNGRADE" not in warnings:' -> 'if "W_FIT_DOWNGRADE" in warnings:'   [killed (code 1)]
+    offset 22: 'warnings.append("W_FIT_DOWNGRADE")' -> 'warnings.append(None)'   [killed (code 1)]
+    offset 22: 'warnings.append("W_FIT_DOWNGRADE")' -> 'warnings.append("XXW_FIT_DOWNGRADEXX")'   [killed (code 1)]
+    offset 22: 'warnings.append("W_FIT_DOWNGRADE")' -> 'warnings.append("w_fit_downgrade")'   [killed (code 1)]
+    offset 23: 'if kv_type != start and "W_KV_TYPE_DOWNGRADE" not in warnings:' -> 'if kv_type != start or "W_KV_TYPE_DOWNGRADE" not in warnings:'   [SURVIVED]
+    offset 23: 'if kv_type != start and "W_KV_TYPE_DOWNGRADE" not in warnings:' -> 'if kv_type == start and "W_KV_TYPE_DOWNGRADE" not in warnings:'   [SURVIVED]
+    offset 23: 'if kv_type != start and "W_KV_TYPE_DOWNGRADE" not in warnings:' -> 'if kv_type != start and "XXW_KV_TYPE_DOWNGRADEXX" not in warnings:'   [SURVIVED]
+    offset 23: 'if kv_type != start and "W_KV_TYPE_DOWNGRADE" not in warnings:' -> 'if kv_type != start and "w_kv_type_downgrade" not in warnings:'   [SURVIVED]
+    offset 23: 'if kv_type != start and "W_KV_TYPE_DOWNGRADE" not in warnings:' -> 'if kv_type != start and "W_KV_TYPE_DOWNGRADE" in warnings:'   [SURVIVED]
+    offset 24: 'warnings.append("W_KV_TYPE_DOWNGRADE")' -> 'warnings.append(None)'   [SURVIVED]
+    offset 24: 'warnings.append("W_KV_TYPE_DOWNGRADE")' -> 'warnings.append("XXW_KV_TYPE_DOWNGRADEXX")'   [SURVIVED]
+    offset 24: 'warnings.append("W_KV_TYPE_DOWNGRADE")' -> 'warnings.append("w_kv_type_downgrade")'   [SURVIVED]
+    x_degrade_ladder__mutmut_41: copy length differs (38 vs 42) — not line-comparable
+    x_degrade_ladder__mutmut_46: copy length differs (41 vs 42) — not line-comparable
+    x_degrade_ladder__mutmut_52: copy length differs (41 vs 42) — not line-comparable
+    x_degrade_ladder__mutmut_53: copy length differs (40 vs 42) — not line-comparable
+    x_degrade_ladder__mutmut_57: copy length differs (41 vs 42) — not line-comparable
+== x_estimate_plan: 206 mutants (169 not-survived, 37 survived)
+    x_estimate_plan__mutmut_15: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_16: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_56: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_64: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_94: copy length differs (65 vs 67) — not line-comparable
+    offset 37: 'warnings.append("W_KV_TYPE_DOWNGRADE")' -> 'warnings.append(None)'   [killed (code 1)]
+    offset 37: 'warnings.append("W_KV_TYPE_DOWNGRADE")' -> 'warnings.append("XXW_KV_TYPE_DOWNGRADEXX")'   [killed (code 1)]
+    offset 37: 'warnings.append("W_KV_TYPE_DOWNGRADE")' -> 'warnings.append("w_kv_type_downgrade")'   [killed (code 1)]
+    x_estimate_plan__mutmut_99: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_108: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_116: copy length differs (65 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_138: copy length differs (66 vs 67) — not line-comparable
+    offset 54: 'warnings.append("W_FIT_DOWNGRADE")' -> 'warnings.append(None)'   [killed (code 1)]
+    offset 54: 'warnings.append("W_FIT_DOWNGRADE")' -> 'warnings.append("XXW_FIT_DOWNGRADEXX")'   [killed (code 1)]
+    offset 54: 'warnings.append("W_FIT_DOWNGRADE")' -> 'warnings.append("w_fit_downgrade")'   [killed (code 1)]
+    x_estimate_plan__mutmut_164: copy length differs (65 vs 67) — not line-comparable
+    offset 59: 'warnings.append("W_FIT_ESTIMATED")' -> 'warnings.append(None)'   [killed (code 1)]
+    offset 59: 'warnings.append("W_FIT_ESTIMATED")' -> 'warnings.append("XXW_FIT_ESTIMATEDXX")'   [killed (code 1)]
+    offset 59: 'warnings.append("W_FIT_ESTIMATED")' -> 'warnings.append("w_fit_estimated")'   [killed (code 1)]
+    x_estimate_plan__mutmut_188: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_190: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_193: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_196: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_198: copy length differs (66 vs 67) — not line-comparable
+    x_estimate_plan__mutmut_200: copy length differs (66 vs 67) — not line-comparable
+== x_host_facts: 62 mutants (40 not-survived, 22 survived)
+    x_host_facts__mutmut_28: copy length differs (36 vs 37) — not line-comparable
+    x_host_facts__mutmut_31: copy length differs (36 vs 37) — not line-comparable
+    x_host_facts__mutmut_43: copy length differs (30 vs 37) — not line-comparable
+    x_host_facts__mutmut_44: copy length differs (30 vs 37) — not line-comparable
+    x_host_facts__mutmut_57: copy length differs (36 vs 37) — not line-comparable
+    x_host_facts__mutmut_60: copy length differs (36 vs 37) — not line-comparable
+== x_parse_fit_table: 37 mutants (31 not-survived, 6 survived)
+    x_parse_fit_table__mutmut_12: copy length differs (14 vs 17) — not line-comparable
+    x_parse_fit_table__mutmut_17: copy length differs (16 vs 17) — not line-comparable
+    x_parse_fit_table__mutmut_18: copy length differs (16 vs 17) — not line-comparable
+    x_parse_fit_table__mutmut_19: copy length differs (16 vs 17) — not line-comparable
+== x_plan_for_model: 90 mutants (64 not-survived, 26 survived)
+    x_plan_for_model__mutmut_13: copy length differs (36 vs 37) — not line-comparable
+    x_plan_for_model__mutmut_22: copy length differs (36 vs 37) — not line-comparable
+    x_plan_for_model__mutmut_37: copy length differs (35 vs 37) — not line-comparable
+    x_plan_for_model__mutmut_49: copy length differs (36 vs 37) — not line-comparable
+    x_plan_for_model__mutmut_51: copy length differs (36 vs 37) — not line-comparable
+    x_plan_for_model__mutmut_54: copy length differs (34 vs 37) — not line-comparable
+    x_plan_for_model__mutmut_68: copy length differs (36 vs 37) — not line-comparable
+    x_plan_for_model__mutmut_70: copy length differs (36 vs 37) — not line-comparable
+    x_plan_for_model__mutmut_72: copy length differs (36 vs 37) — not line-comparable
+== x_plan_from_binary: 111 mutants (89 not-survived, 22 survived)
+    offset 20: 'warnings.append("W_KV_TYPE_DOWNGRADE")' -> 'warnings.append(None)'   [SURVIVED]
+    offset 20: 'warnings.append("W_KV_TYPE_DOWNGRADE")' -> 'warnings.append("XXW_KV_TYPE_DOWNGRADEXX")'   [SURVIVED]
+    offset 20: 'warnings.append("W_KV_TYPE_DOWNGRADE")' -> 'warnings.append("w_kv_type_downgrade")'   [SURVIVED]
+    x_plan_from_binary__mutmut_39: copy length differs (37 vs 39) — not line-comparable
+    x_plan_from_binary__mutmut_48: copy length differs (38 vs 39) — not line-comparable
+    x_plan_from_binary__mutmut_57: copy length differs (38 vs 39) — not line-comparable
+    offset 27: 'warnings.append("W_FIT_DOWNGRADE")' -> 'warnings.append(None)'   [killed (code 1)]
+    offset 27: 'warnings.append("W_FIT_DOWNGRADE")' -> 'warnings.append("XXW_FIT_DOWNGRADEXX")'   [killed (code 1)]
+    offset 27: 'warnings.append("W_FIT_DOWNGRADE")' -> 'warnings.append("w_fit_downgrade")'   [killed (code 1)]
+    x_plan_from_binary__mutmut_67: copy length differs (37 vs 39) — not line-comparable
+    x_plan_from_binary__mutmut_89: copy length differs (38 vs 39) — not line-comparable
+    x_plan_from_binary__mutmut_92: copy length differs (38 vs 39) — not line-comparable
+    x_plan_from_binary__mutmut_94: copy length differs (38 vs 39) — not line-comparable
+    x_plan_from_binary__mutmut_97: copy length differs (38 vs 39) — not line-comparable
+    x_plan_from_binary__mutmut_100: copy length differs (38 vs 39) — not line-comparable
+    x_plan_from_binary__mutmut_102: copy length differs (38 vs 39) — not line-comparable
+== x_replan_for_host: 78 mutants (27 not-survived, 51 survived)
+    x_replan_for_host__mutmut_29: copy length differs (38 vs 42) — not line-comparable
+    x_replan_for_host__mutmut_51: copy length differs (40 vs 42) — not line-comparable
+    x_replan_for_host__mutmut_60: copy length differs (41 vs 42) — not line-comparable
+    offset 39: 'return dataclasses.replace(cpu, warnings=tuple(cpu.warnings + ("W_FIT_DOWNGRADE",))' -> 'return dataclasses.replace(None, warnings=tuple(cpu.warnings + ("W_FIT_DOWNGRADE",))'   [SURVIVED]
+    x_replan_for_host__mutmut_64: copy length differs (41 vs 42) — not line-comparable
+    offset 39: 'return dataclasses.replace(cpu, warnings=tuple(cpu.warnings + ("W_FIT_DOWNGRADE",))' -> 'return dataclasses.replace(warnings=tuple(cpu.warnings + ("W_FIT_DOWNGRADE",))'   [SURVIVED]
+    x_replan_for_host__mutmut_67: copy length differs (40 vs 42) — not line-comparable
+    offset 40: 'if "W_FIT_DOWNGRADE" not in cpu.warnings else cpu.warnings,' -> 'if ("W_FIT_DOWNGRADE" not in cpu.warnings) and False else cpu.warnings,'   [SURVIVED]
+    offset 40: 'if "W_FIT_DOWNGRADE" not in cpu.warnings else cpu.warnings,' -> 'if ("W_FIT_DOWNGRADE" not in cpu.warnings) or True else cpu.warnings,'   [SURVIVED]
+    offset 39: 'return dataclasses.replace(cpu, warnings=tuple(cpu.warnings + ("W_FIT_DOWNGRADE",))' -> 'return dataclasses.replace(cpu, warnings=tuple(None)'   [SURVIVED]
+    offset 39: 'return dataclasses.replace(cpu, warnings=tuple(cpu.warnings + ("W_FIT_DOWNGRADE",))' -> 'return dataclasses.replace(cpu, warnings=tuple(cpu.warnings - ("W_FIT_DOWNGRADE",))'   [SURVIVED]
+    offset 39: 'return dataclasses.replace(cpu, warnings=tuple(cpu.warnings + ("W_FIT_DOWNGRADE",))' -> 'return dataclasses.replace(cpu, warnings=tuple(cpu.warnings + ("XXW_FIT_DOWNGRADEXX",))'   [SURVIVED]
+    offset 39: 'return dataclasses.replace(cpu, warnings=tuple(cpu.warnings + ("W_FIT_DOWNGRADE",))' -> 'return dataclasses.replace(cpu, warnings=tuple(cpu.warnings + ("w_fit_downgrade",))'   [SURVIVED]
+    offset 40: 'if "W_FIT_DOWNGRADE" not in cpu.warnings else cpu.warnings,' -> 'if "XXW_FIT_DOWNGRADEXX" not in cpu.warnings else cpu.warnings,'   [SURVIVED]
+    offset 40: 'if "W_FIT_DOWNGRADE" not in cpu.warnings else cpu.warnings,' -> 'if "w_fit_downgrade" not in cpu.warnings else cpu.warnings,'   [SURVIVED]
+    offset 40: 'if "W_FIT_DOWNGRADE" not in cpu.warnings else cpu.warnings,' -> 'if "W_FIT_DOWNGRADE" in cpu.warnings else cpu.warnings,'   [SURVIVED]
+== x_run_llama_fit_params: 114 mutants (88 not-survived, 26 survived)
+    x_run_llama_fit_params__mutmut_21: copy length differs (34 vs 35) — not line-comparable
+    x_run_llama_fit_params__mutmut_30: copy length differs (34 vs 35) — not line-comparable
+    x_run_llama_fit_params__mutmut_40: copy length differs (31 vs 35) — not line-comparable
+    x_run_llama_fit_params__mutmut_111: copy length differs (34 vs 35) — not line-comparable
+    x_run_llama_fit_params__mutmut_113: copy length differs (34 vs 35) — not line-comparable
+== x_size_of_tensor: 17 mutants (12 not-survived, 5 survived)
+    x_size_of_tensor__mutmut_2: copy length differs (14 vs 15) — not line-comparable
+== x_store_plan: 39 mutants (27 not-survived, 12 survived)
+    x_store_plan__mutmut_22: copy length differs (11 vs 12) — not line-comparable
+== xǁFitPlanǁfrom_dict: 108 mutants (92 not-survived, 16 survived)
+    xǁFitPlanǁfrom_dict__mutmut_18: copy length differs (14 vs 15) — not line-comparable
+    xǁFitPlanǁfrom_dict__mutmut_20: copy length differs (14 vs 15) — not line-comparable
+    xǁFitPlanǁfrom_dict__mutmut_21: copy length differs (14 vs 15) — not line-comparable
+    xǁFitPlanǁfrom_dict__mutmut_22: copy length differs (14 vs 15) — not line-comparable
+    xǁFitPlanǁfrom_dict__mutmut_24: copy length differs (14 vs 15) — not line-comparable
+    xǁFitPlanǁfrom_dict__mutmut_26: copy length differs (14 vs 15) — not line-comparable
+    xǁFitPlanǁfrom_dict__mutmut_28: copy length differs (14 vs 15) — not line-comparable
+    xǁFitPlanǁfrom_dict__mutmut_29: copy length differs (14 vs 15) — not line-comparable
+    xǁFitPlanǁfrom_dict__mutmut_30: copy length differs (14 vs 15) — not line-comparable
+    xǁFitPlanǁfrom_dict__mutmut_31: copy length differs (14 vs 15) — not line-comparable
+== xǁFitPlanǁto_dict: 24 mutants (24 not-survived, 0 survived)
+    xǁFitPlanǁto_dict__mutmut_1: copy length differs (9 vs 10) — not line-comparable
+    xǁFitPlanǁto_dict__mutmut_6: copy length differs (6 vs 10) — not line-comparable
+== xǁModelFactsǁread: 123 mutants (76 not-survived, 47 survived)
+    xǁModelFactsǁread__mutmut_25: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_26: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_27: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_31: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_32: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_33: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_34: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_35: copy length differs (26 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_36: copy length differs (26 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_37: copy length differs (26 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_38: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_39: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_40: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_58: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_77: copy length differs (27 vs 28) — not line-comparable
+    xǁModelFactsǁread__mutmut_96: copy length differs (27 vs 28) — not line-comparable
+
+mutated lines touching a needle: 40 (of which SURVIVED: 24)
