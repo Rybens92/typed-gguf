@@ -1,0 +1,1 @@
+GGUFONE_RUNTIME_DIR=/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend cpu --items 1 --runs 1 --threads 4 --json

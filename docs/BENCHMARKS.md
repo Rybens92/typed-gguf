@@ -1,11 +1,9 @@
 # BENCHMARKS — measured tables for E2 (latency, throughput, quality, calibration, determinism)
 
-> **Provenance (audit `t_78f5ea7a`, 2026-09-18).** The `reproduce:` lines printed in these tables
-> **fail on the commits that shipped them** (`fff127e`, `4e1d549`): `E_INTERNAL: AttributeError:
-> 'Placement' object has no attribute 'kv_type'`, exit 4 — they work from `8d4fc9f` (`fit.coerce_plan`)
-> onward. The values themselves are **genuine**: bounded re-runs reproduce the per-item
-> quality/calibration payloads to float precision and 163 internal-consistency checks find no defect.
-> Details: `docs/evidence/e2_provenance_note.md`; source of record: auditor scorecard
+> **Provenance (audit `t_78f5ea7a`, 2026-09-18).** The `reproduce:` lines below **fail on the commits
+> that shipped them** (`fff127e`, `4e1d549`: `AttributeError: 'Placement' object has no attribute
+> 'kv_type'`, exit 4) and work from `8d4fc9f` onward; the values are genuine (float-precision re-runs,
+> 163 consistency checks). Note `docs/evidence/e2_provenance_note.md`; source of record
 > `state/fights/e2-provenance/scorecard.md`.
 
 Every table below is produced by one command, on the box described in §0, and stored as JSON in

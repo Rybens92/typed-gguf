@@ -21,7 +21,14 @@ GGUFONE_RUNTIME_DIR=<bundle> uv run ggufone bench --suite latency \
 | tree | files | exit | tail |
 |---|---|---|---|
 | fresh clone @ `4e1d549` | `crash-4e1d549.err` / `.out` / `.exit` | **4** | `error: E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'` |
-| fresh clone @ `8d4fc9f` (post-fix control, bounded `--runs 1 --sizes 64 --threads 4 --backend cpu`) | `control-8d4fc9f.*` | see below | see below |
+| fresh clone @ `8d4fc9f` (post-fix control: `--suite quality --backend cpu --items 1 --runs 1 --threads 4`) | `control-8d4fc9f-quality.*` | **0** (48.7 s wall) | real report written; full row in `.out` |
+
+Post-fix control, and the strongest single fact this card adds: the control's `c01` row is
+**bit-identical to the published `docs/evidence/e2_quality.json` row** — every field, including all
+four candidate probabilities, `confidence` and `coverage` (`c01-published-vs-control.txt`; the
+published values were measured on a box with the same container-class CPU path). So on the fixed
+tree the same bench path both *runs* and *lands on the published number*; only a different box
+(the auditor's 24-core host) shifts the last digits by ~1e-14.
 
 Crash log (verbatim tail, `.err`):
 

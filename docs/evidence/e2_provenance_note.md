@@ -6,10 +6,9 @@ reports **fails on the two commits that ship them** (`fff127e`, `4e1d549`). Reco
 here: **keep the numbers, record the caveat.** This note is documentation only — no measured value
 was edited, and the diff that adds it touches `docs/` and this file.
 
-Source of record: `state/fights/e2-provenance/scorecard.md` (live operator tree:
-`/home/rybens/workspace/ggufone/state/fights/e2-provenance/`; raw run logs, the 163-check output and
-the worker's session receipts are in its `logs/`). This card's own re-runs are in
-`.e2e/t_ed95f756-provenance-note/`.
+Source of record: `state/fights/e2-provenance/scorecard.md` (in this working tree; raw run logs, the
+163-check output and the worker's session receipts are in its `logs/`). This card's own re-runs are
+in `.e2e/t_ed95f756-provenance-note/`.
 
 ## 1. The recipe was broken on the shipping commits
 
@@ -24,12 +23,13 @@ load_backend: loaded CPU backend from …/b11026-linux-x64-vulkan/libggml-cpu-ha
 error: E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'      # exit 4
 ```
 
-Fail-fast (~1 s: the degradation ladder is built before the first load attempt, so only the model
-header read has to succeed). Independently confirmed four times: twice by the audit
-(`4e1d549`, `fff127e`, `logs/wt-*-crash.raw`), once by this card on a fresh clone of `4e1d549`
-(`.e2e/t_ed95f756-provenance-note/crash-4e1d549.err`, `exit=4`), and once by the fix card's own
-repro (`.e2e/t_31b3943a-bench-placement/repro_published_cmd.err`, `.exit` = 4 — committed with the
-fix). `--suite quality --runs 1` on `fff127e` shows the same tail.
+Fail-fast — the ladder is built before the first load attempt, so only the model header read has to
+succeed (the audit measured ~1 s to the crash; this card's re-run took 5.8 s wall for the whole CLI
+invocation, interpreter start-up included). Independently confirmed on three trees: the audit's two
+fresh worktrees (`4e1d549`, `fff127e` — `logs/wt-*-crash.raw`), this card's fresh clone of `4e1d549`
+(three runs, `.e2e/t_ed95f756-provenance-note/crash-4e1d549*.err`, `.exit` = 4), and the fix card's
+own pre-fix repro (`.e2e/t_31b3943a-bench-placement/repro_published_cmd.err` + `.exit` = 4,
+committed with the fix). `--suite quality --runs 1` on `fff127e` shows the same tail.
 
 **Root cause.** The bench harness names its placement with a minimal
 `harness.Placement(n_gpu_layers)` — the frozen dataclass at `src/ggufone/bench/harness.py:227`,
@@ -52,7 +52,8 @@ export + per-run logs; scorecard §4).
 
 ## 3. Why the numbers are still trustworthy (re-generation is possible on demand)
 
-Bounded re-runs on the fixed tree reproduce the *payload* of the published reports:
+The audit's bounded re-runs on the fixed tree (scorecard §3) reproduce the *payload* of the published
+reports:
 
 * `e2_quality.json` — per-item decisions identical for the compared items; the 4B's `c01`
   probabilities agree to ~13 significant digits (published `billing 0.7689847751553348` vs
@@ -63,7 +64,12 @@ Bounded re-runs on the fixed tree reproduce the *payload* of the published repor
   `one_shot == serve + model_load`, `agreement == correct/n`, per-item probabilities summing to 1,
   ECE recomputed from the published bins to 1e-9 for all three modes) — the only flagged item is a
   p50 inversion at wave-scaling `N=2` 2.6 % below `N=1`, inside the contention the document itself
-  describes.
+  describes;
+* this card's own post-fix control (fresh clone of `8d4fc9f`, `--suite quality --backend cpu
+  --items 1 --runs 1 --threads 4`, exit 0) reproduces the published `c01` row **bit-for-bit** — all
+  four candidate probabilities, `confidence`, `coverage` and the decision
+  (`.e2e/t_ed95f756-provenance-note/c01-published-vs-control.txt`). The audit's 24-core host agreed
+  to ~4e-14; on the container-class CPU path the agreement is exact.
 
 So re-generation is possible **on demand** on the fixed tree, and it changes no value modulo the
 box. The *timings* are box-scaled by construction: the audit host (24 real cores) measured

@@ -1,0 +1,14 @@
+type         published='choice'                 control='choice'                 equal=True
+expected     published='technical'              control='technical'              equal=True
+got          published='billing'                control='billing'                equal=True
+correct      published=False                    control=False                    equal=True
+confidence   published=0.6919797002071131       control=0.6919797002071131       equal=True
+coverage     published=0.03677324001399532      control=0.03677324001399532      equal=True
+reliability  published='low_mass'               control='low_mass'               equal=True
+probabilities:
+  billing    published=0.7689847751553348       control=0.7689847751553348       equal=True
+  sales      published=0.11970672350554913      control=0.11970672350554913      equal=True
+  support    published=5.5553603820850974e-05   control=5.5553603820850974e-05   equal=True
+  technical  published=0.11125294773529501      control=0.11125294773529501      equal=True
+
+full-row equality (ignoring timings): True
