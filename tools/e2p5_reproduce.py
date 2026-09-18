@@ -185,7 +185,7 @@ def cmd_route(args: argparse.Namespace) -> int:
     payload_path.parent.mkdir(parents=True, exist_ok=True)
     payload_path.write_text(json.dumps(body, indent=2) + "\n", encoding="utf-8")
     argv = ["run", "--questions", str(payload_path), "--route", "auto",
-            "--threads", str(args.threads), "--json"]
+            "--threads", str(args.threads)]
     if args.model:
         argv += ["--model", args.model]
     if args.audit:
@@ -266,7 +266,7 @@ def cmd_escalate(args: argparse.Namespace) -> int:
     items = devset_module.load(args.devset)
     if args.items:
         items = items[: args.items]
-    rows = _measure(args.primary, threads=args.threads, devset=args.devset, items=args.items)
+    rows = _measure(args.primary, threads=args.threads, devset_path=args.devset, items=args.items)
     by_id = {item.id: item for item in items}
     answers = _answers_of(rows)
     decisions = routing.escalation_candidates(answers, threshold=args.threshold,

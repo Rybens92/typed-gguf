@@ -424,6 +424,75 @@ def test_a_type_that_is_already_calibrated_reports_no_calibration_applied() -> N
     assert table.to_json()["accepted"] is False
 
 
+def test_a_fit_that_leaves_the_ece_flat_can_still_win_on_the_fixed_threshold_agreement() -> None:
+    """A-E2p5-2 spells out both acceptance routes: ECE, or agreement at a fixed threshold."""
+    before = {"ece": 0.25, "agreement_at_0.5": {"agreement": 0.60}}
+    better = {"ece": 0.25, "agreement_at_0.5": {"agreement": 0.75}}
+    accepted, reason = calibrate._accept(1.75, before, better)
+    assert accepted is True and "agreement" in reason
+    flat = {"ece": 0.25, "agreement_at_0.5": {"agreement": 0.60}}
+    assert calibrate._accept(1.75, before, flat) == (
+        False, "no calibration applied: the held-out split did not improve")
+
+
+def test_a_type_with_too_few_held_out_rows_is_never_fitted() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=9), model_key="sha256:test",
+                                holdout_fraction=0.1)
+    entry = table.types["choice"]
+    assert entry.accepted is False
+    assert "too few held-out rows" in entry.reason
+
+
+def test_a_row_describes_itself_as_an_answer_for_the_escalation_policy() -> None:
+    row = _fit_rows(("choice",), per_type=6)[0]
+    answer = row.as_answer()
+    assert set(answer) == {"type", "probabilities", "confidence", "reliability"}
+    assert list(answer["probabilities"]) == list(row.labels)
+    assert answer["confidence"] == row.confidence
+
+
+def test_a_type_with_no_rows_at_all_is_refused() -> None:
+    with pytest.raises(ValueError):
+        calibrate.fit_table([], model_key="sha256:test")
+
+
+def test_the_key_is_the_sha_when_it_is_known_and_the_file_otherwise(tmp_path) -> None:
+    model = tmp_path / "tiny.gguf"
+    model.write_bytes(b"GGUF" + b"\0" * 32)
+    assert calibrate.model_key_for(model, sha256="ab" * 32) == "sha256:" + "ab" * 32
+    assert calibrate.model_key_for(model) == f"file:tiny.gguf:{model.stat().st_size}"
+    assert calibrate.model_key_for(tmp_path / "gone.gguf") == "file:gone.gguf:0"
+
+
+def test_a_corrupt_store_is_refused_with_the_path_in_the_message(tmp_path) -> None:
+    path = tmp_path / "calibration.json"
+    path.write_text('{"schema": "x", "models": 5}', encoding="utf-8")
+    with pytest.raises(ValueError, match="calibration store"):
+        calibrate.load_table(path, "file:tiny.gguf:36")
+
+
+def test_retiring_the_last_model_removes_the_store_file(tmp_path) -> None:
+    path = tmp_path / "calibration.json"
+    accepted = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                   model_key="sha256:test")
+    assert accepted.accepted
+    assert calibrate.save_table(path, accepted) == path
+    rejected = calibrate.fit_table(_flat_rows(per_type=18), model_key="sha256:test")
+    assert calibrate.save_table(path, rejected) is None
+    assert not path.exists()
+
+
+def test_a_store_that_only_holds_another_model_keeps_its_entry(tmp_path) -> None:
+    path = tmp_path / "calibration.json"
+    calibrate.save_table(path, calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                                   model_key="sha256:mine"))
+    calibrate.save_table(path, calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                                   model_key="sha256:other"))
+    calibrate.save_table(path, calibrate.fit_table(_flat_rows(per_type=18), model_key="sha256:mine"))
+    assert calibrate.load_table(path, "sha256:mine") is None
+    assert calibrate.load_table(path, "sha256:other") is not None
+
+
 def test_a_type_with_too_few_rows_is_never_fitted() -> None:
     table = calibrate.fit_table(_fit_rows(("choice",), per_type=6), model_key="sha256:test")
     entry = table.types["choice"]

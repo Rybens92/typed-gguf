@@ -120,26 +120,13 @@ load_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-li
 ~llama_context:        CPU compute buffer size is 151.6111 MiB, matches expectation of 151.6111 MiB
 ~llama_context:        CPU compute buffer size is 152.5623 MiB, matches expectation of 152.5623 MiB
 ~llama_context:        CPU compute buffer size is 143.9267 MiB, matches expectation of 143.9267 MiB
-repeat 0: code=1 accepted=False params=sha256:3b9605dd5f1f7fb647605600930d13e67409eff32b7aebe296c37fd2837b7aff
-  choice: T=1.0000 holdout ECE 0.2266 -> 0.2266 :: no calibration applied: the fit chose the identity (temperature 1.0)
+repeat 0: code=0 accepted=True params=sha256:dd995c81069bff199ac3d038f3887b10bcbfc6dc2f0d4e7305cc5304d002b1bb
+  choice: T=1.0000 holdout ECE 0.2266 -> 0.2266 :: no calibration applied: margin improved the held-out ECE by only 0.0031 (< the 0.0050 margin a mode switch needs)
   noul: T=1.0000 holdout ECE 0.3843 -> 0.3843 :: no calibration applied: the fit chose the identity (temperature 1.0)
-  score: T=2.2230 holdout ECE 0.3732 -> 0.4400 :: no calibration applied: the held-out split did not improve
-repeat 1: code=1 accepted=False params=sha256:3b9605dd5f1f7fb647605600930d13e67409eff32b7aebe296c37fd2837b7aff
-  choice: T=1.0000 holdout ECE 0.2266 -> 0.2266 :: no calibration applied: the fit chose the identity (temperature 1.0)
+  score: T=1.6475 holdout ECE 0.4672 -> 0.4479 :: applied: held-out ECE 0.4672 -> 0.4479 at temperature 1.6475
+repeat 1: code=0 accepted=True params=sha256:dd995c81069bff199ac3d038f3887b10bcbfc6dc2f0d4e7305cc5304d002b1bb
+  choice: T=1.0000 holdout ECE 0.2266 -> 0.2266 :: no calibration applied: margin improved the held-out ECE by only 0.0031 (< the 0.0050 margin a mode switch needs)
   noul: T=1.0000 holdout ECE 0.3843 -> 0.3843 :: no calibration applied: the fit chose the identity (temperature 1.0)
-  score: T=2.2230 holdout ECE 0.3732 -> 0.4400 :: no calibration applied: the held-out split did not improve
-Traceback (most recent call last):
-  File "/work/e2p5repo2/tools/e2p5_reproduce.py", line 420, in <module>
-  File "/work/e2p5repo2/tools/e2p5_reproduce.py", line 416, in main
-    if __name__ == "__main__":
-                   ^^^^^^^^^^^^
-  File "/work/e2p5repo2/tools/e2p5_reproduce.py", line 128, in cmd_calibrate
-    }
-      
-  File "/work/e2p5repo2/tools/e2p5_reproduce.py", line 139, in _table_payload
-    model_path=args.model)
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/work/e2p5repo2/src/ggufone/calibration/calibrate.py", line 449, in fit_table
-    
-ValueError: fit_table needs at least one row
-exit=1
+  score: T=1.6475 holdout ECE 0.4672 -> 0.4479 :: applied: held-out ECE 0.4672 -> 0.4479 at temperature 1.6475
+wrote /work/e2p5-evidence/e2p5_calibration_qwen08.json
+exit=0

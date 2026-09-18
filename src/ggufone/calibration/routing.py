@@ -226,6 +226,9 @@ def _plan_candidate(candidate: Candidate, facts: fit.ModelFacts, *, host: fit.Ho
                               facts.weights_bytes, tier, note)
         device_reason = (f"device budget {device_budget / MIB:.0f} MiB cannot hold "
                          f"{weights / MIB:.0f} MiB of weights + the KV cache")
+    elif host.vram_bytes <= 0:
+        device_reason = (f"cpu-only box, so the plan is sized against the system budget "
+                         f"({system_budget / MIB:.0f} MiB of RAM)")
     else:
         device_reason = (f"no device budget ({device_budget / MIB:.0f} MiB free after the "
                          f"fit-target margin)")

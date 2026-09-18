@@ -1,0 +1,685 @@
+{
+  "schema": "ggufone.evidence.e2p5/v1",
+  "command": "calibrate --model /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf --json --threads 2 --out /work/e2p5-evidence/e2p5_rows_qwen08.json",
+  "seconds": 611.5,
+  "model": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+  "runtime": "/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu",
+  "home": "/work/e2p5-evidence/home",
+  "rows_out": "/work/e2p5-evidence/e2p5_rows_qwen08.json",
+  "repeats": [
+    {
+      "code": 0,
+      "params_hash": "sha256:dd995c81069bff199ac3d038f3887b10bcbfc6dc2f0d4e7305cc5304d002b1bb",
+      "accepted": true,
+      "temperatures": {
+        "choice": {
+          "temperature": 1.0,
+          "accepted": false
+        },
+        "noul": {
+          "temperature": 1.0,
+          "accepted": false
+        },
+        "score": {
+          "temperature": 1.6475489724420662,
+          "accepted": true
+        }
+      },
+      "verdicts": {
+        "choice": {
+          "accepted": false,
+          "reason": "no calibration applied: margin improved the held-out ECE by only 0.0031 (< the 0.0050 margin a mode switch needs)",
+          "temperature": 1.0,
+          "holdout_ece": {
+            "before": 0.22664689744569924,
+            "after": 0.22664689744569924
+          }
+        },
+        "noul": {
+          "accepted": false,
+          "reason": "no calibration applied: the fit chose the identity (temperature 1.0)",
+          "temperature": 1.0,
+          "holdout_ece": {
+            "before": 0.3843460274678856,
+            "after": 0.3843460274678856
+          }
+        },
+        "score": {
+          "accepted": true,
+          "reason": "applied: held-out ECE 0.4672 -> 0.4479 at temperature 1.6475",
+          "temperature": 1.6475489724420662,
+          "holdout_ece": {
+            "before": 0.46724788324117855,
+            "after": 0.4478903830155456
+          }
+        }
+      }
+    },
+    {
+      "code": 0,
+      "params_hash": "sha256:dd995c81069bff199ac3d038f3887b10bcbfc6dc2f0d4e7305cc5304d002b1bb",
+      "accepted": true,
+      "temperatures": {
+        "choice": {
+          "temperature": 1.0,
+          "accepted": false
+        },
+        "noul": {
+          "temperature": 1.0,
+          "accepted": false
+        },
+        "score": {
+          "temperature": 1.6475489724420662,
+          "accepted": true
+        }
+      },
+      "verdicts": {
+        "choice": {
+          "accepted": false,
+          "reason": "no calibration applied: margin improved the held-out ECE by only 0.0031 (< the 0.0050 margin a mode switch needs)",
+          "temperature": 1.0,
+          "holdout_ece": {
+            "before": 0.22664689744569924,
+            "after": 0.22664689744569924
+          }
+        },
+        "noul": {
+          "accepted": false,
+          "reason": "no calibration applied: the fit chose the identity (temperature 1.0)",
+          "temperature": 1.0,
+          "holdout_ece": {
+            "before": 0.3843460274678856,
+            "after": 0.3843460274678856
+          }
+        },
+        "score": {
+          "accepted": true,
+          "reason": "applied: held-out ECE 0.4672 -> 0.4479 at temperature 1.6475",
+          "temperature": 1.6475489724420662,
+          "holdout_ece": {
+            "before": 0.46724788324117855,
+            "after": 0.4478903830155456
+          }
+        }
+      }
+    }
+  ],
+  "reproducible": true,
+  "stored": true,
+  "table": {
+    "schema": "ggufone.calibration/v1",
+    "created_at": "2026-09-18T12:06:22Z",
+    "model": "file:Qwen3.5-0.8B-UD-Q4_K_XL.gguf:558772480",
+    "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "model_sha256": "",
+    "alias": "Qwen3.5-0.8B-UD-Q4_K_XL",
+    "mode": "auto",
+    "modes": [
+      "entropy",
+      "margin",
+      "normalized_peak"
+    ],
+    "accepted": true,
+    "accepted_types": [
+      "score"
+    ],
+    "holdout_fraction": 0.3333333333333333,
+    "n_bins": 10,
+    "devset": {
+      "path": "/work/e2p5repo2/src/ggufone/bench/devset.jsonl",
+      "items": 60,
+      "digest": "sha256:b1fcc2b8a86666a20a515d2c6988ab1d6c41039914b949d8925a90e0fa80cdd5"
+    },
+    "params": {
+      "model": "file:Qwen3.5-0.8B-UD-Q4_K_XL.gguf:558772480",
+      "mode": "auto",
+      "modes": [
+        "entropy",
+        "margin",
+        "normalized_peak"
+      ],
+      "holdout_fraction": 0.3333333333333333,
+      "n_bins": 10,
+      "devset_digest": "sha256:b1fcc2b8a86666a20a515d2c6988ab1d6c41039914b949d8925a90e0fa80cdd5",
+      "types": {
+        "choice": {
+          "temperature": 1.0,
+          "accepted": false
+        },
+        "noul": {
+          "temperature": 1.0,
+          "accepted": false
+        },
+        "score": {
+          "temperature": 1.6475489724420662,
+          "accepted": true
+        }
+      }
+    },
+    "params_hash": "sha256:dd995c81069bff199ac3d038f3887b10bcbfc6dc2f0d4e7305cc5304d002b1bb",
+    "types": {
+      "choice": {
+        "qtype": "choice",
+        "temperature": 1.0,
+        "accepted": false,
+        "reason": "no calibration applied: margin improved the held-out ECE by only 0.0031 (< the 0.0050 margin a mode switch needs)",
+        "mode": "normalized_peak",
+        "n": {
+          "fit": 16,
+          "holdout": 8
+        },
+        "ece": {
+          "fit": {
+            "before": 0.24510104424475118,
+            "after": 0.24510104424475118
+          },
+          "holdout": {
+            "before": 0.22664689744569924,
+            "after": 0.22664689744569924
+          }
+        },
+        "nll": {
+          "fit": {
+            "before": 1.4307637102722912,
+            "after": 1.4307637102722912
+          },
+          "holdout": {
+            "before": 0.6704320367906651,
+            "after": 0.6704320367906651
+          }
+        },
+        "agreement": {
+          "holdout": {
+            "before": 0.625,
+            "after": 0.625
+          }
+        },
+        "agreement_at_0.5": {
+          "holdout": {
+            "before": 0.8,
+            "after": 0.8
+          }
+        },
+        "modes": {
+          "entropy": {
+            "mode": "entropy",
+            "temperature": 1.0,
+            "selected": false,
+            "eligible": false,
+            "holdout_ece_improvement": 0.0,
+            "ece_fit_before": 0.23018783190761438,
+            "ece_fit_after": 0.23018783190761438,
+            "ece_holdout_before": 0.41335548429781993,
+            "ece_holdout_after": 0.41335548429781993,
+            "agreement_holdout_before": 0.625,
+            "agreement_holdout_after": 0.625,
+            "agreement_at_0.5_holdout_before": 0.8,
+            "agreement_at_0.5_holdout_after": 0.8,
+            "mean_confidence_before": 0.59428081942071,
+            "mean_confidence_after": 0.59428081942071
+          },
+          "margin": {
+            "mode": "margin",
+            "temperature": 1.4909760458230987,
+            "selected": false,
+            "eligible": true,
+            "holdout_ece_improvement": 0.003050309678845453,
+            "ece_fit_before": 0.2857793991547944,
+            "ece_fit_after": 0.2758429839337669,
+            "ece_holdout_before": 0.27851968046992165,
+            "ece_holdout_after": 0.2754693707910762,
+            "agreement_holdout_before": 0.625,
+            "agreement_holdout_after": 0.625,
+            "agreement_at_0.5_holdout_before": 0.8,
+            "agreement_at_0.5_holdout_after": 0.8,
+            "mean_confidence_before": 0.6254067963415686,
+            "mean_confidence_after": 0.5119096887454261
+          },
+          "normalized_peak": {
+            "mode": "normalized_peak",
+            "temperature": 1.0,
+            "selected": false,
+            "eligible": false,
+            "holdout_ece_improvement": 0.0,
+            "ece_fit_before": 0.24510104424475118,
+            "ece_fit_after": 0.24510104424475118,
+            "ece_holdout_before": 0.22664689744569924,
+            "ece_holdout_after": 0.22664689744569924,
+            "agreement_holdout_before": 0.625,
+            "agreement_holdout_after": 0.625,
+            "agreement_at_0.5_holdout_before": 0.8,
+            "agreement_at_0.5_holdout_after": 0.8,
+            "mean_confidence_before": 0.6721260851944025,
+            "mean_confidence_after": 0.6721260851944025
+          }
+        },
+        "evaluate": {
+          "fit_before": {
+            "temperature": 1.0,
+            "mode": "normalized_peak",
+            "n": 16,
+            "ece": 0.24510104424475118,
+            "nll": 1.4307637102722912,
+            "mean_confidence": 0.7037541712206224,
+            "agreement": 0.6875,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 10,
+              "correct": 8,
+              "agreement": 0.8,
+              "ci": [
+                0.49015684672072335,
+                0.9433190520193067
+              ]
+            }
+          },
+          "fit_after": {
+            "temperature": 1.0,
+            "mode": "normalized_peak",
+            "n": 16,
+            "ece": 0.24510104424475118,
+            "nll": 1.4307637102722912,
+            "mean_confidence": 0.7037541712206224,
+            "agreement": 0.6875,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 10,
+              "correct": 8,
+              "agreement": 0.8,
+              "ci": [
+                0.49015684672072335,
+                0.9433190520193067
+              ]
+            }
+          },
+          "holdout_before": {
+            "temperature": 1.0,
+            "mode": "normalized_peak",
+            "n": 8,
+            "ece": 0.22664689744569924,
+            "nll": 0.6704320367906651,
+            "mean_confidence": 0.6721260851944025,
+            "agreement": 0.625,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 5,
+              "correct": 4,
+              "agreement": 0.8,
+              "ci": [
+                0.3755282641185388,
+                0.9637768390302125
+              ]
+            }
+          },
+          "holdout_after": {
+            "temperature": 1.0,
+            "mode": "normalized_peak",
+            "n": 8,
+            "ece": 0.22664689744569924,
+            "nll": 0.6704320367906651,
+            "mean_confidence": 0.6721260851944025,
+            "agreement": 0.625,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 5,
+              "correct": 4,
+              "agreement": 0.8,
+              "ci": [
+                0.3755282641185388,
+                0.9637768390302125
+              ]
+            }
+          }
+        }
+      },
+      "noul": {
+        "qtype": "noul",
+        "temperature": 1.0,
+        "accepted": false,
+        "reason": "no calibration applied: the fit chose the identity (temperature 1.0)",
+        "mode": "normalized_peak",
+        "n": {
+          "fit": 12,
+          "holdout": 6
+        },
+        "ece": {
+          "fit": {
+            "before": 0.2627120761848745,
+            "after": 0.2627120761848745
+          },
+          "holdout": {
+            "before": 0.3843460274678856,
+            "after": 0.3843460274678856
+          }
+        },
+        "nll": {
+          "fit": {
+            "before": 0.6655527362147692,
+            "after": 0.6655527362147692
+          },
+          "holdout": {
+            "before": 0.7955381533751481,
+            "after": 0.7955381533751481
+          }
+        },
+        "agreement": {
+          "holdout": {
+            "before": 0.5,
+            "after": 0.5
+          }
+        },
+        "agreement_at_0.5": {
+          "holdout": {
+            "before": 1.0,
+            "after": 1.0
+          }
+        },
+        "modes": {
+          "entropy": {
+            "mode": "entropy",
+            "temperature": 1.0,
+            "selected": false,
+            "eligible": false,
+            "holdout_ece_improvement": 0.0,
+            "ece_fit_before": 0.501458889815677,
+            "ece_fit_after": 0.501458889815677,
+            "ece_holdout_before": 0.4638461205488093,
+            "ece_holdout_after": 0.4638461205488093,
+            "agreement_holdout_before": 0.5,
+            "agreement_holdout_after": 0.5,
+            "agreement_at_0.5_holdout_before": 0.0,
+            "agreement_at_0.5_holdout_after": 0.0,
+            "mean_confidence_before": 0.14898381580460765,
+            "mean_confidence_after": 0.14898381580460765
+          },
+          "margin": {
+            "mode": "margin",
+            "temperature": 1.0,
+            "selected": false,
+            "eligible": false,
+            "holdout_ece_improvement": 0.0,
+            "ece_fit_before": 0.15809033949322723,
+            "ece_fit_after": 0.15809033949322723,
+            "ece_holdout_before": 0.49879107637925085,
+            "ece_holdout_after": 0.49879107637925085,
+            "agreement_holdout_before": 0.5,
+            "agreement_holdout_after": 0.5,
+            "agreement_at_0.5_holdout_before": 0.6,
+            "agreement_at_0.5_holdout_after": 0.6,
+            "mean_confidence_before": 0.5963771781940289,
+            "mean_confidence_after": 0.5963771781940289
+          },
+          "normalized_peak": {
+            "mode": "normalized_peak",
+            "temperature": 1.0,
+            "selected": false,
+            "eligible": false,
+            "holdout_ece_improvement": 0.0,
+            "ece_fit_before": 0.2627120761848745,
+            "ece_fit_after": 0.2627120761848745,
+            "ece_holdout_before": 0.3843460274678856,
+            "ece_holdout_after": 0.3843460274678856,
+            "agreement_holdout_before": 0.5,
+            "agreement_holdout_after": 0.5,
+            "agreement_at_0.5_holdout_before": 1.0,
+            "agreement_at_0.5_holdout_after": 1.0,
+            "mean_confidence_before": 0.4320274145465605,
+            "mean_confidence_after": 0.4320274145465605
+          }
+        },
+        "evaluate": {
+          "fit_before": {
+            "temperature": 1.0,
+            "mode": "normalized_peak",
+            "n": 12,
+            "ece": 0.2627120761848745,
+            "nll": 0.6655527362147692,
+            "mean_confidence": 0.44640575503959107,
+            "agreement": 0.6666666666666666,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 4,
+              "correct": 3,
+              "agreement": 0.75,
+              "ci": [
+                0.3006360524426366,
+                0.9544139373553637
+              ]
+            }
+          },
+          "fit_after": {
+            "temperature": 1.0,
+            "mode": "normalized_peak",
+            "n": 12,
+            "ece": 0.2627120761848745,
+            "nll": 0.6655527362147692,
+            "mean_confidence": 0.44640575503959107,
+            "agreement": 0.6666666666666666,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 4,
+              "correct": 3,
+              "agreement": 0.75,
+              "ci": [
+                0.3006360524426366,
+                0.9544139373553637
+              ]
+            }
+          },
+          "holdout_before": {
+            "temperature": 1.0,
+            "mode": "normalized_peak",
+            "n": 6,
+            "ece": 0.3843460274678856,
+            "nll": 0.7955381533751481,
+            "mean_confidence": 0.4320274145465605,
+            "agreement": 0.5,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 1,
+              "correct": 1,
+              "agreement": 1.0,
+              "ci": [
+                0.20654329147389294,
+                1.0
+              ]
+            }
+          },
+          "holdout_after": {
+            "temperature": 1.0,
+            "mode": "normalized_peak",
+            "n": 6,
+            "ece": 0.3843460274678856,
+            "nll": 0.7955381533751481,
+            "mean_confidence": 0.4320274145465605,
+            "agreement": 0.5,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 1,
+              "correct": 1,
+              "agreement": 1.0,
+              "ci": [
+                0.20654329147389294,
+                1.0
+              ]
+            }
+          }
+        }
+      },
+      "score": {
+        "qtype": "score",
+        "temperature": 1.6475489724420662,
+        "accepted": true,
+        "reason": "applied: held-out ECE 0.4672 -> 0.4479 at temperature 1.6475",
+        "mode": "entropy",
+        "n": {
+          "fit": 12,
+          "holdout": 6
+        },
+        "ece": {
+          "fit": {
+            "before": 0.11542183168449194,
+            "after": 0.0695040604914833
+          },
+          "holdout": {
+            "before": 0.46724788324117855,
+            "after": 0.4478903830155456
+          }
+        },
+        "nll": {
+          "fit": {
+            "before": 1.8893354105242242,
+            "after": 1.6498661887430037
+          },
+          "holdout": {
+            "before": 1.0433153047885446,
+            "after": 1.1164358644837091
+          }
+        },
+        "agreement": {
+          "holdout": {
+            "before": 0.5,
+            "after": 0.5
+          }
+        },
+        "agreement_at_0.5": {
+          "holdout": {
+            "before": 0.0,
+            "after": 0.0
+          }
+        },
+        "modes": {
+          "entropy": {
+            "mode": "entropy",
+            "temperature": 1.6475489724420662,
+            "selected": true,
+            "eligible": true,
+            "holdout_ece_improvement": 0.01935750022563293,
+            "ece_fit_before": 0.11542183168449194,
+            "ece_fit_after": 0.0695040604914833,
+            "ece_holdout_before": 0.46724788324117855,
+            "ece_holdout_after": 0.4478903830155456,
+            "agreement_holdout_before": 0.5,
+            "agreement_holdout_after": 0.5,
+            "agreement_at_0.5_holdout_before": 0.0,
+            "agreement_at_0.5_holdout_after": 0.0,
+            "mean_confidence_before": 0.11794854280475653,
+            "mean_confidence_after": 0.05210961698445443
+          },
+          "margin": {
+            "mode": "margin",
+            "temperature": 2.223009569218283,
+            "selected": false,
+            "eligible": false,
+            "holdout_ece_improvement": -0.05460385073893059,
+            "ece_fit_before": 0.17544908217510036,
+            "ece_fit_after": 0.0824973191347647,
+            "ece_holdout_before": 0.4026136009164197,
+            "ece_holdout_after": 0.45721745165535027,
+            "agreement_holdout_before": 0.5,
+            "agreement_holdout_after": 0.5,
+            "agreement_at_0.5_holdout_before": 1.0,
+            "agreement_at_0.5_holdout_after": 0.0,
+            "mean_confidence_before": 0.205420418809798,
+            "mean_confidence_after": 0.08719059686832738
+          },
+          "normalized_peak": {
+            "mode": "normalized_peak",
+            "temperature": 2.223009569218283,
+            "selected": false,
+            "eligible": false,
+            "holdout_ece_improvement": -0.06673299054307857,
+            "ece_fit_before": 0.190607967555423,
+            "ece_fit_after": 0.026526901710020853,
+            "ece_holdout_before": 0.37322967867290885,
+            "ece_holdout_after": 0.4399626692159874,
+            "agreement_holdout_before": 0.5,
+            "agreement_holdout_after": 0.5,
+            "agreement_at_0.5_holdout_before": 1.0,
+            "agreement_at_0.5_holdout_after": 0.0,
+            "mean_confidence_before": 0.22956277834831984,
+            "mean_confidence_after": 0.1067793225147989
+          }
+        },
+        "evaluate": {
+          "fit_before": {
+            "temperature": 1.0,
+            "mode": "entropy",
+            "n": 12,
+            "ece": 0.11542183168449194,
+            "nll": 1.8893354105242242,
+            "mean_confidence": 0.20917449674247066,
+            "agreement": 0.16666666666666666,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 0,
+              "correct": 0,
+              "agreement": 0.0,
+              "ci": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "fit_after": {
+            "temperature": 1.6475489724420662,
+            "mode": "entropy",
+            "n": 12,
+            "ece": 0.0695040604914833,
+            "nll": 1.6498661887430037,
+            "mean_confidence": 0.09716260617518337,
+            "agreement": 0.16666666666666666,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 0,
+              "correct": 0,
+              "agreement": 0.0,
+              "ci": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "holdout_before": {
+            "temperature": 1.0,
+            "mode": "entropy",
+            "n": 6,
+            "ece": 0.46724788324117855,
+            "nll": 1.0433153047885446,
+            "mean_confidence": 0.11794854280475653,
+            "agreement": 0.5,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 0,
+              "correct": 0,
+              "agreement": 0.0,
+              "ci": [
+                0.0,
+                1.0
+              ]
+            }
+          },
+          "holdout_after": {
+            "temperature": 1.6475489724420662,
+            "mode": "entropy",
+            "n": 6,
+            "ece": 0.4478903830155456,
+            "nll": 1.1164358644837091,
+            "mean_confidence": 0.05210961698445443,
+            "agreement": 0.5,
+            "agreement_at_0.5": {
+              "threshold": 0.5,
+              "n": 0,
+              "correct": 0,
+              "agreement": 0.0,
+              "ci": [
+                0.0,
+                1.0
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
