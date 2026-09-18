@@ -538,12 +538,15 @@ def _run_throughput(config: harness.BenchConfig, make: Factory,
     measured = [row for row in rows if row.get("measured")]
     # a row that never started because the cap was already spent is incompleteness, not a failure —
     # and `--backend all` must not publish a row whose own engine log contradicts its label
-    mismatched = [row for row in measured if row["warnings"]]
+    mismatched = [row for row in isolation.verified_rows(measured) if row["warnings"]]
     # a row whose child could not be verified is a failure too: the exit code is never the answer
     broken = isolation.broken_rows(rows)
+    recovered = isolation.recovered_rows(rows)
     report["ok"] = (bool(measured) or bool(budget.skipped)) and not mismatched and not broken
     for row in broken:
         report["notes"].append(isolation.isolation_note(row))
+    for row in recovered:
+        report["notes"].append(isolation.recovered_note(row))
     for row in mismatched:
         report["notes"].append(_mismatch_note(row["backend"], row))
     if not measured and not budget.skipped:
@@ -773,10 +776,14 @@ def _run_determinism(config: harness.BenchConfig, make: Factory,
     # or whose isolated child the parent could not verify
     broken = isolation.broken_rows(rows)
     failed = [row for row in rows if not row["ok"]]
-    mismatched = [row for row in rows if row.get("warnings")]
+    # a withheld row already carries its own note: it must not be read as "the engine's log
+    # refutes the label" (card t_57cc0179 — the crash's warning is not a W_BACKEND_MISMATCH)
+    mismatched = [row for row in isolation.verified_rows(rows) if row.get("warnings")]
     report["ok"] = not failed and not mismatched and (bool(rows) or bool(budget.skipped))
     for row in broken:
         report["notes"].append(isolation.isolation_note(row))
+    for row in isolation.recovered_rows(rows):
+        report["notes"].append(isolation.recovered_note(row))
     for row in mismatched:
         report["notes"].append(_mismatch_note(row["backend"], row))
     # only a row that really ran its repeats can be a byte-identity failure; a withheld row already
