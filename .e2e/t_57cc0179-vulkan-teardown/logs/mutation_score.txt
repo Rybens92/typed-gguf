@@ -1,0 +1,11 @@
+Tier-M sweep (card t_57cc0179): src/ggufone/bench/isolation.py
+test selection: tests/test_bench_isolation.py + tests/test_bench_teardown_crash.py
+driver: .e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh (--max-children 2; re-runs around the shared pid cgroup)
+raw: .e2e/t_57cc0179-vulkan-teardown/logs/mutmut.out
+
+isolation.py.meta: 1162 mutants | killed 683 | survived 173 | other 306 | score 79.8 %
+PENDING=306
+
+score = killed / (killed + survived) over the *scored* mutants; the pending ones are
+reported, never folded in (Tier M soft threshold on a box whose pid cgroup kills a run
+at os.fork with EAGAIN). Survivor list: logs/mutation_survivors.txt

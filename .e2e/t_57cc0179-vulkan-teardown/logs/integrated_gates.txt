@@ -1,0 +1,283 @@
+=== ruff ===
+All checks passed!
+=== isolation gates ===
+........................................................................ [ 84%]
+.............                                                            [100%]
+85 passed in 1.41s
+=== full suite ===
+........................................................................ [  6%]
+.............................sssssss.................................... [ 12%]
+........................................................................ [ 19%]
+........................................................................ [ 25%]
+.................................s...................................... [ 32%]
+....................................................ss.................. [ 38%]
+........................................................................ [ 45%]
+........................................................................ [ 51%]
+..sssssss..................................................sssssss.ss... [ 58%]
+.......................................ss.......................ssss.... [ 64%]
+........................................................................ [ 71%]
+........................................................................ [ 77%]
+.........................................................F...s.F.......F [ 84%]
+....FF........F...........sssss......................................... [ 90%]
+........................................................................ [ 97%]
+..........ssss................                                           [100%]
+=================================== FAILURES ===================================
+_______________ test_oracle_live_section_is_green_without_skips ________________
+
+    def test_oracle_live_section_is_green_without_skips() -> None:
+        runtime = _installed_runtime()
+        if runtime is None:
+            pytest.skip("no runtime installed (run `ggufone init` or set GGUFONE_RUNTIME_DIR)")
+        import os
+        env = {**os.environ, "GGUFONE_RUNTIME_DIR": str(runtime)}
+>       result = run_oracle(env=env)
+                 ^^^^^^^^^^^^^^^^^^^
+
+tests/test_runtime_contract.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_runtime_contract.py:23: in run_oracle
+    return subprocess.run([sys.executable, str(ORACLE)], capture_output=True, text=True,  # noqa: S603
+/usr/local/lib/python3.11/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Popen: returncode: None args: ['/work/t57cc-ggufone/.venv/bin/python', '/wo...>
+args = ['/work/t57cc-ggufone/.venv/bin/python', '/work/t57cc-ggufone/docs/verify_runtime_contract.py']
+executable = b'/work/t57cc-ggufone/.venv/bin/python', preexec_fn = None
+close_fds = True, pass_fds = (), cwd = '/work/t57cc-ggufone'
+env = {'UV_CACHE_DIR': '/work/.uv-cache', 'PYTHON_SHA256': '272179ddd9a2e41a0fc8e42e33dfbdca0b3711aa5abf372d3f2d51543d09b625', 'AI_AGENT': 'hermes-agent', 'PYTHON_VERSION': '3.11.15', ...}
+startupinfo = None, creationflags = 0, shell = False, p2cread = -1
+p2cwrite = -1, c2pread = 11, c2pwrite = 12, errread = 13, errwrite = 14
+restore_signals = True, gid = None, gids = None, uid = None, umask = -1
+start_new_session = False, process_group = -1
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals,
+                       gid, gids, uid, umask,
+                       start_new_session, process_group):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        elif isinstance(args, os.PathLike):
+            if shell:
+                raise TypeError('path-like args is not allowed when '
+                                'shell is true')
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            # On Android the default shell is at '/system/bin/sh'.
+            unix_shell = ('/system/bin/sh' if
+                      hasattr(sys, 'getandroidapilevel') else '/bin/sh')
+            args = [unix_shell, "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+    
+        sys.audit("subprocess.Popen", executable, args, cwd, env)
+    
+        if (_USE_POSIX_SPAWN
+                and os.path.dirname(executable)
+                and preexec_fn is None
+                and not close_fds
+                and not pass_fds
+                and cwd is None
+                and (p2cread == -1 or p2cread > 2)
+                and (c2pwrite == -1 or c2pwrite > 2)
+                and (errwrite == -1 or errwrite > 2)
+                and not start_new_session
+                and process_group == -1
+                and gid is None
+                and gids is None
+                and uid is None
+                and umask < 0):
+            self._posix_spawn(args, executable, env, restore_signals,
+                              p2cread, p2cwrite,
+                              c2pread, c2pwrite,
+                              errread, errwrite)
+            return
+    
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+>               self.pid = _fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+                        restore_signals, start_new_session,
+                        process_group, gid, gids, uid, umask,
+                        preexec_fn, _USE_VFORK)
+E                       BlockingIOError: [Errno 11] Resource temporarily unavailable
+
+/usr/local/lib/python3.11/subprocess.py:1885: BlockingIOError
+_____ test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3112/test_install_falls_back_all_th0')
+
+    def test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads(
+            tmp_path: pathlib.Path) -> None:
+        """Unpatched loader: every play-ELF backend is rejected, so the chain ends at cpu."""
+        cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
+        lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
+    
+        result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                                 free_bytes=1 << 40, probes=GPU_HOST)
+    
+        assert result["variant"] == "linux-x64-cpu"
+        assert result["working_backend"] == "cpu"
+        assert [attempt["backend"] for attempt in result["fallback_attempts"]] == ["cuda", "vulkan"]
+>       assert all("does not load on this host" in attempt["reason"]
+                   for attempt in result["fallback_attempts"])
+E       assert False
+E        +  where False = all(<generator object test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads.<locals>.<genexpr> at 0x7f42d692f5a0>)
+
+tests/test_runtime_fallback.py:205: AssertionError
+__________ test_install_reports_a_bundle_that_carries_no_such_backend __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3112/test_install_reports_a_bundle_0')
+
+    def test_install_reports_a_bundle_that_carries_no_such_backend(tmp_path: pathlib.Path) -> None:
+        """Variant says vulkan but the archive holds no libggml-vulkan: name it, then fall back."""
+        cache = bundle_cache(tmp_path, ("cuda", "cpu"))
+        vulkan_asset = cache / ASSET["vulkan"]
+        vulkan_asset.write_bytes((cache / ASSET["cpu"]).read_bytes())  # cpu layout under a vulkan name
+        lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
+    
+        result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                                 free_bytes=1 << 40, probes=GPU_HOST)
+    
+        assert result["variant"] == "linux-x64-cpu"
+        reasons = [attempt["reason"] for attempt in result["fallback_attempts"]]
+>       assert any("carries no vulkan backend" in reason for reason in reasons), reasons
+E       AssertionError: ['the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t57cc-ggufone/....nv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable); treated as unusable here']
+E       assert False
+E        +  where False = any(<generator object test_install_reports_a_bundle_that_carries_no_such_backend.<locals>.<genexpr> at 0x7f42d69a4930>)
+
+tests/test_runtime_fallback.py:338: AssertionError
+_____________ test_a_tier_this_lock_does_not_pin_is_coded_no_asset _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3112/test_a_tier_this_lock_does_not0')
+
+    def test_a_tier_this_lock_does_not_pin_is_coded_no_asset(tmp_path: pathlib.Path) -> None:
+        """The chain continues past a variant the lock has no asset for — and says so by code."""
+        cache = bundle_cache(tmp_path, ("cuda", "cpu"))
+        lock = pins.load_lock(multi_lock(cache, ("cuda", "cpu")))
+    
+        result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                                 free_bytes=1 << 40, probes=GPU_HOST)
+    
+        assert result["variant"] == "linux-x64-cpu"
+        codes = [attempt["code"] for attempt in result["fallback_attempts"]]
+>       assert codes == [install.REASON_LOADER_ERROR, install.REASON_NO_ASSET]
+E       AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+E         
+E         At index 0 diff: 'probe_failed' != 'loader_error'
+E         Use -v to get more diff
+
+tests/test_runtime_fallback.py:459: AssertionError
+______ test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3112/test_a_bundle_that_carries_no_0')
+
+    def test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent(
+            tmp_path: pathlib.Path) -> None:
+        cache = bundle_cache(tmp_path, ("cuda", "cpu"))
+        # the cpu layout under a vulkan name: the variant says vulkan, the archive says cpu
+        (cache / ASSET["vulkan"]).write_bytes((cache / ASSET["cpu"]).read_bytes())
+        lock = pins.load_lock(multi_lock(cache, ("cuda", "vulkan", "cpu")))
+    
+        result = install.install("auto", home=tmp_path / "home", lock=lock, offline_cache=cache,
+                                 free_bytes=1 << 40, probes=GPU_HOST)
+    
+        by_backend = {attempt["backend"]: attempt for attempt in result["fallback_attempts"]}
+>       assert by_backend["vulkan"]["code"] == install.REASON_BACKEND_ABSENT
+E       AssertionError: assert 'probe_failed' == 'backend_absent'
+E         
+E         - backend_absent
+E         + probe_failed
+
+tests/test_runtime_fallback.py:474: AssertionError
+_____________________ test_install_from_the_offline_cache ______________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3112/test_install_from_the_offline_0')
+
+    def test_install_from_the_offline_cache(tmp_path: pathlib.Path) -> None:
+        lock, archive = locked(tmp_path)
+        home = tmp_path / "home"
+        cache = tmp_path / "cache"
+        cache.mkdir()
+        (cache / archive.name).write_bytes(archive.read_bytes())
+        result = install.install("cpu", home=home, lock=lock, offline_cache=cache,
+                                free_bytes=1 << 40)
+        dest = home / "runtime" / "b11026-linux-x64-cpu"
+        assert result["variant"] == "linux-x64-cpu"
+        assert result["source"] == "offline-cache"
+        assert (dest / "libllama.so").exists()
+        record = json.loads((home / "runtime.json").read_text())
+        assert record["tag"] == "b11026"
+        assert record["asset"] == archive.name
+        assert record["asset_sha256"] == sha256(archive)
+        assert record["libllama_sha256"] == sha256(dest / "libllama.so")
+>       assert record["build"] == 11026
+E       assert None == 11026
+
+tests/test_runtime_install.py:134: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+FAILED tests/test_runtime_fallback.py::test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads
+FAILED tests/test_runtime_fallback.py::test_install_reports_a_bundle_that_carries_no_such_backend
+FAILED tests/test_runtime_fallback.py::test_a_tier_this_lock_does_not_pin_is_coded_no_asset
+FAILED tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent
+FAILED tests/test_runtime_install.py::test_install_from_the_offline_cache - a...
+6 failed, 1062 passed, 42 skipped in 23.57s

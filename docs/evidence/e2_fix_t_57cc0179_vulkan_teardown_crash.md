@@ -133,16 +133,44 @@ the report, the rendered table keeps one line per backend and that line carries 
 the exit code and the VRAM reading
 (`…test_no_backend_row_can_disappear_from_the_rendered_table`, `…test_the_warning_reaches_the_rendered_table_not_only_the_notes`).
 
+The E3-style *comparison* path (a sibling card's module, inspected on the shared tree at
+`src/ggufone/bench/compare.py` — not owned by this card) partitions the same item rows and renders
+every partition (`per_type` + the `low_mass`/`measured` split), and its one filter — the
+id-mismatch between a baseline and a challenger — *reports the count it dropped* instead of hiding
+it. So the invariant holds on both published-table paths; the pins above are the executable half.
+
 ## Gates
 
 Filled by the run's own artifacts under `.e2e/t_57cc0179-vulkan-teardown/logs/` (see the README
-there for the map). Summary:
+there for the map). Summary, all measured on the integrated tree (this card rebased onto the
+siblings' `56cfe5e`, landed as `ac6345d`):
 
-* new gate file `tests/test_bench_teardown_crash.py`: 40 gates, **RED on the parent tree**
-  (`f738315`: 40 failed, 0 passed — `logs/red_pretest.txt`) and green on this tree;
-* `tests/test_bench_isolation.py` (the `t_dd62ec29` containment, 45 gates) stays green
-  **unmodified** — with both files selected: 80 passed;
-* full offline suite, ruff and coverage numbers: `logs/`.
+* **new gate file** `tests/test_bench_teardown_crash.py`: 40 gates, **RED on the parent tree**
+  (`f738315`: 40 failed, 0 passed — `logs/red_pretest.txt`) and green here;
+* **the containment stays green unmodified**: `tests/test_bench_isolation.py` (45 gates) — with both
+  files selected, **85 passed** (`logs/integrated_gates.txt`);
+* **full offline suite**, clean worktree at the landed commit: **1069 passed, 41 skipped, exit 0**
+  (`logs/full_suite_clean_head.txt`);
+* **ruff**: `All checks passed!`;
+* **coverage** of the changed modules over the bench/CLI gate files:
+  `bench/isolation.py` **100 %**, `bench/suites.py` **99 %** (the same four pre-existing gaps
+  `t_dd62ec29` reported);
+* **Tier-M mutation** (soft threshold, one sweep): **79.8 %** of the **856** mutants the sweep scored
+  (683 killed, 173 survived, **306 never run** — the pid cgroup's `EAGAIN` at `os.fork()`, reported
+  and never folded in), `logs/mutation_score.txt` + `logs/mutation_survivors.txt`;
+* **the hand-mutation table over the diff** (`logs/hand_mutants.txt`, `.e2e/…/hand_mutants.py`),
+  because a partial score cannot answer "does a *behavioural* mutant survive?": **11 of 11**
+  behavioural mutants are **KILLED**, each with the gate that killed it named (halved layers, the
+  "all layers" promotion, the KV rung, both halves of the crash shape, the model's own placement,
+  the starvation margin, the withheld row's warning, the retry loop, the recovered row's record, the
+  suites' mismatch filter), and the control mutant (a reworded closing sentence) **SURVIVES** as it
+  must. Every splice restored the file byte-identically (`sha256` printed per row);
+* the box's own failures during this run are recorded with their attribution: the pid cgroup hit
+  245–256/256 several times, which surfaces as `Cannot fork` in the shell, `BlockingIOError: [Errno
+  11]` in a sweep, and `probe_failed` in `tests/test_runtime_fallback.py`/`test_runtime_contract.py`
+  — those files pass in the same tree when the cgroup is quiet (128 passed with the isolation gates,
+  `logs/integrated_gates.txt`), and the one `test_e3b_labels.py` failure of a shared-tree run came
+  from a sibling's *uncommitted* `bench/labels.py` (that file passes at the landed commit: 36 passed).
 
 ## How to re-run
 

@@ -1,0 +1,14 @@
+KILLED   M1 retry_placement: half the layers -> the same layers  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_teardown_crash.py::test_the_retry_halves_the_layers_that_really_ran
+KILLED   M2 retry_placement: '< 0 means every layer' -> never promoted  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_teardown_crash.py::test_the_retry_halves_the_layers_that_really_ran
+KILLED   M3 retry_placement: the KV rung -> the same KV  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_teardown_crash.py::test_the_retry_placement_is_the_loaders_own_degrade_rung[32]
+KILLED   M4 teardown_crash: only a missing report is checked  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_isolation.py::test_a_child_that_measured_another_bundle_is_not_usable
+KILLED   M5 teardown_crash: a crash without a report is the shape too  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_teardown_crash.py::test_a_child_that_wrote_no_report_is_not_this_shape
+KILLED   M6 _asked_layers: the model's own placement is ignored  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_teardown_crash.py::test_the_retry_reads_what_really_ran_out_of_the_childs_own_report
+KILLED   M7 starved: the margin is ignored  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_teardown_crash.py::test_a_fatal_signal_with_a_complete_report_is_the_teardown_crash
+KILLED   M8 the withheld row loses its warning  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_teardown_crash.py::test_a_failed_retry_keeps_the_containment_and_names_the_warning
+KILLED   M9 the retry loop runs once: no retry ever  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_teardown_crash.py::test_a_teardown_crash_is_retried_once_with_the_degraded_placement
+KILLED   M10 the recovered row hides the crash from process_block  [sha 9eeece6710f08fc6->9eeece6710f08fc6]  failing: tests/test_bench_teardown_crash.py::test_a_teardown_crash_is_retried_once_with_the_degraded_placement
+KILLED   M11 suites: the crash warning re-enters the mismatch aggregation  [sha cf18e3b05e30fcaa->cf18e3b05e30fcaa]  failing: tests/test_bench_teardown_crash.py::test_the_determinism_suite_recovers_and_never_calls_the_crash_a_mismatch
+SURVIVED M12 (control, must SURVIVE) crash_warning: the closing sentence reworded  [sha 9eeece6710f08fc6->9eeece6710f08fc6]
+
+KILLED: 11 | SURVIVED: 1 | other: 0
