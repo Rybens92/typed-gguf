@@ -198,6 +198,26 @@ def test_merge_reports_needs_a_chunk():
         compare.merge_reports([])
 
 
+def test_merge_reports_labels_the_merged_model_and_flags_a_mixed_merge():
+    """`--suite merge --label` names the report; merging two different models is recorded."""
+    occamy = report([row("a1", "choice", correct=True, coverage=0.9, reliability="ok")],
+                    label="Occamy 1.0")
+    other = report([row("b1", "choice", correct=False, coverage=0.9, reliability="ok")],
+                   label="Tiel-Coder")
+    merged = compare.merge_reports([occamy, other], label="Occamy 1.0 (chunks)")
+    assert merged["model"]["name"] == "Occamy 1.0 (chunks)"
+    assert merged["models_merged"] == ["Occamy 1.0", "Tiel-Coder"]
+
+
+def test_render_calls_a_worse_and_an_equal_challenger_by_name():
+    worse = compare.render_comparison(compare.comparison(
+        model_rows(correct_first=3), model_rows(correct_first=1), labels=("base", "worse")))
+    assert "is worse than" in worse
+    equal = compare.render_comparison(compare.comparison(
+        model_rows(correct_first=2), model_rows(correct_first=2), labels=("base", "twin")))
+    assert "matches" in equal and "exactly" in equal
+
+
 def test_align_keeps_only_the_items_both_models_measured():
     baseline = report([row("a1", "choice", correct=True, coverage=0.9, reliability="ok"),
                        row("a2", "choice", correct=False, coverage=0.9, reliability="ok")])

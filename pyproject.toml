@@ -90,7 +90,11 @@ quote-style = "double"
 # recent sweep: src/ggufone/bench/isolation.py with tests/test_bench_isolation.py, because that
 # module is the whole remedy (the suites only call into it) and its gate file is fast. Restore a
 # bench/fit/resolver sweep by swapping both lines back.
-source_paths = ["src/ggufone/bench/isolation.py"]
+# Card t_a431be85 (E3) swept `source_paths = ["src/ggufone/bench/compare.py"]` with
+# [tests/test_e3.py] — the module E3 adds (align / merge_reports / model_row / render_comparison);
+# its gate file is fast and drives every branch of it, which is what a Tier-M sweep needs on a box
+# shared with a sibling bench.
+source_paths = ["src/ggufone/bench/compare.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -107,5 +111,5 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # src/ggufone/runtime/devices.py with tests/test_bench_attribution.py. Card t_dd62ec29 (E2 FIX,
 # mixed-bundle teardown) is the most recent sweep: tests/test_bench_isolation.py is the whole gate
 # for bench/isolation.py. A bench sweep only has to restore the three bench gate files above.
-pytest_add_cli_args_test_selection = ["tests/test_bench_isolation.py"]
+pytest_add_cli_args_test_selection = ["tests/test_e3.py"]
 max_children = 2
