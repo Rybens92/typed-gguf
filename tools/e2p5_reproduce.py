@@ -76,6 +76,7 @@ def _print_tail(label: str, text: str, lines: int = 12) -> None:
 def cmd_calibrate(args: argparse.Namespace) -> int:
     out = args.out
     runs: list[dict[str, Any]] = []
+    table: dict[str, Any] | None = None
     started = time.time()
     argv = ["calibrate", "--model", args.model, "--json", "--threads", str(args.threads)]
     if args.from_report:
@@ -97,6 +98,7 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
             print(text[-2000:], file=sys.stderr)
             raise SystemExit(f"`ggufone calibrate` exited {code}")
         payload = json.loads(text)
+        table = payload
         runs.append({"code": code, "params_hash": payload["params_hash"],
                      "accepted": payload["accepted"],
                      "temperatures": payload["params"]["types"],
@@ -111,8 +113,7 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
             print(f"  {name}: T={verdict['temperature']:.4f} "
                   f"holdout ECE {verdict['holdout_ece']['before']:.4f} -> "
                   f"{verdict['holdout_ece']['after']:.4f} :: {verdict['reason']}")
-    stored = calibrate.load_table(store.calibration_path(),
-                                  calibrate.model_key_for(args.model))
+    stored = _stored_table(args)
     report = {
         "schema": SCHEMA,
         "command": " ".join(argv),
@@ -124,20 +125,15 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
         "repeats": runs,
         "reproducible": len({entry["params_hash"] for entry in runs}) == 1,
         "stored": bool(stored),
-        "table": json.loads(json.dumps(_table_payload(args, stored))),
+        "table": table,
     }
     _write(report, out)
     return 0
 
 
-def _table_payload(args: argparse.Namespace, stored: Any) -> dict[str, Any]:
-    """The table this run stored (or the one `--from-report --dry-run` would have stored)."""
-    if stored is not None:
-        return stored.to_json()
-    rows = calibrate.load_rows(args.from_report) if args.from_report else []
-    table = calibrate.fit_table(rows, model_key=calibrate.model_key_for(args.model),
-                                model_path=args.model)
-    return table.to_json()
+def _stored_table(args: argparse.Namespace) -> Any:
+    """The table this model's entry holds in the store now (None when nothing was stored)."""
+    return calibrate.load_table(store.calibration_path(), calibrate.model_key_for(args.model))
 
 
 # ------------------------------------------------------------------------- route

@@ -68,7 +68,8 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
               "--items N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--gpu-layers N",
               "--sizes 256,2048,8192", "--out FILE", "--json"),
     "calibrate": ("--model REF", "--dry-run", "--json", "--out FILE", "--from-report FILE",
-                  "--devset FILE", "--items N", "--holdout F", "--mode MODE", "--threads N",
+                  "--devset FILE", "--items N", "--holdout F",
+                  "--mode auto|normalized_peak|entropy|margin", "--threads N",
                   "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--fit-target MIB",
                   "--no-fit-cache"),
     "version": ("--json",),
@@ -1372,7 +1373,7 @@ def _cmd_calibrate(args: list[str]) -> int:
     table = calibration_module.fit_table(
         rows, model_key=calibration_module.model_key_for(model_path), model_path=model_path,
         alias=alias, devset_path=devset,
-        mode=options.get("mode", calibration_module.readout.DEFAULT_CONFIDENCE_MODE),
+        mode=options.get("mode", calibration_module.MODE_AUTO),
         holdout_fraction=float(options.get("holdout", calibration_module.HOLDOUT_FRACTION)))
     out = options.get("out")
     if out:

@@ -642,6 +642,29 @@ def test_the_hash_covers_the_parameters_the_model_and_the_dev_set() -> None:
     assert base.params_hash != other_set.params_hash
 
 
+def test_the_hash_ignores_the_fields_the_fit_never_reads() -> None:
+    """A-E2p5-6: a re-measurement that moves only coverage/reliability keeps the same parameters.
+
+    The digest covers exactly what `_index_of`/`fit_temperature` consume (id, type, expected,
+    correct, probabilities) — a live re-run whose `coverage` float or `reliability` label moved
+    would otherwise produce a different hash for byte-identical *fit input*, which is the one
+    thing "same set + same model ⇒ identical params hash" must not do.
+    """
+    import dataclasses
+    rows = _fit_rows(("choice",), per_type=18, temperature=2.0)
+    drifted = [dataclasses.replace(row, coverage=(row.coverage or 0.0) + 1e-9,
+                                   reliability="low_mass" if index % 3 else "ok",
+                                   confidence=row.confidence + 1e-6)
+               for index, row in enumerate(rows)]
+    base = calibrate.fit_table(rows, model_key="sha256:test")
+    same = calibrate.fit_table(drifted, model_key="sha256:test")
+    assert same.devset_digest == base.devset_digest
+    assert same.params_hash == base.params_hash
+    moved = calibrate.fit_table([dataclasses.replace(rows[0], probabilities=(0.5, 0.5, 0.0))]
+                                + rows[1:], model_key="sha256:test")
+    assert moved.params_hash != base.params_hash
+
+
 def test_the_hash_does_not_depend_on_when_the_fit_ran() -> None:
     import dataclasses
     table = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),

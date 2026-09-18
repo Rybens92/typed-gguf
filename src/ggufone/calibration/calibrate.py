@@ -387,8 +387,16 @@ def _mode_report(fit_rows: Sequence[Row], holdout_rows: Sequence[Row], temperatu
 
 # ----------------------------------------------------------------- the table
 def _devset_digest(rows: Sequence[Row]) -> str:
-    """A digest of the labelled set itself: same rows (any order) -> same digest."""
-    payload = sorted((row.to_json() for row in rows), key=lambda item: str(item["id"]))
+    """A digest of the labelled data the fit actually reads: same fit input -> same digest.
+
+    Only the fields `_index_of` and `fit_temperature` consume take part. A re-measurement that
+    moves a field the fit never looks at — a coverage float, a reliability label, this run's
+    confidence — must not move the parameters hash (A-E2p5-6: *same set + same model* ⇒ identical
+    hash), while any change to the probabilities or the labels does.
+    """
+    fields = ("id", "type", "expected", "correct", "probabilities")
+    payload = sorted(({key: row.to_json()[key] for key in fields} for row in rows),
+                     key=lambda item: str(item["id"]))
     return stats.params_hash({"rows": payload})
 
 
