@@ -71,7 +71,7 @@ BUNDLE_ISOLATION_REASON = (
 #: The *exit codes* that mean the engine died rather than answered: `-11` (SIGSEGV) and `-6`
 #: (SIGABRT). A `-9` (SIGKILL) is the OOM killer or a human and says nothing about teardown.
 FATAL_SIGNALS: tuple[int, ...] = (-int(signal.SIGSEGV), -int(signal.SIGABRT))
-#: The warning a withheld row carries when the teardown crash survived the one retry (card t_57cc0179).
+#: The warning a withheld row carries when the crash survived the one retry (card t_57cc0179).
 W_BACKEND_CRASHED_AT_TEARDOWN = "W_BACKEND_CRASHED_AT_TEARDOWN"
 #: The reserve an all-layers placement must leave free (`fit.DEFAULT_FIT_TARGET_MB`, SPEC 2.4):
 #: a device whose free memory cannot hold the weights *plus* this margin is the starved case.
@@ -538,7 +538,8 @@ def _attempts(config: Any, backend: str, directory: pathlib.Path, *,
         detected = teardown_crash(verdict.exit_code, report=verdict.report, memory=memory,
                                   weights_bytes=weights)
         if detected is None:
-            break                          # a different failure: no retry, and the first crash stands
+            # a different failure: no retry, and the first crash (if any) stands
+            break
         crash = detected
         if index >= attempts:
             break
@@ -718,7 +719,7 @@ def verified_rows(rows: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
 
 
 def recovered_rows(rows: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
-    """The rows a retry recovered: their child(s) crashed at teardown, and the row still measured."""
+    """The rows a retry recovered: a child crashed at teardown and the row still measured."""
     return [row for row in rows if (row.get("process") or {}).get("crash")]
 
 
@@ -729,7 +730,7 @@ def _placement_text(attempt: Mapping[str, Any]) -> str:
 
 
 def recovered_note(row: Mapping[str, Any]) -> str:
-    """The report note for a row that a retry recovered: the crash is named, the row is published."""
+    """The report note for a recovered row: the crash is named, the row is published."""
     process = row.get("process") or {}
     attempts = list(process.get("attempts") or [])
     first = attempts[0] if attempts else {}

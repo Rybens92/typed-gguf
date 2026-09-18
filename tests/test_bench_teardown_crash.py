@@ -39,8 +39,14 @@ import pytest
 
 from ggufone.bench import harness, isolation, suites
 from tests.test_bench import bench_factory
-from tests.test_bench_isolation import (CPU_DIR, FakeChild, VULKAN_DIR, cli_options,
-                                        throughput_config, two_bundle_runtimes)
+from tests.test_bench_isolation import (
+    CPU_DIR,
+    VULKAN_DIR,
+    FakeChild,
+    cli_options,
+    throughput_config,
+    two_bundle_runtimes,
+)
 
 GIB = 1024 ** 3
 MIB = 1024 ** 2
@@ -155,7 +161,7 @@ def test_a_child_that_wrote_no_report_is_not_this_shape() -> None:
 
 
 def test_the_crash_is_starved_only_when_the_weights_cannot_fit() -> None:
-    """The shape's "low free VRAM at start" is the model's own weights + the fit margin (SPEC 2.4)."""
+    """The shape's "low free VRAM at start": the model's weights + the fit margin (SPEC 2.4)."""
     crashing_child = -signal.SIGSEGV
     starved = isolation.teardown_crash(
         crashing_child, report={"ok": True}, memory=isolation.device_memory(probe=starving),
@@ -289,7 +295,7 @@ def test_a_teardown_crash_is_retried_once_with_the_degraded_placement(
 
 
 def test_a_recovered_row_is_a_measured_row_with_no_warning(tmp_path: pathlib.Path) -> None:
-    """The retry measured it: the row is published, and the crash travels as its `process` record."""
+    """The retry measured it: the row is published, and the crash travels as its `process` block."""
     child = ScriptedChild(crashing(), FakeChild())
     result = run_child(throughput_config(), "vulkan", child, tmp_path)
     row = isolation.isolated_row(result, gap={"backend": "vulkan", "measured": False})
@@ -312,7 +318,7 @@ def test_a_clean_child_is_never_retried(tmp_path: pathlib.Path) -> None:
     FakeChild(write_report=False),                                # never wrote a report
     FakeChild(exit_code=0, mutate=lambda report, _cmd: report.update(ok=False)),  # 0 + ok: false
     FakeChild(exit_code=1, ok=True),                              # exit contradicts the report
-    FakeChild(exit_code=-signal.SIGKILL),                         # killed, not crashed by the engine
+    FakeChild(exit_code=-signal.SIGKILL),                         # killed, not an engine crash
 ])
 def test_a_failure_that_is_not_the_shape_is_not_retried(tmp_path: pathlib.Path,
                                                         child: FakeChild) -> None:
@@ -442,7 +448,7 @@ def test_the_warning_reaches_the_rendered_table_not_only_the_notes(
 
 def test_no_backend_row_can_disappear_from_the_rendered_table(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
-    """Requirement 4: a published table never silently loses a row — withheld ones keep their line."""
+    """Requirement 4: a published table never silently loses a row — withheld rows keep a line."""
     def child(config: harness.BenchConfig, backend: str, **kwargs: Any) -> isolation.ChildRun:
         if backend == "vulkan":
             return run_child(config, backend,
@@ -465,7 +471,7 @@ def test_no_backend_row_can_disappear_from_the_rendered_table(
 
 def test_the_determinism_suite_recovers_and_never_calls_the_crash_a_mismatch(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
-    """The other isolating suite: the warning must not re-enter the W_BACKEND_MISMATCH accounting."""
+    """The other isolating suite: the warning must not re-enter W_BACKEND_MISMATCH accounting."""
     def child(config: harness.BenchConfig, backend: str, **kwargs: Any) -> isolation.ChildRun:
         if backend == "vulkan":
             return run_child(config, backend,
@@ -483,6 +489,76 @@ def test_the_determinism_suite_recovers_and_never_calls_the_crash_a_mismatch(
     assert not any("W_BACKEND_MISMATCH" in note for note in report["notes"])
     rows = {row["backend"]: row for row in report["backends"]}
     assert rows["vulkan"]["measured"] is False and rows["vulkan"]["ok"] is False
+
+
+def test_a_crash_that_gets_no_retry_says_so(tmp_path: pathlib.Path) -> None:
+    """`attempts=1` is the API's own "no retry": the withheld row must say the retry never ran."""
+    child = ScriptedChild(crashing(-signal.SIGSEGV), FakeChild())
+    result = run_child(throughput_config(), "vulkan", child, tmp_path, attempts=1)
+    assert result.ok is False and result.warning == isolation.W_BACKEND_CRASHED_AT_TEARDOWN
+    assert len(child.calls) == 1
+    assert "no retry was attempted" in result.detail
+    assert result.detail.count("-11 (SIGSEGV; 139 in a shell)") == 1
+
+
+def test_a_driver_that_raises_reads_as_an_unknown_device(
+        monkeypatch: pytest.MonkeyPatch) -> None:
+    """A failing driver query is "unknown", never an exception in the middle of a benchmark."""
+    from ggufone.registry import recommend
+
+    def refuse() -> Any:
+        raise RuntimeError("nvidia-smi: the driver answered nothing")
+
+    monkeypatch.setattr(recommend, "device_memory", refuse)
+    memory = isolation.device_memory()
+    assert memory.known is False and memory.source == "unknown"
+    crash = isolation.teardown_crash(-signal.SIGSEGV, report={"ok": True}, memory=memory,
+                                     weights_bytes=WEIGHTS)
+    assert crash is not None and crash.starved is None
+    assert "weights are unknown" in crash.sentence()
+
+
+def test_the_device_records_serialise_to_the_reports_json() -> None:
+    memory = isolation.device_memory(probe=roomy)
+    assert memory.to_dict() == {"total_bytes": BOARD, "free_bytes": 7 * GIB, "source": "probe"}
+    crash = isolation.teardown_crash(-signal.SIGSEGV, report={"ok": True}, memory=memory,
+                                     weights_bytes=WEIGHTS)
+    assert crash is not None
+    assert crash.to_dict() == {"exit_code": -signal.SIGSEGV, "signal": "SIGSEGV",
+                               "free_bytes": 7 * GIB, "total_bytes": BOARD,
+                               "weights_bytes": WEIGHTS, "starved": False,
+                               "free_source": "probe"}
+    assert "would fit" in crash.sentence()
+    placement = isolation.retry_placement(throughput_config(), "vulkan", facts=Fact())
+    assert placement.to_dict() == {"n_gpu_layers": 16, "kv_type": "auto", "degraded": True,
+                                   "note": placement.note}
+
+
+def test_the_model_size_is_read_from_the_file_and_never_invented(tmp_path: pathlib.Path) -> None:
+    empty = tmp_path / "empty.gguf"
+    empty.write_bytes(b"")
+    assert isolation.model_bytes(str(empty)) is None            # 0 bytes is not a size
+    assert isolation.model_bytes(str(tmp_path / "gone.gguf")) is None
+    assert isolation.model_bytes(None) is None
+    real = tmp_path / "model.gguf"
+    real.write_bytes(b"x" * 1234)
+    assert isolation.model_bytes(str(real)) == 1234
+
+
+def test_the_model_header_is_the_facts_seam_and_a_bad_header_is_none(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    """`model_facts` resolves the real header, and an unreadable one only means "safe rung"."""
+    from ggufone.runtime import fit
+
+    model = tmp_path / "model.gguf"
+    model.write_bytes(b"not a real gguf")
+    assert isolation.model_facts(str(model)) is None            # the read really did fail
+    assert isolation.model_facts(None) is None
+    sentinel = Fact(n_layer=7)
+    monkeypatch.setattr(fit.ModelFacts, "read", classmethod(lambda cls, *a, **k: sentinel))
+    assert isolation.model_facts(str(model)) is sentinel
+    assert isolation.retry_placement(throughput_config(), "vulkan",
+                                     facts=isolation.model_facts(str(model))).n_gpu_layers == 3
 
 
 def test_a_single_bundle_host_never_pays_for_the_probe(monkeypatch: pytest.MonkeyPatch) -> None:
