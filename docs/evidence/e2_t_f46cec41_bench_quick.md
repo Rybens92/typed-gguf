@@ -225,25 +225,28 @@ skips with the reason printed (§4); on the host it runs.
 
 ```
 uv run --no-sync --extra dev python -m pytest -q
-→ 906 passed, 40 skipped in 21.18s   (exit 0; the 40 skips are the network/model-marked tests)
+→ 908 passed, 40 skipped in 34.54s   (exit 0; the 40 skips are the network/model-marked tests)
 uv run --no-sync --extra dev ruff check src tests tools/e2_reproduce.py
 → All checks passed!
 ```
 
-**Changed-line coverage** (`cov_changed.py cc1f5da coverage.json`, the base is the rebase base —
+**Changed-line coverage** (`cov_changed.py 901c250 coverage.json`, the base is the rebase base —
 `tests/test_bench_quick.py`, the live gates and the tools are not imported by the offline suite):
 
 | file | added lines | executable | covered | missing | % |
 |---|---:|---:|---:|---:|---:|
 | `src/ggufone/bench/devset.py` | 17 | 7 | 7 | 0 | 100.0 |
-| `src/ggufone/bench/harness.py` | 161 | 63 | 62 | 1 | 98.4 |
+| `src/ggufone/bench/harness.py` | 161 | 63 | 63 | 0 | 100.0 |
 | `src/ggufone/bench/suites.py` | 271 | 140 | 140 | 0 | 100.0 |
-| `src/ggufone/cli.py` | 83 | 32 | 31 | 1 | 96.9 |
-| **TOTAL (executable added lines)** | **532** | **242** | **240** | **2** | **99.2** |
+| `src/ggufone/cli.py` | 83 | 32 | 32 | 0 | 100.0 |
+| **TOTAL (executable added lines)** | **532** | **242** | **242** | **0** | **100.0** |
 
-(whole-package line coverage: 89.1 %; the two lines the first coverage pass missed —
-`reproduce_command`'s `--devset` flag and the CLI's `report: <path>` line on the human-readable
-path — are now pinned by two more tests, `tests/test_bench_quick.py` grew from 31 to 33.)
+(whole-package line coverage: 89.1 %.) The first coverage pass left two added lines unexecuted —
+`reproduce_command`'s `--devset` flag and the CLI's `report: <path>` line on the **human-readable**
+quick path — and both are exactly the kind of gap worth a test rather than an excuse: they are now
+pinned by `test_the_reproduce_command_names_a_custom_dev_set_and_a_soft_cap` and
+`test_a_quick_run_without_json_prints_the_preset_table_and_names_its_report` (the card's own user
+story: a short run from the terminal, table plus report path). `tests/test_bench_quick.py`: 31 → 33.
 
 **Mutation testing** (Tier M: run once, report the score, soft threshold). The bench package is
 mutmut's scope from the E2 pair (the sweep config the E2.5 card has since re-pointed at
@@ -332,7 +335,7 @@ of this score; `tests/test_bench_quick.py` covers the CLI surface directly (33 t
   row-level granularity documented in `bench --help`.
 * `E_BENCH_QUICK` refuses `--quick --runs/--items/--sizes/--n-seq-max`; the `reproduce:` line the
   reports print never re-states them (`test_the_quick_reproduce_command_never_re_states_the_scale_…`).
-* Offline gate 906 passed / 0 failed; ruff clean; changed-line coverage 99.2 %.
+* Offline gate 908 passed / 0 failed; ruff clean; changed-line coverage 100.0 %.
 
 **Recommendation: ship (Option A), with item 1 as a documented deviation for the orchestrator.**
 The preset does what the card asked (`--quick` + `--max-seconds`, pinned config, report integrity,

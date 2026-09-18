@@ -1,19 +1,49 @@
+.e2e/t_f46cec41-bench-quick/coverage.log   59 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/coverage_changed.txt   19 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/final_offline_suite.txt   15 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/hand_mutation_quick.txt   18 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/live_quick_gates.txt   53 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/mutation_score.txt   21 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/mutmut_run.log   36 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/mutmut_run2.log   35 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_full_latency.md   12 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_full_latency_cap300.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_full_latency_cap300.md   50 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_calibration.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_calibration.md   43 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_determinism.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_determinism.md   20 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_latency.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_latency.md   62 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_quality.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_quality.md   22 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_throughput.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/qwen_quick/quick_throughput.md   18 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2.log   31 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_calibration.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_calibration.md   42 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_determinism.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_determinism.md   20 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_latency.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_latency.md   62 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_quality.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_quality.md   22 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_throughput.json    1 added lines, not measured (not imported)
+.e2e/t_f46cec41-bench-quick/spark_quick2/quick_throughput.md   18 added lines, not measured (not imported)
 .github/workflows/runtime-matrix.yml       24 added lines, not measured (not imported)
 docs/BENCHMARKS.md                         32 added lines, not measured (not imported)
-docs/evidence/e2_t_f46cec41_bench_quick.md  222 added lines, not measured (not imported)
+docs/evidence/e2_t_f46cec41_bench_quick.md  355 added lines, not measured (not imported)
 pyproject.toml                              7 added lines, not measured (not imported)
 src/ggufone/bench/devset.py                17 added  executable    7  covered    7  missing   0  -> 100.0 %
-src/ggufone/bench/harness.py              161 added  executable   63  covered   62  missing   1  ->  98.4 %
-                                         missing lines: [657]
+src/ggufone/bench/harness.py              161 added  executable   63  covered   63  missing   0  -> 100.0 %
 src/ggufone/bench/suites.py               271 added  executable  140  covered  140  missing   0  -> 100.0 %
-src/ggufone/cli.py                         83 added  executable   32  covered   31  missing   1  ->  96.9 %
-                                         missing lines: [1365]
+src/ggufone/cli.py                         83 added  executable   32  covered   32  missing   0  -> 100.0 %
 tests/test_bench_live.py                  118 added lines, not measured (not imported)
-tests/test_bench_quick.py                 470 added lines, not measured (not imported)
+tests/test_bench_quick.py                 497 added lines, not measured (not imported)
 tools/e2_reproduce.py                      81 added lines, not measured (not imported)
 tools/probe_quick_cost.py                  58 added lines, not measured (not imported)
 tools/quick_breakdown.py                   68 added lines, not measured (not imported)
 tools/rehearse_quick.sh                    43 added lines, not measured (not imported)
 tools/rehearse_quick_host.sh               46 added lines, not measured (not imported)
-TOTAL                                     532 added  executable  242  covered  240  missing   2  ->  99.2 %
+TOTAL                                     532 added  executable  242  covered  242  missing   0  -> 100.0 %
 (overall suite coverage: 89.1 %)
