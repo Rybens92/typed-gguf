@@ -28,9 +28,11 @@ the parent process of an isolated run dlopens no library at all (`tests/test_ben
 """
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
 import pathlib
+import shutil
 import signal
 import subprocess
 import sys
@@ -111,10 +113,6 @@ class ChildRun:
     detail: str | None
     stderr_tail: str
 
-    @property
-    def exit_desc(self) -> str:
-        return _exit_desc(self.exit_code)
-
 
 def _exit_desc(exit_code: int | None) -> str:
     """`-6 (SIGABRT; 134 in a shell)` — both numberings, because a CI log carries the shell one."""
@@ -156,32 +154,67 @@ def run_backend_child(config: Any, backend: str, *, runner: Callable[..., Any] |
     The child is the documented single-bundle path (`--backend <one>`), run through the same
     interpreter; the parent reads the report file it was told to write and accepts it only when
     the exit code, the row's backend/bundle and the echoed config all corroborate the request.
+
+    The child's report is scratch: it is read into the verdict and removed with the temporary
+    directory it lived in, unless the caller named `out_dir` (an evidence run that wants to keep
+    the raws passes one). A child whose answer could **not** be verified is the exception: its
+    scratch directory is kept — `row-<backend>.json`, `.stdout`, `.stderr` — and the row's reason
+    names it, because a crash is exactly when the child's own log is worth reading.
     """
-    directory = pathlib.Path(out_dir) if out_dir is not None else pathlib.Path(
+    keeps = out_dir is not None
+    directory = pathlib.Path(out_dir) if keeps else pathlib.Path(
         tempfile.mkdtemp(prefix=DEFAULT_OUT_PREFIX))
     directory.mkdir(parents=True, exist_ok=True)
+    verdict, diagnostics = _child_verdict(config, backend, directory, runner=runner, python=python,
+                                          env=env, timeout=timeout, runtime_dir=runtime_dir)
+    if verdict.ok or keeps:
+        if not keeps:
+            shutil.rmtree(directory, ignore_errors=True)
+        return verdict
+    _keep_diagnostics(directory, backend, diagnostics)
+    return dataclasses.replace(
+        verdict, detail=f"{verdict.detail} (the child's own report and logs are kept at "
+                        f"{directory})")
+
+
+def _keep_diagnostics(directory: pathlib.Path, backend: str,
+                      diagnostics: Mapping[str, str]) -> None:
+    """Keep a broken child's streams next to its report (the crash's only full evidence)."""
+    for stream, text in diagnostics.items():
+        if text:
+            (directory / f"row-{backend}.{stream}").write_text(text, encoding="utf-8")
+
+
+def _child_verdict(config: Any, backend: str, directory: pathlib.Path, *,
+                   runner: Callable[..., Any] | None, python: str | None,
+                   env: Mapping[str, str] | None, timeout: float | None,
+                   runtime_dir: str | None) -> tuple[ChildRun, dict[str, str]]:
+    """Spawn the child, read its report, and decide whether the row may be published."""
+    diagnostics: dict[str, str] = {}
     out_path = directory / f"row-{backend}.json"
     command = child_command(config, backend, python=python or sys.executable, out_path=out_path)
     if not config.model_path:
         return _unusable(backend, command, None,
                          "this run has no --model: a child is told the model path explicitly, and "
                          "one that resolved `GGUFONE_BENCH_MODEL` on its own could measure a model "
-                         "this report never names", "")
+                         "this report never names", ""), diagnostics
     launcher = runner or subprocess.run
     try:
         completed = launcher(command, env=dict(os.environ) if env is None else dict(env),
                              capture_output=True, text=True, timeout=timeout)
     except OSError as exc:
         return _unusable(backend, command, None,
-                         f"E_BENCH_CHILD: the child process never started ({exc})", "")
+                         f"E_BENCH_CHILD: the child process never started ({exc})", ""), diagnostics
+    diagnostics = {"stdout": getattr(completed, "stdout", "") or "",
+                   "stderr": getattr(completed, "stderr", "") or ""}
     exit_code = int(completed.returncode)
-    stderr_tail = _tail(getattr(completed, "stderr", ""))
+    stderr_tail = _tail(diagnostics["stderr"])
     report = _read_report(out_path)
     if report is None:
         return _unusable(
             backend, command, exit_code,
             f"the isolated child exited {_exit_desc(exit_code)} without writing a report to "
-            f"{out_path}{_tail_hint(stderr_tail)}", stderr_tail)
+            f"{out_path}{_tail_hint(stderr_tail)}", stderr_tail), diagnostics
     expected_exit = 0 if report.get("ok", True) else 1
     if exit_code != expected_exit:
         return _unusable(
@@ -189,7 +222,7 @@ def run_backend_child(config: Any, backend: str, *, runner: Callable[..., Any] |
             f"the isolated child exited {_exit_desc(exit_code)} while its own report says "
             f"`ok: {report.get('ok', True)}`: the exit code and the report contradict each other, "
             f"so neither can be trusted{_tail_hint(stderr_tail)}",
-            stderr_tail, report=report)
+            stderr_tail, report=report), diagnostics
     row = _row_for(report, backend)
     if row is None:
         measured = ", ".join(str(entry.get("backend")) for entry in report.get("backends") or []
@@ -197,20 +230,22 @@ def run_backend_child(config: Any, backend: str, *, runner: Callable[..., Any] |
         return _unusable(
             backend, command, exit_code,
             f"the child's report carries no row for backend {backend!r} (it measured: {measured})",
-            stderr_tail, report=report)
+            stderr_tail, report=report), diagnostics
     if runtime_dir is not None and str(row.get("runtime_dir")) != str(runtime_dir):
         return _unusable(
             backend, command, exit_code,
             f"the child measured {row.get('runtime_dir')}, this run selected {runtime_dir}: the "
-            f"row would name a bundle it did not load", stderr_tail, report=report, row=row)
+            f"row would name a bundle it did not load", stderr_tail, report=report,
+            row=row), diagnostics
     mismatch = _echo_mismatch(config, row.get("backend"), report)
     if mismatch is not None:
         return _unusable(
             backend, command, exit_code,
             f"the child's report echoes a different run than it was asked for: {mismatch}",
-            stderr_tail, report=report, row=row)
+            stderr_tail, report=report, row=row), diagnostics
     return ChildRun(backend=backend, command=tuple(command), exit_code=exit_code, report=report,
-                    row=row, ok=True, detail=None, stderr_tail=stderr_tail)
+                    row=row, ok=True, detail=None,
+                    stderr_tail=stderr_tail), diagnostics
 
 
 def _read_report(path: pathlib.Path) -> Mapping[str, Any] | None:

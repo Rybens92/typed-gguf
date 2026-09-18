@@ -1,0 +1,10 @@
+$ .venv/bin/coverage run --source=src/ggufone/bench -m pytest -q tests/test_bench_isolation.py tests/test_bench.py tests/test_bench_quick.py tests/test_bench_attribution.py tests/test_bench_placement.py tests/test_cli.py
+Name                             Stmts   Miss  Cover   Missing
+--------------------------------------------------------------
+src/ggufone/bench/__init__.py        0      0   100%
+src/ggufone/bench/devset.py        113     16    86%   51, 67, 70-71, 145, 148, 155-156, 158, 160, 164, 169, 171, 174, 176, 179
+src/ggufone/bench/harness.py       472     32    93%   159, 217, 289, 344, 372, 456, 462-463, 473, 477-487, 491-498, 509, 512, 516-519, 524-525, 597, 651, 752, 933
+src/ggufone/bench/isolation.py     153      0   100%
+src/ggufone/bench/suites.py        439      4    99%   150, 745, 838-839
+--------------------------------------------------------------
+TOTAL                             1177     52    96%

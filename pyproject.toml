@@ -86,9 +86,11 @@ quote-style = "double"
 # count, never as a full-sweep number. Card t_603a35a0 (E2 FIX, backend attribution) swept the
 # new parser alone — src/ggufone/runtime/devices.py with tests/test_bench_attribution.py —
 # because that module *is* the fix's evidence rule and the bench gates are too slow to run per
-# mutant on this shared box; it is the most recent sweep. Restore a bench/fit/resolver sweep by
-# swapping both lines back.
-source_paths = ["src/ggufone/runtime/devices.py"]
+# mutant on this shared box. Card t_dd62ec29 (E2 FIX, the mixed-bundle teardown abort) is the most
+# recent sweep: src/ggufone/bench/isolation.py with tests/test_bench_isolation.py, because that
+# module is the whole remedy (the suites only call into it) and its gate file is fast. Restore a
+# bench/fit/resolver sweep by swapping both lines back.
+source_paths = ["src/ggufone/bench/isolation.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -101,8 +103,9 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # mutant: it drives a different module). E2.5 (card t_630f32a3) mutates the calibration package:
 # both of its gate files are the selection (test_calibration.py drives the math/fit/store/CLI,
 # test_routing.py the router and the escalation policy). Card t_e29734e6 (E1c FIX, test-only)
-# swept the fit files again. Card t_603a35a0 (E2 FIX, backend attribution) is the most recent
-# sweep: src/ggufone/runtime/devices.py with tests/test_bench_attribution.py. A bench sweep only
-# has to restore the three bench gate files above.
-pytest_add_cli_args_test_selection = ["tests/test_bench_attribution.py"]
+# swept the fit files again. Card t_603a35a0 (E2 FIX, backend attribution) swept
+# src/ggufone/runtime/devices.py with tests/test_bench_attribution.py. Card t_dd62ec29 (E2 FIX,
+# mixed-bundle teardown) is the most recent sweep: tests/test_bench_isolation.py is the whole gate
+# for bench/isolation.py. A bench sweep only has to restore the three bench gate files above.
+pytest_add_cli_args_test_selection = ["tests/test_bench_isolation.py"]
 max_children = 2

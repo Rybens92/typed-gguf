@@ -1,0 +1,15 @@
+src/ggufone/bench/isolation.py.meta              total   533  killed   429  survived   104  score  80.5 %  not-run     0  no-tests    0
+--------------------------------------------------------------------------------------------------------------
+TOTAL total 533  {'killed': 429, 'survived': 104}
+SCORE killed/scored = 80.5 %   (scored=533, score-minus-no-tests-and-not-run)
+survivors by symbol (top 25):
+     71  ggufone.bench.isolation.x__child_verdict
+     11  ggufone.bench.isolation.x_isolation_note
+      9  ggufone.bench.isolation.x_run_backend_child
+      3  ggufone.bench.isolation.x__keep_diagnostics
+      2  ggufone.bench.isolation.x__exit_desc
+      2  ggufone.bench.isolation.x__read_report
+      2  ggufone.bench.isolation.x__echo_mismatch
+      2  ggufone.bench.isolation.x_isolated_row
+      1  ggufone.bench.isolation.x__tail_hint
+      1  ggufone.bench.isolation.x_isolation_used_note

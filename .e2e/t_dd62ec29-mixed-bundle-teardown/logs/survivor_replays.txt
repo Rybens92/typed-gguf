@@ -1,0 +1,35 @@
+$ MUTANTS_DIR=mutants-r2 python replay_survivor.py <keys>   # each key spliced into src/, gate run, source restored
+
+KILLED   ggufone.bench.isolation.x__child_verdict__mutmut_7 (pytest exit 1)
+    mutant: completed = launcher(command, env=dict(os.environ) if env is None else dict(env), | expected_exit = 0 if report.get("ok", True) else 1 | f"`ok: {report.get('ok', True)}`: the exit 
+    by: FAILED tests/test_bench_isolation.py::test_a_child_runs_the_interpreter_the_parent_was_started_with
+    why: E       AssertionError: assert None == '/work/t603-dd62-1451/.venv/bin/python'
+KILLED   ggufone.bench.isolation.x_run_backend_child__mutmut_20 (pytest exit 1)
+    mutant: directory = pathlib.Path(out_dir) if keeps else pathlib.Path(
+    by: FAILED tests/test_bench_isolation.py::test_a_child_runs_the_interpreter_the_parent_was_started_with
+    why: E       AssertionError: assert '/work/t603-d...nv/bin/python' == '/custom/python'
+KILLED   ggufone.bench.isolation.x__child_verdict__mutmut_75 (pytest exit 1)
+    mutant: completed = launcher(command, env=dict(os.environ) if env is None else dict(env), | expected_exit = 0 if report.get("ok", True) else 1 | f"`ok: {report.get('ok', True)}`: the exit 
+    by: FAILED tests/test_bench_isolation.py::test_a_broken_child_keeps_its_scratch_directory_and_its_logs
+    why: E       AssertionError: assert not True
+KILLED   ggufone.bench.isolation.x__read_report__mutmut_7 (pytest exit 1)
+    mutant: return payload if (isinstance(payload, Mapping)) or True else None
+    by: FAILED tests/test_bench_isolation.py::test_a_report_that_is_not_an_object_is_not_a_report
+    why: E       AttributeError: 'list' object has no attribute 'get'
+KILLED   ggufone.bench.isolation.x__echo_mismatch__mutmut_6 (pytest exit 1)
+    mutant: echo = report.get("config")
+    by: FAILED tests/test_bench_isolation.py::test_a_child_report_without_a_config_block_cannot_be_checked
+    why: E       assert False
+KILLED   ggufone.bench.isolation.x__exit_desc__mutmut_2 (pytest exit 1)
+    mutant: 
+    by: FAILED tests/test_bench_isolation.py::test_the_note_of_a_child_that_never_started_says_so
+    why: E       AssertionError: assert 'that child exited never started:' in 'ISOLATED_CHILD_FAILED: the row for backend `cpu` was measured in its own child process (on
+SURVIVED ggufone.bench.isolation.x__child_verdict__mutmut_120 (pytest exit 0)
+    mutant: completed = launcher(command, env=dict(os.environ) if env is None else dict(env), | expected_exit = 0 if report.get("ok", False) else 1 | f"`ok: {report.get('ok', True)}`: the exit
+
+7 replayed, 1 still surviving
+
+Two directions are proven above: the six keys the triage's pins were written for are now
+KILLED (they were r2 survivors), and `x__child_verdict__mutmut_120` —
+`report.get("ok", False)`, equivalent because every report carries the key — SURVIVES, so the
+harness is not simply failing everything it touches.

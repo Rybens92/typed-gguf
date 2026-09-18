@@ -1,0 +1,57 @@
+F
+=================================== FAILURES ===================================
+__ test_the_two_bundle_command_does_not_abort_and_its_exit_code_is_the_report __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1824/test_the_two_bundle_command_do0')
+
+    @pytest.mark.model
+    def test_the_two_bundle_command_does_not_abort_and_its_exit_code_is_the_report(
+            tmp_path: pathlib.Path) -> None:
+        """The card's gate: no SIGABRT, no silent 0, every measured row proved by its own child."""
+        cpu, accel_backend, accel_dir = two_bundles()
+        model = benchmarkable_model()
+        report_path = tmp_path / "throughput-all.json"
+        command = [sys.executable, "-m", "ggufone", "bench", "--suite", "throughput",
+                   "--model", str(model), "--backend", "all", "--runs", "1", "--threads", "4",
+                   "--sizes", "64", "--out", str(report_path), "--json"]
+        completed = subprocess.run(command, capture_output=True, text=True, env=child_env(),
+                                   timeout=1800)
+        tail = (completed.stderr or "")[-1500:]
+        # requirement 1: the process ends with the CLI's own codes, never with the kernel's signal
+>       assert completed.returncode in (0, 1), (
+            f"`--backend all` exited {completed.returncode} on {cpu} + {accel_dir}\n{tail}")
+E       AssertionError: `--backend all` exited -6 on /work/t603-runtime/b11026-linux-x64-cpu + /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+E         
+E         llama_context: enumerating backends
+E         llama_context: backend_ptrs.size() = 1
+E         sched_reserve: reserving ...
+E         sched_reserve: max_nodes = 17600
+E         sched_reserve: reserving full memory module
+E         sched_reserve: worst-case: n_tokens = 440, n_seqs = 5, n_outputs = 5
+E         graph_reserve: reserving a graph for ubatch with n_tokens =    5, n_seqs =  5, n_outputs =    5
+E         resolve_fused_ops: Flash Attention enabled
+E         resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+E         graph_reserve: reserving a graph for ubatch with n_tokens =    5, n_seqs =  5, n_outputs =    5
+E         resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+E         graph_reserve: reserving a graph for ubatch with n_tokens =    5, n_seqs =  5, n_outputs =    5
+E         resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+E         graph_reserve: reserving a graph for ubatch with n_tokens =    5, n_seqs =  5, n_outputs =    5
+E         resolve_fused_ops: fused DeepSeek V4 HC post enabled
+E         graph_reserve: reserving a graph for ubatch with n_tokens =  440, n_seqs =  5, n_outputs =  440
+E         graph_reserve: reserving a graph for ubatch with n_tokens =    5, n_seqs =  5, n_outputs =    5
+E         graph_reserve: reserving a graph for ubatch with n_tokens =  440, n_seqs =  5, n_outputs =  440
+E         sched_reserve:        CPU compute buffer size =   422.40 MiB
+E         sched_reserve: graph nodes  = 1411
+E         sched_reserve: graph splits = 1
+E         sched_reserve: reserve took 61.88 ms, sched copies = 1
+E         ~llama_context:        CPU compute buffer size is 422.3996 MiB, matches expectation of 422.3996 MiB
+E         double free or corruption (!prev)
+E         
+E       assert -6 in (0, 1)
+E        +  where -6 = CompletedProcess(args=['/work/t603-dd62-1451/.venv/bin/python', '-m', 'ggufone', 'bench', '--suite', 'throughput', '--...    CPU compute buffer size is 422.3996 MiB, matches expectation of 422.3996 MiB\ndouble free or corruption (!prev)\n').returncode
+
+tests/test_bench_isolation_live.py:89: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_bench_isolation_live.py::test_the_two_bundle_command_does_not_abort_and_its_exit_code_is_the_report
+1 failed in 70.45s (0:01:10)
+EXIT=1

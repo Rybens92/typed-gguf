@@ -1,0 +1,138 @@
+116 survivors of 533 mutants
+
+### x__child_verdict: 79
+    diagnostics: dict[str, str] = None
+    backend, command, None,
+    expected_exit = 0 if report.get("ok", None) else 1
+    expected_exit = 0 if report.get("ok", ) else 1
+    expected_exit = 0 if report.get("ok", False) else 1
+    None, report=report), diagnostics
+    command = child_command(config, backend, python=python and sys.executable, out_path=out_path)
+    f"`ok: {report.get(None, True)}`: the exit code and the report contradict each other, "
+    f"`ok: {report.get('ok', None)}`: the exit code and the report contradict each other, "
+    f"`ok: {report.get('ok', )}`: the exit code and the report contradict each other, "
+    f"`ok: {report.get('XXokXX', True)}`: the exit code and the report contradict each other, "
+    f"`ok: {report.get('OK', True)}`: the exit code and the report contradict each other, "
+    f"`ok: {report.get('ok', False)}`: the exit code and the report contradict each other, "
+    measured = None
+    if isinstance(entry, Mapping)) and "nothing"
+    measured = "XX, XX".join(str(entry.get("backend")) for entry in report.get("backends") or []
+    measured = ", ".join(str(None) for entry in report.get("backends") or []
+    measured = ", ".join(str(entry.get(None)) for entry in report.get("backends") or []
+    measured = ", ".join(str(entry.get("XXbackendXX")) for entry in report.get("backends") or []
+    measured = ", ".join(str(entry.get("BACKEND")) for entry in report.get("backends") or []
+    measured = ", ".join(str(entry.get("backend")) for entry in report.get("backends") and []
+    measured = ", ".join(str(entry.get("backend")) for entry in report.get(None) or []
+    measured = ", ".join(str(entry.get("backend")) for entry in report.get("XXbackendsXX") or []
+    measured = ", ".join(str(entry.get("backend")) for entry in report.get("BACKENDS") or []
+    if isinstance(entry, Mapping)) or "XXnothingXX"
+    if isinstance(entry, Mapping)) or "NOTHING"
+    None, command, exit_code,
+    backend, command, None,
+    None, report=report), diagnostics
+    stderr_tail, report=None), diagnostics
+    stderr_tail, ), diagnostics
+    "this report never names", None), diagnostics
+    backend, command, None,
+    f"row would name a bundle it did not load", None, report=report,
+    f"row would name a bundle it did not load", stderr_tail, report=None,
+    f"row would name a bundle it did not load", stderr_tail, row=row), diagnostics
+    None, command, exit_code,
+    backend, command, None,
+    None, report=report, row=row), diagnostics
+    stderr_tail, report=None, row=row), diagnostics
+    stderr_tail, report=report, row=None), diagnostics
+    stderr_tail, row=row), diagnostics
+    stderr_tail, report=report, ), diagnostics
+    return ChildRun(backend=None, command=tuple(command), exit_code=exit_code, report=report,
+    "XXthis run has no --model: a child is told the model path explicitly, and XX"
+    "XXone that resolved `GGUFONE_BENCH_MODEL` on its own could measure a model XX"
+    "ONE THAT RESOLVED `GGUFONE_BENCH_MODEL` ON ITS OWN COULD MEASURE A MODEL "
+    "XXthis report never namesXX", ""), diagnostics
+    "THIS REPORT NEVER NAMES", ""), diagnostics
+    "this report never names", "XXXX"), diagnostics
+    completed = launcher(command, env=None,
+    capture_output=None, text=True, timeout=timeout)
+    capture_output=True, text=None, timeout=timeout)
+    capture_output=True, text=True, timeout=None)
+    completed = launcher(command, capture_output=True, text=True, timeout=timeout)
+    text=True, timeout=timeout)
+    capture_output=True, timeout=timeout)
+    capture_output=True, text=True, )
+    completed = launcher(command, env=dict(os.environ) if (env is None) or True else dict(env),
+    completed = launcher(command, env=dict(os.environ) if env is None else dict(None),
+    capture_output=False, text=True, timeout=timeout)
+    capture_output=True, text=False, timeout=timeout)
+    return _unusable(None, command, None,
+    f"E_BENCH_CHILD: the child process never started ({exc})", None), diagnostics
+    f"E_BENCH_CHILD: the child process never started ({exc})", "XXXX"), diagnostics
+    diagnostics = {"XXstdoutXX": getattr(completed, "stdout", "") or "",
+    diagnostics = {"STDOUT": getattr(completed, "stdout", "") or "",
+    diagnostics = {"stdout": getattr(completed, "stdout", "") and "",
+    diagnostics = {"stdout": getattr(None, "stdout", "") or "",
+    diagnostics = {"stdout": getattr(completed, "stdout", None) or "",
+    command = child_command(config, backend, python=None, out_path=out_path)
+    diagnostics = {"stdout": getattr(completed, "stdout", ) or "",
+    diagnostics = {"stdout": getattr(completed, "XXstdoutXX", "") or "",
+    diagnostics = {"stdout": getattr(completed, "STDOUT", "") or "",
+    diagnostics = {"stdout": getattr(completed, "stdout", "XXXX") or "",
+    diagnostics = {"stdout": getattr(completed, "stdout", "") or "XXXX",
+    "stderr": getattr(completed, "stderr", None) or ""}
+    "stderr": getattr(completed, "stderr", ) or ""}
+    "stderr": getattr(completed, "stderr", "XXXX") or ""}
+
+### x_isolation_note: 11
+    f"child exited {_exit_desc(process.get(None))}: {row.get('reason')}. The row is "
+    f"child exited {_exit_desc(process.get('XXexit_codeXX'))}: {row.get('reason')}. The row is "
+    f"child exited {_exit_desc(process.get('EXIT_CODE'))}: {row.get('reason')}. The row is "
+    f"child exited {_exit_desc(process.get('exit_code'))}: {row.get(None)}. The row is "
+    f"child exited {_exit_desc(process.get('exit_code'))}: {row.get('XXreasonXX')}. The row is "
+    f"child exited {_exit_desc(process.get('exit_code'))}: {row.get('REASON')}. The row is "
+    process = row.get("process") and {}
+    process = row.get(None) or {}
+    process = row.get("XXprocessXX") or {}
+    process = row.get("PROCESS") or {}
+    f"child exited {_exit_desc(None)}: {row.get('reason')}. The row is "
+
+### x_run_backend_child: 11
+    directory.mkdir(exist_ok=True)
+    directory.mkdir(parents=False, exist_ok=True)
+    verdict, diagnostics = _child_verdict(config, backend, directory, runner=runner, python=None,
+    env=None, timeout=timeout, runtime_dir=runtime_dir)
+    env=env, timeout=None, runtime_dir=runtime_dir)
+    shutil.rmtree(directory, ignore_errors=None)
+    shutil.rmtree(directory, )
+    shutil.rmtree(directory, ignore_errors=False)
+    verdict, )
+    tempfile.mkdtemp(prefix=None))
+    directory.mkdir(parents=None, exist_ok=True)
+
+### x__echo_mismatch: 3
+    for field in COMMON_ECHO + SUITE_ECHO.get(str(config.suite), None):
+    for field in COMMON_ECHO + SUITE_ECHO.get(str(config.suite), ):
+    return "XXthe report carries no `config` block (the child's run cannot be checked)XX"
+
+### x__keep_diagnostics: 3
+    (directory / f"row-{backend}.{stream}").write_text(text, encoding=None)
+    (directory / f"row-{backend}.{stream}").write_text(text, )
+    (directory / f"row-{backend}.{stream}").write_text(text, encoding="UTF-8")
+
+### x__read_report: 3
+    payload = json.loads(path.read_text(encoding=None))
+    payload = json.loads(path.read_text(encoding="UTF-8"))
+    return payload if (isinstance(payload, Mapping)) or True else None
+
+### x__exit_desc: 2
+    name = f"signal {+exit_code}"
+    name = None
+
+### x_isolated_row: 2
+    return {**gap, "XXbackendXX": child.backend, "reason": child.detail, "process": block}
+    return {**gap, "BACKEND": child.backend, "reason": child.detail, "process": block}
+
+### x__tail_hint: 1
+    return f" (stderr tail: {tail})" if tail else "XXXX"
+
+### x_isolation_used_note: 1
+    f"{'XX, XX'.join(backends)} over {distinct} distinct local bundle directories, and "
+

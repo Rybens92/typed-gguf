@@ -1,0 +1,276 @@
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "throughput",
+  "quick": false,
+  "generated_at": "2026-09-18T15:15:43Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15",
+    "cpu_count": 24,
+    "machine": "x86_64",
+    "cgroup_cpu_max": 2.0,
+    "cgroup_memory_bytes": 8589934592
+  },
+  "config": {
+    "suite": "throughput",
+    "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "backend": "all",
+    "runs": 1,
+    "threads": 4,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      64
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null,
+    "quick": false,
+    "items_per_type": null,
+    "determinism_repeats": 3,
+    "backend_limit": null,
+    "max_seconds": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "name": "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "bytes": 558772480,
+    "arch": "qwen35"
+  },
+  "notes": [
+    "one bundle per process: `--backend all` selected cpu, vulkan, cuda over 2 distinct local bundle directories, and two distinct local bundles cannot be dlopened into one process: the second bundle's libllama/libggml are shadowed by the first one's SONAMEs (RTLD_GLOBAL, identical names) and the process aborts at teardown with `double free or corruption` \u2014 exit 134 (card t_dd62ec29). Every row was measured by its own child process \u2014 the documented `--backend <one>` path \u2014 and carries the `process` block that produced it; a child whose answer the parent could not verify leaves no row at all."
+  ],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite throughput --model /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf --backend all --runs 1 --threads 4 --json"
+  },
+  "isolation": {
+    "one_bundle_per_process": true,
+    "bundles": {
+      "cpu": "/work/t603-runtime/b11026-linux-x64-cpu",
+      "vulkan": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+    },
+    "reason": "two distinct local bundles cannot be dlopened into one process: the second bundle's libllama/libggml are shadowed by the first one's SONAMEs (RTLD_GLOBAL, identical names) and the process aborts at teardown with `double free or corruption` \u2014 exit 134 (card t_dd62ec29)",
+    "suite": "throughput"
+  },
+  "backends": [
+    {
+      "backend": "cpu",
+      "decision_ms": {
+        "max": 1877.2738129991922,
+        "mean": 1877.2738129991922,
+        "min": 1877.2738129991922,
+        "n": 1,
+        "p50": 1877.2738129991922,
+        "p95": 1877.2738129991922
+      },
+      "decision_tok_per_s": {
+        "max": 4.261498746002825,
+        "mean": 4.261498746002825,
+        "min": 4.261498746002825,
+        "n": 1,
+        "p50": 4.261498746002825,
+        "p95": 4.261498746002825
+      },
+      "device_buffers": {
+        "CPU": 3
+      },
+      "devices": [
+        "CPU",
+        "CPU_Mapped",
+        "CPU_REPACK"
+      ],
+      "effective_backend": "cpu",
+      "load_ms": {
+        "max": 2014.428703005251,
+        "mean": 2014.428703005251,
+        "min": 2014.428703005251,
+        "n": 1,
+        "p50": 2014.428703005251,
+        "p95": 2014.428703005251
+      },
+      "measured": true,
+      "placement": "n_gpu_layers=0",
+      "placement_used": {
+        "requested": "n_gpu_layers=0",
+        "used": {
+          "attempts": [],
+          "degraded": false,
+          "kv_type": "auto",
+          "n_gpu_layers": 0,
+          "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)",
+          "warnings": []
+        }
+      },
+      "prefill": [
+        {
+          "backend": "cpu",
+          "ms": {
+            "max": 1296.7292699977406,
+            "mean": 1296.7292699977406,
+            "min": 1296.7292699977406,
+            "n": 1,
+            "p50": 1296.7292699977406,
+            "p95": 1296.7292699977406
+          },
+          "threads": 4,
+          "tok_per_s": {
+            "max": 49.35494361140742,
+            "mean": 49.35494361140742,
+            "min": 49.35494361140742,
+            "n": 1,
+            "p50": 49.35494361140742,
+            "p95": 49.35494361140742
+          },
+          "tokens": 64
+        }
+      ],
+      "prefill_tok_per_s": {
+        "max": 49.35494361140742,
+        "mean": 49.35494361140742,
+        "min": 49.35494361140742,
+        "n": 1,
+        "p50": 49.35494361140742,
+        "p95": 49.35494361140742
+      },
+      "runtime_dir": "/work/t603-runtime/b11026-linux-x64-cpu",
+      "threads": 4,
+      "warnings": [],
+      "process": {
+        "isolated": true,
+        "exit_code": 0,
+        "ok": true,
+        "detail": null
+      }
+    },
+    {
+      "backend": "vulkan",
+      "decision_ms": {
+        "max": 714.3673739992664,
+        "mean": 714.3673739992664,
+        "min": 714.3673739992664,
+        "n": 1,
+        "p50": 714.3673739992664,
+        "p95": 714.3673739992664
+      },
+      "decision_tok_per_s": {
+        "max": 11.198719722057485,
+        "mean": 11.198719722057485,
+        "min": 11.198719722057485,
+        "n": 1,
+        "p50": 11.198719722057485,
+        "p95": 11.198719722057485
+      },
+      "device_buffers": {
+        "Vulkan0": 3,
+        "Vulkan_Host": 3
+      },
+      "devices": [
+        "CPU_Mapped",
+        "Vulkan0",
+        "Vulkan_Host"
+      ],
+      "effective_backend": "vulkan",
+      "load_ms": {
+        "max": 2535.462018000544,
+        "mean": 2535.462018000544,
+        "min": 2535.462018000544,
+        "n": 1,
+        "p50": 2535.462018000544,
+        "p95": 2535.462018000544
+      },
+      "measured": true,
+      "placement": "n_gpu_layers=-1",
+      "placement_used": {
+        "requested": "n_gpu_layers=-1",
+        "used": {
+          "attempts": [],
+          "degraded": false,
+          "kv_type": "auto",
+          "n_gpu_layers": -1,
+          "note": "all layers requested: n_gpu_layers=-1 (kv_type=auto)",
+          "warnings": []
+        }
+      },
+      "prefill": [
+        {
+          "backend": "vulkan",
+          "ms": {
+            "max": 20678.021238993097,
+            "mean": 20678.021238993097,
+            "min": 20678.021238993097,
+            "n": 1,
+            "p50": 20678.021238993097,
+            "p95": 20678.021238993097
+          },
+          "threads": 4,
+          "tok_per_s": {
+            "max": 3.0950737142736604,
+            "mean": 3.0950737142736604,
+            "min": 3.0950737142736604,
+            "n": 1,
+            "p50": 3.0950737142736604,
+            "p95": 3.0950737142736604
+          },
+          "tokens": 64
+        }
+      ],
+      "prefill_tok_per_s": {
+        "max": 3.0950737142736604,
+        "mean": 3.0950737142736604,
+        "min": 3.0950737142736604,
+        "n": 1,
+        "p50": 3.0950737142736604,
+        "p95": 3.0950737142736604
+      },
+      "runtime_dir": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+      "threads": 4,
+      "warnings": [],
+      "process": {
+        "isolated": true,
+        "exit_code": 0,
+        "ok": true,
+        "detail": null
+      }
+    },
+    {
+      "backend": "cuda",
+      "measured": false,
+      "reason": "no local llama.cpp bundle carries libggml-cuda.so (benchmarks never download one: run `ggufone init --backend cuda` or point GGUFONE_BENCH_RUNTIME_DIR at extracted bundles)"
+    }
+  ],
+  "ok": true,
+  "truncated": false,
+  "skipped": [],
+  "wall_ms": 174871.341,
+  "budget": {
+    "max_seconds": null,
+    "expired": false,
+    "skipped": 0
+  }
+}

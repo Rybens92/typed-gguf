@@ -1,0 +1,198 @@
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "throughput",
+  "quick": false,
+  "generated_at": "2026-09-18T15:07:03Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15",
+    "cpu_count": 24,
+    "machine": "x86_64",
+    "cgroup_cpu_max": 2.0,
+    "cgroup_memory_bytes": 8589934592
+  },
+  "config": {
+    "suite": "throughput",
+    "model_path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "backend": "all",
+    "runs": 1,
+    "threads": 4,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      64
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null,
+    "quick": false,
+    "items_per_type": null,
+    "determinism_repeats": 3,
+    "backend_limit": null,
+    "max_seconds": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "name": "Qwen3.5-4B-Q4_0.gguf",
+    "bytes": 2583221408,
+    "arch": "qwen35"
+  },
+  "notes": [
+    "one bundle per process: `--backend all` selected cpu, vulkan, cuda over 2 distinct local bundle directories, and two distinct local bundles cannot be dlopened into one process: the second bundle's libllama/libggml are shadowed by the first one's SONAMEs (RTLD_GLOBAL, identical names) and the process aborts at teardown with `double free or corruption` \u2014 exit 134 (card t_dd62ec29). Every row was measured by its own child process \u2014 the documented `--backend <one>` path \u2014 and carries the `process` block that produced it; a child whose answer the parent could not verify leaves no row at all.",
+    "ISOLATED_CHILD_FAILED: the row for backend `vulkan` was measured in its own child process (one bundle per process \u2014 two distinct local bundles cannot be dlopened into one process: the second bundle's libllama/libggml are shadowed by the first one's SONAMEs (RTLD_GLOBAL, identical names) and the process aborts at teardown with `double free or corruption` \u2014 exit 134 (card t_dd62ec29)) and that child exited -11 (SIGSEGV; 139 in a shell): the isolated child exited -11 (SIGSEGV; 139 in a shell) while its own report says `ok: True`: the exit code and the report contradict each other, so neither can be trusted (stderr tail: \u2026~llama_context:    Vulkan0 compute buffer size is 425.8354 MiB, matches expectation of 425.8354 MiB\n~llama_context: Vulkan_Host compute buffer size is   9.0404 MiB, matches expectation of   9.0404 MiB). The row is withheld (`measured: false`) and the report is not ok."
+  ],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite throughput --model /var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf --backend all --runs 1 --threads 4 --json"
+  },
+  "isolation": {
+    "one_bundle_per_process": true,
+    "bundles": {
+      "cpu": "/work/t603-runtime/b11026-linux-x64-cpu",
+      "vulkan": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+    },
+    "reason": "two distinct local bundles cannot be dlopened into one process: the second bundle's libllama/libggml are shadowed by the first one's SONAMEs (RTLD_GLOBAL, identical names) and the process aborts at teardown with `double free or corruption` \u2014 exit 134 (card t_dd62ec29)",
+    "suite": "throughput"
+  },
+  "backends": [
+    {
+      "backend": "cpu",
+      "decision_ms": {
+        "max": 4144.838460997562,
+        "mean": 4144.838460997562,
+        "min": 4144.838460997562,
+        "n": 1,
+        "p50": 4144.838460997562,
+        "p95": 4144.838460997562
+      },
+      "decision_tok_per_s": {
+        "max": 1.9301114085094149,
+        "mean": 1.9301114085094149,
+        "min": 1.9301114085094149,
+        "n": 1,
+        "p50": 1.9301114085094149,
+        "p95": 1.9301114085094149
+      },
+      "device_buffers": {
+        "CPU": 3
+      },
+      "devices": [
+        "CPU",
+        "CPU_Mapped",
+        "CPU_REPACK"
+      ],
+      "effective_backend": "cpu",
+      "load_ms": {
+        "max": 9025.130477006314,
+        "mean": 9025.130477006314,
+        "min": 9025.130477006314,
+        "n": 1,
+        "p50": 9025.130477006314,
+        "p95": 9025.130477006314
+      },
+      "measured": true,
+      "placement": "n_gpu_layers=0",
+      "placement_used": {
+        "requested": "n_gpu_layers=0",
+        "used": {
+          "attempts": [],
+          "degraded": false,
+          "kv_type": "auto",
+          "n_gpu_layers": 0,
+          "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)",
+          "warnings": []
+        }
+      },
+      "prefill": [
+        {
+          "backend": "cpu",
+          "ms": {
+            "max": 7462.648848995741,
+            "mean": 7462.648848995741,
+            "min": 7462.648848995741,
+            "n": 1,
+            "p50": 7462.648848995741,
+            "p95": 7462.648848995741
+          },
+          "threads": 4,
+          "tok_per_s": {
+            "max": 8.576043345334757,
+            "mean": 8.576043345334757,
+            "min": 8.576043345334757,
+            "n": 1,
+            "p50": 8.576043345334757,
+            "p95": 8.576043345334757
+          },
+          "tokens": 64
+        }
+      ],
+      "prefill_tok_per_s": {
+        "max": 8.576043345334757,
+        "mean": 8.576043345334757,
+        "min": 8.576043345334757,
+        "n": 1,
+        "p50": 8.576043345334757,
+        "p95": 8.576043345334757
+      },
+      "runtime_dir": "/work/t603-runtime/b11026-linux-x64-cpu",
+      "threads": 4,
+      "warnings": [],
+      "process": {
+        "isolated": true,
+        "exit_code": 0,
+        "ok": true,
+        "detail": null
+      }
+    },
+    {
+      "backend": "vulkan",
+      "measured": false,
+      "reason": "the isolated child exited -11 (SIGSEGV; 139 in a shell) while its own report says `ok: True`: the exit code and the report contradict each other, so neither can be trusted (stderr tail: \u2026~llama_context:    Vulkan0 compute buffer size is 425.8354 MiB, matches expectation of 425.8354 MiB\n~llama_context: Vulkan_Host compute buffer size is   9.0404 MiB, matches expectation of   9.0404 MiB)",
+      "process": {
+        "isolated": true,
+        "exit_code": -11,
+        "ok": false,
+        "detail": "the isolated child exited -11 (SIGSEGV; 139 in a shell) while its own report says `ok: True`: the exit code and the report contradict each other, so neither can be trusted (stderr tail: \u2026~llama_context:    Vulkan0 compute buffer size is 425.8354 MiB, matches expectation of 425.8354 MiB\n~llama_context: Vulkan_Host compute buffer size is   9.0404 MiB, matches expectation of   9.0404 MiB)"
+      }
+    },
+    {
+      "backend": "cuda",
+      "measured": false,
+      "reason": "no local llama.cpp bundle carries libggml-cuda.so (benchmarks never download one: run `ggufone init --backend cuda` or point GGUFONE_BENCH_RUNTIME_DIR at extracted bundles)"
+    }
+  ],
+  "ok": false,
+  "truncated": false,
+  "skipped": [],
+  "wall_ms": 193793.381,
+  "budget": {
+    "max_seconds": null,
+    "expired": false,
+    "skipped": 0
+  }
+}

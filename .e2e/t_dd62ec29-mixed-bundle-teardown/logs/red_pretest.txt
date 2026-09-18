@@ -1,0 +1,1019 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF..                            [100%]
+=================================== FAILURES ===================================
+_________ test_two_distinct_bundle_directories_cannot_share_a_process __________
+
+    def test_two_distinct_bundle_directories_cannot_share_a_process() -> None:
+>       assert isolation.isolation_needed(["cpu", "vulkan"], two_bundle_runtimes()) is True
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'isolation_needed'
+
+tests/test_bench_isolation.py:165: AttributeError
+______________ test_one_bundle_under_two_labels_stays_in_process _______________
+
+    def test_one_bundle_under_two_labels_stays_in_process() -> None:
+        """A host with one bundle (`cpu` and `vulkan` the same directory) never needs a child."""
+>       assert isolation.isolation_needed(["cpu", "vulkan"], one_bundle_runtimes()) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'isolation_needed'
+
+tests/test_bench_isolation.py:170: AttributeError
+_______________ test_a_single_measured_backend_stays_in_process ________________
+
+    def test_a_single_measured_backend_stays_in_process() -> None:
+>       assert isolation.isolation_needed(["cpu"], two_bundle_runtimes()) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'isolation_needed'
+
+tests/test_bench_isolation.py:174: AttributeError
+__________ test_a_backend_without_a_bundle_is_not_a_reason_to_isolate __________
+
+    def test_a_backend_without_a_bundle_is_not_a_reason_to_isolate() -> None:
+        """`--backend all` asks for cuda too: a backend with no local bundle is never loaded."""
+>       assert isolation.isolation_needed(["cpu", "cuda"], two_bundle_runtimes()) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'isolation_needed'
+
+tests/test_bench_isolation.py:179: AttributeError
+_________ test_the_same_directory_under_a_symlink_is_still_one_bundle __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_same_directory_under_0')
+
+    def test_the_same_directory_under_a_symlink_is_still_one_bundle(tmp_path: pathlib.Path) -> None:
+        """`_LOADED` keys on the resolved directory; the decision has to agree with the loader."""
+        real = tmp_path / "b11026-linux-x64-cpu"
+        real.mkdir()
+        link = tmp_path / "b11026-linux-x64-vulkan"
+        link.symlink_to(real)
+>       assert isolation.isolation_needed(["cpu", "vulkan"], {"cpu": real, "vulkan": link}) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'isolation_needed'
+
+tests/test_bench_isolation.py:188: AttributeError
+_____________ test_the_child_command_is_this_cli_with_one_backend ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_child_command_is_this0')
+
+    def test_the_child_command_is_this_cli_with_one_backend(tmp_path: pathlib.Path) -> None:
+        """The child is not a private protocol: it is `bench --backend <one>`, the documented path."""
+        config = throughput_config(kv_type="q8_0", gpu_layers=0)
+>       command = isolation.child_command(config, "vulkan", python="/usr/bin/python3",
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+                                          out_path=tmp_path / "row.json")
+E       AttributeError: 'NoneType' object has no attribute 'child_command'
+
+tests/test_bench_isolation.py:195: AttributeError
+____________ test_the_child_command_omits_what_the_parent_never_set ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_child_command_omits_w0')
+
+    def test_the_child_command_omits_what_the_parent_never_set(tmp_path: pathlib.Path) -> None:
+        """No `--threads`/`--kv-type`/`--gpu-layers` when the run left them to the defaults."""
+        config = throughput_config(threads=None)
+>       command = isolation.child_command(config, "cpu", python="python",
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+                                          out_path=tmp_path / "row.json")
+E       AttributeError: 'NoneType' object has no attribute 'child_command'
+
+tests/test_bench_isolation.py:209: AttributeError
+_______________ test_the_child_command_lists_every_prefill_size ________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_child_command_lists_e0')
+
+    def test_the_child_command_lists_every_prefill_size(tmp_path: pathlib.Path) -> None:
+        """A multi-size run must be re-measured with its own sizes, comma-joined."""
+>       command = isolation.child_command(throughput_config(prefill_sizes=(64, 128)), "cpu",
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+                                          python="python", out_path=tmp_path / "row.json")
+E       AttributeError: 'NoneType' object has no attribute 'child_command'
+
+tests/test_bench_isolation.py:222: AttributeError
+______ test_a_run_without_a_model_is_range_checked_before_a_child_starts _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_run_without_a_model_is_0')
+
+    def test_a_run_without_a_model_is_range_checked_before_a_child_starts(
+            tmp_path: pathlib.Path) -> None:
+        """A child resolves `GGUFONE_BENCH_MODEL` on its own: never let it measure an unnamed model."""
+>       child = isolation.run_backend_child(harness.BenchConfig(suite="throughput", backend="all"),
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                            "cpu", out_dir=tmp_path, python="python",
+                                            runner=lambda *args, **kwargs: pytest.fail("spawned"))
+E       AttributeError: 'NoneType' object has no attribute 'run_backend_child'
+
+tests/test_bench_isolation.py:230: AttributeError
+________________ test_the_child_command_keeps_the_quick_preset _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_child_command_keeps_t0')
+
+    def test_the_child_command_keeps_the_quick_preset(tmp_path: pathlib.Path) -> None:
+        """A quick run states `--quick`: re-stating its scale flags is an `E_BENCH_QUICK` error."""
+        config = harness.quick_config(throughput_config())
+>       command = isolation.child_command(config, "cpu", python="python",
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+                                          out_path=tmp_path / "row.json")
+E       AttributeError: 'NoneType' object has no attribute 'child_command'
+
+tests/test_bench_isolation.py:240: AttributeError
+__________ test_the_determinism_child_asks_for_the_suite_it_was_told ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_determinism_child_ask0')
+
+    def test_the_determinism_child_asks_for_the_suite_it_was_told(tmp_path: pathlib.Path) -> None:
+        config = harness.BenchConfig(suite="determinism", model_path="/tmp/fake.gguf", backend="all",
+                                     determinism_repeats=3)
+>       command = isolation.child_command(config, "vulkan", python="python",
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+                                          out_path=tmp_path / "row.json")
+E       AttributeError: 'NoneType' object has no attribute 'child_command'
+
+tests/test_bench_isolation.py:250: AttributeError
+__________ test_a_well_behaved_child_is_usable_and_carries_its_report __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_well_behaved_child_is_u0')
+
+    def test_a_well_behaved_child_is_usable_and_carries_its_report(tmp_path: pathlib.Path) -> None:
+        config = throughput_config()
+>       child = _run(config, "cpu", FakeChild(), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:268: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f61824e4510>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_well_behaved_child_is_u0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+________ test_a_child_that_reports_a_failure_is_still_a_verified_child _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_reports_a_fa0')
+
+    def test_a_child_that_reports_a_failure_is_still_a_verified_child(tmp_path: pathlib.Path) -> None:
+        """A child whose own report is flagged (`ok: false`) exits 1 (SPEC 2.5) — that is not a crash.
+    
+        The row it produced is the *child's* row: it is accepted, warnings and all, and the parent's
+        own mismatch aggregation is what fails the report (`W_BACKEND_MISMATCH` below).
+        """
+        config = throughput_config()
+        flagged = {"backend": "cpu", "measured": True, "runtime_dir": CPU_DIR,
+                   "warnings": ["W_BACKEND_MISMATCH"], "effective_backend": "vulkan",
+                   "devices": ["Vulkan0"], "device_buffers": {"Vulkan0": 3}}
+>       child = _run(config, "cpu", FakeChild(exit_code=1, ok=False, row=flagged), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:288: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181cc6fd0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_reports_a_fa0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_______ test_a_child_that_aborts_after_writing_its_report_is_not_usable ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_aborts_after0')
+
+    def test_a_child_that_aborts_after_writing_its_report_is_not_usable(tmp_path: pathlib.Path) -> None:
+        """The defect's own shape: a complete report, then `double free`, exit 134 (SIGABRT)."""
+        config = throughput_config()
+>       child = _run(config, "vulkan", FakeChild(exit_code=-signal.SIGABRT,
+                                                stderr="double free or corruption (!prev)"), tmp_path)
+
+tests/test_bench_isolation.py:298: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'vulkan'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181c90190>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_aborts_after0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+__________ test_a_child_with_no_report_is_a_failure_not_a_silent_zero __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_with_no_report_is0')
+
+    def test_a_child_with_no_report_is_a_failure_not_a_silent_zero(tmp_path: pathlib.Path) -> None:
+>       child = _run(throughput_config(), "vulkan", FakeChild(write_report=False), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:310: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'vulkan'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181c32950>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_with_no_report_is0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+______ test_a_child_whose_exit_code_contradicts_its_report_is_not_usable _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_whose_exit_code_c0')
+
+    def test_a_child_whose_exit_code_contradicts_its_report_is_not_usable(
+            tmp_path: pathlib.Path) -> None:
+        """Exit 1 with `ok: true` is exactly the inconsistency a CI step must not read as a pass."""
+>       child = _run(throughput_config(), "cpu", FakeChild(exit_code=1, ok=True), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:320: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f61817dd3d0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_whose_exit_code_c0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+____________ test_a_child_that_names_another_backend_is_not_usable _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_names_anothe0')
+
+    def test_a_child_that_names_another_backend_is_not_usable(tmp_path: pathlib.Path) -> None:
+        wrong = {"backend": "cpu", "measured": True, "runtime_dir": str(VULKAN_DIR), "warnings": []}
+>       child = _run(throughput_config(), "vulkan", FakeChild(row=wrong), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:328: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'vulkan'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181975010>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_names_anothe0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+___________ test_a_child_that_measured_another_bundle_is_not_usable ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_measured_ano0')
+
+    def test_a_child_that_measured_another_bundle_is_not_usable(tmp_path: pathlib.Path) -> None:
+        """The row must name the bundle the parent selected: a different one is a different run."""
+        elsewhere = {"backend": "vulkan", "measured": True, "runtime_dir": "/somewhere/else",
+                     "warnings": []}
+>       child = _run(throughput_config(), "vulkan", FakeChild(row=elsewhere), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:337: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'vulkan'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181f53650>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_measured_ano0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_ test_a_child_that_ran_other_scale_flags_is_not_usable[throughput-runs-5-runs] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_ran_other_sc0')
+suite = 'throughput', field = 'runs', value = 5, expected = 'runs'
+
+    @pytest.mark.parametrize("suite, field, value, expected", [
+        ("throughput", "runs", 5, "runs"),
+        ("throughput", "prefill_sizes", [256, 2048, 8192], "prefill_sizes"),
+        ("determinism", "determinism_repeats", 2, "determinism_repeats"),
+        ("determinism", "runs", 1, "runs"),
+    ])
+    def test_a_child_that_ran_other_scale_flags_is_not_usable(
+            tmp_path: pathlib.Path, suite: str, field: str, value: Any, expected: str) -> None:
+        """The report is the run the parent asked for, or it is not published at all."""
+        fields: dict[str, Any] = {"suite": suite, "model_path": "/tmp/fake.gguf", "backend": "all"}
+        if suite == "throughput":
+            fields.update(runs=1, prefill_sizes=(64,))
+        else:
+            fields.update(runs=5)
+        config = harness.BenchConfig(**fields)
+>       child = _run(config, "cpu",
+                     FakeChild(mutate=lambda report, _cmd: report["config"].update({field: value})),
+                     tmp_path)
+
+tests/test_bench_isolation.py:360: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=None, devset=None, items=N...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181fb7510>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_ran_other_sc0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_ test_a_child_that_ran_other_scale_flags_is_not_usable[throughput-prefill_sizes-value1-prefill_sizes] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_ran_other_sc1')
+suite = 'throughput', field = 'prefill_sizes', value = [256, 2048, 8192]
+expected = 'prefill_sizes'
+
+    @pytest.mark.parametrize("suite, field, value, expected", [
+        ("throughput", "runs", 5, "runs"),
+        ("throughput", "prefill_sizes", [256, 2048, 8192], "prefill_sizes"),
+        ("determinism", "determinism_repeats", 2, "determinism_repeats"),
+        ("determinism", "runs", 1, "runs"),
+    ])
+    def test_a_child_that_ran_other_scale_flags_is_not_usable(
+            tmp_path: pathlib.Path, suite: str, field: str, value: Any, expected: str) -> None:
+        """The report is the run the parent asked for, or it is not published at all."""
+        fields: dict[str, Any] = {"suite": suite, "model_path": "/tmp/fake.gguf", "backend": "all"}
+        if suite == "throughput":
+            fields.update(runs=1, prefill_sizes=(64,))
+        else:
+            fields.update(runs=5)
+        config = harness.BenchConfig(**fields)
+>       child = _run(config, "cpu",
+                     FakeChild(mutate=lambda report, _cmd: report["config"].update({field: value})),
+                     tmp_path)
+
+tests/test_bench_isolation.py:360: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=None, devset=None, items=N...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181f8a6d0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_ran_other_sc1')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_ test_a_child_that_ran_other_scale_flags_is_not_usable[determinism-determinism_repeats-2-determinism_repeats] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_ran_other_sc2')
+suite = 'determinism', field = 'determinism_repeats', value = 2
+expected = 'determinism_repeats'
+
+    @pytest.mark.parametrize("suite, field, value, expected", [
+        ("throughput", "runs", 5, "runs"),
+        ("throughput", "prefill_sizes", [256, 2048, 8192], "prefill_sizes"),
+        ("determinism", "determinism_repeats", 2, "determinism_repeats"),
+        ("determinism", "runs", 1, "runs"),
+    ])
+    def test_a_child_that_ran_other_scale_flags_is_not_usable(
+            tmp_path: pathlib.Path, suite: str, field: str, value: Any, expected: str) -> None:
+        """The report is the run the parent asked for, or it is not published at all."""
+        fields: dict[str, Any] = {"suite": suite, "model_path": "/tmp/fake.gguf", "backend": "all"}
+        if suite == "throughput":
+            fields.update(runs=1, prefill_sizes=(64,))
+        else:
+            fields.update(runs=5)
+        config = harness.BenchConfig(**fields)
+>       child = _run(config, "cpu",
+                     FakeChild(mutate=lambda report, _cmd: report["config"].update({field: value})),
+                     tmp_path)
+
+tests/test_bench_isolation.py:360: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='determinism', model_path='/tmp/fake.gguf', backend='all', runs=5, threads=None, devset=None, items=...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181d00e50>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_ran_other_sc2')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_ test_a_child_that_ran_other_scale_flags_is_not_usable[determinism-runs-1-runs] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_ran_other_sc3')
+suite = 'determinism', field = 'runs', value = 1, expected = 'runs'
+
+    @pytest.mark.parametrize("suite, field, value, expected", [
+        ("throughput", "runs", 5, "runs"),
+        ("throughput", "prefill_sizes", [256, 2048, 8192], "prefill_sizes"),
+        ("determinism", "determinism_repeats", 2, "determinism_repeats"),
+        ("determinism", "runs", 1, "runs"),
+    ])
+    def test_a_child_that_ran_other_scale_flags_is_not_usable(
+            tmp_path: pathlib.Path, suite: str, field: str, value: Any, expected: str) -> None:
+        """The report is the run the parent asked for, or it is not published at all."""
+        fields: dict[str, Any] = {"suite": suite, "model_path": "/tmp/fake.gguf", "backend": "all"}
+        if suite == "throughput":
+            fields.update(runs=1, prefill_sizes=(64,))
+        else:
+            fields.update(runs=5)
+        config = harness.BenchConfig(**fields)
+>       child = _run(config, "cpu",
+                     FakeChild(mutate=lambda report, _cmd: report["config"].update({field: value})),
+                     tmp_path)
+
+tests/test_bench_isolation.py:360: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='determinism', model_path='/tmp/fake.gguf', backend='all', runs=5, threads=None, devset=None, items=...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181c91450>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_ran_other_sc3')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+___________ test_the_child_report_echoing_the_asked_run_stays_usable ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_child_report_echoing_0')
+
+    def test_the_child_report_echoing_the_asked_run_stays_usable(tmp_path: pathlib.Path) -> None:
+        config = harness.BenchConfig(suite="determinism", model_path="/tmp/fake.gguf", backend="all")
+>       child = _run(config, "cpu", FakeChild(), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:370: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='determinism', model_path='/tmp/fake.gguf', backend='all', runs=5, threads=None, devset=None, items=...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181f5d3d0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_child_report_echoing_0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+______ test_the_child_report_lives_in_a_temp_directory_the_parent_removes ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_child_report_lives_in0')
+
+    def test_the_child_report_lives_in_a_temp_directory_the_parent_removes(
+            tmp_path: pathlib.Path) -> None:
+        """Scratch by default: only an evidence run that names `out_dir` keeps the child's raws."""
+>       child = REAL_RUN_BACKEND_CHILD(throughput_config(), "cpu", runner=FakeChild(), python="python")
+                ^^^^^^^^^^^^^^^^^^^^^^
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:377: NameError
+_________ test_a_broken_child_keeps_its_scratch_directory_and_its_logs _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6181975c50>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_broken_child_keeps_its_0')
+
+    def test_a_broken_child_keeps_its_scratch_directory_and_its_logs(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        """A crash's evidence is the child's own log: keep it and name it in the row's reason."""
+        monkeypatch.setenv("TMPDIR", str(tmp_path))
+>       child = REAL_RUN_BACKEND_CHILD(
+                ^^^^^^^^^^^^^^^^^^^^^^
+            throughput_config(), "vulkan", python="python",
+            runner=FakeChild(exit_code=-signal.SIGABRT, stderr="free(): double free (!prev)"))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:388: NameError
+________ test_a_child_runs_the_interpreter_the_parent_was_started_with _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_runs_the_interpre0')
+
+    def test_a_child_runs_the_interpreter_the_parent_was_started_with(tmp_path: pathlib.Path) -> None:
+        """`python=None` (production) means *this* interpreter; an explicit one is passed through."""
+>       default = REAL_RUN_BACKEND_CHILD(throughput_config(), "cpu", runner=FakeChild(), python=None,
+                  ^^^^^^^^^^^^^^^^^^^^^^
+                                         out_dir=tmp_path)
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:411: NameError
+_____________ test_a_report_that_is_not_an_object_is_not_a_report ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_report_that_is_not_an_o0')
+
+    def test_a_report_that_is_not_an_object_is_not_a_report(tmp_path: pathlib.Path) -> None:
+        """`--out` holds the report object; a JSON list is not one, and the row is withheld."""
+        def list_report(command: list[str], **kwargs: Any) -> Any:
+            pathlib.Path(cli_options(command)["out"]).write_text("[1, 2]", encoding="utf-8")
+            return type("Completed", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+    
+>       child = _run(throughput_config(), "cpu", list_report, tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:425: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <function test_a_report_that_is_not_an_object_is_not_a_report.<locals>.list_report at 0x7f6181b38180>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_report_that_is_not_an_o0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_________________ test_a_child_that_never_started_is_a_failure _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_never_starte0')
+
+    def test_a_child_that_never_started_is_a_failure(tmp_path: pathlib.Path) -> None:
+        """A missing interpreter (or a runner that cannot exec) is a withheld row, not an exception."""
+        def refuse(*args: Any, **kwargs: Any) -> Any:
+            raise FileNotFoundError("no such file or directory: 'python'")
+    
+>       child = _run(throughput_config(), "cpu", refuse, tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:435: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <function test_a_child_that_never_started_is_a_failure.<locals>.refuse at 0x7f6181b39f80>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_that_never_starte0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_________ test_a_child_report_without_a_config_block_cannot_be_checked _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_report_without_a_0')
+
+    def test_a_child_report_without_a_config_block_cannot_be_checked(tmp_path: pathlib.Path) -> None:
+        """The parent verifies the run it asked for: a report that does not echo it proves nothing."""
+>       child = _run(throughput_config(), "cpu",
+                     FakeChild(mutate=lambda report, _cmd: report.pop("config")), tmp_path)
+
+tests/test_bench_isolation.py:442: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181c92c50>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_report_without_a_0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_______________ test_a_long_child_log_is_tailed_into_the_reason ________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_long_child_log_is_taile0')
+
+    def test_a_long_child_log_is_tailed_into_the_reason(tmp_path: pathlib.Path) -> None:
+        """The report carries the *end* of the child's log — a glibc abort line is the evidence."""
+>       child = _run(throughput_config(), "cpu",
+                     FakeChild(stderr="x" * 500 + "\ndouble free or corruption (!prev)\n"), tmp_path)
+
+tests/test_bench_isolation.py:451: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181c31cd0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_long_child_log_is_taile0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+__________________ test_a_child_log_at_the_cap_is_kept_whole ___________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_log_at_the_cap_is0')
+
+    def test_a_child_log_at_the_cap_is_kept_whole(tmp_path: pathlib.Path) -> None:
+        """Exactly `STDERR_TAIL_CHARS` is the whole tail: the ellipsis is for what was cut."""
+>       child = _run(throughput_config(), "cpu", FakeChild(stderr="y" * 200), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:459: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181f838d0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_child_log_at_the_cap_is0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_____________ test_the_note_of_a_child_that_never_started_says_so ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_note_of_a_child_that_0')
+
+    def test_the_note_of_a_child_that_never_started_says_so(tmp_path: pathlib.Path) -> None:
+>       child = REAL_RUN_BACKEND_CHILD(harness.BenchConfig(suite="throughput", backend="all"), "cpu",
+                ^^^^^^^^^^^^^^^^^^^^^^
+                                       out_dir=tmp_path, python="python",
+                                       runner=lambda *args, **kwargs: pytest.fail("spawned"))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:464: NameError
+________________ test_the_child_stderr_travels_with_the_verdict ________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_child_stderr_travels_0')
+
+    def test_the_child_stderr_travels_with_the_verdict(tmp_path: pathlib.Path) -> None:
+>       child = _run(throughput_config(), "cpu", FakeChild(stderr="last words\n"), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:474: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f61817eaa90>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_child_stderr_travels_0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+____ test_the_row_published_for_an_isolated_child_carries_its_process_block ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_row_published_for_an_0')
+
+    def test_the_row_published_for_an_isolated_child_carries_its_process_block(
+            tmp_path: pathlib.Path) -> None:
+>       child = _run(throughput_config(), "cpu", FakeChild(), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:480: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'cpu'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181c0c850>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_row_published_for_an_0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+________ test_the_gap_row_withholds_everything_the_child_did_not_prove _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_gap_row_withholds_eve0')
+
+    def test_the_gap_row_withholds_everything_the_child_did_not_prove(tmp_path: pathlib.Path) -> None:
+>       child = _run(throughput_config(), "vulkan", FakeChild(write_report=False), tmp_path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_isolation.py:487: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='throughput', model_path='/tmp/fake.gguf', backend='all', runs=1, threads=4, devset=None, items=None...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+backend = 'vulkan'
+child = <tests.test_bench_isolation.FakeChild object at 0x7f6181bf5c50>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_gap_row_withholds_eve0')
+runtime_dir = None
+
+    def _run(config: harness.BenchConfig, backend: str, child: FakeChild, tmp_path: pathlib.Path,
+             runtime_dir: str | None = None) -> isolation.ChildRun:
+        """`isolation.run_backend_child` against the fake CLI — through the *real* seam, unpatched."""
+>       return REAL_RUN_BACKEND_CHILD(
+               ^^^^^^^^^^^^^^^^^^^^^^
+            config, backend, runner=child, out_dir=tmp_path, python="python",
+            runtime_dir=runtime_dir if runtime_dir is not None
+            else str(two_bundle_runtimes()[backend]))
+E       NameError: name 'REAL_RUN_BACKEND_CHILD' is not defined
+
+tests/test_bench_isolation.py:260: NameError
+_______ test_a_two_bundle_run_puts_every_measured_row_in_its_own_process _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6181f6ff10>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_two_bundle_run_puts_eve0')
+
+    def test_a_two_bundle_run_puts_every_measured_row_in_its_own_process(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        child = FakeChild()
+>       monkeypatch.setattr(isolation, "run_backend_child",
+                            lambda config, backend, **kwargs: _run(config, backend, child, tmp_path))
+E       AttributeError: None has no attribute 'run_backend_child'
+
+tests/test_bench_isolation.py:499: AttributeError
+_______ test_the_parent_process_never_dlopens_a_bundle_when_it_isolates ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f61817cdd90>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_parent_process_never_0')
+
+    def test_the_parent_process_never_dlopens_a_bundle_when_it_isolates(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        """E1a's rule for the bench stack: `--backend all` with two bundles loads both elsewhere."""
+    
+        def refuse(*args: Any, **kwargs: Any) -> Any:
+            raise AssertionError("the command process dlopened a bundle; the child must do that")
+    
+        monkeypatch.setattr(ctypes_binding, "load_libraries", refuse)
+>       monkeypatch.setattr(isolation, "run_backend_child",
+                            lambda config, backend, **kwargs: _run(config, backend, FakeChild(),
+                                                                   tmp_path))
+E       AttributeError: None has no attribute 'run_backend_child'
+
+tests/test_bench_isolation.py:530: AttributeError
+__________ test_a_broken_child_fails_the_report_and_names_the_backend __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6181cda990>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_broken_child_fails_the_0')
+
+    def test_a_broken_child_fails_the_report_and_names_the_backend(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+>       monkeypatch.setattr(isolation, "run_backend_child",
+                            lambda config, backend, **kwargs: _run(
+                                config, backend,
+                                FakeChild(exit_code=-signal.SIGABRT, stderr="double free"),
+                                tmp_path) if backend == "vulkan" else _run(
+                                config, backend, FakeChild(), tmp_path))
+E       AttributeError: None has no attribute 'run_backend_child'
+
+tests/test_bench_isolation.py:539: AttributeError
+____ test_a_mismatch_the_child_itself_reports_still_fails_the_parent_report ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6181975050>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_mismatch_the_child_itse0')
+
+    def test_a_mismatch_the_child_itself_reports_still_fails_the_parent_report(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        """The child's flagged report is *verified* (exit 1 + `ok: false`) and merged as it stands."""
+        second = {"backend": "vulkan", "measured": True, "runtime_dir": VULKAN_DIR,
+                  "warnings": ["W_BACKEND_MISMATCH"], "effective_backend": "cpu",
+                  "devices": ["CPU"], "device_buffers": {"CPU": 3}}
+>       monkeypatch.setattr(isolation, "run_backend_child",
+                            lambda config, backend, **kwargs: _run(
+                                config, backend,
+                                FakeChild(exit_code=1, ok=False, row=second) if backend == "vulkan"
+                                else FakeChild(), tmp_path))
+E       AttributeError: None has no attribute 'run_backend_child'
+
+tests/test_bench_isolation.py:559: AttributeError
+_____________ test_a_single_bundle_host_keeps_measuring_in_process _____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f61817d5690>
+
+    def test_a_single_bundle_host_keeps_measuring_in_process(monkeypatch: pytest.MonkeyPatch) -> None:
+        """Nothing changes for the common host: one bundle, one process, the fake seam as before.
+    
+        The mismatch gate still fires there (both rows load the *same* library set), which is what the
+        neighbour card t_603a35a0 built this path on.
+        """
+        monkeypatch.setattr(harness, "backend_runtimes", one_bundle_runtimes)
+>       monkeypatch.setattr(isolation, "run_backend_child",
+                            lambda *args, **kwargs: pytest.fail("one bundle does not need a child"))
+E       AttributeError: None has no attribute 'run_backend_child'
+
+tests/test_bench_isolation.py:579: AttributeError
+________ test_the_quick_preset_resolves_one_backend_and_never_isolates _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6181806d90>
+
+    def test_the_quick_preset_resolves_one_backend_and_never_isolates(
+            monkeypatch: pytest.MonkeyPatch) -> None:
+        """`--quick` cuts the measured list to one backend before the decision: still one process."""
+        quick = harness.quick_config(throughput_config())
+        assert quick.backend_limit == 1, "the preset's own cut is what keeps the quick path in-process"
+>       monkeypatch.setattr(isolation, "run_backend_child",
+                            lambda *args, **kwargs: pytest.fail("--quick measures one backend"))
+E       AttributeError: None has no attribute 'run_backend_child'
+
+tests/test_bench_isolation.py:593: AttributeError
+_____________ test_the_determinism_suite_isolates_its_backends_too _____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f61817e9710>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_the_determinism_suite_iso0')
+
+    def test_the_determinism_suite_isolates_its_backends_too(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    
+        def child(config: harness.BenchConfig, backend: str, **kwargs: Any):
+            row = {"backend": backend, "runtime_dir": str(CPU_DIR if backend == "cpu" else VULKAN_DIR),
+                   "threads": 1, "digests": ["sha256:aa", "sha256:aa", "sha256:aa"], "identical": True,
+                   "ok": True, "repeats": 3, "devices": ["CPU"], "device_buffers": {"CPU": 1},
+                   "effective_backend": "cpu", "warnings": []}
+            return _run(config, backend, FakeChild(row=row), tmp_path)
+    
+>       monkeypatch.setattr(isolation, "run_backend_child", child)
+E       AttributeError: None has no attribute 'run_backend_child'
+
+tests/test_bench_isolation.py:611: AttributeError
+_______________ test_a_broken_determinism_child_fails_the_report _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6181cad310>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2701/test_a_broken_determinism_chil0')
+
+    def test_a_broken_determinism_child_fails_the_report(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    
+        def child(config: harness.BenchConfig, backend: str, **kwargs: Any):
+            if backend == "vulkan":
+                return _run(config, backend, FakeChild(write_report=False), tmp_path)
+            row = {"backend": "cpu", "runtime_dir": CPU_DIR, "threads": 1, "digests": ["sha256:aa"],
+                   "identical": True, "ok": True, "repeats": 1, "warnings": []}
+            return _run(config, backend, FakeChild(row=row), tmp_path)
+    
+>       monkeypatch.setattr(isolation, "run_backend_child", child)
+E       AttributeError: None has no attribute 'run_backend_child'
+
+tests/test_bench_isolation.py:630: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_bench_isolation.py::test_two_distinct_bundle_directories_cannot_share_a_process
+FAILED tests/test_bench_isolation.py::test_one_bundle_under_two_labels_stays_in_process
+FAILED tests/test_bench_isolation.py::test_a_single_measured_backend_stays_in_process
+FAILED tests/test_bench_isolation.py::test_a_backend_without_a_bundle_is_not_a_reason_to_isolate
+FAILED tests/test_bench_isolation.py::test_the_same_directory_under_a_symlink_is_still_one_bundle
+FAILED tests/test_bench_isolation.py::test_the_child_command_is_this_cli_with_one_backend
+FAILED tests/test_bench_isolation.py::test_the_child_command_omits_what_the_parent_never_set
+FAILED tests/test_bench_isolation.py::test_the_child_command_lists_every_prefill_size
+FAILED tests/test_bench_isolation.py::test_a_run_without_a_model_is_range_checked_before_a_child_starts
+FAILED tests/test_bench_isolation.py::test_the_child_command_keeps_the_quick_preset
+FAILED tests/test_bench_isolation.py::test_the_determinism_child_asks_for_the_suite_it_was_told
+FAILED tests/test_bench_isolation.py::test_a_well_behaved_child_is_usable_and_carries_its_report
+FAILED tests/test_bench_isolation.py::test_a_child_that_reports_a_failure_is_still_a_verified_child
+FAILED tests/test_bench_isolation.py::test_a_child_that_aborts_after_writing_its_report_is_not_usable
+FAILED tests/test_bench_isolation.py::test_a_child_with_no_report_is_a_failure_not_a_silent_zero
+FAILED tests/test_bench_isolation.py::test_a_child_whose_exit_code_contradicts_its_report_is_not_usable
+FAILED tests/test_bench_isolation.py::test_a_child_that_names_another_backend_is_not_usable
+FAILED tests/test_bench_isolation.py::test_a_child_that_measured_another_bundle_is_not_usable
+FAILED tests/test_bench_isolation.py::test_a_child_that_ran_other_scale_flags_is_not_usable[throughput-runs-5-runs]
+FAILED tests/test_bench_isolation.py::test_a_child_that_ran_other_scale_flags_is_not_usable[throughput-prefill_sizes-value1-prefill_sizes]
+FAILED tests/test_bench_isolation.py::test_a_child_that_ran_other_scale_flags_is_not_usable[determinism-determinism_repeats-2-determinism_repeats]
+FAILED tests/test_bench_isolation.py::test_a_child_that_ran_other_scale_flags_is_not_usable[determinism-runs-1-runs]
+FAILED tests/test_bench_isolation.py::test_the_child_report_echoing_the_asked_run_stays_usable
+FAILED tests/test_bench_isolation.py::test_the_child_report_lives_in_a_temp_directory_the_parent_removes
+FAILED tests/test_bench_isolation.py::test_a_broken_child_keeps_its_scratch_directory_and_its_logs
+FAILED tests/test_bench_isolation.py::test_a_child_runs_the_interpreter_the_parent_was_started_with
+FAILED tests/test_bench_isolation.py::test_a_report_that_is_not_an_object_is_not_a_report
+FAILED tests/test_bench_isolation.py::test_a_child_that_never_started_is_a_failure
+FAILED tests/test_bench_isolation.py::test_a_child_report_without_a_config_block_cannot_be_checked
+FAILED tests/test_bench_isolation.py::test_a_long_child_log_is_tailed_into_the_reason
+FAILED tests/test_bench_isolation.py::test_a_child_log_at_the_cap_is_kept_whole
+FAILED tests/test_bench_isolation.py::test_the_note_of_a_child_that_never_started_says_so
+FAILED tests/test_bench_isolation.py::test_the_child_stderr_travels_with_the_verdict
+FAILED tests/test_bench_isolation.py::test_the_row_published_for_an_isolated_child_carries_its_process_block
+FAILED tests/test_bench_isolation.py::test_the_gap_row_withholds_everything_the_child_did_not_prove
+FAILED tests/test_bench_isolation.py::test_a_two_bundle_run_puts_every_measured_row_in_its_own_process
+FAILED tests/test_bench_isolation.py::test_the_parent_process_never_dlopens_a_bundle_when_it_isolates
+FAILED tests/test_bench_isolation.py::test_a_broken_child_fails_the_report_and_names_the_backend
+FAILED tests/test_bench_isolation.py::test_a_mismatch_the_child_itself_reports_still_fails_the_parent_report
+FAILED tests/test_bench_isolation.py::test_a_single_bundle_host_keeps_measuring_in_process
+FAILED tests/test_bench_isolation.py::test_the_quick_preset_resolves_one_backend_and_never_isolates
+FAILED tests/test_bench_isolation.py::test_the_determinism_suite_isolates_its_backends_too
+FAILED tests/test_bench_isolation.py::test_a_broken_determinism_child_fails_the_report
+43 failed, 2 passed in 2.83s
