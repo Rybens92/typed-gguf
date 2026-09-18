@@ -1,0 +1,78 @@
+ggufone E1c fit host gate
+  repo    : /workspace/ggufone
+  logs    : /work/e1cfit/logs/round2
+  model   : /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf
+  started : 2026-09-18T04:27:08Z
+
+# host facts
+date_utc: 2026-09-18T04:27:08Z
+uname: Linux 81d0085e1344 7.2.4-ogc3.1.fc44.x86_64 #1 SMP PREEMPT_DYNAMIC Sun Sep 13 01:41:06 UTC 2026 x86_64 GNU/Linux
+git_head: c095c518935bf99d2f87f71e86c71de47266915c  M src/ggufone/bench/harness.py
+ M src/ggufone/bench/suites.py
+ M src/ggufone/cli.py
+python: Python 3.11.15  uv: uv 0.12.0 (x86_64-unknown-linux-gnu)
+nvidia_smi_which: /work/e1cfit/fakebin/nvidia-smi
+fake_driver: /work/e1cfit/fakebin
+free_vram_before: 8192, 1112 nvidia-smi
+nvidia_smi_L:
+  GPU 0: NVIDIA GeForce RTX 3060 Ti (UUID: GPU-fake)
+nvidia_smi_query_raw:
+  8192 MiB, 7080 MiB, 1112 MiB
+dri_nodes:
+  ls: cannot access '/dev/dri': No such file or directory
+ggufone_home: /work/e1cfit/home
+model: /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf (4375021152 bytes)
+runtime_dir: /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu
+
+== [pytest_before] uv run pytest -q (budget 900s)
+   -> exit=1 elapsed=87s  (/work/e1cfit/logs/round2/pytest_before.out)
+
+== [fit_plan] uv run ggufone fit /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --no-cache --json (budget 300s)
+   -> exit=0 elapsed=16s  (/work/e1cfit/logs/round2/fit_plan.out)
+
+== [fit_target_bounded] uv run ggufone fit /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --no-cache --json --fit-target 5200 (budget 300s)
+   -> exit=0 elapsed=18s  (/work/e1cfit/logs/round2/fit_target_bounded.out)
+
+== [run_busy_desktop] uv run ggufone ask --state @/work/e1cfit/logs/round2/state.txt --choice area=Which team owns this incident?:billing|technical --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --no-fit-cache --out /work/e1cfit/logs/round2/run_busy_desktop.json (budget 900s)
+   -> exit=0 elapsed=255s  (/work/e1cfit/logs/round2/run_busy_desktop.out)
+
+== [run_no_fit] uv run ggufone ask --state @/work/e1cfit/logs/round2/state.txt --choice area=Which team owns this incident?:billing|technical --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --no-fit --format native --out /work/e1cfit/logs/round2/run_no_fit.json (budget 900s)
+   -> exit=0 elapsed=211s  (/work/e1cfit/logs/round2/run_no_fit.out)
+
+== [fake_oom_degrade] the loader against a bundle that cannot allocate
+   -> exit=0
+
+== [fake_oom_all_rungs] nothing fits -> E_BACKEND_OOM
+   -> exit=0
+
+free_vram_after: 8192, 1112 nvidia-smi
+# the plan files the run produced
+== /work/e1cfit/logs/round2/run_busy_desktop.json
+  n_gpu_layers: 0
+  placement   : {"attempts": [], "degraded": false, "kv_type": "q4_0", "n_gpu_layers": 0, "note": "CPU only: the fit plan offloads nothing (kv_type=q4_0)", "warnings": []}
+  kv_type     : q4_0
+  warnings    : ["W_LOW_MASS"]
+  fit.budget  : 92274688
+== /work/e1cfit/logs/round2/run_no_fit.json
+  n_gpu_layers: 0
+  placement   : {"attempts": [], "degraded": false, "kv_type": "f16", "n_gpu_layers": 0, "note": "fit disabled: CPU only (--no-fit sets n_gpu_layers=0)", "warnings": []}
+  kv_type     : auto
+  warnings    : ["W_LOW_MASS"]
+  fit.budget  : None
+wrote /work/e1cfit/logs/round2/host_gate_e1c_fit.json
+{
+ "fit_plan_reports_free_vram": true,
+ "fit_plan_budget_leq_free_minus_target": true,
+ "fit_target_bound_the_plan": false,
+ "busy_desktop_run_succeeded": true,
+ "busy_desktop_placement_named": true,
+ "no_fit_says_cpu_only": true,
+ "fake_oom_degraded_to_cpu": true,
+ "fake_oom_reported_W_BACKEND_OOM": true,
+ "all_rungs_error_is_backend_oom": true,
+ "all_rungs_error_has_hints": true
+}
+
+host gate finished: 2026-09-18T04:37:05Z
+raw logs + host_gate_e1c_fit.json: /work/e1cfit/logs/round2
+GATE_EXIT=0

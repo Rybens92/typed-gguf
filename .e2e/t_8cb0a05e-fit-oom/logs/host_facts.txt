@@ -1,0 +1,19 @@
+# host facts
+date_utc: 2026-09-18T04:27:08Z
+uname: Linux 81d0085e1344 7.2.4-ogc3.1.fc44.x86_64 #1 SMP PREEMPT_DYNAMIC Sun Sep 13 01:41:06 UTC 2026 x86_64 GNU/Linux
+git_head: c095c518935bf99d2f87f71e86c71de47266915c  M src/ggufone/bench/harness.py
+ M src/ggufone/bench/suites.py
+ M src/ggufone/cli.py
+python: Python 3.11.15  uv: uv 0.12.0 (x86_64-unknown-linux-gnu)
+nvidia_smi_which: /work/e1cfit/fakebin/nvidia-smi
+fake_driver: /work/e1cfit/fakebin
+free_vram_before: 8192, 1112 nvidia-smi
+nvidia_smi_L:
+  GPU 0: NVIDIA GeForce RTX 3060 Ti (UUID: GPU-fake)
+nvidia_smi_query_raw:
+  8192 MiB, 7080 MiB, 1112 MiB
+dri_nodes:
+  ls: cannot access '/dev/dri': No such file or directory
+ggufone_home: /work/e1cfit/home
+model: /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf (4375021152 bytes)
+runtime_dir: /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu

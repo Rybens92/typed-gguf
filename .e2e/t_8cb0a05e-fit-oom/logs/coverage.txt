@@ -1,0 +1,22 @@
+   Building ggufone @ file:///workspace/ggufone
+      Built ggufone @ file:///workspace/ggufone
+Uninstalled 1 package in 2ms
+Installed 1 package in 3ms
+........................................................................ [ 32%]
+........................................................................ [ 64%]
+....................s..................................................s [ 97%]
+ssssss                                                                   [100%]
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.11.15-final-0 _______________
+
+Name                                    Stmts   Miss  Cover
+-----------------------------------------------------------
+src/ggufone/engine/decide.py              287     15    95%
+src/ggufone/engine/session.py             359    110    69%
+src/ggufone/errors.py                      52      0   100%
+src/ggufone/registry/recommend.py         200     96    52%
+src/ggufone/runtime/ctypes_binding.py     118     75    36%
+src/ggufone/runtime/fit.py                444     16    96%
+-----------------------------------------------------------
+TOTAL                                    1460    312    79%
+214 passed, 8 skipped in 1.50s

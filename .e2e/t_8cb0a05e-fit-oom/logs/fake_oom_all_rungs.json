@@ -1,0 +1,38 @@
+{
+ "schema": "ggufone.evidence.fit-oom/v1",
+ "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+ "runtime": "/work/e1cfit/logs/round2/fake-bundle",
+ "free_mib": 1112,
+ "total_mib": 8192,
+ "world": "oom-all",
+ "plan": {
+  "n_gpu_layers": 36,
+  "n_ctx": 4096,
+  "kv_type": "f16",
+  "n_seq_max": 8,
+  "est_weights_bytes": 4369633280,
+  "est_kv_bytes": 603979776,
+  "est_total_bytes": 5510483968,
+  "backend": "vulkan",
+  "source": "estimate",
+  "warnings": [
+   "W_FIT_ESTIMATED"
+  ],
+  "notes": [],
+  "arch": "spark2_5",
+  "model_sha256": "",
+  "host_fingerprint": "probe:roomy",
+  "budget_bytes": 8589934592,
+  "created_at": "2026-09-18T04:38:32Z",
+  "schema": "ggufone.fit/v1"
+ },
+ "library": "/workspace/ggufone/src/ggufone/runtime/ctypes_binding.py",
+ "result": {
+  "ok": false
+ },
+ "error": {
+  "code": "E_BACKEND_OOM",
+  "exit_code": 3,
+  "message": "E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=0, kv_type=f16, needed ~1010 MiB); the driver reports 1112 MiB free; tried 3 placement(s) down to CPU-only, none fit: n_gpu_layers=36 -> oom; n_gpu_layers=18 -> oom; n_gpu_layers=0 -> oom; the backend asked for a 1010 MiB allocation; backend log: 'ggml_vulkan: Device memory allocation of size 1058982400 failed.'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant"
+ }
+}

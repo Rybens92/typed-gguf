@@ -1,0 +1,36 @@
+{
+  "model": "Spark-X2.5-4B-Q8_0",
+  "path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "n_gpu_layers": 0,
+  "n_ctx": 4096,
+  "kv_type": "q4_0",
+  "n_seq_max": 8,
+  "est_weights_bytes": 4369416192,
+  "est_kv_bytes": 169869312,
+  "est_total_bytes": 4818206720,
+  "backend": "cpu",
+  "source": "llama-fit-params",
+  "warnings": [
+    "W_KV_TYPE_DOWNGRADE",
+    "W_FIT_DOWNGRADE"
+  ],
+  "notes": [
+    "memory table from b11026-linux-x64-cpu/llama-fit-params (model 4167 MiB, context 252 MiB, compute 266 MiB)",
+    "device memory bound: offloading 0/36 layers within 0 MiB (--fit-target 5200 MiB, 1112 MiB free of 8192 MiB)"
+  ],
+  "arch": "spark2_5",
+  "model_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+  "host_fingerprint": "e2f65aaa0226c162",
+  "budget_bytes": 0,
+  "created_at": "2026-09-18T04:29:09Z",
+  "schema": "ggufone.fit/v1",
+  "host": {
+    "backend": "cpu",
+    "ram_bytes": 33548615680,
+    "vram_bytes": 8589934592,
+    "vram_free_bytes": 1166016512,
+    "n_cpu": 24,
+    "fingerprint": "e2f65aaa0226c162"
+  },
+  "cache": null
+}

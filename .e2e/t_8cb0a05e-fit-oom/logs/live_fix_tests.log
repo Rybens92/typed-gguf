@@ -1,0 +1,9 @@
+load_backend: loaded RPC backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+
+captured 0 backend line(s) around a header read
+.
+busy desktop: plan 0 layers, budget 88 MiB, load_ms 1461
+.
+2 passed, 8 deselected in 18.53s
+LIVE_EXIT=0 elapsed=21s

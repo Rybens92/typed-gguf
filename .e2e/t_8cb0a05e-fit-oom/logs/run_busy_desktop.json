@@ -1,0 +1,91 @@
+{
+  "model": "Spark-X2.5-4B-Q8_0",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "readout": "sequence",
+    "kv_unified": true,
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 129,
+    "state_id": "sha256:762636466e9e69b4f1015185280be50fca3079720661afc4123a4ff0d5aee67f",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "spark2_5",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "q4_0",
+    "n_gpu_layers": 0,
+    "placement": {
+      "note": "CPU only: the fit plan offloads nothing (kv_type=q4_0)",
+      "n_gpu_layers": 0,
+      "kv_type": "q4_0",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    },
+    "fit": {
+      "n_gpu_layers": 0,
+      "n_ctx": 4096,
+      "kv_type": "q4_0",
+      "n_seq_max": 8,
+      "est_weights_bytes": 4369416192,
+      "est_kv_bytes": 169869312,
+      "est_total_bytes": 4818206720,
+      "backend": "cpu",
+      "source": "llama-fit-params",
+      "warnings": [
+        "W_KV_TYPE_DOWNGRADE",
+        "W_FIT_DOWNGRADE"
+      ],
+      "notes": [
+        "memory table from b11026-linux-x64-cpu/llama-fit-params (model 4167 MiB, context 252 MiB, compute 266 MiB)",
+        "device memory bound: offloading 0/36 layers within 88 MiB (--fit-target 1024 MiB, 1112 MiB free of 8192 MiB)"
+      ],
+      "arch": "spark2_5",
+      "model_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+      "host_fingerprint": "e2f65aaa0226c162",
+      "budget_bytes": 92274688,
+      "created_at": "2026-09-18T04:29:24Z",
+      "schema": "ggufone.fit/v1"
+    }
+  },
+  "answers": {
+    "area": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": {
+        "billing": 0.709157,
+        "technical": 0.290843
+      },
+      "confidence": 0.418313,
+      "coverage": 0.000192818,
+      "reliability": "low_mass",
+      "decode_steps": 4
+    }
+  },
+  "usage": {
+    "input_tokens": 158,
+    "output_tokens": 4,
+    "questions": 1,
+    "forks": 2,
+    "prefill_tokens": 129,
+    "decode_steps": 4,
+    "waves": 2
+  },
+  "timings": {
+    "model_load_ms": 1040.35,
+    "prefill_ms": 99498.6,
+    "questions_ms": 137308.0,
+    "total_ms": 236808.0
+  },
+  "warnings": [
+    "W_LOW_MASS"
+  ]
+}

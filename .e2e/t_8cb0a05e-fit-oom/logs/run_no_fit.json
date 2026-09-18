@@ -1,0 +1,66 @@
+{
+  "model": "Spark-X2.5-4B-Q8_0",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "readout": "sequence",
+    "kv_unified": true,
+    "n_ctx": 256,
+    "n_seq_max": 3,
+    "prefix_tokens": 129,
+    "state_id": "sha256:762636466e9e69b4f1015185280be50fca3079720661afc4123a4ff0d5aee67f",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "spark2_5",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "auto",
+    "n_gpu_layers": 0,
+    "placement": {
+      "note": "fit disabled: CPU only (--no-fit sets n_gpu_layers=0)",
+      "n_gpu_layers": 0,
+      "kv_type": "f16",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    }
+  },
+  "answers": {
+    "area": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": {
+        "billing": 0.583519,
+        "technical": 0.416481
+      },
+      "confidence": 0.167039,
+      "coverage": 4.0666e-05,
+      "reliability": "low_mass",
+      "decode_steps": 4
+    }
+  },
+  "usage": {
+    "input_tokens": 158,
+    "output_tokens": 4,
+    "questions": 1,
+    "forks": 2,
+    "prefill_tokens": 129,
+    "decode_steps": 4,
+    "waves": 2
+  },
+  "timings": {
+    "model_load_ms": 900.685,
+    "prefill_ms": 69215.8,
+    "questions_ms": 83254.8,
+    "total_ms": 152472.0
+  },
+  "warnings": [
+    "W_LOW_MASS"
+  ]
+}

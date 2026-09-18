@@ -1,0 +1,81 @@
+{
+ "schema": "ggufone.evidence.fit-oom-red/v1",
+ "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+ "device_memory": {
+  "vram_total_bytes": 8589934592,
+  "vram_free_bytes": 1166016512,
+  "vram_source": "nvidia-smi"
+ },
+ "busy_plan": {
+  "host_budget_bytes": 1166016512,
+  "host_vram_bytes": 8589934592,
+  "host_vram_free_bytes": 1166016512,
+  "free_probe_mib": 1112,
+  "host_plan": {
+   "n_gpu_layers": 0,
+   "n_ctx": 4096,
+   "kv_type": "q4_0",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 169869312,
+   "est_total_bytes": 5076373504,
+   "backend": "cpu",
+   "source": "estimate"
+  },
+  "host_plan_budget_bytes": 92274688,
+  "host_plan_warnings": [
+   "W_KV_TYPE_DOWNGRADE",
+   "W_FIT_DOWNGRADE",
+   "W_FIT_ESTIMATED"
+  ],
+  "host_plan_notes": [
+   "insufficient device memory: weights 4167 MiB + overhead 512 MiB exceed the budget 88 MiB; loading will spill or fail",
+   "planned against free device memory: 1112 MiB free of 8192 MiB, so 0 instead of 36 layer(s) are offloaded"
+  ],
+  "nominal_plan": {
+   "n_gpu_layers": 36,
+   "n_ctx": 4096,
+   "kv_type": "f16",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 603979776,
+   "est_total_bytes": 5510483968,
+   "backend": "cpu",
+   "source": "estimate"
+  },
+  "fit_target_5200": {
+   "n_gpu_layers": 20,
+   "n_ctx": 4096,
+   "kv_type": "q4_0",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 169869312,
+   "est_total_bytes": 5076373504,
+   "backend": "cpu",
+   "source": "estimate"
+  },
+  "fit_target_narrowed_the_plan": true
+ },
+ "oom_world": {
+  "plan": {
+   "n_gpu_layers": 36,
+   "n_ctx": 4096,
+   "kv_type": "f16",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 603979776,
+   "est_total_bytes": 5510483968,
+   "backend": "vulkan",
+   "source": "estimate"
+  },
+  "loaded": {
+   "n_gpu_layers": 0,
+   "placement": "degraded after a backend allocation failure: 0 layer(s) offloaded, kv_type=f16"
+  }
+ },
+ "verdict": {
+  "busy_desktop_plan_is_bounded": true,
+  "oom_is_classified_as_backend_oom": true,
+  "fixed": true
+ }
+}

@@ -1,0 +1,288 @@
+{
+ "schema": "ggufone.evidence.e1c.fit.host_gate/v1",
+ "is_host_run": false,
+ "vehicle": "SANDBOX REHEARSAL: the GPU world is simulated by the fake driver at /work/e1cfit/fakebin; the compilation of the fake-OOM bundle and the GGUF reads are real. The host run of tools/host_gate_e1c_fit.sh produces this same file with is_host_run true.",
+ "log_dir": "/work/e1cfit/logs/round2",
+ "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+ "fake_driver": "/work/e1cfit/fakebin",
+ "free_vram_before": [
+  "8192, 1112 nvidia-smi"
+ ],
+ "free_vram_after": [
+  "8192, 1112 nvidia-smi"
+ ],
+ "host_facts": "# host facts\ndate_utc: 2026-09-18T04:27:08Z\nuname: Linux 81d0085e1344 7.2.4-ogc3.1.fc44.x86_64 #1 SMP PREEMPT_DYNAMIC Sun Sep 13 01:41:06 UTC 2026 x86_64 GNU/Linux\ngit_head: c095c518935bf99d2f87f71e86c71de47266915c  M src/ggufone/bench/harness.py\n M src/ggufone/bench/suites.py\n M src/ggufone/cli.py\npython: Python 3.11.15  uv: uv 0.12.0 (x86_64-unknown-linux-gnu)\nnvidia_smi_which: /work/e1cfit/fakebin/nvidia-smi\nfake_driver: /work/e1cfit/fakebin\nfree_vram_before: 8192, 1112 nvidia-smi\nnvidia_smi_L:\n  GPU 0: NVIDIA GeForce RTX 3060 Ti (UUID: GPU-fake)\nnvidia_smi_query_raw:\n  8192 MiB, 7080 MiB, 1112 MiB\ndri_nodes:\n  ls: cannot access '/dev/dri': No such file or directory\nggufone_home: /work/e1cfit/home\nmodel: /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf (4375021152 bytes)\nruntime_dir: /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu\n",
+ "steps": {
+  "pytest_before": {
+   "cmd": "uv run pytest -q",
+   "exit": 1,
+   "elapsed_s": 87,
+   "meaning": "0 = offline suite green on this host",
+   "stdout_tail": "e_dev_set_with_items_for_smoke_runs\nFAILED tests/test_bench.py::test_calibration_reports_bins_ece_coverage_correlation_and_all_three_modes\nFAILED tests/test_bench.py::test_determinism_runs_three_repeats_per_backend_and_compares_timings_stripped_bytes\nFAILED tests/test_bench.py::test_determinism_flags_a_nondeterministic_model\nFAILED tests/test_bench.py::test_the_wave_count_is_a_decode_batch_count_not_a_fork_bucket\nFAILED tests/test_bench.py::test_the_latency_report_carries_the_wave_accounting_headline\nFAILED tests/test_bench.py::test_wave_scaling_uses_the_sequence_cap_it_reports\nFAILED tests/test_bench.py::test_cli_bench_json_and_out_file - AssertionError...\nFAILED tests/test_bench.py::test_cli_bench_renders_a_human_table_without_json\nFAILED tests/test_bench.py::test_cli_bench_exits_one_when_a_gate_fails - asse...\nFAILED tests/test_bench.py::test_render_report_produces_a_markdown_table_per_section\nFAILED tests/test_bench.py::test_render_report_covers_the_other_four_suites\nFAILED tests/test_cli_e1a.py::test_frozen_commands_still_exit_3[bench] - Asse...\nFAILED tests/test_fit.py::test_the_cli_fit_command_returns_the_documented_json\n21 failed, 722 passed, 34 skipped in 84.57s (0:01:24)\n"
+  },
+  "fit_plan": {
+   "cmd": "uv run ggufone fit <model> --no-cache --json",
+   "exit": 0,
+   "elapsed_s": 16,
+   "meaning": "0 = the plan + the free-VRAM reading it was bounded by",
+   "stdout_tail": "{\n  \"model\": \"Spark-X2.5-4B-Q8_0\",\n  \"path\": \"/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf\",\n  \"n_gpu_layers\": 0,\n  \"n_ctx\": 4096,\n  \"kv_type\": \"q4_0\",\n  \"n_seq_max\": 8,\n  \"est_weights_bytes\": 4369416192,\n  \"est_kv_bytes\": 169869312,\n  \"est_total_bytes\": 4818206720,\n  \"backend\": \"cpu\",\n  \"source\": \"llama-fit-params\",\n  \"warnings\": [\n    \"W_KV_TYPE_DOWNGRADE\",\n    \"W_FIT_DOWNGRADE\"\n  ],\n  \"notes\": [\n    \"memory table from b11026-linux-x64-cpu/llama-fit-params (model 4167 MiB, context 252 MiB, compute 266 MiB)\",\n    \"device memory bound: offloading 0/36 layers within 88 MiB (--fit-target 1024 MiB, 1112 MiB free of 8192 MiB)\"\n  ],\n  \"arch\": \"spark2_5\",\n  \"model_sha256\": \"5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2\",\n  \"host_fingerprint\": \"e2f65aaa0226c162\",\n  \"budget_bytes\": 92274688,\n  \"created_at\": \"2026-09-18T04:28:52Z\",\n  \"schema\": \"ggufone.fit/v1\",\n  \"host\": {\n    \"backend\": \"cpu\",\n    \"ram_bytes\": 33548615680,\n    \"vram_bytes\": 8589934592,\n    \"vram_free_bytes\": 1166016512,\n    \"n_cpu\": 24,\n    \"fingerprint\": \"e2f65aaa0226c162\"\n  },\n  \"cache\": null\n}\n"
+  },
+  "fit_target_bounded": {
+   "cmd": "uv run ggufone fit <model> --no-cache --json --fit-target 5200",
+   "exit": 0,
+   "elapsed_s": 18,
+   "meaning": "0 = --fit-target narrowed the plan (see plan_delta)",
+   "stdout_tail": "{\n  \"model\": \"Spark-X2.5-4B-Q8_0\",\n  \"path\": \"/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf\",\n  \"n_gpu_layers\": 0,\n  \"n_ctx\": 4096,\n  \"kv_type\": \"q4_0\",\n  \"n_seq_max\": 8,\n  \"est_weights_bytes\": 4369416192,\n  \"est_kv_bytes\": 169869312,\n  \"est_total_bytes\": 4818206720,\n  \"backend\": \"cpu\",\n  \"source\": \"llama-fit-params\",\n  \"warnings\": [\n    \"W_KV_TYPE_DOWNGRADE\",\n    \"W_FIT_DOWNGRADE\"\n  ],\n  \"notes\": [\n    \"memory table from b11026-linux-x64-cpu/llama-fit-params (model 4167 MiB, context 252 MiB, compute 266 MiB)\",\n    \"device memory bound: offloading 0/36 layers within 0 MiB (--fit-target 5200 MiB, 1112 MiB free of 8192 MiB)\"\n  ],\n  \"arch\": \"spark2_5\",\n  \"model_sha256\": \"5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2\",\n  \"host_fingerprint\": \"e2f65aaa0226c162\",\n  \"budget_bytes\": 0,\n  \"created_at\": \"2026-09-18T04:29:09Z\",\n  \"schema\": \"ggufone.fit/v1\",\n  \"host\": {\n    \"backend\": \"cpu\",\n    \"ram_bytes\": 33548615680,\n    \"vram_bytes\": 8589934592,\n    \"vram_free_bytes\": 1166016512,\n    \"n_cpu\": 24,\n    \"fingerprint\": \"e2f65aaa0226c162\"\n  },\n  \"cache\": null\n}\n"
+  },
+  "run_busy_desktop": {
+   "cmd": "uv run ggufone ask ... <model> --no-fit-cache",
+   "exit": 0,
+   "elapsed_s": 255,
+   "meaning": "0 = the decision ran; see placement/warnings (degraded is OK)",
+   "stdout_tail": "",
+   "stderr_tail": "load_backend: loaded RPC backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-rpc.so\nload_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so\n~llama_context:        CPU compute buffer size is  99.7507 MiB, matches expectation of  99.7507 MiB\n"
+  },
+  "run_no_fit": {
+   "cmd": "uv run ggufone ask ... <model> --no-fit",
+   "exit": 0,
+   "elapsed_s": 156,
+   "meaning": "0 = CPU-only run; engine.placement must say so",
+   "stdout_tail": "",
+   "stderr_tail": "load_backend: loaded RPC backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-rpc.so\nload_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so\n~llama_context:        CPU compute buffer size is  99.7507 MiB, matches expectation of  99.7507 MiB\n"
+  },
+  "fake_oom_degrade": {
+   "cmd": "python3 tools/fit_oom_probe.py --runtime <fake bundle>",
+   "exit": 0,
+   "elapsed_s": 4,
+   "meaning": "0 = an allocation failure was survived by degrading to CPU",
+   "stdout_tail": "e:roomy\",\n  \"budget_bytes\": 8589934592,\n  \"created_at\": \"2026-09-18T04:38:28Z\",\n  \"schema\": \"ggufone.fit/v1\"\n },\n \"library\": \"/workspace/ggufone/src/ggufone/runtime/ctypes_binding.py\",\n \"result\": {\n  \"ok\": true,\n  \"n_gpu_layers\": 0,\n  \"placement\": {\n   \"note\": \"degraded after a backend allocation failure: 0 layer(s) offloaded, kv_type=f16\",\n   \"n_gpu_layers\": 0,\n   \"kv_type\": \"f16\",\n   \"degraded\": true,\n   \"attempts\": [\n    \"n_gpu_layers=36 -> oom\",\n    \"n_gpu_layers=18 -> oom\"\n   ],\n   \"warnings\": [\n    \"W_BACKEND_OOM\",\n    \"W_FIT_DOWNGRADE\"\n   ]\n  },\n  \"warnings\": [\n   \"W_BACKEND_OOM\",\n   \"W_FIT_DOWNGRADE\"\n  ],\n  \"plan\": {\n   \"n_gpu_layers\": 0,\n   \"n_ctx\": 4096,\n   \"kv_type\": \"f16\",\n   \"n_seq_max\": 8,\n   \"est_weights_bytes\": 4369633280,\n   \"est_kv_bytes\": 603979776,\n   \"est_total_bytes\": 5510483968,\n   \"backend\": \"vulkan\",\n   \"source\": \"estimate\",\n   \"warnings\": [\n    \"W_FIT_ESTIMATED\",\n    \"W_FIT_DOWNGRADE\"\n   ],\n   \"notes\": [\n    \"CPU only: no weights are offloaded to the device\"\n   ],\n   \"arch\": \"spark2_5\",\n   \"model_sha256\": \"\",\n   \"host_fingerprint\": \"probe:roomy\",\n   \"budget_bytes\": 8589934592,\n   \"created_at\": \"2026-09-18T04:38:28Z\",\n   \"schema\": \"ggufone.fit/v1\"\n  }\n }\n}\n",
+   "stderr_tail": "ggml_vulkan: Device memory allocation of size 1058982400 failed.\nggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory\nalloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400\nllama_model_load: error loading model: unable to allocate Vulkan0 buffer\nggml_vulkan: Device memory allocation of size 1058982400 failed.\nggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory\nalloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400\nllama_model_load: error loading model: unable to allocate Vulkan0 buffer\n"
+  },
+  "fake_oom_all_rungs": {
+   "cmd": "GGUFONE_FAKE_OOM_ALL=1 python3 tools/fit_oom_probe.py",
+   "exit": 0,
+   "elapsed_s": 4,
+   "meaning": "0 = nothing fits and the answer was E_BACKEND_OOM",
+   "stdout_tail": "\n \"plan\": {\n  \"n_gpu_layers\": 36,\n  \"n_ctx\": 4096,\n  \"kv_type\": \"f16\",\n  \"n_seq_max\": 8,\n  \"est_weights_bytes\": 4369633280,\n  \"est_kv_bytes\": 603979776,\n  \"est_total_bytes\": 5510483968,\n  \"backend\": \"vulkan\",\n  \"source\": \"estimate\",\n  \"warnings\": [\n   \"W_FIT_ESTIMATED\"\n  ],\n  \"notes\": [],\n  \"arch\": \"spark2_5\",\n  \"model_sha256\": \"\",\n  \"host_fingerprint\": \"probe:roomy\",\n  \"budget_bytes\": 8589934592,\n  \"created_at\": \"2026-09-18T04:38:32Z\",\n  \"schema\": \"ggufone.fit/v1\"\n },\n \"library\": \"/workspace/ggufone/src/ggufone/runtime/ctypes_binding.py\",\n \"result\": {\n  \"ok\": false\n },\n \"error\": {\n  \"code\": \"E_BACKEND_OOM\",\n  \"exit_code\": 3,\n  \"message\": \"E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=0, kv_type=f16, needed ~1010 MiB); the driver reports 1112 MiB free; tried 3 placement(s) down to CPU-only, none fit: n_gpu_layers=36 -> oom; n_gpu_layers=18 -> oom; n_gpu_layers=0 -> oom; the backend asked for a 1010 MiB allocation; backend log: 'ggml_vulkan: Device memory allocation of size 1058982400 failed.'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant\"\n }\n}\n",
+   "stderr_tail": "ggml_vulkan: Device memory allocation of size 1058982400 failed.\nggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory\nalloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400\nllama_model_load: error loading model: unable to allocate Vulkan0 buffer\nggml_vulkan: Device memory allocation of size 1058982400 failed.\nggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory\nalloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400\nllama_model_load: error loading model: unable to allocate Vulkan0 buffer\nggml_vulkan: Device memory allocation of size 1058982400 failed.\nggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory\nalloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400\nllama_model_load: error loading model: unable to allocate Vulkan0 buffer\n"
+  }
+ },
+ "fit_plan": {
+  "budget_bytes": 92274688,
+  "n_gpu_layers": 0,
+  "kv_type": "q4_0",
+  "est_total_bytes": 4818206720,
+  "source": "llama-fit-params",
+  "vram_total_bytes": 8589934592,
+  "vram_free_bytes": 1166016512,
+  "vram_source": null,
+  "warnings": [
+   "W_KV_TYPE_DOWNGRADE",
+   "W_FIT_DOWNGRADE"
+  ],
+  "placement": null,
+  "notes": [
+   "memory table from b11026-linux-x64-cpu/llama-fit-params (model 4167 MiB, context 252 MiB, compute 266 MiB)",
+   "device memory bound: offloading 0/36 layers within 88 MiB (--fit-target 1024 MiB, 1112 MiB free of 8192 MiB)"
+  ]
+ },
+ "fit_target_bounded": {
+  "budget_bytes": 0,
+  "n_gpu_layers": 0,
+  "kv_type": "q4_0",
+  "est_total_bytes": 4818206720,
+  "source": "llama-fit-params",
+  "vram_total_bytes": 8589934592,
+  "vram_free_bytes": 1166016512,
+  "vram_source": null,
+  "warnings": [
+   "W_KV_TYPE_DOWNGRADE",
+   "W_FIT_DOWNGRADE"
+  ],
+  "placement": null,
+  "notes": [
+   "memory table from b11026-linux-x64-cpu/llama-fit-params (model 4167 MiB, context 252 MiB, compute 266 MiB)",
+   "device memory bound: offloading 0/36 layers within 0 MiB (--fit-target 5200 MiB, 1112 MiB free of 8192 MiB)"
+  ]
+ },
+ "fit_target_delta": {
+  "budget_before": 92274688,
+  "budget_after": 0,
+  "layers_before": 0,
+  "layers_after": 0,
+  "changed": true
+ },
+ "run_busy_desktop": {
+  "budget_bytes": 92274688,
+  "n_gpu_layers": 0,
+  "kv_type": "q4_0",
+  "est_total_bytes": 4818206720,
+  "source": "llama-fit-params",
+  "vram_total_bytes": null,
+  "vram_free_bytes": null,
+  "vram_source": null,
+  "warnings": [
+   "W_LOW_MASS"
+  ],
+  "placement": {
+   "note": "CPU only: the fit plan offloads nothing (kv_type=q4_0)",
+   "n_gpu_layers": 0,
+   "kv_type": "q4_0",
+   "degraded": false,
+   "attempts": [],
+   "warnings": []
+  },
+  "notes": [
+   "memory table from b11026-linux-x64-cpu/llama-fit-params (model 4167 MiB, context 252 MiB, compute 266 MiB)",
+   "device memory bound: offloading 0/36 layers within 88 MiB (--fit-target 1024 MiB, 1112 MiB free of 8192 MiB)"
+  ]
+ },
+ "run_no_fit": {
+  "budget_bytes": null,
+  "n_gpu_layers": 0,
+  "kv_type": "auto",
+  "est_total_bytes": null,
+  "source": null,
+  "vram_total_bytes": null,
+  "vram_free_bytes": null,
+  "vram_source": null,
+  "warnings": [
+   "W_LOW_MASS"
+  ],
+  "placement": {
+   "note": "fit disabled: CPU only (--no-fit sets n_gpu_layers=0)",
+   "n_gpu_layers": 0,
+   "kv_type": "f16",
+   "degraded": false,
+   "attempts": [],
+   "warnings": []
+  },
+  "notes": null
+ },
+ "fake_oom_degrade": {
+  "schema": "ggufone.evidence.fit-oom/v1",
+  "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "runtime": "/work/e1cfit/logs/round2/fake-bundle",
+  "free_mib": 1112,
+  "total_mib": 8192,
+  "world": "degrade-to-cpu",
+  "plan": {
+   "n_gpu_layers": 36,
+   "n_ctx": 4096,
+   "kv_type": "f16",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 603979776,
+   "est_total_bytes": 5510483968,
+   "backend": "vulkan",
+   "source": "estimate",
+   "warnings": [
+    "W_FIT_ESTIMATED"
+   ],
+   "notes": [],
+   "arch": "spark2_5",
+   "model_sha256": "",
+   "host_fingerprint": "probe:roomy",
+   "budget_bytes": 8589934592,
+   "created_at": "2026-09-18T04:38:28Z",
+   "schema": "ggufone.fit/v1"
+  },
+  "library": "/workspace/ggufone/src/ggufone/runtime/ctypes_binding.py",
+  "result": {
+   "ok": true,
+   "n_gpu_layers": 0,
+   "placement": {
+    "note": "degraded after a backend allocation failure: 0 layer(s) offloaded, kv_type=f16",
+    "n_gpu_layers": 0,
+    "kv_type": "f16",
+    "degraded": true,
+    "attempts": [
+     "n_gpu_layers=36 -> oom",
+     "n_gpu_layers=18 -> oom"
+    ],
+    "warnings": [
+     "W_BACKEND_OOM",
+     "W_FIT_DOWNGRADE"
+    ]
+   },
+   "warnings": [
+    "W_BACKEND_OOM",
+    "W_FIT_DOWNGRADE"
+   ],
+   "plan": {
+    "n_gpu_layers": 0,
+    "n_ctx": 4096,
+    "kv_type": "f16",
+    "n_seq_max": 8,
+    "est_weights_bytes": 4369633280,
+    "est_kv_bytes": 603979776,
+    "est_total_bytes": 5510483968,
+    "backend": "vulkan",
+    "source": "estimate",
+    "warnings": [
+     "W_FIT_ESTIMATED",
+     "W_FIT_DOWNGRADE"
+    ],
+    "notes": [
+     "CPU only: no weights are offloaded to the device"
+    ],
+    "arch": "spark2_5",
+    "model_sha256": "",
+    "host_fingerprint": "probe:roomy",
+    "budget_bytes": 8589934592,
+    "created_at": "2026-09-18T04:38:28Z",
+    "schema": "ggufone.fit/v1"
+   }
+  }
+ },
+ "fake_oom_all_rungs": {
+  "schema": "ggufone.evidence.fit-oom/v1",
+  "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "runtime": "/work/e1cfit/logs/round2/fake-bundle",
+  "free_mib": 1112,
+  "total_mib": 8192,
+  "world": "oom-all",
+  "plan": {
+   "n_gpu_layers": 36,
+   "n_ctx": 4096,
+   "kv_type": "f16",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 603979776,
+   "est_total_bytes": 5510483968,
+   "backend": "vulkan",
+   "source": "estimate",
+   "warnings": [
+    "W_FIT_ESTIMATED"
+   ],
+   "notes": [],
+   "arch": "spark2_5",
+   "model_sha256": "",
+   "host_fingerprint": "probe:roomy",
+   "budget_bytes": 8589934592,
+   "created_at": "2026-09-18T04:38:32Z",
+   "schema": "ggufone.fit/v1"
+  },
+  "library": "/workspace/ggufone/src/ggufone/runtime/ctypes_binding.py",
+  "result": {
+   "ok": false
+  },
+  "error": {
+   "code": "E_BACKEND_OOM",
+   "exit_code": 3,
+   "message": "E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=0, kv_type=f16, needed ~1010 MiB); the driver reports 1112 MiB free; tried 3 placement(s) down to CPU-only, none fit: n_gpu_layers=36 -> oom; n_gpu_layers=18 -> oom; n_gpu_layers=0 -> oom; the backend asked for a 1010 MiB allocation; backend log: 'ggml_vulkan: Device memory allocation of size 1058982400 failed.'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant"
+  }
+ },
+ "checks": {
+  "fit_plan_reports_free_vram": true,
+  "fit_plan_budget_leq_free_minus_target": true,
+  "fit_target_bound_the_plan": true,
+  "busy_desktop_run_succeeded": true,
+  "busy_desktop_placement_named": true,
+  "no_fit_says_cpu_only": true,
+  "fake_oom_degraded_to_cpu": true,
+  "fake_oom_reported_W_BACKEND_OOM": true,
+  "all_rungs_error_is_backend_oom": true,
+  "all_rungs_error_has_hints": true
+ }
+}

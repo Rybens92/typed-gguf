@@ -1,0 +1,14 @@
+free_vram_after: 8192, 1112 nvidia-smi
+# the plan files the run produced
+== /work/e1cfit/logs/round2/run_busy_desktop.json
+  n_gpu_layers: 0
+  placement   : {"attempts": [], "degraded": false, "kv_type": "q4_0", "n_gpu_layers": 0, "note": "CPU only: the fit plan offloads nothing (kv_type=q4_0)", "warnings": []}
+  kv_type     : q4_0
+  warnings    : ["W_LOW_MASS"]
+  fit.budget  : 92274688
+== /work/e1cfit/logs/round2/run_no_fit.json
+  n_gpu_layers: 0
+  placement   : {"attempts": [], "degraded": false, "kv_type": "f16", "n_gpu_layers": 0, "note": "fit disabled: CPU only (--no-fit sets n_gpu_layers=0)", "warnings": []}
+  kv_type     : auto
+  warnings    : ["W_LOW_MASS"]
+  fit.budget  : None

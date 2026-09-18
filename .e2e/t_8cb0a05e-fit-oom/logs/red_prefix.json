@@ -1,0 +1,74 @@
+{
+ "schema": "ggufone.evidence.fit-oom-red/v1",
+ "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+ "device_memory": {
+  "note": "this tree has no recommend.device_memory()"
+ },
+ "busy_plan": {
+  "host_budget_bytes": 8589934592,
+  "host_vram_bytes": 8589934592,
+  "host_vram_free_bytes": null,
+  "free_probe_mib": 1112,
+  "host_plan": {
+   "n_gpu_layers": 36,
+   "n_ctx": 4096,
+   "kv_type": "f16",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 603979776,
+   "est_total_bytes": 5510483968,
+   "backend": "cpu",
+   "source": "estimate"
+  },
+  "host_plan_budget_bytes": 7516192768,
+  "host_plan_warnings": [
+   "W_FIT_ESTIMATED"
+  ],
+  "host_plan_notes": [],
+  "nominal_plan": {
+   "n_gpu_layers": 36,
+   "n_ctx": 4096,
+   "kv_type": "f16",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 603979776,
+   "est_total_bytes": 5510483968,
+   "backend": "cpu",
+   "source": "estimate"
+  },
+  "fit_target_5200": {
+   "n_gpu_layers": 20,
+   "n_ctx": 4096,
+   "kv_type": "q4_0",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 169869312,
+   "est_total_bytes": 5076373504,
+   "backend": "cpu",
+   "source": "estimate"
+  },
+  "fit_target_narrowed_the_plan": true
+ },
+ "oom_world": {
+  "plan": {
+   "n_gpu_layers": 36,
+   "n_ctx": 4096,
+   "kv_type": "f16",
+   "n_seq_max": 8,
+   "est_weights_bytes": 4369633280,
+   "est_kv_bytes": 603979776,
+   "est_total_bytes": 5510483968,
+   "backend": "vulkan",
+   "source": "estimate"
+  },
+  "raised": {
+   "code": "E_RUNTIME_MISSING",
+   "message": "E_MODEL_ARCH_UNSUPPORTED: llama.cpp could not load /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf (arch spark2_5); the pinned runtime must support the architecture (run `ggufone doctor`)"
+  }
+ },
+ "verdict": {
+  "busy_desktop_plan_is_bounded": false,
+  "oom_is_classified_as_backend_oom": false,
+  "fixed": false
+ }
+}
