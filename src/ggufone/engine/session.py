@@ -178,9 +178,17 @@ class Placement:
 
 
 def _placement_note(plan: Any | None, degraded: bool, fit_disabled: bool) -> str:
+    """Why the model sits where it sits — about the **weights**, never about the compute path.
+
+    `n_gpu_layers=0` is not a statement that the CPU computed: llama.cpp's op offload runs the
+    graph on a device backend while the weights stay on the host (measured on the operator host:
+    a row labelled `cpu` with this very note prefilled at 587.9 tok/s, card t_603a35a0). The
+    device the work really landed on is `runtime.devices`, read back from the engine log.
+    """
     if plan is None:
-        return ("fit disabled: CPU only (--no-fit sets n_gpu_layers=0)" if fit_disabled
-                else "no fit plan: CPU only (n_gpu_layers=0)")
+        return ("fit disabled: no layers offloaded (--no-fit sets n_gpu_layers=0); the weights "
+                "stay on the host" if fit_disabled else
+                "no fit plan: no layers offloaded (n_gpu_layers=0); the weights stay on the host")
     if degraded:
         return (f"degraded after a backend allocation failure: {plan.n_gpu_layers} layer(s) "
                 f"offloaded, kv_type={plan.kv_type}")
@@ -191,7 +199,8 @@ def _placement_note(plan: Any | None, degraded: bool, fit_disabled: bool) -> str
         return (f"all layers requested: n_gpu_layers={plan.n_gpu_layers} "
                 f"(kv_type={plan.kv_type})")
     if plan.n_gpu_layers == 0:
-        return f"CPU only: the fit plan offloads nothing (kv_type={plan.kv_type})"
+        return (f"no layers offloaded: the weights stay on the host (n_gpu_layers=0, "
+                f"kv_type={plan.kv_type})")
     return f"fit plan: {plan.n_gpu_layers} layer(s) offloaded, kv_type={plan.kv_type}"
 
 
@@ -213,9 +222,13 @@ def _load_model(llama: Any, model_path: pathlib.Path, n_gpu_layers: int) -> Any:
 def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[str] | None = None,
                home: pathlib.Path | None = None, system: str | None = None,
                fit_plan: Any | None = None, fit_disabled: bool = False,
-               degrade: bool = True,
+               degrade: bool = True, log: list[str] | None = None,
                free_probe: Callable[[], int | None] | None = None) -> ModelHandle:
     """Load a GGUF model through the pinned runtime, after the arch pre-flight (SPEC 2.2/A11).
+
+    `log` is an optional caller-owned sink for the engine's own lines: the load that succeeded
+    appends them (card t_603a35a0) so a caller can read back which *devices* were touched
+    (`ggufone.runtime.devices`) instead of trusting the flags it passed.
 
     `fit_plan` (E1c) contributes the placement: `n_gpu_layers` comes from the plan
     (`llama_model_params.n_gpu_layers`); without a plan — or with `--no-fit` — the model is
@@ -277,6 +290,8 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
         load_ms = (time.perf_counter() - started) * 1000.0
         if model:
             degraded = index > 1
+            if log is not None:
+                log.extend(captured)
             warnings: list[str] = []
             if oom_seen:
                 warnings.append("W_BACKEND_OOM")
@@ -356,7 +371,8 @@ class ModelSession:
 
     def __init__(self, handle: ModelHandle, plan: ContextPlan, *,
                  backend: str = "cpu", decode_spy: Callable[[Batch], None] | None = None,
-                 states_home: pathlib.Path | None = None, degrade: bool = True) -> None:
+                 states_home: pathlib.Path | None = None, degrade: bool = True,
+                 log: list[str] | None = None) -> None:
         self.handle = handle
         self.plan = plan
         self.backend = backend
@@ -369,7 +385,7 @@ class ModelSession:
         self.extra_warnings: list[str] = []
         llama = handle.runtime.llama
         self.ctx, failure, kv_used = _init_context(llama, handle, plan, degrade=degrade,
-                                                  warnings=self.extra_warnings)
+                                                  warnings=self.extra_warnings, log=log)
         if self.ctx:
             self.kv_type_used = kv_used
         if not self.ctx:
@@ -595,11 +611,14 @@ def _context_params(llama: Any, plan: ContextPlan, kv_type: str) -> Any:
 
 
 def _init_context(llama: Any, handle: ModelHandle, plan: ContextPlan, *,
-                  degrade: bool, warnings: list[str]) -> tuple[Any | None, Any | None, str]:
+                  degrade: bool, warnings: list[str],
+                  log: list[str] | None = None) -> tuple[Any | None, Any | None, str]:
     """Create the context, degrading the KV type on an allocation failure (requirement 3).
 
     The KV cache is allocated here, so this is the one place where a smaller `kv_type` actually
     helps: f16 -> q8_0 -> q4_0, each step recorded as `W_KV_TYPE_DOWNGRADE` + `W_FIT_DOWNGRADE`.
+    The failed-and-retried attempts are *not* evidence of placement, so only the successful
+    attempt's lines reach `log` (card t_603a35a0).
     Returns `(ctx, failure, kv_type_used)`; `failure` is the typed error to raise when no rung
     worked, `None` when the failure was not memory-related (the caller's own message then fits).
     """
@@ -610,6 +629,8 @@ def _init_context(llama: Any, handle: ModelHandle, plan: ContextPlan, *,
         with capture_llama_logs(handle.runtime) as captured:
             ctx = llama.llama_init_from_model(handle.model, _context_params(llama, plan, rung))
         if ctx:
+            if log is not None:
+                log.extend(captured)
             if rung != start:
                 # the request's own value (`auto` included) resolved to `start`; only a rung
                 # BELOW that is a downgrade worth warning about

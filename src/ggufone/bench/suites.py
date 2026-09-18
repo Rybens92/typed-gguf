@@ -172,6 +172,24 @@ def _envelope(config: harness.BenchConfig) -> dict[str, Any]:
     return harness.envelope(config, model=harness.model_facts(config.model_path or ""))
 
 
+def _mismatch_note(claimed: str, attribution: Mapping[str, Any]) -> str:
+    """The sentence a report carries when its own evidence refutes its label (t_603a35a0)."""
+    effective = attribution["effective_backend"]
+    return (f"W_BACKEND_MISMATCH: the row claims backend `{claimed}` but the engine's own log "
+            f"shows the compute on {effective} (compute buffers: "
+            f"{harness.device_cell(attribution)}); read this row as a {effective} measurement — "
+            f"re-run one backend per process (`--backend {effective}`) for a clean attribution.")
+
+
+def _attribution(report: dict[str, Any], claimed: str, model: harness.ModelLike) -> None:
+    """Record what the engine's own log proves about this report's devices, and fail on a lie."""
+    attribution = harness.device_usage(model, claimed)
+    report.update(attribution)
+    if attribution["warnings"]:                 # W_BACKEND_MISMATCH: the evidence refutes the claim
+        report["notes"].append(_mismatch_note(claimed, attribution))
+        report["ok"] = False
+
+
 # --------------------------------------------------------------------------- latency
 def _unit_budget() -> harness.TimeBudget:
     """A budget that never expires: the *inner* parts of one multi-part measurement.
@@ -225,6 +243,9 @@ def _run_latency(config: harness.BenchConfig, make: Factory,
             report["notes"].append(
                 "every measured call reports `prefill_reused: true` once the prefix state cache is "
                 "warm, which is why the decision tables isolate the question phase.")
+        if loads:
+            # which device the engine's own log proves computed (card t_603a35a0)
+            _attribution(report, backend, model)
     finally:
         model.close()
     return report
@@ -491,8 +512,12 @@ def _run_throughput(config: harness.BenchConfig, make: Factory,
         rows.append(_throughput_row(config, make, spec))
     report["backends"] = rows
     measured = [row for row in rows if row.get("measured")]
-    # a row that never started because the cap was already spent is incompleteness, not a failure
-    report["ok"] = bool(measured) or bool(budget.skipped)
+    # a row that never started because the cap was already spent is incompleteness, not a failure —
+    # and `--backend all` must not publish a row whose own engine log contradicts its label
+    mismatched = [row for row in measured if row["warnings"]]
+    report["ok"] = (bool(measured) or bool(budget.skipped)) and not mismatched
+    for row in mismatched:
+        report["notes"].append(_mismatch_note(row["backend"], row))
     if not measured and not budget.skipped:
         report["notes"].append("no local backend bundle was available; nothing was measured")
     return report
@@ -532,6 +557,8 @@ def _throughput_row(config: harness.BenchConfig, make: Factory,
         row["decision_ms"] = harness.summarise(durations)
         row["decision_tok_per_s"] = harness.ratio_summarise(
             steps, [max(value, 1e-6) / 1000.0 for value in durations])
+        # what the engine's own log says this row touched: the flags were a request
+        row.update(harness.device_usage(model, spec.backend))
     except Exception as exc:  # noqa: BLE001 - a backend that cannot run is a reported row
         row.update({"measured": False, "reason": f"{exc.__class__.__name__}: {exc}"})
     finally:
@@ -569,6 +596,8 @@ def _run_quality(config: harness.BenchConfig, make: Factory, budget: harness.Tim
         # unloaded model is never asked anything) and the report lists all six rows by id
         _measure(budget, "model_load", "load#1", model.load)
         rows = _devset_rows(config, model, items, budget)
+        # which device the engine's own log proves computed (card t_603a35a0)
+        _attribution(report, backend, model)
     finally:
         model.close()
     report["devset"]["measured"] = len(rows)
@@ -699,9 +728,12 @@ def _run_determinism(config: harness.BenchConfig, make: Factory,
     report["skipped_backends"] = missing
     # the gate is about the repeats that *ran*: a backend the cap never reached is incompleteness
     # (`"truncated": true` says so and the CLI still exits 0), a row that ran and differed is a
-    # failure the exit code must keep at 1
+    # failure the exit code must keep at 1 — and so is a row whose own engine log refutes its label
     failed = [row for row in rows if not row["ok"]]
-    report["ok"] = not failed and (bool(rows) or bool(budget.skipped))
+    mismatched = [row for row in rows if row.get("warnings")]
+    report["ok"] = not failed and not mismatched and (bool(rows) or bool(budget.skipped))
+    for row in mismatched:
+        report["notes"].append(_mismatch_note(row["backend"], row))
     if failed:
         report["notes"].append(
             "the repeats of one backend produced different bytes after stripping `timings`; "
@@ -729,6 +761,7 @@ def _determinism_request(config: harness.BenchConfig) -> dict[str, Any]:
 def _determinism_row(config: harness.BenchConfig, make: Factory,
                      spec: harness.ModelSpec) -> dict[str, Any]:
     row: dict[str, Any] = {"backend": spec.backend, "threads": int(config.threads or 1),
+                           "runtime_dir": spec.runtime_dir,
                            "placement": f"n_gpu_layers={spec.n_gpu_layers}"}
     model = make(spec)
     try:
@@ -743,6 +776,8 @@ def _determinism_row(config: harness.BenchConfig, make: Factory,
                     "ok": len(set(digests)) == 1, "repeats": len(digests)})
         if len(set(digests)) != 1:
             row["reason"] = "the repeats differ after stripping `timings`"
+        # what the engine's own log says this row touched: the flags were a request
+        row.update(harness.device_usage(model, spec.backend))
     except Exception as exc:  # noqa: BLE001 - a backend that cannot run is a reported row
         row.update({"measured": False, "ok": False, "digests": [],
                     "identical": False, "reason": f"{exc.__class__.__name__}: {exc}"})

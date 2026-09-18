@@ -273,7 +273,8 @@ def test_a_busy_desktop_plan_loads_on_the_free_reading() -> None:
     try:
         assert handle.n_gpu_layers == 0
         assert handle.placement.degraded is False         # nothing failed: the plan was honest
-        assert "CPU only" in handle.placement.note
+        # the note is about the weights, not the compute path (card t_603a35a0)
+        assert "no layers offloaded" in handle.placement.note
         assert handle.warnings == ()
         print(f"\nbusy desktop: plan {plan.n_gpu_layers} layers, budget "
               f"{plan.budget_bytes / 1024 ** 2:.0f} MiB, load_ms {handle.load_ms:.0f}")

@@ -251,7 +251,9 @@ def test_no_fit_says_cpu_only_out_loud(tmp_path: pathlib.Path) -> None:
             assert handle.n_gpu_layers == 0
             assert handle.placement.degraded is False
             assert "fit disabled" in handle.placement.note
-            assert "--no-fit" in handle.placement.note and "CPU only" in handle.placement.note
+            # the note is about the weights, not the compute path (card t_603a35a0)
+            assert "--no-fit" in handle.placement.note
+            assert "no layers offloaded" in handle.placement.note
         finally:
             handle.close()
 

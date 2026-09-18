@@ -32,9 +32,13 @@ import tempfile
 import time
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import asdict, dataclass
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from ggufone.errors import RuntimeMissingError, UserError
+
+if TYPE_CHECKING:   # never a runtime import: A-E2-7 keeps the bench stack importable without
+    # the runtime package tree; `device_usage_of` imports this module lazily, like `finder`.
+    from ggufone.runtime import devices as devices_module
 
 SCHEMA = "ggufone.bench/v1"
 SUITES = ("latency", "throughput", "quality", "calibration", "determinism")
@@ -301,10 +305,15 @@ class Placement:
 
 @runtime_checkable
 class ModelLike(Protocol):
-    """The only surface the suites use (implemented by `LiveModel` and the test fake)."""
+    """The only surface the suites use (implemented by `LiveModel` and the test fake).
+
+    `device_log` is the engine's own lines (card t_603a35a0): the live seam fills it from
+    `llama_log_set` captures, and it is what a row's device attribution is read from.
+    """
 
     spec: ModelSpec
     load_ms: float
+    device_log: str
 
     def load(self) -> float: ...
 
@@ -433,7 +442,18 @@ class LiveModel:
                              else pathlib.Path(tempfile.mkdtemp(prefix="ggufone-bench-states-")))
         self.handle: Any = None
         self.placement: dict[str, Any] = {}     # what the loader really did (after degradation)
+        #: the engine's own lines (load + every context): which *devices* this row touched
+        self._log: list[str] = []
         self._temp = states_home is None
+
+    @property
+    def device_log(self) -> str:
+        """The backend log the run accumulated — the row's device evidence (card t_603a35a0).
+
+        Read from `llama_log_set` captures taken around the successful load and around every
+        context creation: the flags say what was *asked*, these lines say what was done.
+        """
+        return "\n".join(self._log)
 
     # ---- the seam
     def load(self) -> float:
@@ -443,7 +463,8 @@ class LiveModel:
             self.handle = None
         self.placement = {}
         self.handle = session_module.open_model(self.spec.path, runtime_dir=self.spec.runtime_dir,
-                                                fit_plan=Placement(self.spec.n_gpu_layers))
+                                                fit_plan=Placement(self.spec.n_gpu_layers),
+                                                log=self._log)
         self.placement = self.handle.placement.to_dict()
         self.load_ms = float(self.handle.load_ms)
         return self.load_ms
@@ -462,7 +483,7 @@ class LiveModel:
                                         kv_type=self.spec.kv_type)
         with session_module.ModelSession(self._require_handle(), plan,
                                         backend=self.spec.backend,
-                                        states_home=self._states_home) as live:
+                                        states_home=self._states_home, log=self._log) as live:
             yield live
 
     def decide(self, request: Any, *, n_ctx: int | None = None, n_seq_max: int | None = None,
@@ -511,10 +532,59 @@ def placement_of(model: Any, spec: ModelSpec) -> dict[str, Any]:
     that much degrades (`session.open_model`'s ladder) and the row has to say so: a table that
     keeps printing the request would report layers that never left the host. A model that never
     went through the loader (the model-free seam) reports the request and `used: None`.
+
+    This says where the *weights* went. Where the *graph* ran is `device_usage_of` below, because
+    `n_gpu_layers=0` does not stop llama.cpp's op offload from using a device backend.
     """
     used = getattr(model, "placement", None)
     return {"requested": f"n_gpu_layers={int(spec.n_gpu_layers)}",
             "used": dict(used) if isinstance(used, Mapping) and used else None}
+
+
+def _device_module() -> Any:
+    """The device-evidence parser, imported lazily (A-E2-7: no `ggufone.runtime` at import time)."""
+    from ggufone.runtime import devices as devices_module
+    return devices_module
+
+
+def device_usage_of(model: Any) -> devices_module.DeviceUsage:
+    """The device evidence one model accumulated (`''` -> everything unknown)."""
+    text = getattr(model, "device_log", "") or ""
+    return _device_module().parse_device_usage(text if isinstance(text, str) else "\n".join(text))
+
+
+def backend_mismatch(claimed: str, usage: devices_module.DeviceUsage) -> str | None:
+    """`W_BACKEND_MISMATCH` when the engine's own log contradicts the row's claimed backend.
+
+    A row claiming `cpu` is honest only when no accelerator device computed (`op offload` runs the
+    graph on the device while the weights stay on the host); a row claiming an accelerator is
+    honest only when that backend's own device appears in the compute buffers — the mixed-bundle
+    case, where the second bundle's model silently ran on the host CPU under a `vulkan` label. An
+    empty device set contradicts nothing: the row reports `effective_backend: null` instead.
+    """
+    return ("W_BACKEND_MISMATCH" if _device_module().contradicts(claimed, usage) else None)
+
+
+def device_usage(model: Any, claimed: str) -> dict[str, Any]:
+    """The attribution fields every measured row and single-backend report carries.
+
+    `devices` is the device set the engine touched, `device_buffers` the *compute* buffers per
+    device (the auditor's "0 Vulkan / 9 CPU" count), `effective_backend` the compute path read
+    from them (`None` when the log carries no compute-buffer line — unverified, not claimed), and
+    `warnings` holds `W_BACKEND_MISMATCH` when the claim is refuted (card t_603a35a0).
+    """
+    usage = device_usage_of(model)
+    warning = backend_mismatch(claimed, usage)
+    return {"devices": list(usage.devices),
+            "device_buffers": dict(usage.compute_buffers),
+            "effective_backend": usage.effective,
+            "warnings": [warning] if warning else []}
+
+
+def device_cell(row: Mapping[str, Any]) -> str:
+    """`compute buffers per device` for a rendered table cell (`CPU=2`), or `—` when unknown."""
+    buffers = row.get("device_buffers") or {}
+    return " · ".join(f"{device}={count}" for device, count in sorted(buffers.items())) or "—"
 
 
 def spec_for(config: BenchConfig, backend: str, *, runtimes: Mapping[str, pathlib.Path] | None
@@ -744,6 +814,10 @@ def render_report(report: Mapping[str, Any]) -> str:
         f"repeats={config.get('determinism_repeats')}, backends<="
         f"{config.get('backend_limit')}) — an iteration preset, never a published table"] \
         if report.get("quick") else []
+    # what the engine's own log says the row touched (card t_603a35a0): the flags are a request
+    evidence_line = ([f"- engine devices: {device_cell(report)} (compute buffers) · effective "
+                      f"backend: {report.get('effective_backend') or 'unverified'}"]
+                     if report.get("devices") else [])
     lines = [f"### {report.get('suite')} — {name}",
              "",
              f"- generated: {report.get('generated_at')}",
@@ -759,6 +833,8 @@ def render_report(report: Mapping[str, Any]) -> str:
              *placement_line,
              # which local bundle `auto` picked, when there was a choice
              *selection_line,
+             # which device the engine's own log proves computed
+             *evidence_line,
              ""]
     summary_header = ["n", "p50", "p95", "min", "max"]
     if report.get("suite") == "latency":
@@ -795,15 +871,18 @@ def render_report(report: Mapping[str, Any]) -> str:
         for row in report.get("backends", []):
             if row.get("measured"):
                 rows.append("| " + " | ".join([
-                    row["backend"], row.get("placement", ""),
+                    row["backend"], row.get("effective_backend") or "unverified",
+                    device_cell(row), row.get("placement", ""),
                     _number(row.get("prefill_tok_per_s", {}).get("p50")),
                     _number(row.get("decision_ms", {}).get("p50")),
                     _number(row.get("load_ms", {}).get("p50")),
                     _number(row.get("decision_tok_per_s", {}).get("p50"))]) + " |")
             else:
-                rows.append(f"| {row['backend']} | not measured | — | — | — | {row['reason']} |")
-        lines += _table("backends", ["backend", "placement", "prefill tok/s (p50)",
-                                     "decision ms (p50)", "load ms (p50)", "decision tok/s (p50)"],
+                rows.append(f"| {row['backend']} | — | — | not measured | — | — | — | "
+                            f"{row['reason']} |")
+        lines += _table("backends", ["backend", "effective", "device buffers", "placement",
+                                     "prefill tok/s (p50)", "decision ms (p50)",
+                                     "load ms (p50)", "decision tok/s (p50)"],
                         rows)
     elif report.get("suite") in ("quality", "calibration"):
         rows = [f"| {qtype} | {row['n']} | {row['correct']} | {_number(row['agreement'])} | "
@@ -830,10 +909,11 @@ def render_report(report: Mapping[str, Any]) -> str:
         lines.append("")
     if report.get("suite") == "determinism":
         lines += _table("byte identity (timings stripped, 3 repeats)",
-                        ["backend", "identical", "digest"],
-                        [f"| {row['backend']} | {'yes' if row['identical'] else 'NO'} | "
+                        ["backend", "effective", "identical", "digest"],
+                        [f"| {row['backend']} | {row.get('effective_backend') or 'unverified'} | "
+                         f"{'yes' if row['identical'] else 'NO'} | "
                          f"`{row['digests'][0][:23]}…` |" if row.get("digests")
-                         else f"| {row['backend']} | not measured | {row['reason']} |"
+                         else f"| {row['backend']} | — | not measured | {row['reason']} |"
                          for row in report.get("backends", [])])
         lines.append(f"- repeats: {report.get('repeats')} · ok: {report.get('ok')}")
         lines.append("")

@@ -151,4 +151,7 @@ WARNING_CODES = (
     "W_FIT_DOWNGRADE", "W_BACKEND_OOM",
     # E2.5: an answer was re-asked on a second model (SPEC 2.10, A-E2p5-5).
     "W_ESCALATED",
+    # E2 FIX (card t_603a35a0): a bench row's own engine log shows the work on a different
+    # backend than the one the row claims — the row is not publishable under that label.
+    "W_BACKEND_MISMATCH",
 )
