@@ -45,9 +45,11 @@ Environment for every live number: pinned runtime
 
 ## 2. Headline receipts (verbatim)
 
-First block = the tree the mutation round started from (`324324c`); second block = the final head
-(`d3dd0d2`, pins included). The live numbers are byte-identical across both, as they should be:
-the pins add tests, they do not touch `src/`.
+First block = the tree the mutation round started from (`324324c`); second block = the pinned head
+(`d3dd0d2`). The card's final commit `de12767` adds only this document's §6 numbers and two
+test-hygiene fixes, so every replay in §6.2 was run against the final test file rather than the
+swept one. The live numbers are byte-identical across both heads, as they should be: the pins add
+tests, they do not touch `src/`.
 
 ```
 # --- final head d3dd0d2 -------------------------------------------------------------
@@ -252,7 +254,9 @@ finished on its first retry (3674 mutants, 4.98 mutations/s, `--max-children 2`)
 `score = killed / (mutants − no-tests)`: mutmut's code 33 means *no test in the selection
 executes that function at all* (a coverage gap, not a pass), so it is excluded from the
 denominator and reported separately. Combined killed/ran: r1 **60.9 %** (2050/3368) → r2
-**69.4 %** (2383/3436). Raw logs: `logs/mutation_r2.log` (r2, resumable),
+**69.4 %** (2383/3436). The r2 row is the pinned *test* tree (`d3dd0d2`); the two tests touched by
+`de12767` (the RSS bound) were re-verified by replay after the fix, not assumed. Raw logs:
+`logs/mutation_r2.log` (r2, resumable),
 `logs/mutation_report_template.txt` / `logs/mutation_report_fit.txt` (r1, the state the pins were
 written against), `logs/triage_kinds_r2.txt` + `logs/triage_classify_r2.txt` (the survivor
 classification below).
