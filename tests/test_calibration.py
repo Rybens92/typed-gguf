@@ -288,6 +288,10 @@ def _report_rows(types: tuple[str, ...] = ("choice", "noul"),
                 expected, got = ("billing", "billing") if hit else ("billing", "api")
                 probabilities = {"billing": 0.6, "api": 0.3, "sales": 0.1} if hit else \
                     {"billing": 0.3, "api": 0.6, "sales": 0.1}
+            elif qtype == "score":
+                expected, got = "1", ("1" if hit else "2")
+                probabilities = {"0": 0.1, "1": 0.7, "2": 0.2} if hit else \
+                    {"0": 0.1, "1": 0.3, "2": 0.6}
             else:
                 expected, got = ("yes", "yes") if hit else ("yes", "no")
                 probabilities = {"yes": 0.65, "no": 0.35} if hit else {"yes": 0.35, "no": 0.65}
@@ -444,11 +448,17 @@ def test_a_type_with_too_few_held_out_rows_is_never_fitted() -> None:
 
 
 def test_a_row_describes_itself_as_an_answer_for_the_escalation_policy() -> None:
-    row = _fit_rows(("choice",), per_type=6)[0]
-    answer = row.as_answer()
-    assert set(answer) == {"type", "probabilities", "confidence", "reliability"}
-    assert list(answer["probabilities"]) == list(row.labels)
-    assert answer["confidence"] == row.confidence
+    """A row must survive the shipped decision rule: `routing.decision_of` reads its own fields."""
+    from ggufone.calibration import routing
+    for qtype, expected in (("choice", "billing"), ("noul", "yes"), ("score", "1")):
+        row = next(row for row in _fit_rows((qtype,), per_type=6) if row.correct)
+        answer = row.as_answer()
+        assert set(answer) >= {"type", "probabilities", "confidence", "reliability"}
+        assert list(answer["probabilities"]) == list(row.labels)
+        assert answer["confidence"] == row.confidence
+        assert routing.decision_of(answer) == expected
+    noul = next(row for row in _fit_rows(("noul",), per_type=6))
+    assert noul.as_answer()["noul"] == pytest.approx(noul.probabilities[noul.labels.index("yes")])
 
 
 def test_a_type_with_no_rows_at_all_is_refused() -> None:
@@ -484,11 +494,14 @@ def test_retiring_the_last_model_removes_the_store_file(tmp_path) -> None:
 
 def test_a_store_that_only_holds_another_model_keeps_its_entry(tmp_path) -> None:
     path = tmp_path / "calibration.json"
-    calibrate.save_table(path, calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+    moved = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:mine")
+    other = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:other")
+    calibrate.save_table(path, moved)
+    calibrate.save_table(path, other)
+    calibrate.save_table(path, calibrate.fit_table(_flat_rows(per_type=18),
                                                    model_key="sha256:mine"))
-    calibrate.save_table(path, calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
-                                                   model_key="sha256:other"))
-    calibrate.save_table(path, calibrate.fit_table(_flat_rows(per_type=18), model_key="sha256:mine"))
     assert calibrate.load_table(path, "sha256:mine") is None
     assert calibrate.load_table(path, "sha256:other") is not None
 

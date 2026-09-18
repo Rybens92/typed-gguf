@@ -330,7 +330,8 @@ def test_an_answer_the_target_did_not_return_is_left_alone_and_logged() -> None:
 def test_a_device_budget_that_cannot_hold_the_kv_floor_falls_back_to_the_cpu() -> None:
     """The KV floor is a hard limit: a device that cannot hold it gets no layers at all."""
     facts = {"/m/lean.gguf": _facts("/m/lean.gguf", weights_mib=200)}
-    plan = routing.route([_candidate("lean", "/m/lean.gguf")], needs=routing.Needs(n_ctx=2048, n_seq_max=4),
+    needs = routing.Needs(n_ctx=2048, n_seq_max=4)
+    plan = routing.route([_candidate("lean", "/m/lean.gguf")], needs=needs,
                          host=_host(vram_mib=8 * 1024, free_mib=1792),
                          facts_for=lambda path: facts[path], runtime_dirs=[VULKAN],
                          supports_arch=_supports("spark2_5"))
@@ -345,9 +346,10 @@ def test_a_candidate_whose_facts_reader_raises_is_merely_unavailable() -> None:
             raise ValueError("truncated header")
         return _facts(path, weights_mib=1024)
 
-    plan = routing.route([_candidate("broken", "/m/broken.gguf"), _candidate("good", "/m/good.gguf")],
-                         needs=routing.Needs(n_ctx=2048, n_seq_max=4), host=_host(vram_mib=8 * 1024),
-                         facts_for=reader, runtime_dirs=[VULKAN], supports_arch=_supports("spark2_5"))
+    candidates = [_candidate("broken", "/m/broken.gguf"), _candidate("good", "/m/good.gguf")]
+    plan = routing.route(candidates, needs=routing.Needs(n_ctx=2048, n_seq_max=4),
+                         host=_host(vram_mib=8 * 1024), facts_for=reader,
+                         runtime_dirs=[VULKAN], supports_arch=_supports("spark2_5"))
     assert plan.alias == "good"
     broken = next(step for step in plan.steps if step.alias == "broken")
     assert broken.verdict == "rejected" and "cannot be read" in broken.reason
@@ -356,19 +358,20 @@ def test_a_candidate_whose_facts_reader_raises_is_merely_unavailable() -> None:
 def test_nothing_available_at_all_is_a_model_not_found(tmp_path) -> None:
     with pytest.raises(ModelNotFoundError) as excinfo:
         routing.route([_candidate("gone", str(tmp_path / "gone.gguf"), available=False)],
-                      needs=routing.Needs(n_ctx=1024, n_seq_max=3), host=_host(vram_mib=8 * 1024),
-                      facts_for=lambda path: None, runtime_dirs=[VULKAN],
-                      supports_arch=_supports("spark2_5"))
+                      needs=routing.Needs(n_ctx=1024, n_seq_max=3),
+                      host=_host(vram_mib=8 * 1024), facts_for=lambda path: None,
+                      runtime_dirs=[VULKAN], supports_arch=_supports("spark2_5"))
     assert "E_MODEL_NOT_FOUND" in str(excinfo.value)
 
 
 def test_the_default_capability_probe_reads_the_bundle_and_says_no_when_it_cannot(tmp_path) -> None:
     """Without an injected probe the router asks the real runtime bundle (`capability`)."""
     with pytest.raises(ModelArchUnsupportedError):
-        routing.route([_candidate("plain", "/m/plain.gguf")], needs=routing.Needs(n_ctx=1024, n_seq_max=3),
+        routing.route([_candidate("plain", "/m/plain.gguf")],
+                      needs=routing.Needs(n_ctx=1024, n_seq_max=3),
                       host=_host(vram_mib=8 * 1024),
                       facts_for=lambda path: _facts(path, weights_mib=1024),
-                      runtime_dirs=[str(tmp_path)])          # an empty dir cannot support anything
+                      runtime_dirs=[str(tmp_path)])    # an empty dir cannot support anything
 
 
 def test_an_escalation_candidate_can_be_a_score_answer() -> None:

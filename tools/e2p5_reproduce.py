@@ -266,7 +266,12 @@ def cmd_escalate(args: argparse.Namespace) -> int:
     items = devset_module.load(args.devset)
     if args.items:
         items = items[: args.items]
-    rows = _measure(args.primary, threads=args.threads, devset_path=args.devset, items=args.items)
+    if args.rows:
+        rows = calibrate.load_rows(args.rows)
+        print(f"primary: reusing {len(rows)} stored rows from {args.rows}")
+    else:
+        rows = _measure(args.primary, threads=args.threads, devset_path=args.devset,
+                        items=args.items)
     by_id = {item.id: item for item in items}
     answers = _answers_of(rows)
     decisions = routing.escalation_candidates(answers, threshold=args.threshold,
@@ -395,7 +400,9 @@ def build_parser() -> argparse.ArgumentParser:
     escalate.add_argument("--target", required=True)
     escalate.add_argument("--threads", type=int, default=2)
     escalate.add_argument("--limit", type=int, default=1)
-    escalate.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD)
+    escalate.add_argument("--threshold", type=float, default=routing.DEFAULT_ESCALATION_THRESHOLD)
+    escalate.add_argument("--rows",
+                          help="reuse a stored primary measurement (docs/evidence rows JSON)")
     escalate.add_argument("--items", type=int)
     escalate.add_argument("--devset")
     escalate.add_argument("--workdir", default="/tmp/e2p5")

@@ -72,10 +72,20 @@ class Row:
         return None
 
     def as_answer(self) -> dict[str, Any]:
-        """The row as an `answers`-shaped object (what `routing.escalation_candidates` reads)."""
-        return {"type": self.type,
-                "probabilities": dict(zip(self.labels, self.probabilities, strict=True)),
-                "confidence": self.confidence, "reliability": self.reliability}
+        """The row as an `answers`-shaped object (what `routing.escalation_candidates` reads).
+
+        The type-specific decision field travels with it (`noul`/`choice`), because the shipped
+        decision rule (`routing.decision_of`) reads exactly those fields: a row stripped down to
+        its probabilities would make every `noul` answer look like a "no".
+        """
+        probabilities = dict(zip(self.labels, self.probabilities, strict=True))
+        answer: dict[str, Any] = {"type": self.type, "probabilities": probabilities,
+                                  "confidence": self.confidence, "reliability": self.reliability}
+        if self.type == "noul":
+            answer["noul"] = float(probabilities.get("yes", max(self.probabilities, default=0.0)))
+        elif self.type == "choice" and self.labels:
+            answer["choice"] = self.labels[readout.argmax_first(self.probabilities)]
+        return answer
 
     @classmethod
     def from_item(cls, item: Mapping[str, Any], *, model: str = "") -> Row:

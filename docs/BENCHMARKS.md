@@ -523,6 +523,64 @@ container is capped at 2 CPU-seconds/s, and §3.5 measures that setting as 5–2
 * **No escalation, no calibration applied in the E2 tables**: `max_escalations` stays 0 in E2 (S-7)
   and the calibration suite *measures* ECE for the three confidence modes. Fitting a temperature,
   the held-out acceptance gate, `--route auto` and the bounded escalation are E2.5
-  (`ggufone calibrate`) and are measured in `docs/BENCHMARKS.md` §5.
+  (`ggufone calibrate`) and are measured in §5 below.
 * **No CUDA**: no CUDA device and no CUDA bundle exist in this container; the throughput table
   says so per row instead of omitting the backend.
+
+## 5. E2.5 — calibration, routing and escalation (measured)
+
+Same box, same pinned runtime and the same 60-item dev set as §3/§4 (container: cpu, threads=2,
+runtime `b11026-linux-x64-cpu`, 2 CPU-seconds/s quota). One command per table —
+`tools/e2p5_reproduce.py <calibrate|route|escalate>` — and the raw JSON plus the live logs sit in
+`docs/evidence/e2p5_*`. Gate mapping and narrative: `docs/evidence/e2p5_t_630f32a3_calibration.md`.
+
+### 5.1 The fit and the gate — 0.8B, per-type split 2/3 fit · 1/3 held out
+
+`ggufone calibrate` fits a temperature per (model, question type), fits **all three** confidence
+statistics, and stores nothing it cannot defend on the held-out split. Measured (two dev-set
+passes, identical `params_hash=sha256:dd995c81…b1bb`, 611.5 s for both passes):
+
+| type | rows (fit/holdout) | statistic the parameter was accepted with | temperature | fit ECE | held-out ECE | stored? |
+|---|---|---|---|---|---|---|
+| `choice` | 16 / 8 | `normalized_peak` (identity) | 1.0000 | 0.2451 → 0.2451 | 0.2266 → 0.2266 | no — `margin` improved the held-out ECE by 0.0031, below the 0.0050 margin a switch needs |
+| `noul` | 12 / 6 | `normalized_peak` (identity) | 1.0000 | 0.2627 → 0.2627 | 0.3843 → 0.3843 | no — the statistic is already honest |
+| `score` | 12 / 6 | **`entropy`** | **1.6475** | 0.1154 → 0.0695 | 0.4672 → **0.4479** | **yes** — the default statistic overfit its fit split (0.1906 → 0.0265) and lost the held-out one (0.3732 → 0.4400); `entropy` won its held-out split by 0.0194 |
+
+`calibration.json` therefore holds exactly `accepted_types: ["score"]`, and a live `ggufone run`
+with that store answers with `calibrated: true`,
+`calibration.temperatures: {"score": 1.64755}` and
+`calibration.confidence_modes: {"score": "entropy"}` — the promoted statistic is visible to the
+caller, and the two refused types go through the readout untouched.
+
+### 5.2 `--route auto`
+
+| registry | chosen | quant | kv_type | n_ctx | n_seq_max | placement | rejected |
+|---|---|---|---|---|---|---|---|
+| `qwen-0.8b` (0.51 GiB) | `qwen-0.8b` | — | f16 | 4096 | 5 | cpu (cpu-only box, 25 596 MiB RAM budget) | — |
+| `qwen-0.8b` + `spark-4b` (4.07 GiB) | `spark-4b` | — | f16 | 4096 | 5 | cpu | `qwen-0.8b`: ranked below the bigger model that fits |
+
+The plan carries the reason and one verdict per candidate (`engine.route.steps`), and the same
+record lands in the audit log when `--audit DIR` is set.
+
+### 5.3 Escalation (A-E2p5-5)
+
+MEASURED_ESCALATION_TABLE
+
+### 5.4 Notes and limitations
+
+* **The bench loader is broken at this commit** (`ggufone bench` → `E_INTERNAL AttributeError:
+  'Placement' object has no attribute 'kv_type'` from `degrade_ladder` in `session.py:250`; tracked
+  as card `t_31b3943a`). E2.5's live numbers are therefore measured **through the serving path**
+  (`open_model` + `ModelSession` — exactly what `run`/`ask` use) instead of the bench harness, which
+  is also the more faithful distribution to calibrate. `ggufone calibrate` does not touch the bench
+  path.
+* **Absolute agreement differs between the two load paths**: the same 0.8B answers 32/60 through
+  the serving path (E2.5) and 28/60 through the bench path (§4). Every §5 number is measured inside
+  one path, so the §5.3 delta is apples-to-apples.
+* **The per-type held-out splits are thin** (6–8 items), so the verdict is sensitive to small row
+  drift: an earlier live pass of the same model produced the same probabilities but a different
+  `coverage` float, and the `score` verdict moved with it — which is *why* the params digest now
+  covers only the fields the fit reads. The smallest honest dev-set extension is +12 items per type
+  (doubling the held-out split per type to 12–16).
+* **No GPU on the measuring box**, so the router's device-budget branch is exercised offline
+  (injected VRAM numbers, the free-VRAM margin, the KV-floor fallback) and only its CPU branch live.
