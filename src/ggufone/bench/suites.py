@@ -173,12 +173,18 @@ def _envelope(config: harness.BenchConfig) -> dict[str, Any]:
 
 
 def _mismatch_note(claimed: str, attribution: Mapping[str, Any]) -> str:
-    """The sentence a report carries when its own evidence refutes its label (t_603a35a0)."""
+    """The sentence a report carries when its own evidence refutes (or cannot back) its label."""
     effective = attribution["effective_backend"]
-    return (f"W_BACKEND_MISMATCH: the row claims backend `{claimed}` but the engine's own log "
-            f"shows the compute on {effective} (compute buffers: "
-            f"{harness.device_cell(attribution)}); read this row as a {effective} measurement — "
-            f"re-run one backend per process (`--backend {effective}`) for a clean attribution.")
+    if effective:
+        detail = (f"shows the compute on {effective} (compute buffers: "
+                  f"{harness.device_cell(attribution)}); read this row as a {effective} "
+                  f"measurement — re-run one backend per process (`--backend {effective}`) for a "
+                  f"clean attribution.")
+    else:
+        detail = ("carries no compute-buffer line for that backend, so the row cannot be "
+                  "corroborated; re-run one backend per process (`--backend <one>`) before "
+                  "publishing it.")
+    return f"W_BACKEND_MISMATCH: the row claims backend `{claimed}` but the engine's own log {detail}"
 
 
 def _attribution(report: dict[str, Any], claimed: str, model: harness.ModelLike) -> None:

@@ -559,8 +559,10 @@ def backend_mismatch(claimed: str, usage: devices_module.DeviceUsage) -> str | N
     A row claiming `cpu` is honest only when no accelerator device computed (`op offload` runs the
     graph on the device while the weights stay on the host); a row claiming an accelerator is
     honest only when that backend's own device appears in the compute buffers — the mixed-bundle
-    case, where the second bundle's model silently ran on the host CPU under a `vulkan` label. An
-    empty device set contradicts nothing: the row reports `effective_backend: null` instead.
+    case, where the second bundle's rows are captured with no device line at all and its model
+    silently ran on the host CPU under a `vulkan` label. An empty device set does not refute a
+    `cpu` claim, but it cannot corroborate an accelerator one: the row reads
+    `effective_backend: null` and is flagged.
     """
     return ("W_BACKEND_MISMATCH" if _device_module().contradicts(claimed, usage) else None)
 

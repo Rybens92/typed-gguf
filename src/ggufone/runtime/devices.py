@@ -115,17 +115,18 @@ def parse_device_usage(log_text: str | None) -> DeviceUsage:
 
 
 def contradicts(claimed: str, usage: DeviceUsage) -> bool:
-    """Does the evidence refute the claim? (an empty device set refutes nothing)
+    """Does the evidence refute the claim? (an *uncorroborated* accelerator claim does)
 
-    `cpu` is refuted by any accelerator in the compute buffers (op offload); an accelerator is
-    refuted when its own backend never appears there — the mixed-bundle case, where the second
-    bundle's model silently ran on the host CPU under a `vulkan` label.
+    `cpu` is refuted by any accelerator in the compute buffers (op offload computes on the device
+    while the weights stay on the host), and an accelerator is refuted when its own backend never
+    appears there — *including* the case where the log carries no compute-buffer line at all: a
+    positive device claim the engine cannot corroborate is not publishable (card t_603a35a0, the
+    mixed-bundle run where the second bundle's rows are captured with nothing). An empty set does
+    not refute a `cpu` claim: nothing was computed anywhere else.
     """
     evidence = [backend for backend in usage.compute_backends if backend not in _NON_COMPUTE]
-    if not evidence:
-        return False
     if claimed == "cpu":
-        return evidence != ["cpu"]
+        return bool(evidence) and evidence != ["cpu"]
     return claimed not in evidence
 
 

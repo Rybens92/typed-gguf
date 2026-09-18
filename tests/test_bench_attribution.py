@@ -225,19 +225,23 @@ def test_honest_rows_stay_clean(
     assert report["ok"] is True
 
 
-def test_an_unreadable_device_set_is_reported_as_unverified_not_as_a_claim(
+def test_an_uncorroborated_accelerator_claim_is_not_published(
         tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """A log that names no device cannot corroborate a claim — the row says so (`None`) instead
-    of repeating the flag as if it were measured."""
+    """A log that names no device cannot corroborate a `vulkan` row: the row reads `unverified`
+    *and* is flagged (one bundle per process is the trustworthy shape). A `cpu` row without
+    evidence is not refuted — nothing computed anywhere else — so it stays clean."""
     root = two_bundles(tmp_path)
     install(monkeypatch, tmp_path, runtime_dir=root / "b11026-linux-x64-cpu", root=root)
 
     report = suites.run_suite(throughput(), factory=factory(logs={}))
 
-    row = rows_by_backend(report)["vulkan"]
-    assert row["effective_backend"] is None
-    assert row["devices"] == [] and row["device_buffers"] == {}
-    assert row["warnings"] == []
+    rows = rows_by_backend(report)
+    vulkan = rows["vulkan"]
+    assert vulkan["effective_backend"] is None
+    assert vulkan["devices"] == [] and vulkan["device_buffers"] == {}
+    assert vulkan["warnings"] == ["W_BACKEND_MISMATCH"]
+    assert report["ok"] is False
+    assert rows["cpu"]["effective_backend"] is None and rows["cpu"]["warnings"] == []
 
 
 # ------------------------------------------------------------------ determinism rows too
