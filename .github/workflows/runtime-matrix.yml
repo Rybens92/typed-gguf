@@ -29,6 +29,37 @@ jobs:
           out=$(GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt python3 docs/verify_runtime_contract.py)
           echo "$out"
           ! grep -q "SKIP" <<< "$out"
+      # E2 FIX (card t_31b3943a): a bench placement must survive the loader's degrade ladder on a
+      # GPU-less box too — the crash it fixes ("AttributeError: 'Placement' object has no attribute
+      # 'kv_type'") happened while the ladder was built, before any device was touched.
+      - name: Small GGUF for the placement smoke (host-side download, not the benchmark's)
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/smoke.gguf \
+            "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+          ls -l /tmp/smoke.gguf
+      - name: Engine smoke — `bench --gpu-layers 4` goes through the loader and reports the placement
+        run: |
+          set -euo pipefail
+          GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite latency \
+            --model /tmp/smoke.gguf --gpu-layers 4 --runs 1 --sizes 256 --threads 2 \
+            --json --out /tmp/placement.json > /dev/null
+          python3 -c "import json;r=json.load(open('/tmp/placement.json'));p=r['placement'];assert r['model_load']['n']==1,r['model_load'];assert p['requested']=='n_gpu_layers=4',p;assert p['used'] is not None,'the bench row must carry the placement the loader used';assert r['per_question'],'no decision rows'"
+      - name: Engine smoke — the placement retry answers a typed row, never E_INTERNAL
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/fake-bundle
+          cc -shared -fPIC -O1 -o /tmp/fake-bundle/libllama.so tools/fixtures/fit_oom_bundle.c
+          cc -shared -fPIC -O1 -o /tmp/fake-bundle/libggml.so tools/fixtures/fit_oom_bundle.c
+          python3 tools/fit_oom_probe.py --make-gguf /tmp/synthetic.gguf
+          set +e
+          env -u GGUFONE_RUNTIME_DIR GGUFONE_FAKE_OOM_ALL=1 GGUFONE_BENCH_RUNTIME_DIR=/tmp/fake-bundle \
+            uv run ggufone bench --suite throughput --model /tmp/synthetic.gguf --gpu-layers 4 \
+            --runs 1 --json --out /tmp/placement-oom.json > /dev/null
+          code=$?
+          set -e
+          test "$code" = 1     # nothing was measured: a reported row, not a crash
+          python3 -c "import json;r=json.load(open('/tmp/placement-oom.json'));row=r['backends'][0];reason=row['reason'];assert row['measured'] is False,row;assert 'E_BACKEND_OOM' in reason and '3 placement(s)' in reason,reason;assert 'AttributeError' not in reason and 'E_INTERNAL' not in reason,reason"
 
   linux-vulkan:
     runs-on: ubuntu-24.04

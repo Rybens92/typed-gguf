@@ -30,6 +30,13 @@ STEPS: dict[str, tuple[str, str]] = {
                          "0 = an allocation failure was survived by degrading to CPU"),
     "fake_oom_all_rungs": ("GGUFONE_FAKE_OOM_ALL=1 python3 tools/fit_oom_probe.py",
                            "0 = nothing fits and the answer was E_BACKEND_OOM"),
+    "bench_placement": ("uv run ggufone bench --suite latency --model <model> --gpu-layers 36",
+                        "0 = the bench placement went through the loader's ladder; the row must "
+                        "print requested AND used (E2 FIX t_31b3943a)"),
+    "bench_placement_oom": ("GGUFONE_FAKE_OOM_ALL=1 uv run ggufone bench --suite throughput "
+                            "--model <gguf> --gpu-layers 4",
+                            "1 = nothing fits at any rung; the row must name E_BACKEND_OOM, "
+                            "never an AttributeError (E_INTERNAL)"),
 }
 TAIL = 1200
 FREE_RE = re.compile(r"free_vram_(before|after): (.+)")
@@ -67,6 +74,31 @@ def read_json(path: pathlib.Path) -> dict:
     except json.JSONDecodeError:
         return {}
     return payload if isinstance(payload, dict) else {}
+
+
+def bench_view(path: pathlib.Path) -> dict[str, object]:
+    """A bench row's placement: what the flags asked for vs what the loader really did (E2 FIX).
+
+    `requested` is `spec.n_gpu_layers`; `used_*` is the loader's own placement (a degraded retry
+    offloads fewer layers than the flags asked for), and the throughput world reports a row reason
+    instead of a load.
+    """
+    payload = read_json(path)
+    placement = payload.get("placement") if isinstance(payload.get("placement"), dict) else {}
+    used = placement.get("used") if isinstance(placement.get("used"), dict) else {}
+    backends = payload.get("backends") if isinstance(payload.get("backends"), list) else []
+    first = backends[0] if backends and isinstance(backends[0], dict) else {}
+    return {
+        "requested": placement.get("requested"),
+        "used_n_gpu_layers": used.get("n_gpu_layers"),
+        "used_kv_type": used.get("kv_type"),
+        "degraded": used.get("degraded"),
+        "note": used.get("note"),
+        "attempts": used.get("attempts"),
+        "model_load_n": (payload.get("model_load") or {}).get("n"),
+        "row_measured": first.get("measured"),
+        "row_reason": first.get("reason"),
+    }
 
 
 def plan_view(path: pathlib.Path) -> dict[str, object]:
@@ -120,6 +152,8 @@ def main(argv: list[str]) -> int:
     no_fit = plan_view(log_dir / "run_no_fit.json")
     degrade = read_json(log_dir / "fake_oom_degrade.json")
     all_rungs = read_json(log_dir / "fake_oom_all_rungs.json")
+    bench = bench_view(log_dir / "bench_placement.json")
+    bench_oom = bench_view(log_dir / "bench_placement_oom.json")
 
     report: dict[str, object] = {
         "schema": "ggufone.evidence.e1c.fit.host_gate/v1",
@@ -151,7 +185,9 @@ def main(argv: list[str]) -> int:
         "run_no_fit": no_fit,
         "fake_oom_degrade": degrade,
         "fake_oom_all_rungs": all_rungs,
-        "checks": _checks(plan, bounded, busy, no_fit, degrade, all_rungs),
+        "bench_placement": bench,
+        "bench_placement_oom": bench_oom,
+        "checks": _checks(plan, bounded, busy, no_fit, degrade, all_rungs, bench, bench_oom),
     }
     target = log_dir / "host_gate_e1c_fit.json"
     target.write_text(json.dumps(report, indent=1, sort_keys=False) + "\n", encoding="utf-8")
@@ -161,13 +197,14 @@ def main(argv: list[str]) -> int:
 
 
 def _checks(plan: dict, bounded: dict, busy: dict, no_fit: dict, degrade: dict,
-            all_rungs: dict) -> dict[str, object]:
+            all_rungs: dict, bench: dict, bench_oom: dict) -> dict[str, object]:
     """The card's requirements, as boolean facts — a reader should not have to eyeball the tails."""
     result = degrade.get("result") or {}
     error = all_rungs.get("error") or {}
     free = plan.get("vram_free_bytes")
     budget = plan.get("budget_bytes")
     placement = busy.get("placement") or {}
+    bench_reason = str(bench_oom.get("row_reason") or "")
     return {
         "fit_plan_reports_free_vram": isinstance(free, int),
         "fit_plan_budget_leq_free_minus_target": (isinstance(free, int) and isinstance(budget, int)
@@ -185,6 +222,14 @@ def _checks(plan: dict, bounded: dict, busy: dict, no_fit: dict, degrade: dict,
         "all_rungs_error_is_backend_oom": error.get("code") == "E_BACKEND_OOM",
         "all_rungs_error_has_hints": bool("--no-fit" in str(error.get("message", ""))
                                           and "--fit-target" in str(error.get("message", ""))),
+        # E2 FIX t_31b3943a: the bench placement through the loader's ladder
+        "bench_run_loaded_a_model": isinstance(bench.get("model_load_n"), int)
+        and int(bench["model_load_n"]) >= 1,
+        "bench_row_prints_the_placement_used": isinstance(bench.get("used_n_gpu_layers"), int),
+        "bench_row_keeps_the_request_next_to_it": isinstance(bench.get("requested"), str),
+        "bench_retry_row_is_a_typed_error": ("E_BACKEND_OOM" in bench_reason
+                                             and "AttributeError" not in bench_reason
+                                             and "E_INTERNAL" not in bench_reason),
     }
 
 

@@ -27,6 +27,10 @@
 #   5  run --no-fit                   "fit disabled, CPU only" in engine.placement
 #   6  fake OOM bundle                probe: degrade to CPU succeeds
 #   7  fake OOM bundle (all rungs)    probe: E_BACKEND_OOM with free/needed bytes + hints
+#   8  bench --gpu-layers 36          the E2 bench path through the same ladder (E2 FIX t_31b3943a):
+#                                     a bench row must load and print the placement it really used
+#   9  bench + fake OOM bundle        the retry path in the bench: a typed E_BACKEND_OOM row,
+#                                     never an AttributeError (E_INTERNAL)
 #
 # Sandbox rehearsal: set GGUFONE_GATE_FAKE_DRIVER=<dir> to prepend a fake `nvidia-smi` (the busy
 # desktop), and GGUFONE_GATE_MODEL=<file> to point at the pinned model. The summary records which
@@ -177,6 +181,30 @@ else
     for name in fake_oom_degrade fake_oom_all_rungs; do
         echo 97 >"$LOG_DIR/$name.exit"
     done
+fi
+
+# ---------------------------------------------------------------- 4b. the bench path (E2 FIX)
+# `ggufone bench` hands the loader a *minimal* placement (`--gpu-layers`: a layer count, no
+# kv_type) instead of a fit plan. Card t_31b3943a: the loader must normalize it (never
+# `AttributeError: 'Placement' object has no attribute 'kv_type'` -> E_INTERNAL) and the row must
+# print the placement it really used. Two worlds: the host's own bundle — where a busy desktop
+# really walks the ladder — and the fake-alloc bundle, where nothing fits at any rung.
+if [ -f "$MODEL" ]; then
+    step bench_placement 1800 uv run ggufone bench --suite latency --model "$MODEL" \
+        --gpu-layers 36 --runs 1 --sizes 64 --threads 4 \
+        --json --out "$LOG_DIR/bench_placement.json"
+else
+    echo "SKIPPED: no model at $MODEL" >"$LOG_DIR/bench_placement.err"
+    echo 97 >"$LOG_DIR/bench_placement.exit"
+    echo "   -> exit=97 (no model)"
+fi
+if [ "$(cat "$LOG_DIR/fake_bundle_build.exit" 2>/dev/null)" = "0" ]; then
+    step bench_placement_oom 900 env -u GGUFONE_RUNTIME_DIR GGUFONE_FAKE_OOM_ALL=1 \
+        GGUFONE_BENCH_RUNTIME_DIR="$FIXTURE" \
+        uv run ggufone bench --suite throughput --model "$PROBE_MODEL" --gpu-layers 4 \
+        --runs 1 --json --out "$LOG_DIR/bench_placement_oom.json"
+else
+    echo 97 >"$LOG_DIR/bench_placement_oom.exit"
 fi
 
 # ---------------------------------------------------------------- 5. free VRAM after
