@@ -86,7 +86,9 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # E1c FIX (card t_8cb0a05e) used [tests/test_fit.py, tests/test_fit_free_vram.py,
 # tests/test_fit_oom_recovery.py] with max_children = 2 (the fast set, so a sweep can finish
 # inside this container's shared pid cap). E2 (card t_858c54d1) mutates the bench package, whose
-# only gate file is tests/test_bench.py (a CLI test cannot kill a bench mutant: it drives a
-# different module), so the selection is deliberately that one file.
-pytest_add_cli_args_test_selection = ["tests/test_bench.py"]
+# only gate file was tests/test_bench.py (a CLI test cannot kill a bench mutant: it drives a
+# different module), so the selection is deliberately that one file. Card t_31b3943a adds
+# tests/test_bench_placement.py — the bench<->loader seam (fit.coerce_plan / degrade_ladder),
+# which mutates nothing else's mutants.
+pytest_add_cli_args_test_selection = ["tests/test_bench.py", "tests/test_bench_placement.py"]
 max_children = 2

@@ -7,7 +7,7 @@ its first load attempt. On the parent tree that combination died with
     AttributeError: 'Placement' object has no attribute 'kv_type'      ->  E_INTERNAL, exit 4
 
 on a Vulkan host and on the pinned CPU bundle alike (the ladder is built before any device is
-touched, so no GPU is needed to reach it — see ``docs/evidence/t_31b3943a_bench_placement.md``).
+touched, so no GPU is needed to reach it — see ``docs/evidence/e2_fix_t_31b3943a_bench_placement.md``).
 
 What this file pins:
 
@@ -180,6 +180,33 @@ def test_the_row_carries_the_request_and_the_usage_for_a_model_free_seam() -> No
         pass
 
     assert harness.placement_of(Seamless(), spec) == {"requested": "n_gpu_layers=8", "used": None}
+
+
+def test_the_rendered_table_prints_the_placement_the_row_used(tmp_path: pathlib.Path) -> None:
+    """The published table must name both the request and what the loader did with it."""
+
+    def rendered(backend: FakeBackend) -> str:
+        model_path = model_file(tmp_path)
+        with fake_runtime(tmp_path, backend):
+            model = harness.LiveModel(bench_spec(model_path, backend))
+            try:
+                model.load()
+                report = {"suite": "latency", "generated_at": "2026-01-01T00:00:00Z",
+                          "host": {}, "config": {}, "commands": {},
+                          "model": {"name": "model.gguf"},
+                          "placement": harness.placement_of(model, model.spec)}
+                return harness.render_report(report)
+            finally:
+                model.close()
+
+    fits = rendered(FakeBackend(n_layer=LAYERS, fail=lambda ngl, call: False))
+    assert f"- placement: requested n_gpu_layers={LAYERS}, used " \
+           f"n_gpu_layers={LAYERS} kv_type=auto" in fits
+    assert "(degraded)" not in fits
+
+    degraded = rendered(FakeBackend(n_layer=LAYERS))          # fails while anything is offloaded
+    assert "- placement: requested " \
+           f"n_gpu_layers={LAYERS}, used n_gpu_layers=0 kv_type=f16 (degraded)" in degraded
 
 
 def test_a_placement_that_fits_nowhere_is_a_typed_oom_error(tmp_path: pathlib.Path) -> None:
