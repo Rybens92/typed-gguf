@@ -225,11 +225,13 @@ class ModelSpec:
 
 @dataclass(frozen=True)
 class Placement:
-    """The loader-facing placement: exactly the `fit_plan.n_gpu_layers` `open_model` reads.
+    """The loader-facing placement: the minimal object `open_model` normalizes (`fit.coerce_plan`).
 
     A benchmark sets the placement explicitly (`--gpu-layers`) instead of consuming a fit plan:
     the published row must be reproducible from its flags on any host, and `0` (CPU) has to stay
-    the default for the primary table.
+    the default for the primary table. That is why this carries *only* the layer count — no
+    `kv_type`, no estimates — and why `session.open_model` accepts it: what the ladder reads must
+    have a default, not an `AttributeError` (card t_31b3943a).
     """
 
     n_gpu_layers: int = 0
@@ -368,6 +370,7 @@ class LiveModel:
         self._states_home = (pathlib.Path(states_home) if states_home
                              else pathlib.Path(tempfile.mkdtemp(prefix="ggufone-bench-states-")))
         self.handle: Any = None
+        self.placement: dict[str, Any] = {}     # what the loader really did (after degradation)
         self._temp = states_home is None
 
     # ---- the seam
@@ -376,8 +379,10 @@ class LiveModel:
         if self.handle is not None:                      # a re-load must not leak the old model
             self.handle.close()
             self.handle = None
+        self.placement = {}
         self.handle = session_module.open_model(self.spec.path, runtime_dir=self.spec.runtime_dir,
                                                 fit_plan=Placement(self.spec.n_gpu_layers))
+        self.placement = self.handle.placement.to_dict()
         self.load_ms = float(self.handle.load_ms)
         return self.load_ms
 
@@ -435,6 +440,19 @@ def _needed_sequences(request: Any) -> int:
     """`prefix + candidates` for the widest question, at least the engine's minimum of 3."""
     widest = max((len(question.options) for question in request.questions), default=1)
     return max(3, 1 + widest)
+
+
+def placement_of(model: Any, spec: ModelSpec) -> dict[str, Any]:
+    """The placement a row *really* ran with — the loader's own answer, not the requested flags.
+
+    A benchmark names the placement it asked for (`--gpu-layers`), but a load that cannot offload
+    that much degrades (`session.open_model`'s ladder) and the row has to say so: a table that
+    keeps printing the request would report layers that never left the host. A model that never
+    went through the loader (the model-free seam) reports the request and `used: None`.
+    """
+    used = getattr(model, "placement", None)
+    return {"requested": f"n_gpu_layers={int(spec.n_gpu_layers)}",
+            "used": dict(used) if isinstance(used, Mapping) and used else None}
 
 
 def spec_for(config: BenchConfig, backend: str, *, runtimes: Mapping[str, pathlib.Path] | None
@@ -573,6 +591,12 @@ def render_report(report: Mapping[str, Any]) -> str:
     host = report.get("host", {})
     model = report.get("model", {})
     name = pathlib.Path(str(model.get("path") or model.get("name") or "model")).name
+    placement = report.get("placement") or {}
+    used = placement.get("used") or {}
+    placement_line = ([f"- placement: requested {placement.get('requested')}, used "
+                       f"n_gpu_layers={used.get('n_gpu_layers')} kv_type={used.get('kv_type')}"
+                       + (" (degraded)" if used.get("degraded") else "")]
+                      if used else [])
     lines = [f"### {report.get('suite')} — {name}",
              "",
              f"- generated: {report.get('generated_at')}",
@@ -581,6 +605,8 @@ def render_report(report: Mapping[str, Any]) -> str:
              f"- config: backend={config.get('backend')} runs={config.get('runs')} "
              f"threads={config.get('threads')}",
              f"- reproduce: `{report.get('commands', {}).get('reproduce')}`",
+             # what the row really ran with (a degradation offloads less than the flags asked)
+             *placement_line,
              ""]
     summary_header = ["n", "p50", "p95", "min", "max"]
     if report.get("suite") == "latency":

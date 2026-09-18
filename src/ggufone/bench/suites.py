@@ -109,6 +109,8 @@ def _run_latency(config: harness.BenchConfig, make: Factory) -> dict[str, Any]:
     try:
         loads = [float(model.load()) for _ in range(max(1, config.runs))]
         report["model_load"] = harness.summarise(loads)
+        # what the loader did with the requested placement (a degraded retry offloads less)
+        report["placement"] = harness.placement_of(model, spec)
         report["prefill"] = _prefill_rows(config, model)
         report["per_question"] = _per_question_rows(config, model)
         report["wave_scaling"] = _wave_scaling_rows(config, model)
@@ -371,6 +373,7 @@ def _throughput_row(config: harness.BenchConfig, make: Factory,
     try:
         loads = [float(model.load()) for _ in range(max(1, config.runs))]
         row["load_ms"] = harness.summarise(loads)
+        row["placement_used"] = harness.placement_of(model, spec)
         single = dataclasses.replace(config, prefill_sizes=tuple(config.prefill_sizes[:1]))
         prefill_rows = _prefill_rows(single, model)
         row["prefill"] = prefill_rows

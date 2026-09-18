@@ -53,7 +53,7 @@ import subprocess
 import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from ggufone.errors import BackendOomError, GgufCorruptError, ModelNotFoundError
 from ggufone.registry import gguf, recommend, store
@@ -463,11 +463,13 @@ def plan_device_bytes(plan: FitPlan, model: ModelFacts) -> int:
     Full offload owns the weights, the KV cache and the runtime overhead; a partial offload owns
     the offloaded share of the weights plus the same KV/overhead (llama.cpp keeps the KV of an
     offloaded layer on that device, which is the conservative reading `_gpu_layers` already uses).
-    A CPU plan (`n_gpu_layers == 0`) asks the device for nothing.
+    A CPU plan (`n_gpu_layers == 0`) asks the device for nothing; a *negative* count means every
+    layer (`planned_layers`), i.e. the full weight footprint.
     """
-    if plan.n_gpu_layers <= 0 or model.n_layer <= 0:
+    layers = planned_layers(plan, model)
+    if layers <= 0 or model.n_layer <= 0:
         return 0
-    share = min(1.0, plan.n_gpu_layers / model.n_layer)
+    share = min(1.0, layers / model.n_layer)
     weights = int(plan.est_weights_bytes * share) if share < 1.0 else plan.est_weights_bytes
     return weights + plan.est_kv_bytes
 
@@ -477,23 +479,98 @@ def _kv_bytes_for(model: ModelFacts, kv_type: str, n_ctx: int) -> int:
                               KV_BYTES_PER_ELEMENT[kv_type]) * int(n_ctx)
 
 
-def degrade_ladder(plan: FitPlan, model: ModelFacts) -> tuple[FitPlan, ...]:
+# ------------------------------------------------- placements, not just plans (E2 FIX t_31b3943a)
+@runtime_checkable
+class PlacementLike(Protocol):
+    """The minimum a caller must carry to be let through the ladder.
+
+    `ggufone bench` passes exactly this — a layer count and nothing else — because a published
+    row has to be reproducible from its flags, not from a fit plan written on another box.
+    """
+
+    n_gpu_layers: int
+
+
+def kv_start(kv_type: str | None) -> str:
+    """The rung a KV ladder starts at: a known type keeps its place, anything else starts on top.
+
+    `auto` (the request default) and an unknown word both mean "nothing was pinned", which is the
+    top rung — the rule `estimate_plan` and `session._kv_ladder` already use, kept in one function
+    so the load-time ladder cannot disagree with them.
+    """
+    value = str(kv_type) if kv_type else ""
+    return value if value in KV_DOWNGRADE_ORDER else KV_DOWNGRADE_ORDER[0]
+
+
+def coerce_plan(plan: Any) -> FitPlan:
+    """Normalize a *placement-like* object into the `FitPlan` the loader's ladder documents.
+
+    Not every caller of `session.open_model` holds a fit plan: `ggufone bench` names its placement
+    explicitly (`--gpu-layers`), and that object carries one field (card t_31b3943a). Every field
+    the ladder reads must have an answer, so the ones a minimal placement cannot know get the
+    honest default instead of an `AttributeError`:
+
+    * `kv_type = "auto"` — nothing was pinned; a load only needs the layer count and the context
+      init resolves the rung (`session._kv_ladder`).
+    * `n_ctx`, `est_*`, `budget_bytes = 0` — a load sizes no cache, so there is nothing to size.
+
+    A real `FitPlan` is returned unchanged (identity preserved: callers compare plans).
+    """
+    if isinstance(plan, FitPlan):
+        return plan
+    return FitPlan(
+        n_gpu_layers=int(getattr(plan, "n_gpu_layers", 0) or 0),
+        n_ctx=int(getattr(plan, "n_ctx", 0) or 0),
+        kv_type=str(getattr(plan, "kv_type", None) or "auto"),
+        n_seq_max=int(getattr(plan, "n_seq_max", 0) or 0),
+        est_weights_bytes=int(getattr(plan, "est_weights_bytes", 0) or 0),
+        est_kv_bytes=int(getattr(plan, "est_kv_bytes", 0) or 0),
+        est_total_bytes=int(getattr(plan, "est_total_bytes", 0) or 0),
+        backend=str(getattr(plan, "backend", "") or ""),
+        source=str(getattr(plan, "source", "") or ""),
+        warnings=tuple(getattr(plan, "warnings", ()) or ()),
+        notes=tuple(getattr(plan, "notes", ()) or ()),
+        arch=getattr(plan, "arch", None),
+        model_sha256=str(getattr(plan, "model_sha256", "") or ""),
+        host_fingerprint=str(getattr(plan, "host_fingerprint", "") or ""),
+        budget_bytes=int(getattr(plan, "budget_bytes", 0) or 0),
+        created_at=str(getattr(plan, "created_at", "") or ""))
+
+
+def planned_layers(plan: FitPlan, model: ModelFacts) -> int:
+    """The layer count a plan really asks the device for: a negative count means "all of them".
+
+    llama.cpp reads `n_gpu_layers < 0` as "offload every layer" — which is what the benchmark's
+    GPU default passes — so `-1` is the *largest* footprint a plan can have, not an empty one: the
+    ladder has to be able to reduce from it (card t_31b3943a).
+    """
+    if plan.n_gpu_layers < 0:
+        return max(0, int(model.n_layer))
+    return max(0, int(plan.n_gpu_layers))
+
+
+def degrade_ladder(plan: FitPlan | PlacementLike, model: ModelFacts) -> tuple[FitPlan, ...]:
     """The documented degradation ladder: fewer layers -> smaller kv_type -> CPU-only.
 
     Ordered by decreasing device footprint, ending at a plan that asks the device for nothing, so
     the last rung is always available. Each step carries `W_FIT_DOWNGRADE` (the plan was reduced)
     and, when the KV type moved, `W_KV_TYPE_DOWNGRADE`. A caller walks it until a load succeeds.
+
+    The input may be any placement-like object: it is normalized first (`coerce_plan`), so a
+    minimal `n_gpu_layers`-only placement and a `kv_type: auto` plan are walked like any other —
+    never an `AttributeError`, never a `KeyError` (card t_31b3943a).
     """
+    plan = coerce_plan(plan)
     steps: list[FitPlan] = []
-    rungs = list(KV_DOWNGRADE_ORDER[KV_DOWNGRADE_ORDER.index(plan.kv_type):]) \
-        if plan.kv_type in KV_DOWNGRADE_ORDER else list(KV_DOWNGRADE_ORDER)
+    start = kv_start(plan.kv_type)           # `auto`/unknown -> the top rung, like the planner
+    rungs = list(KV_DOWNGRADE_ORDER[KV_DOWNGRADE_ORDER.index(start):])
 
     def emit(n_gpu_layers: int, kv_type: str) -> None:
         kv_bytes = _kv_bytes_for(model, kv_type, plan.n_ctx)
         warnings = list(plan.warnings)
         if "W_FIT_DOWNGRADE" not in warnings:
             warnings.append("W_FIT_DOWNGRADE")
-        if kv_type != plan.kv_type and "W_KV_TYPE_DOWNGRADE" not in warnings:
+        if kv_type != start and "W_KV_TYPE_DOWNGRADE" not in warnings:
             warnings.append("W_KV_TYPE_DOWNGRADE")
         notes = list(plan.notes)
         if n_gpu_layers == 0:
@@ -504,12 +581,12 @@ def degrade_ladder(plan: FitPlan, model: ModelFacts) -> tuple[FitPlan, ...]:
             + (plan.est_total_bytes - plan.est_weights_bytes - plan.est_kv_bytes),
             warnings=tuple(warnings), notes=tuple(notes)))
 
-    layers = int(plan.n_gpu_layers)
+    layers = planned_layers(plan, model)
     if layers > 0:
-        emit(max(1, layers // 2), plan.kv_type)
-        emit(0, plan.kv_type)
+        emit(max(1, layers // 2), start)
+        emit(0, start)
     for rung in rungs:
-        if rung != plan.kv_type:
+        if rung != start:
             emit(0, rung)
     return tuple(steps)
 

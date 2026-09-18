@@ -213,7 +213,10 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
 
     `fit_plan` (E1c) contributes the placement: `n_gpu_layers` comes from the plan
     (`llama_model_params.n_gpu_layers`); without a plan — or with `--no-fit` — the model is
-    placed on the CPU and the placement note says so.
+    placed on the CPU and the placement note says so. Anything that *names a placement* is
+    accepted, not only a full `fit.FitPlan`: `fit.coerce_plan` normalizes it once, right here, so
+    a minimal object (the benchmark's `Placement`, `n_gpu_layers` and nothing else) cannot reach
+    the ladder as an `AttributeError` (card t_31b3943a).
 
     **Allocation failures degrade, they do not kill the run** (card t_8cb0a05e). The backend's own
     log is captured through `llama_log_set`, classified (`fit.classify_load_failure`) and, when it
@@ -242,15 +245,17 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
         capability.require_arch(rt_dir, arch, lock=None)
     runtime = ctypes_binding.load_libraries(rt_dir, system=system)
     llama = runtime.llama
-    facts = _model_facts_for_ladder(model_path, fit_plan)
-    queue: list[Any | None] = [fit_plan]
+    plan = fit.coerce_plan(fit_plan) if fit_plan is not None else None
+    facts = _model_facts_for_ladder(model_path, plan)
+    queue: list[Any | None] = [plan]
     # At LOAD time only the layer count matters (the KV cache does not exist yet): walk fewer
     # layers down to CPU-only, and leave the kv_type rungs to the context init, which is where
-    # a KV cache is actually allocated.
-    walk = [step for step in fit.degrade_ladder(fit_plan, facts)
-            if fit_plan is not None and facts is not None
-            and step.kv_type == getattr(fit_plan, "kv_type", None)] \
-        if (degrade and fit_plan is not None and facts is not None) else []
+    # a KV cache is actually allocated. A plan that pinned no rung (`auto`) starts at the top of
+    # the KV ladder, so the layer rungs are still built for it.
+    walk = [step for step in fit.degrade_ladder(plan, facts)
+            if plan is not None and facts is not None
+            and step.kv_type == fit.kv_start(plan.kv_type)] \
+        if (degrade and plan is not None and facts is not None) else []
     attempts: list[str] = []
     oom_seen = False
     walk_started = False
@@ -295,10 +300,10 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
                 needed = fit.plan_device_bytes(candidate, facts)
             raise fit.backend_oom_error(candidate, free_bytes=_free_bytes(free_probe),
                                         needed_bytes=needed, log_tail=text, attempts=attempts)
-        if not cpu_retry_used and not walk_started and fit_plan is not None and facts is not None \
-                and n_gpu_layers > 0:
+        if not cpu_retry_used and not walk_started and plan is not None and facts is not None \
+                and n_gpu_layers != 0:
             cpu_retry_used = True           # a silent failure still deserves one CPU attempt
-            queue.append(_cpu_only(fit_plan, facts))
+            queue.append(_cpu_only(plan, facts))
             continue
         raise _load_failure(model_path, arch, attempts, text)
     raise _load_failure(model_path, arch, attempts, "")   # pragma: no cover - queue never empty
