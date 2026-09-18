@@ -14,10 +14,14 @@ import json
 import pathlib
 import sys
 import time
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from ggufone import __version__, schema
+from ggufone.bench import devset as devset_module
 from ggufone.bench import harness, suites
+from ggufone.calibration import calibrate as calibration_module
+from ggufone.calibration import routing
 from ggufone.engine import decide
 from ggufone.engine import session as session_module
 from ggufone.errors import GgufoneError, ModelNotFoundError, Sha256MismatchError, UserError
@@ -50,7 +54,9 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
             "--threads N", "--n-ctx N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0",
             "--readout sequence|single_token", "--confidence-mode MODE", "--temperature F",
             "--length-norm F", "--coverage-floor F", "--state-id ID", "--save-state",
-            "--no-state-cache", "--strict", "--max-waves N"),
+            "--no-state-cache", "--strict", "--max-waves N",
+            "--route off|auto", "--escalate", "--max-escalations N",
+            "--escalation-model REF", "--audit DIR"),
     "ask": ("--state TEXT|@FILE", "--state-json FILE", "--choice 'id=instr:opt1|opt2'",
             "--score 'id=instr:l0|l1'", "--noul 'id=instr'", "… plus every `run` flag"),
     "fit": ("[<model>]", "--print", "--no-cache", "--json", "--fit-target MIB", "--fit-ctx N",
@@ -61,7 +67,10 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
               "--backend auto|cpu|vulkan|cuda|all", "--runs N", "--threads N", "--devset FILE",
               "--items N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--gpu-layers N",
               "--sizes 256,2048,8192", "--out FILE", "--json"),
-    "calibrate": ("--model REF", "--dry-run"),
+    "calibrate": ("--model REF", "--dry-run", "--json", "--out FILE", "--from-report FILE",
+                  "--devset FILE", "--items N", "--holdout F", "--mode MODE", "--threads N",
+                  "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--fit-target MIB",
+                  "--no-fit-cache"),
     "version": ("--json",),
 }
 
@@ -738,9 +747,10 @@ def _models_recommend_quant(args: list[str]) -> int:
 ENGINE_VALUE_FLAGS = ("model", "format", "state-id", "temperature", "length-norm", "readout",
                       "confidence-mode", "coverage-floor", "n-ctx", "n-seq-max", "kv-type",
                       "threads", "backend", "seed", "max-waves", "out", "questions", "state",
-                      "state-json", "template")
+                      "state-json", "template", "route", "max-escalations", "escalation-model",
+                      "audit")
 ENGINE_BOOL_FLAGS = ("strict", "save-state", "no-state-cache", "thinking", "no-fit",
-                     "no-fit-cache")
+                     "no-fit-cache", "escalate")
 FIT_VALUE_FLAGS = ("fit-target", "fit-ctx")
 
 
@@ -751,7 +761,7 @@ def _engine_options(options: dict[str, Any]) -> dict[str, Any]:
         "n_ctx": int, "n_seq_max": int, "threads": int, "seed": int, "max_waves": int,
         "readout": str, "confidence_mode": str, "kv_type": str, "backend": str,
         "state_id": str, "strict": bool, "save_state": bool, "template": str,
-        "thinking": bool,
+        "thinking": bool, "route": str, "escalate": bool, "max_escalations": int,
     }
     engine: dict[str, Any] = {}
     for key, caster in mapping.items():
@@ -892,9 +902,13 @@ def fit_plan_for(model_path: str, *, home: pathlib.Path | None = None, use_cache
 def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
                    fit_enabled: bool = True, fit_target_mb: int | None = None,
                    fit_ctx: int | None = None, fit_cache: bool = True) -> dict[str, Any]:
-    """Validate -> resolve -> fit -> load -> prefilled fork-decide -> rendered response body."""
+    """Validate -> route -> resolve -> fit -> load -> prefilled fork-decide -> response body."""
     request = schema.parse_request(payload)
+    route_plan = route_request(request, home=home, fit_target_mb=fit_target_mb)
+    if route_plan is not None:
+        request = _with_route_options(request, route_plan)
     alias, model_path = _resolve_model(request, home=home)
+    calibration = load_calibration_for(model_path, home=home)
     plan: fit.FitPlan | None = None
     n_ctx_cap: int | None = None
     if fit_enabled:
@@ -912,14 +926,170 @@ def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
         with session_module.ModelSession(handle, context_plan,
                                          backend=session_module.runtime_backend(home),
                                          states_home=store.states_dir(home)) as live:
-            result = decide.DecisionEngine(live).decide(request, plan=context_plan,
-                                                        model_alias=alias)
+            result = decide.DecisionEngine(live, calibration=calibration).decide(
+                request, plan=context_plan, model_alias=alias)
         body = schema.render_response(result.payload(), format=request.format)
     if effective is not None and isinstance(body.get("engine"), dict):
         # surface the plan the load really used, not the one that was asked for (card t_8cb0a05e):
         # a degraded retry offloads fewer layers, and the response has to say so.
         body["engine"]["fit"] = effective.to_dict()
+    if route_plan is not None and isinstance(body.get("engine"), dict):
+        # A-E2p5-8: the routing decision and its reason belong in the response, next to the answer
+        body["engine"]["route"] = route_plan.to_dict()
+        body["model"] = route_plan.alias or body.get("model")
     return body
+
+
+# ----------------------------------------------- routing / escalation (E2.5)
+def route_request(request: schema.Request, *, home: pathlib.Path | None = None,
+                  host: fit.HostFacts | None = None, registry: store.Registry | None = None,
+                  runtime_dirs: Sequence[str] | None = None,
+                  facts_for: Any | None = None, supports_arch: Any | None = None,
+                  fit_target_mb: int | None = None) -> routing.RoutePlan | None:
+    """A `RoutePlan` for `route: "auto"`, or None when the request did not ask for one (2.10).
+
+    The candidates are the request's own model when it named one, otherwise every registry entry
+    with its file on disk: `--route auto` is the "let the registry pick" mode, while a named
+    `--model` still gets the *sizing* (kv_type, n_ctx, n_seq_max) computed for it. The arch
+    pre-flight runs against the runtime this run would actually load.
+    """
+    if request.options.route != "auto":
+        return None
+    known = registry if registry is not None else store.load_registry(
+        store.registry_path(home))[0]
+    candidates: list[routing.Candidate] = []
+    if request.model:
+        alias, path = _resolve_model_ref(request.model, home=home)
+        entry = known.aliases.get(alias)
+        candidates.append(routing.Candidate(
+            alias=alias, path=path, quant=entry.quant if entry else None,
+            arch=entry.arch if entry else None, size=entry.size if entry else None,
+            available=pathlib.Path(path).is_file()))
+    else:
+        candidates = [routing.Candidate.from_entry(entry)
+                      for _alias, entry in sorted(known.aliases.items())]
+    if not candidates:
+        return None                 # nothing to choose from: `_resolve_model` explains why
+    runtimes = list(runtime_dirs) if runtime_dirs is not None else []
+    if runtime_dirs is None:
+        found = finder.find_runtime(home=home)
+        runtimes = [str(found)] if found else []
+    return routing.route(
+        candidates, needs=routing.needs_for(request),
+        host=host if host is not None else fit.host_facts(), facts_for=facts_for,
+        runtime_dirs=runtimes, kv_type=request.options.kv_type,
+        fit_target_mb=int(fit_target_mb if fit_target_mb is not None
+                          else fit.DEFAULT_FIT_TARGET_MB),
+        supports_arch=supports_arch)
+
+
+def _with_route_options(request: schema.Request, plan: routing.RoutePlan) -> schema.Request:
+    """Fill what the request left open with the plan, capped by the plan's own ceilings."""
+    options = request.options
+    kv_type = plan.kv_type if options.kv_type in ("auto", None) else options.kv_type
+    n_ctx = plan.n_ctx if options.n_ctx is None else min(int(options.n_ctx), int(plan.n_ctx))
+    n_seq_max = (plan.n_seq_max if options.n_seq_max is None
+                 else min(int(options.n_seq_max), int(plan.n_seq_max)))
+    return dataclasses.replace(
+        request, model=plan.path,
+        options=dataclasses.replace(options, kv_type=kv_type, n_ctx=n_ctx,
+                                    n_seq_max=n_seq_max))
+
+
+def load_calibration_for(model_path: str, *, home: pathlib.Path | None = None
+                         ) -> calibration_module.Table | None:
+    """The stored calibration for this model, or None (A-E2p5-1: applied at readout)."""
+    key = calibration_module.model_key_for(model_path)
+    try:
+        return calibration_module.load_table(store.calibration_path(home), key)
+    except ValueError as exc:
+        raise UserError(f"{exc}", code="E_REGISTRY_CORRUPT") from exc
+
+
+def escalate_if_requested(payload: dict[str, Any], response: dict[str, Any], *,
+                          target: dict[str, Any] | None = None,
+                          decide_fn: Any | None = None, home: pathlib.Path | None = None,
+                          request: schema.Request | None = None,
+                          threshold: float = routing.DEFAULT_ESCALATION_THRESHOLD
+                          ) -> dict[str, Any]:
+    """Second opinion for low-confidence answers (A-E2p5-5): opt-in, bounded, always logged.
+
+    The escalated questions are re-asked on `target` through `decide_fn` and merged back; every
+    decision — including the answers the target did not return, and the case of no target at all
+    — leaves a record in `engine.escalations`. The sub-request carries `escalate: false`, so an
+    escalation can never cascade: the bound is the bound.
+    """
+    request = request or schema.parse_request(payload)
+    options = request.options
+    engine = response.get("engine")
+    if not isinstance(engine, dict):
+        # the typesafe adapter has no place for a native-only record: `--format typesafe` never
+        # escalates (and never grows a key the adapter would have to drop again)
+        return response
+    if not options.escalate:
+        engine["escalations"] = routing.EscalationLog.disabled().to_dict()
+        return response
+    answers = response.get("answers") or {}
+    decisions = routing.escalation_candidates(answers, threshold=threshold,
+                                              max_escalations=options.max_escalations)
+    if not decisions:
+        response["engine"]["escalations"] = routing.EscalationLog(
+            enabled=True, limit=options.max_escalations, threshold=threshold,
+            target=dict(target) if target else None).to_dict()
+        return response
+    if target is None or decide_fn is None:
+        merged, log = routing.apply_escalation(answers, {}, decisions, target=None,
+                                               limit=options.max_escalations,
+                                               threshold=threshold)
+    else:
+        sub_response = decide_fn(_escalation_payload(payload, decisions, target), home=home)
+        merged, log = routing.apply_escalation(answers, sub_response.get("answers") or {},
+                                               decisions, target=target,
+                                               limit=options.max_escalations,
+                                               threshold=threshold)
+    response["answers"] = merged
+    response["engine"]["escalations"] = log.to_dict()
+    if log.count:
+        warnings = response.setdefault("warnings", [])
+        if "W_ESCALATED" not in warnings:
+            warnings.append("W_ESCALATED")
+    return response
+
+
+def _escalation_payload(payload: dict[str, Any], decisions: Sequence[Any],
+                        target: Mapping[str, Any]) -> dict[str, Any]:
+    """The sub-request: only the flagged questions, on the target model, without escalation."""
+    wanted = {decision.question for decision in decisions}
+    questions = {qid: body for qid, body in (payload.get("questions") or {}).items()
+                 if qid in wanted}
+    options = {key: value for key, value in (payload.get("options") or {}).items()
+               if key not in ("escalate", "max_escalations", "route")}
+    options["escalate"] = False
+    return {"state": payload.get("state"), "model": target.get("path") or target.get("model"),
+            "questions": questions, "options": options}
+
+
+def write_audit(directory: str | pathlib.Path, *, command: str, payload: dict[str, Any],
+                response: dict[str, Any]) -> pathlib.Path:
+    """Append one decision record to `<DIR>/audit.jsonl` (A-E2p5-8, opt-in via `--audit DIR`)."""
+    target = pathlib.Path(directory)
+    target.mkdir(parents=True, exist_ok=True)
+    path = target / "audit.jsonl"
+    engine = response.get("engine") if isinstance(response.get("engine"), dict) else {}
+    record = {
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "command": command,
+        "model": response.get("model"),
+        "questions": sorted(payload.get("questions") or {}),
+        "route": engine.get("route"),
+        "calibration": response.get("calibration"),
+        "escalations": engine.get("escalations"),
+        "warnings": list(response.get("warnings") or []),
+        "timings": dict(response.get("timings") or {}),
+    }
+    with open(path, "a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record) + "\n")
+    return path
 
 
 def _with_fit_options(request: schema.Request, plan: fit.FitPlan) -> schema.Request:
@@ -947,12 +1117,44 @@ def _cmd_run(args: list[str]) -> int:
                                      fmt=options.get("format"),
                                      engine_options=_engine_options(options))
     response = decide_payload(payload, **_fit_arguments(options))
+    response = escalate_if_requested(payload, response,
+                                     target=_escalation_target(payload, response, options),
+                                     decide_fn=(lambda sub, **kwargs: decide_payload(
+                                         sub, **_fit_arguments(options))),
+                                     home=None)
+    if options.get("audit"):
+        write_audit(options["audit"], command="run", payload=payload, response=response)
     text = json.dumps(response, indent=2, sort_keys=False)
     if options.get("out"):
         pathlib.Path(options["out"]).write_text(text + "\n", encoding="utf-8")
     else:
         print(text)
     return 0
+
+
+def _escalation_target(payload: dict[str, Any], response: dict[str, Any],
+                       options: dict[str, Any]) -> dict[str, Any] | None:
+    """Where a second opinion runs: `--escalation-model`, else the route's runner-up.
+
+    The router already ranked every candidate it could run; when it rejected one of them for
+    being *below* the winner, that is exactly the "larger model for the shaky answers" the
+    escalation path wants. Explicitly named targets always win.
+    """
+    ref = options.get("escalation_model")
+    if ref:
+        alias, path = _resolve_model_ref(ref)
+        return {"alias": alias, "path": path, "model": alias}
+    engine = response.get("engine")
+    steps = (engine or {}).get("route", {}).get("steps") or []
+    for step in steps:
+        if step.get("verdict") == "rejected" and step.get("alias") and step.get("n_ctx"):
+            alias = str(step["alias"])
+            try:
+                resolved_alias, path = _resolve_model_ref(alias)
+            except GgufoneError:
+                continue
+            return {"alias": resolved_alias, "path": path, "model": resolved_alias}
+    return None
 
 
 def _fit_arguments(options: dict[str, Any]) -> dict[str, Any]:
@@ -1012,6 +1214,13 @@ def _cmd_ask(args: list[str]) -> int:
                                      model=options.get("model"), fmt=options.get("format"),
                                      engine_options=_engine_options(options))
     response = decide_payload(payload, **_fit_arguments(options))
+    response = escalate_if_requested(payload, response,
+                                     target=_escalation_target(payload, response, options),
+                                     decide_fn=(lambda sub, **kwargs: decide_payload(
+                                         sub, **_fit_arguments(options))),
+                                     home=None)
+    if options.get("audit"):
+        write_audit(options["audit"], command="ask", payload=payload, response=response)
     text = json.dumps(response, indent=2, sort_keys=False)
     if options.get("out"):
         pathlib.Path(options["out"]).write_text(text + "\n", encoding="utf-8")
@@ -1083,6 +1292,71 @@ def _cmd_bench(args: list[str]) -> int:
         if options.get("out"):
             print(f"report: {options['out']}")
     return 0 if report.get("ok", True) else 1
+
+
+# --------------------------------------------------------------------- calibrate (E2.5)
+CALIBRATE_VALUE_FLAGS = ("model", "out", "from-report", "devset", "items", "holdout", "mode",
+                         "threads", "n-seq-max", "kv-type", "fit-target")
+CALIBRATE_BOOL_FLAGS = ("dry-run", "json", "no-fit-cache")
+
+
+def _calibration_rows(options: dict[str, Any], model_path: str) -> tuple[list[Any], str]:
+    """The labelled rows the fit runs on: a committed report, or a live calibration suite.
+
+    `--from-report` is the reproducible path (fit without a model, from the JSON `--suite
+    calibration` published); without it the dev set is re-measured on this box, which is what
+    SPEC 2.10 asks for ("re-measure with the fixed fit path").
+    """
+    report = options.get("from_report")
+    if report:
+        return calibration_module.load_rows(report), str(report)
+    config = harness.BenchConfig(
+        suite="calibration", model_path=model_path,
+        threads=int(options["threads"]) if "threads" in options else None,
+        devset=options.get("devset"),
+        items=int(options["items"]) if "items" in options else None,
+        n_seq_max=int(options["n_seq_max"]) if "n_seq_max" in options else None,
+        kv_type=options.get("kv_type", "auto"))
+    measured = suites.run_suite(config, factory=suites.live_factory)
+    items = measured.get("items") or []
+    rows = [calibration_module.Row.from_item(item) for item in items]
+    path = options.get("devset") or str(devset_module.devset_path(None))
+    return rows, path
+
+
+def _cmd_calibrate(args: list[str]) -> int:
+    """`ggufone calibrate [--model REF] [--dry-run]` (SPEC 2.8/2.10, A-E2p5-1..3/6).
+
+    Exit 0 = a table was fitted (and stored unless `--dry-run`), 1 = the fit was rejected and
+    nothing was stored, 2 = user error, 3 = runtime/model error.
+    """
+    positionals, options = _parse_args(args, value_flags=CALIBRATE_VALUE_FLAGS,
+                                       bool_flags=CALIBRATE_BOOL_FLAGS)
+    if positionals:
+        raise UserError(f"unexpected argument {positionals[0]!r}", code="E_UNKNOWN_KEY")
+    alias, model_path = _resolve_model_ref(options.get("model"))
+    rows, devset = _calibration_rows(options, model_path)
+    table = calibration_module.fit_table(
+        rows, model_key=calibration_module.model_key_for(model_path), model_path=model_path,
+        alias=alias, devset_path=devset,
+        mode=options.get("mode", calibration_module.readout.DEFAULT_CONFIDENCE_MODE),
+        holdout_fraction=float(options.get("holdout", calibration_module.HOLDOUT_FRACTION)))
+    if options.get("dry_run"):
+        print(json.dumps(table.to_json(), indent=2, sort_keys=False) if options.get("json")
+              else calibration_module.render_table(table))
+        return 0
+    stored = calibration_module.save_table(store.calibration_path(), table)
+    out = options.get("out")
+    if out:
+        pathlib.Path(out).write_text(json.dumps(table.to_json(), indent=2, sort_keys=False)
+                                     + "\n", encoding="utf-8")
+    if options.get("json"):
+        print(json.dumps(table.to_json(), indent=2, sort_keys=False))
+    else:
+        print(calibration_module.render_table(table))
+        if stored:
+            print(f"stored: {stored}")
+    return 0 if stored else 1
 
 
 # --------------------------------------------------------------------- fit (E1c)
@@ -1185,6 +1459,8 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_bench(rest)
         if cmd == "fit":
             return _cmd_fit(rest)
+        if cmd == "calibrate":
+            return _cmd_calibrate(rest)
     except GgufoneError as exc:
         return _fail(exc, command=cmd)
     except KeyboardInterrupt:  # pragma: no cover - interactive

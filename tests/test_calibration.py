@@ -204,7 +204,7 @@ def test_the_fit_leaves_an_already_calibrated_run_alone() -> None:
 
 
 def test_the_fit_never_returns_a_grid_point_worse_than_doing_nothing() -> None:
-    """The gate's honesty floor: `temperature = 1.0` is always in the grid (and is the reference)."""
+    """The gate's honesty floor: `temperature = 1.0` is in the grid (and is the reference)."""
     for temperature in (0.2, 0.5, 1.0, 3.0, 12.0):
         rows, correct = _rows_from_softmax(temperature, n=60)
         fit = stats.fit_temperature(rows, correct)
@@ -377,7 +377,7 @@ def _calibrated_rows(types: tuple[str, ...] = ("choice",), *, per_type: int = 12
                                  "sales": (1 - peak) / 3}
                 expected = "billing"
                 got = "billing" if hit else "api"
-                if not hit:                       # the miss must be the argmax failure, not the peak
+                if not hit:               # the miss must be the argmax failure, not the peak
                     probabilities = {"billing": (1 - peak) * 2 / 3, "api": peak,
                                      "sales": (1 - peak) / 3}
             else:
@@ -597,3 +597,153 @@ def test_the_dry_run_table_names_every_type_and_the_verdict() -> None:
     assert "temperature" in text and "holdout" in text
     assert "applied" in text
     assert table.params_hash in text
+
+
+# ------------------------------------------- the `calibrate` command (A-E2p5-1)
+def _report_file(tmp_path, items: list[dict], name: str = "e2_calibration.json"):
+    path = tmp_path / name
+    path.write_text(json.dumps({"schema": "ggufone.bench/v1", "suite": "calibration",
+                                "items": items}), encoding="utf-8")
+    return path
+
+
+def _model_file(tmp_path, name: str = "tiny.gguf"):
+    path = tmp_path / name
+    path.write_bytes(b"GGUF" + b"\0" * 32)
+    return path
+
+
+def test_the_calibrate_command_fits_a_report_and_stores_it(tmp_path, monkeypatch, capsys) -> None:
+    from ggufone import cli
+    from ggufone.registry import store
+    home = tmp_path / "home"
+    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    report = _report_file(tmp_path, _report_rows(("choice", "noul"), per_type=18,
+                                                 temperature=2.0))
+    model = _model_file(tmp_path)
+    code = cli.main(["calibrate", "--model", str(model), "--from-report", str(report),
+                     "--json"])
+    assert code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["accepted"] is True
+    assert payload["params_hash"].startswith("sha256:")
+    stored = calibrate.load_table(store.calibration_path(home), payload["model"])
+    assert stored is not None and stored.params_hash == payload["params_hash"]
+
+
+def test_the_calibrate_dry_run_prints_the_table_and_stores_nothing(tmp_path, monkeypatch,
+                                                                  capsys) -> None:
+    from ggufone import cli
+    from ggufone.registry import store
+    home = tmp_path / "home"
+    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    report = _report_file(tmp_path, _report_rows(("choice",), per_type=18, temperature=2.0))
+    model = _model_file(tmp_path)
+    code = cli.main(["calibrate", "--model", str(model), "--from-report", str(report),
+                     "--dry-run"])
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "temperature" in out and "choice" in out and "applied" in out
+    assert not store.calibration_path(home).exists()
+
+
+def test_the_calibrate_command_reports_when_nothing_was_stored(tmp_path, monkeypatch,
+                                                               capsys) -> None:
+    from ggufone import cli
+    from ggufone.registry import store
+    home = tmp_path / "home"
+    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    items = [row.to_json() for row in _calibrated_rows(per_type=18)]
+    report = _report_file(tmp_path, items)
+    code = cli.main(["calibrate", "--model", str(_model_file(tmp_path)),
+                     "--from-report", str(report)])
+    assert code == 1
+    assert "no calibration applied" in capsys.readouterr().out
+    assert not store.calibration_path(home).exists()
+
+
+def test_the_calibrate_command_needs_a_model(tmp_path, monkeypatch, capsys) -> None:
+    from ggufone import cli
+    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "empty-home"))
+    assert cli.main(["calibrate"]) == 2
+    assert "E_MODEL_NOT_FOUND" in capsys.readouterr().err
+
+
+def test_the_calibrate_command_measures_the_committed_dev_set_without_a_report(
+        tmp_path, monkeypatch, capsys) -> None:
+    """Without `--from-report` the fit re-measures the dev set — the E2 mechanism, reused."""
+    from ggufone import cli
+    captured: dict = {}
+
+    def fake_run(config, factory=None):
+        captured["config"] = config
+        return {"items": _report_rows(("choice",), per_type=18, temperature=2.0)}
+
+    monkeypatch.setattr(cli.suites, "run_suite", fake_run)
+    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+    code = cli.main(["calibrate", "--model", str(_model_file(tmp_path)), "--dry-run", "--json"])
+    assert code == 0
+    config = captured["config"]
+    assert config.suite == "calibration"
+    assert config.model_path.endswith("tiny.gguf")
+    assert json.loads(capsys.readouterr().out)["accepted"] is True
+
+
+# ------------------------------------------------- the readout hook (A-E2p5-1)
+def _choice_request(options: dict | None = None):
+    from ggufone import schema
+    payload = {"state": "The checkout page returns HTTP 500 for every customer.",
+               "questions": {"area": {"type": "choice",
+                                      "criteria": {"billing": None, "api": None, "sales": None}}}}
+    if options:
+        payload["options"] = options
+    return schema.parse_request(payload)
+
+
+def _biased_session():
+    from tests.fake_engine import FakeSession, biased_row
+    session = FakeSession(n_vocab=512)
+    ids = {"billing": session.tokenize("billing")[0], "api": session.tokenize("api")[0],
+           "sales": session.tokenize("sales")[0]}
+    session.row_fn = lambda ctx, ids=ids, session=session: biased_row(
+        session.n_vocab, {ids["billing"]: 6.0, ids["api"]: 6.0 - 0.7, ids["sales"]: 6.0 - 3.0})
+    return session
+
+
+def _table_for_fake_model(temperature: float = 2.0):
+    return calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=temperature),
+                               model_key="file:tiny.gguf:36")
+
+
+def test_a_calibrated_table_scales_the_readout_and_marks_the_response() -> None:
+    from ggufone.engine import decide
+    table = _table_for_fake_model()
+    baseline = decide.DecisionEngine(_biased_session()).decide(_choice_request())
+    engine = decide.DecisionEngine(_biased_session(), calibration=table)
+    result = engine.decide(_choice_request())
+    payload = result.payload()
+    assert payload["calibrated"] is True
+    assert payload["calibration"]["applied"] is True
+    assert payload["calibration"]["temperatures"]["choice"] == table.types["choice"].temperature
+    assert payload["calibration"]["params_hash"] == table.params_hash
+    raw = payload["answers"]["area"]["probabilities"]
+    before = baseline.payload()["answers"]["area"]["probabilities"]
+    expected = table.apply(list(before.values()), "choice")["probabilities"]
+    assert list(raw) == list(before)
+    for key, value in zip(raw, expected, strict=True):
+        assert raw[key] == pytest.approx(value)
+    assert raw["billing"] > before["billing"]           # a soft run gets sharpened
+    assert payload["answers"]["area"]["choice"] == baseline.payload()["answers"]["area"]["choice"]
+    assert baseline.payload()["calibrated"] is False
+    assert baseline.payload()["calibration"]["applied"] is False
+
+
+def test_the_engine_ignores_a_table_that_was_never_accepted() -> None:
+    from ggufone.engine import decide
+    table = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="file:tiny.gguf:36")
+    payload = decide.DecisionEngine(_biased_session(), calibration=table).decide(
+        _choice_request()).payload()
+    assert table.accepted is False
+    assert payload["calibrated"] is False
+    assert payload["calibration"]["source"] == ""
+    assert payload["calibration"]["applied"] is False

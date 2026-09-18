@@ -160,10 +160,14 @@ class DecideResult:
     usage: dict[str, Any]
     timings: dict[str, Any]
     warnings: list[str] = field(default_factory=list)
+    #: E2.5 (A-E2p5-1): whether a stored calibration was applied, and where it came from
+    calibrated: bool = False
+    calibration: dict[str, Any] = field(default_factory=dict)
 
     def payload(self) -> dict[str, Any]:
         return {"model": self.model, "engine": self.engine, "answers": self.answers,
-                "usage": self.usage, "timings": self.timings, "warnings": list(self.warnings)}
+                "usage": self.usage, "timings": self.timings, "warnings": list(self.warnings),
+                "calibrated": bool(self.calibrated), "calibration": dict(self.calibration)}
 
 
 # ----------------------------------------------------------------------- planning
@@ -261,11 +265,17 @@ class DecisionEngine:
 
     def __init__(self, session: Session, *, coverage_floor: float | None = None,
                  confidence_floor: float | None = None,
-                 context_margin: int = CONTEXT_MARGIN) -> None:
+                 context_margin: int = CONTEXT_MARGIN,
+                 calibration: Any | None = None) -> None:
         self.session = session
         self.coverage_floor = coverage_floor
         self.confidence_floor = confidence_floor
         self.context_margin = context_margin
+        #: E2.5 (SPEC 2.10): a `calibration.calibrate.Table` (duck-typed: `apply()` is the whole
+        #: contract) or None. Imported structurally so the engine keeps its zero-dependency
+        #: surface — the table arrives from the CLI, already resolved for this model.
+        self.calibration = calibration
+        self.calibrated_types: set[str] = set()
         self.batches: list[Batch] = []      # every decode issued for this engine (the spy)
         self.forks = 0
 
@@ -299,6 +309,7 @@ class DecisionEngine:
         question_started = time.perf_counter()
         answers: dict[str, Any] = {}
         warnings: list[str] = list(request.warnings)
+        self.calibrated_types.clear()
         if plan.template is not None:
             for code in plan.template.warnings:
                 _add_warning(warnings, code)
@@ -353,9 +364,37 @@ class DecisionEngine:
                 "total_ms": (time.perf_counter() - started) * 1000.0,
             },
             warnings=warnings,
+            calibrated=bool(self.calibrated_types),
+            calibration=self._calibration_surface(),
         )
 
+    def _calibration_surface(self) -> dict[str, Any]:
+        """The response's `calibrated` / `calibration` block (A-E2p5-1), never guessed."""
+        applied = sorted(self.calibrated_types)
+        if self.calibration is None:
+            return {"source": "", "applied": False, "model": None, "params_hash": "",
+                    "temperatures": {}, "accepted_types": []}
+        return self.calibration.response_fields(applied)
+
     # ---- guards
+    def _calibrate(self, probabilities: list[float], qtype: str, mode: str
+                   ) -> tuple[list[float], float]:
+        """E2.5 (SPEC 2.10): scale one question's probabilities, never its ranking.
+
+        The table is duck-typed: `apply()` returns the (possibly) scaled vector, the confidence
+        computed from it with the *requested* mode, and whether a parameter was applied at all.
+        A table that was never accepted — or a question type it has no accepted parameter for —
+        changes nothing, so `calibrated` in the response is only ever true when a stored
+        parameter really rescaled these numbers.
+        """
+        if self.calibration is None:
+            return probabilities, readout.confidence(probabilities, mode)
+        applied = self.calibration.apply(probabilities, qtype, mode=mode)
+        if not applied["calibrated"]:
+            return probabilities, readout.confidence(probabilities, mode)
+        self.calibrated_types.add(qtype)
+        return list(applied["probabilities"]), float(applied["confidence"])
+
     @staticmethod
     def _template_surface(plan: ContextPlan) -> dict[str, Any]:
         """`engine.template` — which template produced the prompt (A-E1c-1/2, evidence-ready)."""
@@ -414,7 +453,8 @@ class DecisionEngine:
              for values in logprobs]
         probabilities = readout.restricted_softmax(z, options.temperature)
         coverage = min(1.0, coverage)
-        confidence_value = readout.confidence(probabilities, options.confidence_mode)
+        probabilities, confidence_value = self._calibrate(probabilities, question.type,
+                                                          options.confidence_mode)
         reliability = readout.reliability(coverage, coverage_floor=coverage_floor,
                                           confidence_floor=self.confidence_floor,
                                           confidence_value=confidence_value)

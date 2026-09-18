@@ -330,3 +330,155 @@ def test_escalating_with_no_target_logs_the_skip_and_changes_nothing() -> None:
     assert payload["enabled"] is True and payload["count"] == 0
     assert payload["skipped"][0]["reason"] == "no escalation target available"
     assert payload["skipped"][0]["question"] == "shaky"
+
+
+# ------------------------------------------------- the CLI surface (A-E2p5-4/5/8)
+def _registry_home(tmp_path, entries: dict) -> object:
+    from ggufone.registry import store
+    home = tmp_path / "home"
+    aliases = {}
+    for alias, weights_mib in entries.items():
+        path = tmp_path / f"{alias}.gguf"
+        path.write_bytes(b"GGUF" + b"\0" * 16)
+        aliases[alias] = store.Entry(alias=alias, path=str(path), quant="Q8_0", arch="spark2_5",
+                                     size=weights_mib * MIB)
+    store.save_registry(store.Registry(aliases=aliases, current=next(iter(aliases))),
+                        path=store.registry_path(home))
+    return home
+
+
+def test_route_request_picks_from_the_registry_and_explains_itself(tmp_path) -> None:
+    from ggufone import cli, schema
+    home = _registry_home(tmp_path, {"small": 1024, "mid": 3 * 1024})
+    facts = {str(tmp_path / "small.gguf"): _facts(str(tmp_path / "small.gguf"),
+                                                  weights_mib=1024),
+             str(tmp_path / "mid.gguf"): _facts(str(tmp_path / "mid.gguf"),
+                                                weights_mib=3 * 1024)}
+    request = schema.parse_request({"state": "blank dashboard", "options": {"route": "auto"},
+                                    "questions": {"a": {"type": "noul"}}})
+    plan = cli.route_request(request, home=home, host=_host(vram_mib=8 * 1024),
+                             runtime_dirs=[VULKAN], facts_for=lambda path: facts[path],
+                             supports_arch=_supports("spark2_5"))
+    assert plan is not None
+    assert plan.mode == "auto" and plan.alias == "mid"
+    assert plan.reason.startswith("budget fit")
+    assert plan.to_dict()["steps"][0]["alias"] == "mid"
+
+
+def test_route_request_is_off_by_default(tmp_path) -> None:
+    from ggufone import cli, schema
+    home = _registry_home(tmp_path, {"small": 1024})
+    request = schema.parse_request({"state": "blank dashboard",
+                                    "questions": {"a": {"type": "noul"}}})
+    assert cli.route_request(request, home=home) is None
+
+
+def test_the_route_fills_the_options_it_owns_and_leaves_the_rest_alone() -> None:
+    from ggufone import cli, schema
+    plan = routing.RoutePlan(mode="auto", alias="mid", path="/m/mid.gguf", quant="Q8_0",
+                             kv_type="q8_0", n_ctx=2048, n_seq_max=6, n_gpu_layers=36,
+                             backend="vulkan", device_bytes=1024, reason="budget fit: mid")
+    request = schema.parse_request({"state": "x", "options": {"route": "auto"},
+                                    "questions": {"a": {"type": "noul"}}})
+    updated = cli._with_route_options(request, plan)
+    assert updated.options.kv_type == "q8_0"
+    assert updated.options.n_ctx == 2048 and updated.options.n_seq_max == 6
+    explicit = schema.parse_request({
+        "state": "x", "options": {"route": "auto", "kv_type": "f16", "n_ctx": 8192,
+                                  "n_seq_max": 3},
+        "questions": {"a": {"type": "noul"}}})
+    kept = cli._with_route_options(explicit, plan)
+    assert kept.options.kv_type == "f16"
+    assert kept.options.n_ctx == 2048                  # the router's ceiling still applies
+    assert kept.options.n_seq_max == 3
+
+
+def test_escalation_replaces_only_the_flagged_answers(tmp_path) -> None:
+    from ggufone import cli
+    target = tmp_path / "big.gguf"
+    target.write_bytes(b"GGUF")
+    payload = {"state": "blank dashboard",
+               "options": {"escalate": True, "max_escalations": 1},
+               "questions": {"a": {"type": "noul"}, "b": {"type": "noul"}}}
+    response = {"model": "small",
+                "engine": {"runtime": "llama.cpp b11026"},
+                "answers": {"a": {"type": "noul", "noul": 0.52, "reliability": "ok",
+                                  "probabilities": {"yes": 0.52, "no": 0.48}},
+                            "b": {"type": "noul", "noul": 0.55, "reliability": "low_mass",
+                                  "probabilities": {"yes": 0.55, "no": 0.45}}},
+                "usage": {}, "timings": {}, "warnings": []}
+    calls: list[dict] = []
+
+    def fake_decide(sub_payload: dict, **kwargs) -> dict:
+        calls.append(sub_payload)
+        return {"answers": {"b": {"type": "noul", "noul": 0.93, "reliability": "ok",
+                                  "probabilities": {"yes": 0.93, "no": 0.07}}}}
+
+    out = cli.escalate_if_requested(payload, response,
+                                    target={"alias": "big", "path": str(target),
+                                            "model": "big"},
+                                    decide_fn=fake_decide)
+    assert list(calls[0]["questions"]) == ["b"]           # only the low_mass answer
+    assert calls[0]["model"] == str(target)
+    assert out["answers"]["b"]["noul"] == 0.93
+    assert out["answers"]["a"]["noul"] == 0.52            # untouched
+    escalations = out["engine"]["escalations"]
+    assert escalations["enabled"] is True and escalations["count"] == 1
+    assert escalations["target"]["alias"] == "big"
+    assert escalations["decisions"][0]["question"] == "b"
+    assert escalations["decisions"][0]["reason"] == "low_mass"
+    assert "W_ESCALATED" in out["warnings"]
+
+
+def test_escalation_is_off_unless_the_request_asks_for_it() -> None:
+    from ggufone import cli
+    payload = {"state": "x", "questions": {"a": {"type": "noul"}}}
+    response = {"model": "small", "engine": {},
+                "answers": {"a": {"type": "noul", "noul": 0.52, "reliability": "low_mass",
+                                  "probabilities": {"yes": 0.52, "no": 0.48}}},
+                "usage": {}, "timings": {}, "warnings": []}
+    out = cli.escalate_if_requested(payload, response, target=None, decide_fn=None)
+    assert out["engine"]["escalations"]["enabled"] is False
+    assert out["engine"]["escalations"]["count"] == 0
+    assert out["warnings"] == []
+
+
+def test_escalation_never_exceeds_the_bound(monkeypatch) -> None:
+    from ggufone import cli
+    payload = {"state": "x", "options": {"escalate": True, "max_escalations": 2},
+               "questions": {key: {"type": "noul"} for key in "abcd"}}
+    answers = {key: {"type": "noul", "noul": 0.51, "confidence": 0.4, "reliability": "ok",
+                     "probabilities": {"yes": 0.51, "no": 0.49}} for key in "abcd"}
+    response = {"model": "small", "engine": {}, "answers": answers, "usage": {}, "timings": {},
+                "warnings": []}
+
+    def fake_decide(sub_payload: dict, **kwargs) -> dict:
+        return {"answers": {key: {"type": "noul", "noul": 0.8, "confidence": 0.8,
+                                  "reliability": "ok",
+                                  "probabilities": {"yes": 0.8, "no": 0.2}}
+                            for key in sub_payload["questions"]}}
+
+    out = cli.escalate_if_requested(payload, response, target={"alias": "big", "path": "/m/big"},
+                                    decide_fn=fake_decide)
+    assert out["engine"]["escalations"]["count"] == 2
+    assert out["engine"]["escalations"]["limit"] == 2
+
+
+def test_the_audit_log_records_the_route_the_calibration_and_the_escalations(tmp_path) -> None:
+    import json
+
+    from ggufone import cli
+    payload = {"state": "x", "questions": {"a": {"type": "noul"}}}
+    response = {"model": "mid", "engine": {"route": {"reason": "budget fit: mid", "alias": "mid"},
+                                           "escalations": {"enabled": False, "count": 0}},
+                "calibration": {"source": "/home/calibration.json", "applied": True},
+                "answers": {}, "usage": {}, "timings": {}, "warnings": ["W_LOW_MASS"]}
+    path = cli.write_audit(tmp_path / "audit", command="run", payload=payload,
+                           response=response)
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    assert records[-1]["route"]["reason"] == "budget fit: mid"
+    assert records[-1]["calibration"]["source"] == "/home/calibration.json"
+    assert records[-1]["escalations"]["enabled"] is False
+    assert records[-1]["model"] == "mid"
+    assert records[-1]["command"] == "run"
+    assert records[-1]["ts"]

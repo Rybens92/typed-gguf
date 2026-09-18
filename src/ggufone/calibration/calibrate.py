@@ -24,7 +24,7 @@ import json
 import pathlib
 import time
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import Any
 
 from ggufone.calibration import stats
@@ -282,8 +282,10 @@ def _mode_report(fit_rows: Sequence[Row], holdout_rows: Sequence[Row], temperatu
             "ece_holdout_after": float(holdout_after["ece"]),
             "agreement_holdout_before": float(holdout_before["agreement"]),
             "agreement_holdout_after": float(holdout_after["agreement"]),
-            "agreement_at_0.5_holdout_before": float(holdout_before["agreement_at_0.5"]["agreement"]),
-            "agreement_at_0.5_holdout_after": float(holdout_after["agreement_at_0.5"]["agreement"]),
+            "agreement_at_0.5_holdout_before": float(
+                holdout_before["agreement_at_0.5"]["agreement"]),
+            "agreement_at_0.5_holdout_after": float(
+                holdout_after["agreement_at_0.5"]["agreement"]),
             "mean_confidence_before": holdout_before["mean_confidence"],
             "mean_confidence_after": holdout_after["mean_confidence"],
         }
@@ -399,6 +401,22 @@ class Table:
             created_at=str(payload.get("created_at", "")),
             source=source)
 
+    def response_fields(self, applied: Sequence[str] = ()) -> dict[str, Any]:
+        """The response's `calibration` block (A-E2p5-1): what was applied, and its source.
+
+        `source` is the store the table was read from, so a caller can tell a calibrated answer
+        from an uncalibrated one without guessing; `applied` is true only when at least one
+        question type really was rescaled (`applied` lists exactly those types).
+        """
+        return {
+            "source": self.source if self.accepted else "",
+            "applied": bool(applied),
+            "model": self.model if self.accepted else None,
+            "params_hash": self.params_hash if self.accepted else "",
+            "temperatures": {name: self.types[name].temperature for name in sorted(set(applied))},
+            "accepted_types": list(self.accepted_types),
+        }
+
     def render(self) -> str:
         """The `--dry-run` table (A-E2p5-1): one row per type, one verdict per row."""
         lines = [
@@ -448,6 +466,20 @@ def fit_table(rows: Sequence[Row], *, model_key: str, model_path: str = "",
 
 # ------------------------------------------------------------------ the store
 STORE_SCHEMA = "ggufone.calibration-store/v1"
+
+
+def model_key_for(path: str | pathlib.Path, *, sha256: str | None = None) -> str:
+    """The store key of one model: its SHA-256 when known, else the file name and size.
+
+    Name + size rather than the full path: the same GGUF moved to another directory (or pulled
+    under another alias) is the same model, so its parameters stay valid — A-E2p5-6's "same set +
+    same model ⇒ identical params hash" must not depend on where the file happens to sit.
+    """
+    if sha256:
+        return f"sha256:{sha256}"
+    target = pathlib.Path(path)
+    size = target.stat().st_size if target.exists() else 0
+    return f"file:{target.name}:{size}"
 
 
 def _read_store(path: pathlib.Path) -> dict[str, Any]:

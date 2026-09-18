@@ -56,7 +56,8 @@ def test_run_reads_a_full_request_file(fake_engine, home, tmp_path, capsys) -> N
     assert code == 0
     out = json.loads(capsys.readouterr().out)
     assert out["answers"]["area"]["type"] == "choice"
-    assert set(out) == {"model", "engine", "answers", "usage", "timings", "warnings"}
+    assert set(out) == {"model", "engine", "answers", "usage", "timings", "warnings",
+                        "calibrated", "calibration"}
 
 
 def test_run_accepts_a_bare_questions_map_plus_state_flags(fake_engine, home, tmp_path,

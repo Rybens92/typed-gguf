@@ -149,4 +149,6 @@ WARNING_CODES = (
     # E1c FIX: the plan was reduced for the memory that is actually free / a device allocation
     # failure was survived by degrading (card t_8cb0a05e).
     "W_FIT_DOWNGRADE", "W_BACKEND_OOM",
+    # E2.5: an answer was re-asked on a second model (SPEC 2.10, A-E2p5-5).
+    "W_ESCALATED",
 )

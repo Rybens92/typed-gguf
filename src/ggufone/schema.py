@@ -40,6 +40,8 @@ CHOICE_LIMIT = 255
 SCORE_LEVELS = (2, 10)
 KV_TYPES = ("auto", "f16", "q8_0", "q4_0")
 BACKENDS = ("auto", "cpu", "vulkan", "cuda", "metal")
+#: E2.5 (SPEC 2.10): `route: "auto"` lets the registry pick the model and its sizing
+ROUTE_MODES = ("off", "auto")
 NOUL_KEYS = ("true", "false")
 
 # SPEC 2.5 defaults. Keep this table the single source of truth for the wire defaults.
@@ -63,6 +65,10 @@ OPTION_DEFAULTS: dict[str, Any] = {
     # E1c: prompt assembly knobs (SPEC 5 A-E1c-1/2)
     "template": None,          # None/"auto" = the chain; "plain"; a builtin name; a path
     "thinking": False,         # False = suppress (default); True = leave the block open
+    # E2.5: routing + escalation (SPEC 2.10, A-E2p5-4/5)
+    "route": "off",            # "off" | "auto" — auto picks the model/sizing from the registry
+    "escalate": False,         # opt-in second opinion for low-confidence answers
+    "max_escalations": 1,      # how many answers may be re-asked (0 = off)
 }
 
 
@@ -109,6 +115,10 @@ class Options:
     strict: bool = False
     template: str | None = None
     thinking: bool = False
+    # E2.5 (SPEC 2.10): routing chooses the model/sizing; escalation is the opt-in second opinion
+    route: str = "off"
+    escalate: bool = False
+    max_escalations: int = 1
 
 
 @dataclass(frozen=True, slots=True)
@@ -285,6 +295,9 @@ def _parse_options(raw: Any) -> tuple[Options, list[str]]:
         strict=strict,
         template=_optional_template("template", values["template"]),
         thinking=_bool("thinking", values["thinking"]),
+        route=_choice("route", values["route"], ROUTE_MODES),
+        escalate=_bool("escalate", values["escalate"]),
+        max_escalations=_int_at_least("max_escalations", values["max_escalations"], low=0),
     )
     return options, warnings
 
@@ -325,6 +338,15 @@ def _optional_int(name: str, value: Any, *, low: int) -> int | None:
     if parsed < low:
         raise _fail(f"options.{name} must be >= {low} (got {parsed})", "E_UNKNOWN_KEY")
     return parsed
+
+
+def _int_at_least(name: str, value: Any, *, low: int) -> int:
+    """A required integer with a lower bound (`max_escalations: 0` means "off")."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise _fail(f"options.{name} must be an integer (got {value!r})", "E_UNKNOWN_KEY")
+    if value < low:
+        raise _fail(f"options.{name} must be >= {low} (got {value})", "E_UNKNOWN_KEY")
+    return int(value)
 
 
 def _optional_str(name: str, value: Any) -> str | None:

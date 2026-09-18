@@ -478,16 +478,16 @@ def test_version_text_and_json(capsys) -> None:
     assert payload["version"] == __version__ and payload["lock"]["tag"] == "b11026"
 
 
-@pytest.mark.parametrize("cmd", ["serve", "mcp", "calibrate"])
+@pytest.mark.parametrize("cmd", ["serve", "mcp"])
 def test_frozen_commands_still_exit_3(cmd: str, capsys) -> None:
     assert cli.main([cmd]) == 3
     assert "not implemented yet" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize("cmd", ["run", "ask", "fit", "bench"])
+@pytest.mark.parametrize("cmd", ["run", "ask", "fit", "bench", "calibrate"])
 def test_the_engine_commands_are_no_longer_stubs(cmd: str, capsys) -> None:
-    """E1b owns `run`/`ask`, E1c owns `fit`, E2 owns `bench` (SPEC 5): they validate flags
-    instead of exiting 3."""
+    """E1b owns `run`/`ask`, E1c owns `fit`, E2 owns `bench`, E2.5 owns `calibrate` (SPEC 5):
+    they validate flags instead of exiting 3."""
     assert cli.main([cmd]) == 2
     assert "not implemented yet" not in capsys.readouterr().err
 

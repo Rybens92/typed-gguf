@@ -291,15 +291,14 @@ def route(candidates: Sequence[Candidate], *, needs: Needs, host: fit.HostFacts,
             rejected.append(RouteStep(candidate.alias, candidate.quant, "rejected", reason))
             continue
         arch = facts.arch or candidate.arch
-        if runtimes and arch:
-            if not any(probe(runtime_dir, arch) for runtime_dir in runtimes):
-                reason = (f"arch capability: {arch} is not supported by any installed runtime "
-                          f"({', '.join(runtimes)})")
-                capability_report["unsupported"][candidate.alias] = arch
-                capability_rejections.append(reason)
-                rejected.append(RouteStep(candidate.alias, candidate.quant, "rejected", reason,
-                                          kv_type="", tier=""))
-                continue
+        if runtimes and arch and not any(probe(runtime_dir, arch) for runtime_dir in runtimes):
+            reason = (f"arch capability: {arch} is not supported by any installed runtime "
+                      f"({', '.join(runtimes)})")
+            capability_report["unsupported"][candidate.alias] = arch
+            capability_rejections.append(reason)
+            rejected.append(RouteStep(candidate.alias, candidate.quant, "rejected", reason,
+                                      kv_type="", tier=""))
+            continue
         placement = _plan_candidate(candidate, facts, host=host, needs=needs, kv_type=kv_type,
                                     fit_target_mb=fit_target_mb)
         if placement is None:
