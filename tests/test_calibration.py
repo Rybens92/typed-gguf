@@ -357,3 +357,243 @@ def test_every_type_keeps_at_least_one_row_on_both_sides() -> None:
     for qtype in ("choice", "noul"):
         assert any(row.type == qtype for row in split.fit)
         assert any(row.type == qtype for row in split.holdout)
+
+
+# ---------------------------------------------- the fit, the gate, the table (A-E2p5-1/2/3/6)
+def _calibrated_rows(types: tuple[str, ...] = ("choice",), *, per_type: int = 12,
+                     confidence: float = 0.5) -> list:
+    """Rows whose confidence *is* their accuracy: ECE is exactly zero at temperature 1.0.
+
+    Half the rows hit and half miss, and every row reports the same confidence, so any move away
+    from the identity makes the ECE worse — the fit has to choose "no calibration".
+    """
+    items = []
+    for offset, qtype in enumerate(types):
+        for index in range(per_type):
+            hit = index % 2 == 0
+            if qtype == "choice":
+                peak = 1 / 3 + (2 / 3) * confidence
+                probabilities = {"billing": peak, "api": (1 - peak) * 2 / 3,
+                                 "sales": (1 - peak) / 3}
+                expected = "billing"
+                got = "billing" if hit else "api"
+                if not hit:                       # the miss must be the argmax failure, not the peak
+                    probabilities = {"billing": (1 - peak) * 2 / 3, "api": peak,
+                                     "sales": (1 - peak) / 3}
+            else:
+                peak = 0.5 + 0.5 * confidence
+                probabilities = {"yes": peak if hit else 1 - peak,
+                                 "no": (1 - peak) if hit else peak}
+                expected, got = "yes", ("yes" if hit else "no")
+            items.append({
+                "id": f"cal-{qtype}-{offset}-{index:02d}", "type": qtype, "expected": expected,
+                "got": got, "correct": hit, "confidence": confidence, "coverage": 0.9,
+                "reliability": "ok", "probabilities": probabilities,
+            })
+    return [calibrate.Row.from_item(item) for item in items]
+
+
+def test_the_fit_produces_one_temperature_per_question_type() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice", "noul"), per_type=12),
+                                model_key="sha256:test")
+    assert set(table.types) == {"choice", "noul"}
+    assert all(entry.temperature > 0 for entry in table.types.values())
+    assert table.mode == readout.DEFAULT_CONFIDENCE_MODE == "normalized_peak"
+
+
+def test_the_gate_accepts_a_miscalibrated_type_on_the_held_out_split() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:test")
+    entry = table.types["choice"]
+    assert entry.accepted is True and table.accepted is True
+    assert entry.temperature < 1.0                       # rows were too soft -> sharpen
+    assert entry.holdout_after["ece"] < entry.holdout_before["ece"]
+    assert entry.fit_after["ece"] < entry.fit_before["ece"]
+    assert entry.reason.startswith("applied")
+
+
+def test_a_type_that_is_already_calibrated_reports_no_calibration_applied() -> None:
+    table = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="sha256:test")
+    entry = table.types["choice"]
+    assert entry.accepted is False
+    assert entry.temperature == 1.0
+    assert entry.reason == ("no calibration applied: the fit chose the identity "
+                            "(temperature 1.0)")
+    assert table.accepted is False
+    assert table.to_json()["accepted"] is False
+
+
+def test_a_type_with_too_few_rows_is_never_fitted() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=6), model_key="sha256:test")
+    entry = table.types["choice"]
+    assert entry.accepted is False
+    assert "too few" in entry.reason
+    assert entry.temperature == 1.0
+
+
+def _renamed(rows: list, prefix: str) -> list:
+    import dataclasses
+    return [dataclasses.replace(row, id=f"{prefix}-{row.id}") for row in rows]
+
+
+def test_a_fit_that_does_not_survive_the_holdout_is_rejected() -> None:
+    """The gate is the held-out split, not the fit split: a correction that only fits wins nothing.
+
+    The fit half is miscalibrated (so a temperature other than 1.0 is chosen) while the held-out
+    half is already honest — applying the fitted temperature there makes the ECE worse, which is
+    exactly the case "record the score and apply nothing" exists for.
+    """
+    rows = (_renamed(_fit_rows(("choice",), per_type=12, temperature=2.0), "a")
+            + _renamed(_calibrated_rows(per_type=6), "z"))
+    table = calibrate.fit_table(rows, model_key="sha256:test")
+    entry = table.types["choice"]
+    assert entry.temperature != 1.0
+    assert entry.accepted is False
+    assert "held-out split did not improve" in entry.reason
+    assert table.accepted is False
+
+
+def test_a_question_type_that_the_dev_set_never_used_is_not_in_the_table() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:test")
+    assert "noul" not in table.types
+    assert "noul" not in table.to_json()["types"]
+
+
+def test_the_report_measures_all_three_confidence_modes() -> None:
+    """A-E2p5-3: one calibration report carries every mode, the default stays normalized_peak."""
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:test")
+    modes = table.types["choice"].modes
+    assert set(modes) == set(readout.CONFIDENCE_MODES) == {"normalized_peak", "entropy", "margin"}
+    for name, report in modes.items():
+        assert report["mode"] == name
+        assert {"ece_fit_before", "ece_fit_after", "ece_holdout_before", "ece_holdout_after",
+                "agreement_holdout_before", "agreement_holdout_after"} <= set(report)
+    assert table.mode == "normalized_peak"
+    assert table.to_json()["mode"] == "normalized_peak"
+
+
+def test_the_table_applies_only_to_accepted_types() -> None:
+    accepted = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                   model_key="sha256:test")
+    rejected = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="sha256:test")
+    probabilities = [0.6, 0.3, 0.1]
+    applied = accepted.apply(probabilities, "choice")
+    untouched = rejected.apply(probabilities, "choice")
+    assert applied["calibrated"] is True
+    assert applied["probabilities"] != pytest.approx(probabilities)
+    assert applied["temperature"] == accepted.types["choice"].temperature
+    assert untouched["calibrated"] is False
+    assert untouched["probabilities"] == pytest.approx(probabilities)
+    assert untouched["confidence"] == pytest.approx(readout.confidence(probabilities))
+
+
+def test_applying_the_table_never_changes_the_decision() -> None:
+    """Calibration rescales the reported probabilities; the answer stays the answer."""
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:test")
+    for probabilities in ([0.6, 0.3, 0.1], [0.34, 0.33, 0.33], [0.4, 0.4, 0.2], [0.2, 0.5, 0.3]):
+        applied = table.apply(probabilities, "choice")
+        assert readout.argmax_first(applied["probabilities"]) == \
+            readout.argmax_first(probabilities)
+        assert sum(applied["probabilities"]) == pytest.approx(1.0)
+
+
+def test_applying_an_unknown_question_type_is_a_no_op() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:test")
+    applied = table.apply([0.5, 0.5], "noul")
+    assert applied["calibrated"] is False and applied["probabilities"] == [0.5, 0.5]
+
+
+def test_the_table_round_trips_through_json() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice", "noul"), per_type=18, temperature=2.0),
+                                model_key="sha256:test", model_path="/models/x.gguf",
+                                alias="spark")
+    payload = table.to_json()
+    again = calibrate.Table.from_json(payload)
+    assert again.params_hash == table.params_hash
+    assert again.to_json() == payload
+    assert again.apply([0.6, 0.3, 0.1], "choice")["probabilities"] == pytest.approx(
+        table.apply([0.6, 0.3, 0.1], "choice")["probabilities"])
+    assert again.model_path == "/models/x.gguf" and again.alias == "spark"
+
+
+def test_a_re_run_on_the_same_rows_hashes_identically() -> None:
+    """A-E2p5-6: same dev set + same model => identical params hash (any row order)."""
+    rows = _fit_rows(("choice", "noul"), per_type=18, temperature=2.0)
+    first = calibrate.fit_table(rows, model_key="sha256:test")
+    second = calibrate.fit_table(list(reversed(rows)), model_key="sha256:test")
+    assert first.params_hash == second.params_hash
+    assert first.params_hash.startswith("sha256:")
+    assert first.to_json()["params"]["types"] == second.to_json()["params"]["types"]
+
+
+def test_the_hash_covers_the_parameters_the_model_and_the_dev_set() -> None:
+    rows = _fit_rows(("choice",), per_type=18, temperature=2.0)
+    base = calibrate.fit_table(rows, model_key="sha256:test")
+    other_model = calibrate.fit_table(rows, model_key="sha256:other")
+    other_set = calibrate.fit_table(rows[:12], model_key="sha256:test")
+    assert base.params_hash != other_model.params_hash
+    assert base.params_hash != other_set.params_hash
+
+
+def test_the_hash_does_not_depend_on_when_the_fit_ran() -> None:
+    import dataclasses
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:test")
+    later = dataclasses.replace(table, created_at="2001-01-01T00:00:00Z")
+    assert later.params_hash == table.params_hash
+    assert later.to_json()["params_hash"] == table.params_hash
+
+
+def test_the_store_round_trips_one_table(tmp_path) -> None:
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:test")
+    path = tmp_path / "calibration.json"
+    assert calibrate.save_table(path, table) == path
+    loaded = calibrate.load_table(path, "sha256:test")
+    assert loaded is not None and loaded.params_hash == table.params_hash
+    assert calibrate.load_table(path, "sha256:unknown") is None
+    assert calibrate.load_table(tmp_path / "missing.json", "sha256:test") is None
+
+
+def test_nothing_is_stored_when_no_type_was_accepted(tmp_path) -> None:
+    table = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="sha256:test")
+    path = tmp_path / "calibration.json"
+    assert calibrate.save_table(path, table) is None
+    assert not path.exists()
+
+
+def test_a_rejected_fit_retires_a_previously_stored_table(tmp_path) -> None:
+    """A measurement that no longer supports the parameters must not leave them in force."""
+    path = tmp_path / "calibration.json"
+    good = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                               model_key="sha256:test")
+    other = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:other")
+    assert calibrate.save_table(path, good) == path
+    assert calibrate.save_table(path, other) == path
+    assert calibrate.load_table(path, "sha256:test") is not None
+    rejected = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="sha256:test")
+    assert calibrate.save_table(path, rejected) is None
+    assert calibrate.load_table(path, "sha256:test") is None
+    assert calibrate.load_table(path, "sha256:other") is not None
+
+
+def test_a_corrupt_store_is_reported_not_ignored(tmp_path) -> None:
+    path = tmp_path / "calibration.json"
+    path.write_text("{not json", encoding="utf-8")
+    with pytest.raises(ValueError, match="calibration"):
+        calibrate.load_table(path, "sha256:test")
+
+
+def test_the_dry_run_table_names_every_type_and_the_verdict() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice", "noul"), per_type=18, temperature=2.0),
+                                model_key="sha256:test")
+    text = calibrate.render_table(table)
+    assert "choice" in text and "noul" in text
+    assert "temperature" in text and "holdout" in text
+    assert "applied" in text
+    assert table.params_hash in text
