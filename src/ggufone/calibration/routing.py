@@ -407,8 +407,13 @@ def _confidence_of(answer: Mapping[str, Any]) -> float:
     return max((float(value) for value in probabilities.values()), default=0.0)
 
 
-def _decision_of(answer: Mapping[str, Any]) -> str:
-    """The answer's discrete decision, for the before/after line of the log."""
+def decision_of(answer: Mapping[str, Any]) -> str:
+    """The answer's discrete decision (`choice` / the argmax level / `yes`|`no`).
+
+    Public because two callers depend on the *same* rule: the escalation log ("was"/"now") and
+    `ggufone calibrate`'s live measurement (the row's `got` key), which must agree about what the
+    model decided or the fit would be scoring a different experiment.
+    """
     if answer.get("type") == "choice":
         return str(answer.get("choice", ""))
     if answer.get("type") == "score":
@@ -467,13 +472,13 @@ def apply_escalation(answers: Mapping[str, Mapping[str, Any]],
             skipped.append({**decision.to_dict(), "reason": "no escalation target available"})
             continue
         original = merged.get(decision.question, {})
-        before = _decision_of(original)
+        before = decision_of(original)
         confidence_before = _confidence_of(original)
         if decision.question in replacement:
             escalated = dict(replacement[decision.question])
             merged[decision.question] = escalated
             entries.append({"question": decision.question, "reason": decision.reason,
-                            "replaced": True, "was": before, "now": _decision_of(escalated),
+                            "replaced": True, "was": before, "now": decision_of(escalated),
                             "confidence_before": confidence_before,
                             "confidence_after": _confidence_of(escalated)})
         else:

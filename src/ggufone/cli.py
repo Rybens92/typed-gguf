@@ -1304,22 +1304,40 @@ def _calibration_rows(options: dict[str, Any], model_path: str) -> tuple[list[An
     """The labelled rows the fit runs on: a committed report, or a live calibration suite.
 
     `--from-report` is the reproducible path (fit without a model, from the JSON `--suite
-    calibration` published); without it the dev set is re-measured on this box, which is what
-    SPEC 2.10 asks for ("re-measure with the fixed fit path").
+    calibration` published). Without it the dev set is re-measured **through the serving path** —
+    `session_module.open_model` + `ModelSession` + `DecisionEngine`, exactly what `run`/`ask`
+    do — because the distribution being calibrated is the one the served readout produces (and
+    because the bench's own placement seam is a separate load path: see the E2.5 note in
+    `docs/BENCHMARKS.md` about the bench loader's `Placement`-vs-`FitPlan` bug, card t_31b3943a).
     """
     report = options.get("from_report")
     if report:
         return calibration_module.load_rows(report), str(report)
-    config = harness.BenchConfig(
-        suite="calibration", model_path=model_path,
-        threads=int(options["threads"]) if "threads" in options else None,
-        devset=options.get("devset"),
-        items=int(options["items"]) if "items" in options else None,
-        n_seq_max=int(options["n_seq_max"]) if "n_seq_max" in options else None,
-        kv_type=options.get("kv_type", "auto"))
-    measured = suites.run_suite(config, factory=suites.live_factory)
-    items = measured.get("items") or []
-    rows = [calibration_module.Row.from_item(item) for item in items]
+    items = devset_module.load(options.get("devset"))
+    if options.get("items"):
+        items = items[:int(options["items"])]
+    threads = int(options["threads"]) if "threads" in options else None
+    plan = fit_plan_for(model_path, use_cache=not options.get("no_fit_cache"),
+                        kv_type=options.get("kv_type", "auto"))
+    rows: list[Any] = []
+    backend = session_module.runtime_backend(None)
+    with session_module.open_model(model_path, fit_plan=plan) as handle:
+        for item in items:
+            payload = devset_module.request_for(item, model="calibrate",
+                                                **({"threads": threads} if threads else {}))
+            request = schema.parse_request(payload)
+            context = decide.plan_context(request, handle, n_ctx_cap=plan.n_ctx)
+            with session_module.ModelSession(handle, context, backend=backend,
+                                             states_home=store.states_dir(None)) as live:
+                result = decide.DecisionEngine(live).decide(request, plan=context)
+            answer = result.answers[item.id]
+            expected = devset_module.gold_key(item)
+            got = routing.decision_of(answer)
+            rows.append(calibration_module.Row.from_item({
+                "id": item.id, "type": item.type, "expected": expected, "got": got,
+                "correct": got == expected, "confidence": answer.get("confidence"),
+                "coverage": answer.get("coverage"), "reliability": answer.get("reliability"),
+                "probabilities": answer["probabilities"]}))
     path = options.get("devset") or str(devset_module.devset_path(None))
     return rows, path
 

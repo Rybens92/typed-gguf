@@ -671,22 +671,36 @@ def test_the_calibrate_command_needs_a_model(tmp_path, monkeypatch, capsys) -> N
 
 def test_the_calibrate_command_measures_the_committed_dev_set_without_a_report(
         tmp_path, monkeypatch, capsys) -> None:
-    """Without `--from-report` the fit re-measures the dev set — the E2 mechanism, reused."""
+    """Without `--from-report` the dev set is re-measured through the serving path."""
+    import contextlib
+
     from ggufone import cli
-    captured: dict = {}
+    from tests.fake_engine import FakeSession, biased_row
 
-    def fake_run(config, factory=None):
-        captured["config"] = config
-        return {"items": _report_rows(("choice",), per_type=18, temperature=2.0)}
+    plan = type("Plan", (), {"n_ctx": 4096, "to_dict": lambda self: {}})()
+    monkeypatch.setattr(cli, "fit_plan_for", lambda *a, **k: plan)
+    session = FakeSession(n_vocab=8192)
+    session.row_fn = lambda ctx, session=session: biased_row(session.n_vocab, {})
 
-    monkeypatch.setattr(cli.suites, "run_suite", fake_run)
+    @contextlib.contextmanager
+    def fake_open_model(*args, **kwargs):
+        yield session
+
+    @contextlib.contextmanager
+    def fake_session(handle, plan_, **kwargs):
+        yield handle
+
+    monkeypatch.setattr(cli.session_module, "open_model", fake_open_model)
+    monkeypatch.setattr(cli.session_module, "ModelSession", fake_session)
+    monkeypatch.setattr(cli.session_module, "runtime_backend", lambda home=None: "cpu")
     monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
-    code = cli.main(["calibrate", "--model", str(_model_file(tmp_path)), "--dry-run", "--json"])
+    code = cli.main(["calibrate", "--model", str(_model_file(tmp_path)), "--items", "18",
+                     "--dry-run", "--json"])
     assert code == 0
-    config = captured["config"]
-    assert config.suite == "calibration"
-    assert config.model_path.endswith("tiny.gguf")
-    assert json.loads(capsys.readouterr().out)["accepted"] is True
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["devset"]["items"] == 18
+    assert payload["model"].endswith("tiny.gguf:36")
+    assert payload["schema"] == "ggufone.calibration/v1"
 
 
 # ------------------------------------------------- the readout hook (A-E2p5-1)
