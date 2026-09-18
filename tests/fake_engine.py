@@ -170,7 +170,8 @@ class BenchModel:
 
     def __init__(self, spec: object, *, script: dict[str, str] | None = None, n_vocab: int = 8192,
                  load_ms: float = 12.5, prefill_ms: float = 0.5, prefill_ms_per_token: float = 0.0,
-                 threads: int = 1, nondeterministic: bool = False, step: float = 30.0) -> None:
+                 threads: int = 1, nondeterministic: bool = False, step: float = 30.0,
+                 device_log: str = "") -> None:
         self.spec = spec
         self.script = dict(script or {})
         self.n_vocab = n_vocab
@@ -180,6 +181,9 @@ class BenchModel:
         self.threads = int(threads)
         self.nondeterministic = bool(nondeterministic)
         self.step = float(step)
+        #: the engine's own log lines (card t_603a35a0): the live seam fills this from
+        #: `llama_log_set` captures, a test scripts the operator's own lines verbatim.
+        self.device_log = str(device_log)
         self.loads = 0
         self.sessions = 0
         self._words: dict[str, int] = {}
