@@ -1,12 +1,14 @@
 """A-E1c-4/5/6: `ggufone fit` — the plan, its source, its cache and the downgrade order.
 
 Offline half: synthetic GGUFs (header + tensor index, no tensor data), fake hosts and a fake
-`llama-fit-params` executable, so every branch is pinned without a runtime or a GPU. The live
-numbers (the binary on this box, RSS cross-check) are in `tests/test_fit_live.py` and
-`docs/evidence/e1c_*.md`.
+`llama-fit-params` executable, so every branch is pinned without a runtime or a GPU. Every
+`ggufone fit` CLI test here pins its host world through `pin_host_facts` (card t_e29734e6), so the
+box is allowed to be busy — this host is. The live numbers (the binary on this box, RSS
+cross-check) are in `tests/test_fit_live.py` and `docs/evidence/e1c_*.md`.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 import json
 import pathlib
 import stat
@@ -72,6 +74,19 @@ def facts(path: pathlib.Path) -> fit.ModelFacts:
 def cpu_host(ram_gib: float = 31.0) -> fit.HostFacts:
     return fit.HostFacts(backend="cpu", ram_bytes=int(ram_gib * GIB), vram_bytes=0, n_cpu=24,
                          fingerprint="cpu:test")
+
+
+def gpu_host(*, total_gib: float = 8.0, free_gib: float | None = None) -> fit.HostFacts:
+    """A synthetic RTX-3060-Ti-class device; `free_gib=None` is an idle card.
+
+    The free number is what a plan is bounded by (card t_8cb0a05e), so a gate that wants the
+    busy-desktop branch names it here instead of hoping the box is quiet — the operator's host is
+    a *busy* host now (workers + benches), so a test read from the ambient device is a coin flip.
+    """
+    total = int(total_gib * GIB)
+    return fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=total,
+                         vram_free_bytes=total if free_gib is None else int(free_gib * GIB),
+                         n_cpu=8, fingerprint="vulkan:test")
 
 
 # matplotlib-free "TinyPlan" helpers -----------------------------------------
@@ -334,25 +349,65 @@ def test_session_overrides_let_the_request_win() -> None:
     assert default["n_ctx"] == plan.n_ctx and default["kv_type"] == plan.kv_type
 
 
-def test_the_cli_fit_command_returns_the_documented_json(tmp_path: pathlib.Path,
-                                                         capsys: pytest.CaptureFixture[str],
-                                                         monkeypatch: pytest.MonkeyPatch) -> None:
+def test_the_cli_fit_command_returns_the_documented_json(
+        tmp_path: pathlib.Path, capsys: pytest.CaptureFixture[str],
+        monkeypatch: pytest.MonkeyPatch,
+        pin_host_facts: Callable[[fit.HostFacts], fit.HostFacts]) -> None:
+    """The documented JSON of `ggufone fit --json` on a pinned, idle device (card t_e29734e6).
+
+    The host facts are the one thing this gate must not read off the machine: the same command
+    legitimately warns `W_FIT_DOWNGRADE`/`W_KV_TYPE_DOWNGRADE` whenever the desktop already holds
+    part of the card, so `warnings == ["W_FIT_ESTIMATED"]` was an assertion about the box, not
+    about the command — it went red the moment the operator's host became a *busy* host.
+    """
     model = write_gguf(tmp_path / "synthetic.gguf")
     monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
     monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    roomy = pin_host_facts(gpu_host())
     code = cli.main(["fit", str(model), "--json"])
     assert code == 0
     payload = json.loads(capsys.readouterr().out)
     for field in fit.FIT_FIELDS:
         assert field in payload, field
     assert payload["source"] == "estimate"
-    assert payload["warnings"] == ["W_FIT_ESTIMATED"]
-    assert payload["arch"] == "spark2_5"
+    assert "W_FIT_ESTIMATED" in payload["warnings"]        # the estimate path always says so
+    assert "W_FIT_DOWNGRADE" not in payload["warnings"]    # nothing had to be cut back:
+    assert "W_KV_TYPE_DOWNGRADE" not in payload["warnings"]  # the pinned card is idle
+    assert payload["host"]["vram_free_bytes"] == roomy.vram_free_bytes
+    assert payload["host_fingerprint"] == roomy.fingerprint          # the pinned world, not
+    assert payload["arch"] == "spark2_5"                             # whatever device is here
+
+
+def test_the_cli_fit_command_warns_when_the_device_is_mostly_taken(
+        tmp_path: pathlib.Path, capsys: pytest.CaptureFixture[str],
+        monkeypatch: pytest.MonkeyPatch,
+        pin_host_facts: Callable[[fit.HostFacts], fit.HostFacts]) -> None:
+    """A busy device is a *planned* world, not an accident (card t_e29734e6, requirement 2).
+
+    1.5 GiB free of 8 GiB is inside the band the operator's card reports while a bench runs (1631
+    MiB measured on the failure this card fixes): the ladder moves the KV type down, fewer layers
+    fit than the nominal card would hold, and both warnings have to be there.
+    """
+    model = write_gguf(tmp_path / "synthetic.gguf")
+    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    busy = pin_host_facts(gpu_host(free_gib=1.5))
+    assert cli.main(["fit", str(model), "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert "W_FIT_ESTIMATED" in payload["warnings"]
+    assert "W_KV_TYPE_DOWNGRADE" in payload["warnings"]    # the KV ladder had to move down
+    assert "W_FIT_DOWNGRADE" in payload["warnings"]        # fewer layers than the idle card
+    assert payload["host"]["vram_free_bytes"] == busy.vram_free_bytes
+    assert payload["host_fingerprint"] == busy.fingerprint
+    assert payload["budget_bytes"] == max(0, busy.vram_free_bytes
+                                          - fit.DEFAULT_FIT_TARGET_MB * MIB)
+    assert any("free device memory" in note for note in payload["notes"])
 
 
 def test_the_cli_fit_command_runs_a_binary_when_one_exists(
         tmp_path: pathlib.Path, capsys: pytest.CaptureFixture[str],
-        monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch: pytest.MonkeyPatch,
+        pin_host_facts: Callable[[fit.HostFacts], fit.HostFacts]) -> None:
     model = write_gguf(tmp_path / "synthetic.gguf")
     runtime = tmp_path / "rt"
     runtime.mkdir()
@@ -362,6 +417,7 @@ def test_the_cli_fit_command_runs_a_binary_when_one_exists(
     script.chmod(script.stat().st_mode | stat.S_IXUSR)
     monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
     monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(runtime))
+    pin_host_facts(gpu_host())                    # the fake binary is the subject, not the card
     code = cli.main(["fit", str(model), "--json"])
     assert code == 0
     payload = json.loads(capsys.readouterr().out)
@@ -371,7 +427,9 @@ def test_the_cli_fit_command_runs_a_binary_when_one_exists(
 
 def test_fit_never_touches_the_network(monkeypatch: pytest.MonkeyPatch,
                                        tmp_path: pathlib.Path,
-                                       capsys: pytest.CaptureFixture[str]) -> None:
+                                       capsys: pytest.CaptureFixture[str],
+                                       pin_host_facts: Callable[[fit.HostFacts],
+                                                                fit.HostFacts]) -> None:
     import socket
 
     def forbidden(*args: object, **kwargs: object) -> None:
@@ -381,6 +439,7 @@ def test_fit_never_touches_the_network(monkeypatch: pytest.MonkeyPatch,
     monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
     monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
     monkeypatch.setattr(socket, "socket", forbidden)
+    pin_host_facts(gpu_host())
     assert cli.main(["fit", str(model), "--json"]) == 0
     capsys.readouterr()
 

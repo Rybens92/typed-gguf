@@ -3,6 +3,11 @@
 `model`-marked (needs the pinned GGUF) and `--run-network` (like every live test of the repo;
 nothing here touches the network — the flag is the repo's gate for "needs real assets").
 
+The plan-only gates pin their host world (`_roomy_host()`, card t_e29734e6): what they measure is
+the real binary/model, and a plan read off a busy desktop is a measurement of the desktop — it
+legitimately downgrades the KV type and adds `W_FIT_DOWNGRADE`. The gates that *load* the model
+are device tests by design (they need a card with room) and say so.
+
 Run::
 
     GGUFONE_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_fit_live.py -s
@@ -21,6 +26,13 @@ from ggufone.engine import session as session_module
 from ggufone.runtime import finder, fit
 
 SPARK = pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf"
+GIB = 1024 ** 3
+
+
+def _roomy_host() -> fit.HostFacts:
+    """An idle RTX-3060-Ti-class world: 7 GiB free of 8 GiB (the operator's quiet desktop)."""
+    return fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+                         vram_free_bytes=7 * GIB, n_cpu=8, fingerprint="vulkan:live-test")
 
 
 def _runtime_dir() -> pathlib.Path:
@@ -69,7 +81,8 @@ def _rss_delta(model_path: pathlib.Path, plan: fit.FitPlan, request: schema.Requ
 @pytest.mark.model
 def test_the_pinned_default_model_gets_a_plan_from_the_binary() -> None:
     model_path = _model()
-    plan = fit.plan_for_path(model_path, runtime_dir=_runtime_dir(), home=None)
+    plan = fit.plan_for_path(model_path, host=_roomy_host(), runtime_dir=_runtime_dir(),
+                             home=None)
     assert tuple(field for field in fit.FIT_FIELDS if field not in plan.to_dict()) == ()
     assert plan.arch == "spark2_5"
     assert plan.kv_type in fit.KV_DOWNGRADE_ORDER
@@ -92,7 +105,7 @@ def test_the_tensor_index_matches_the_binary_s_model_row() -> None:
     model_path = _model()
     model = fit.ModelFacts.read(model_path)
     assert model.weights_bytes > 0
-    table = fit.run_llama_fit_params(model, fit.host_facts(), runtime_dir=_runtime_dir(),
+    table = fit.run_llama_fit_params(model, _roomy_host(), runtime_dir=_runtime_dir(),
                                      n_ctx=4096, n_seq_max=8, runner=None)
     if table is None:                                       # pragma: no cover - bundle present
         pytest.skip("no llama-fit-params in the runtime")
@@ -105,7 +118,7 @@ def test_the_tensor_index_matches_the_binary_s_model_row() -> None:
 @pytest.mark.model
 def test_the_estimate_alone_still_answers_the_contract() -> None:
     """`source=estimate` (no runtime handed in) keeps every field and warns."""
-    plan = fit.plan_for_path(_model(), host=fit.host_facts(), runtime_dir=None,
+    plan = fit.plan_for_path(_model(), host=_roomy_host(), runtime_dir=None,
                              use_cache=False, home=None)
     assert plan.source == "estimate"
     assert plan.warnings == ("W_FIT_ESTIMATED",)
