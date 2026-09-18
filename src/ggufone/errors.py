@@ -71,6 +71,19 @@ class ModelArchUnsupportedError(RuntimeError_):
     code = "E_MODEL_ARCH_UNSUPPORTED"
 
 
+class BackendOomError(RuntimeError_):
+    """The backend could not allocate device memory for the plan (card t_8cb0a05e).
+
+    A top-level code on purpose: an allocation failure is not an architecture problem, is not a
+    missing runtime and is not the user's input — it is the box running out of device memory, and
+    the fix (`--fit-target` / `--no-fit` / a smaller plan) is different from every other code's.
+    The message carries the free/needed numbers and the plan that failed so the next reader does
+    not have to re-derive them from a log tail.
+    """
+
+    code = "E_BACKEND_OOM"
+
+
 class DownloadError(RuntimeError_):
     code = "E_DOWNLOAD_FAILED"
 
@@ -126,8 +139,14 @@ ERROR_CODES = (
     "E_REGISTRY_CORRUPT",   # registry.json unreadable (quarantined, never silently lost)
     # E1b addition (A-E1b-8 requires a pinned code for a corrupt/truncated state file):
     "E_STATE_LOAD_FAILED",
+    # E1c FIX addition (card t_8cb0a05e: an allocation failure is not an arch failure, and the
+    # operator's box reported the OOM as `E_MODEL_ARCH_UNSUPPORTED`):
+    "E_BACKEND_OOM",
 )
 WARNING_CODES = (
     "W_LOW_MASS", "W_LOW_CONFIDENCE", "W_UNKNOWN_OPTION", "W_TRUNCATED_STATE",
     "W_KV_TYPE_DOWNGRADE", "W_VULKAN_WARMUP", "W_TEMPLATE_FALLBACK", "W_FIT_ESTIMATED",
+    # E1c FIX: the plan was reduced for the memory that is actually free / a device allocation
+    # failure was survived by degrading (card t_8cb0a05e).
+    "W_FIT_DOWNGRADE", "W_BACKEND_OOM",
 )

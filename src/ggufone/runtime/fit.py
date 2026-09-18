@@ -42,18 +42,20 @@ the budget is reported (`insufficient` note) rather than silently truncated.
 """
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 import os
 import pathlib
 import platform
+import re
 import subprocess
 import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
-from ggufone.errors import GgufCorruptError, ModelNotFoundError
+from ggufone.errors import BackendOomError, GgufCorruptError, ModelNotFoundError
 from ggufone.registry import gguf, recommend, store
 from ggufone.runtime import finder
 
@@ -233,23 +235,49 @@ class HostFacts:
     vram_bytes: int
     n_cpu: int
     fingerprint: str
+    #: What the driver says is free *right now*. 0 = not reported (fall back to `vram_bytes`).
+    vram_free_bytes: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {"backend": self.backend, "ram_bytes": self.ram_bytes,
-                "vram_bytes": self.vram_bytes, "n_cpu": self.n_cpu,
-                "fingerprint": self.fingerprint}
+                "vram_bytes": self.vram_bytes, "vram_free_bytes": self.vram_free_bytes,
+                "n_cpu": self.n_cpu, "fingerprint": self.fingerprint}
 
     @property
     def budget_bytes(self) -> int:
-        """Device memory when the plan offloads, host RAM otherwise."""
-        return self.vram_bytes if self.vram_bytes > 0 else self.ram_bytes
+        """Device memory a plan may spend: the FREE number when the driver reports one.
+
+        `vram_bytes` is the nominal size and is what the *fingerprint* keys on (a plan must not be
+        re-planned from scratch every time the desktop takes another 200 MiB); `vram_free_bytes`
+        is what the planner and the load-time re-validation must respect (card t_8cb0a05e: the
+        operator's box reported 8192 MiB total and 1112 MiB free).
+        """
+        if self.vram_bytes > 0:
+            if 0 < self.vram_free_bytes < self.vram_bytes:
+                return self.vram_free_bytes
+            return self.vram_bytes
+        return self.ram_bytes
 
 
 def host_facts(*, meminfo_path: pathlib.Path | None = None,
                vram_probe: Callable[[], int | None] | None = None,
+               device_probe: Callable[[], recommend.DeviceMemory | None] | None = None,
                backend: str | None = None, n_cpu: int | None = None) -> HostFacts:
-    """The host's memory + the backend the runtime proved (SPEC 2.2/A-E1a)."""
-    budget = recommend.host_budget(meminfo_path=meminfo_path, vram_probe=vram_probe)
+    """The host's memory + the backend the runtime proved (SPEC 2.2/A-E1a).
+
+    One driver query answers both numbers (`recommend.device_memory`). An injected `device_probe`
+    owns the answer completely — the real driver is then never consulted, which is what keeps a
+    test honest on a box that has a GPU.
+    """
+    if device_probe is None and vram_probe is None:
+        device_probe = recommend.device_memory
+    memory = device_probe() if device_probe is not None else None
+    if memory is None:
+        # A total-only probe (the E1a `vram_probe=` API): free is unknown, not zero.
+        total = int(vram_probe() or 0) if vram_probe is not None else 0
+        memory = recommend.DeviceMemory(total_bytes=total, free_bytes=0, source="injected")
+    budget = recommend.host_budget(meminfo_path=meminfo_path,
+                                   vram_probe=lambda: memory.total_bytes or None)
     from ggufone.engine import session as session_module
 
     resolved_backend = backend or session_module.runtime_backend()
@@ -264,7 +292,20 @@ def host_facts(*, meminfo_path: pathlib.Path | None = None,
     ))
     digest = hashlib.sha256(fingerprint.encode()).hexdigest()[:16]
     return HostFacts(backend=resolved_backend, ram_bytes=budget.ram_bytes,
-                     vram_bytes=budget.vram_bytes, n_cpu=cpus, fingerprint=digest)
+                     vram_bytes=budget.vram_bytes, n_cpu=cpus, fingerprint=digest,
+                     vram_free_bytes=int(memory.free_bytes))
+
+
+def fit_budget(host: HostFacts, fit_target_mb: int = DEFAULT_FIT_TARGET_MB) -> int:
+    """The bytes a plan may spend: the host budget minus the `--fit-target` margin.
+
+    `--fit-target MiB` is a margin the plan must leave free (llama.cpp's own `--fit-target`
+    semantics: "target margin per device", default 1024). It bounds every source of a plan —
+    the estimate *and* the `llama-fit-params` table — and it can take the budget to zero, which
+    is the correct answer on a desktop that holds the whole device (1112 MiB free, 5200 MiB
+    target -> 0 -> CPU).
+    """
+    return max(0, host.budget_bytes - int(fit_target_mb) * MIB)
 
 
 # ---------------------------------------------------------------------- the plan
@@ -330,8 +371,7 @@ def estimate_plan(model: ModelFacts, host: HostFacts, *, n_ctx: int = DEFAULT_N_
                   ) -> FitPlan:
     """ggufone's own fit math (chain step 2): no binary, `source="estimate"`."""
     floor = min_ctx if min_ctx is not None else DEFAULT_N_CTX
-    budget = budget_bytes if budget_bytes is not None \
-        else max(0, host.budget_bytes - fit_target_mb * MIB)
+    budget = budget_bytes if budget_bytes is not None else fit_budget(host, fit_target_mb)
     ladder = list(KV_DOWNGRADE_ORDER if kv_type in ("auto", None) else
                   KV_DOWNGRADE_ORDER[KV_DOWNGRADE_ORDER.index(kv_type):])
     warnings: list[str] = []
@@ -369,6 +409,18 @@ def estimate_plan(model: ModelFacts, host: HostFacts, *, n_ctx: int = DEFAULT_N_
             f"overhead {overhead_bytes / MIB:.0f} MiB exceed the budget "
             f"{budget / MIB:.0f} MiB; loading will spill or fail")
     n_gpu_layers = _gpu_layers(model, host, kv_bytes, budget, overhead_bytes)
+    if budget_bytes is None and host.vram_bytes > 0 and 0 < host.vram_free_bytes \
+            < host.vram_bytes:
+        # The desktop holds part of the device: say out loud that the plan is smaller than the
+        # nominal host could take (card t_8cb0a05e — W_FIT_DOWNGRADE is the machine-readable form).
+        nominal_budget = fit_budget(dataclasses.replace(host, vram_free_bytes=0), fit_target_mb)
+        nominal_layers = _gpu_layers(model, host, kv_bytes, nominal_budget, overhead_bytes)
+        if n_gpu_layers < nominal_layers:
+            warnings.append("W_FIT_DOWNGRADE")
+            notes.append(
+                f"planned against free device memory: {host.vram_free_bytes / MIB:.0f} MiB free "
+                f"of {host.vram_bytes / MIB:.0f} MiB, so {n_gpu_layers} instead of "
+                f"{nominal_layers} layer(s) are offloaded")
     warnings.append("W_FIT_ESTIMATED")
     return FitPlan(n_gpu_layers=n_gpu_layers, n_ctx=chosen_ctx, kv_type=chosen_kv,
                    n_seq_max=int(n_seq_max), est_weights_bytes=model.weights_bytes,
@@ -402,6 +454,183 @@ def _gpu_layers(model: ModelFacts, host: HostFacts, kv_bytes: int, budget: int,
 
 def _timestamp() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+# ------------------------------------------------- re-planning against live free memory (E1c FIX)
+def plan_device_bytes(plan: FitPlan, model: ModelFacts) -> int:
+    """How many bytes of *device* memory this plan asks for.
+
+    Full offload owns the weights, the KV cache and the runtime overhead; a partial offload owns
+    the offloaded share of the weights plus the same KV/overhead (llama.cpp keeps the KV of an
+    offloaded layer on that device, which is the conservative reading `_gpu_layers` already uses).
+    A CPU plan (`n_gpu_layers == 0`) asks the device for nothing.
+    """
+    if plan.n_gpu_layers <= 0 or model.n_layer <= 0:
+        return 0
+    share = min(1.0, plan.n_gpu_layers / model.n_layer)
+    weights = int(plan.est_weights_bytes * share) if share < 1.0 else plan.est_weights_bytes
+    return weights + plan.est_kv_bytes
+
+
+def _kv_bytes_for(model: ModelFacts, kv_type: str, n_ctx: int) -> int:
+    return kv_bytes_per_token(model.n_layer, model.n_kv_head, model.key_len, model.value_len,
+                              KV_BYTES_PER_ELEMENT[kv_type]) * int(n_ctx)
+
+
+def degrade_ladder(plan: FitPlan, model: ModelFacts) -> tuple[FitPlan, ...]:
+    """The documented degradation ladder: fewer layers -> smaller kv_type -> CPU-only.
+
+    Ordered by decreasing device footprint, ending at a plan that asks the device for nothing, so
+    the last rung is always available. Each step carries `W_FIT_DOWNGRADE` (the plan was reduced)
+    and, when the KV type moved, `W_KV_TYPE_DOWNGRADE`. A caller walks it until a load succeeds.
+    """
+    steps: list[FitPlan] = []
+    rungs = list(KV_DOWNGRADE_ORDER[KV_DOWNGRADE_ORDER.index(plan.kv_type):]) \
+        if plan.kv_type in KV_DOWNGRADE_ORDER else list(KV_DOWNGRADE_ORDER)
+
+    def emit(n_gpu_layers: int, kv_type: str) -> None:
+        kv_bytes = _kv_bytes_for(model, kv_type, plan.n_ctx)
+        warnings = list(plan.warnings)
+        if "W_FIT_DOWNGRADE" not in warnings:
+            warnings.append("W_FIT_DOWNGRADE")
+        if kv_type != plan.kv_type and "W_KV_TYPE_DOWNGRADE" not in warnings:
+            warnings.append("W_KV_TYPE_DOWNGRADE")
+        notes = list(plan.notes)
+        if n_gpu_layers == 0:
+            notes.append("CPU only: no weights are offloaded to the device")
+        steps.append(dataclasses.replace(
+            plan, n_gpu_layers=int(n_gpu_layers), kv_type=kv_type, est_kv_bytes=kv_bytes,
+            est_total_bytes=plan.est_weights_bytes + kv_bytes
+            + (plan.est_total_bytes - plan.est_weights_bytes - plan.est_kv_bytes),
+            warnings=tuple(warnings), notes=tuple(notes)))
+
+    layers = int(plan.n_gpu_layers)
+    if layers > 0:
+        emit(max(1, layers // 2), plan.kv_type)
+        emit(0, plan.kv_type)
+    for rung in rungs:
+        if rung != plan.kv_type:
+            emit(0, rung)
+    return tuple(steps)
+
+
+def replan_for_host(model: ModelFacts, plan: FitPlan, host: HostFacts, *,
+                    fit_target_mb: int = DEFAULT_FIT_TARGET_MB, min_ctx: int | None = None,
+                    overhead_bytes: int = OVERHEAD_BYTES) -> FitPlan:
+    """Re-validate a (possibly cached) plan against the device memory free *now*.
+
+    A cache keyed on the host fingerprint cannot see the desktop: the fingerprint is host identity
+    (nominal VRAM included), while availability changes between runs. So every plan is re-checked
+    against a fresh `fit_budget` and shrunk down the ladder until its device footprint fits; when
+    even the CPU rung cannot hold the weights the plan is still returned, with the `insufficient`
+    note (a CPU path that will page is better evidence than a hard failure).
+    """
+    budget = fit_budget(host, fit_target_mb)
+    if plan_device_bytes(plan, model) <= budget:
+        return plan if plan.budget_bytes == budget else dataclasses.replace(
+            plan, budget_bytes=budget)
+    for candidate in degrade_ladder(plan, model):
+        if plan_device_bytes(candidate, model) <= budget:
+            notes = list(candidate.notes)
+            notes.append(
+                f"re-planned for free device memory: {budget / MIB:.0f} MiB budget "
+                f"(driver reported {host.vram_free_bytes / MIB:.0f} MiB free of "
+                f"{host.vram_bytes / MIB:.0f} MiB, --fit-target {int(fit_target_mb)} MiB); "
+                f"n_gpu_layers {plan.n_gpu_layers} -> {candidate.n_gpu_layers}, kv_type "
+                f"{plan.kv_type} -> {candidate.kv_type}")
+            return dataclasses.replace(candidate, budget_bytes=budget, notes=tuple(notes))
+    # Nothing above the CPU rung can be afforded: place the whole model on the host CPU. The plan
+    # is returned (not raised): a CPU decision is a working answer, a hard failure is not.
+    cpu = dataclasses.replace(plan, n_gpu_layers=0, budget_bytes=budget)
+    notes = list(cpu.notes)
+    notes.append(
+        f"CPU only: {budget / MIB:.0f} MiB of device memory is available after --fit-target "
+        f"{int(fit_target_mb)} MiB (driver reported {host.vram_free_bytes / MIB:.0f} MiB free of "
+        f"{host.vram_bytes / MIB:.0f} MiB); weights stay on the host")
+    if host.ram_bytes > 0 and cpu.est_total_bytes > host.ram_bytes:
+        notes.append(
+            f"insufficient host memory too: the CPU plan needs {cpu.est_total_bytes / MIB:.0f} "
+            f"MiB but the host has {host.ram_bytes / MIB:.0f} MiB")
+    return dataclasses.replace(cpu, warnings=tuple(cpu.warnings + ("W_FIT_DOWNGRADE",))
+                              if "W_FIT_DOWNGRADE" not in cpu.warnings else cpu.warnings,
+                              notes=tuple(notes))
+
+
+# ------------------------------------------- backend allocation failures (E1c FIX, req. 3 + 4)
+#: What a ggml/driver backend prints when it cannot get device memory. The reference is the
+#: operator's own tail (card t_8cb0a05e):
+#:     ggml_vulkan: Device memory allocation of size 1058982400 failed.
+#:     ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+#:     alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+#:     llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+OOM_SIGNATURES: tuple[str, ...] = (
+    "erroroutofdevicememory", "out of device memory", "device memory allocation of size",
+    "failed to allocate", "unable to allocate", "cannot allocate memory",
+    "out of memory", "cudamalloc failed", "hipmalloc failed",
+)
+#: ... and what a real architecture failure looks like (never retried as if it were memory).
+ARCH_SIGNATURES: tuple[str, ...] = (
+    "unknown model architecture", "unsupported model architecture",
+    "invalid model architecture", "e_model_arch_unsupported",
+    "architecture is not supported", "architecture not supported",
+)
+ALLOCATION_SIZE_RE = re.compile(r"(?:allocation|buffer) of size (\d+)", re.IGNORECASE)
+
+
+def classify_load_failure(text: str) -> str:
+    """`"oom"` | `"arch"` | `"unknown"` for a captured backend log.
+
+    OOM wins over arch on purpose: the operator's tail contains *both* (ggufone's own
+    `E_MODEL_ARCH_UNSUPPORTED` line was the last line of an allocation failure), and reading it as
+    an architecture problem is exactly the misclassification the card reports.
+    """
+    lowered = (text or "").lower()
+    if any(signature in lowered for signature in OOM_SIGNATURES):
+        return "oom"
+    if any(signature in lowered for signature in ARCH_SIGNATURES):
+        return "arch"
+    return "unknown"
+
+
+def allocation_bytes_from_log(text: str) -> int | None:
+    """The biggest allocation size the backend named, in bytes (0/None when the log is silent)."""
+    sizes = [int(match.group(1)) for match in ALLOCATION_SIZE_RE.finditer(text or "")]
+    return max(sizes) if sizes else None
+
+
+def oom_log_line(text: str) -> str:
+    """The first line that looks like the allocation failure, for the error message."""
+    for line in (text or "").splitlines():
+        if any(signature in line.lower() for signature in OOM_SIGNATURES):
+            return line.strip()[:200]
+    return ""
+
+
+def backend_oom_error(plan: FitPlan | None, *, free_bytes: int | None = None,
+                      needed_bytes: int | None = None, log_tail: str = "",
+                      attempts: Iterable[str] = ()) -> BackendOomError:
+    """E_BACKEND_OOM carrying the plan, the free/needed numbers and the hints (requirement 4)."""
+    layers = "n/a" if plan is None else plan.n_gpu_layers
+    kv_type = "n/a" if plan is None else plan.kv_type
+    free_text = "unknown" if free_bytes is None else f"{free_bytes / MIB:.0f} MiB"
+    needed_text = "unknown" if needed_bytes is None else f"{needed_bytes / MIB:.0f} MiB"
+    parts = [f"E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan "
+             f"(n_gpu_layers={layers}, kv_type={kv_type}, needed ~{needed_text}); the driver "
+             f"reports {free_text} free"]
+    if plan is not None and plan.budget_bytes and free_bytes is None:
+        parts.append(f"and the plan's own budget was {plan.budget_bytes / MIB:.0f} MiB")
+    attempted = list(attempts)
+    if attempted:
+        parts.append(f"tried {len(attempted)} placement(s) down to CPU-only, none fit: "
+                     + "; ".join(attempted))
+    if needed_bytes is not None:
+        parts.append(f"the backend asked for a {needed_bytes / MIB:.0f} MiB allocation")
+    line = oom_log_line(log_tail)
+    if line:
+        parts.append(f"backend log: '{line}'")
+    parts.append("fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device "
+                 "memory free for the rest of the desktop, or use a smaller quant")
+    return BackendOomError("; ".join(parts))
 
 
 # ------------------------------------------------------- the binary (chain step 1)
@@ -447,16 +676,24 @@ def run_llama_fit_params(model: ModelFacts, host: HostFacts, *,
                          min_ctx: int = DEFAULT_N_CTX, budget_bytes: int | None = None,
                          runner: Callable[[list[str]], str] | None = None,
                          timeout: float = DEFAULT_TIMEOUT) -> FitPlan | None:
-    """Run the bundle's own tool (SPEC 2.10 flags); `None` when it cannot run/parse."""
+    """Run the bundle's own tool (SPEC 2.10 flags); `None` when it cannot run/parse.
+
+    `-ngl` is the layer count the current budget can actually hold (never an unconditional full
+    offload: on a busy desktop that asks the tool about a placement that cannot exist, which is
+    how `--fit-target` came to be ignored — card t_8cb0a05e).
+    """
     binary = fit_binary(runtime_dir)
     if runner is None and binary is None:
         return None
     batch = max(512, int(n_ctx))
+    budget = budget_bytes if budget_bytes is not None else fit_budget(host, fit_target_mb)
+    layers = _gpu_layers(model, host, kv_bytes=_kv_bytes_for(model, "f16", n_ctx), budget=budget,
+                         overhead_bytes=OVERHEAD_BYTES)
     argv = [str(binary) if binary else "llama-fit-params", "-m", model.path,
             "--fit", "on", "--fit-target", str(int(fit_target_mb)),
             "--fit-ctx", str(int(max(min_ctx, MIN_CTX_FLOOR))), "--fit-print", "on",
             "-c", str(int(n_ctx)), "-b", str(batch), "-ub", str(min(512, batch)),
-            "-ngl", str(0 if host.vram_bytes <= 0 else model.n_layer)]
+            "-ngl", str(layers)]
     table = runner(argv) if runner is not None else _run(argv, timeout)
     if table is None:
         return None
@@ -464,7 +701,8 @@ def run_llama_fit_params(model: ModelFacts, host: HostFacts, *,
     if not rows:
         return None
     return plan_from_binary(model, host, table=table, n_ctx=n_ctx, n_seq_max=n_seq_max,
-                            runtime_dir=runtime_dir, budget_bytes=budget_bytes)
+                            runtime_dir=runtime_dir, budget_bytes=budget,
+                            fit_target_mb=fit_target_mb)
 
 
 def _run(argv: list[str], timeout: float) -> str | None:
@@ -480,22 +718,35 @@ def _run(argv: list[str], timeout: float) -> str | None:
 
 def plan_from_binary(model: ModelFacts, host: HostFacts, *, table: str, n_ctx: int,
                      n_seq_max: int, runtime_dir: str | os.PathLike[str] | None,
-                     budget_bytes: int | None = None, kv_type: str = "auto") -> FitPlan:
-    """Turn a parsed table into a plan whose `est_*` numbers are the binary's own."""
+                     budget_bytes: int | None = None, kv_type: str = "auto",
+                     fit_target_mb: int = DEFAULT_FIT_TARGET_MB) -> FitPlan:
+    """Turn a parsed table into a plan whose `est_*` numbers are the binary's own.
+
+    The caller's `--fit-target` bounds the plan here too (the table itself is measured for a full
+    offload, so without this the plan would claim device memory the target forbids) and
+    `n_gpu_layers` is the floored per-layer split that actually fits the budget.
+    """
     rows = parse_fit_table(table)
     weights = sum(row.model_bytes for row in rows)
     context = sum(row.context_bytes for row in rows)
     compute = sum(row.compute_bytes for row in rows)
-    budget = budget_bytes if budget_bytes is not None \
-        else max(0, host.budget_bytes - DEFAULT_FIT_TARGET_MB * MIB)
+    budget = budget_bytes if budget_bytes is not None else fit_budget(host, fit_target_mb)
     chosen_kv, kv_bytes = _kv_from_budget(model, n_ctx, budget, context, kv_type)
     warnings: list[str] = []
-    if chosen_kv != "f16":
+    if chosen_kv != "f16" and chosen_kv != kv_type:
         warnings.append("W_KV_TYPE_DOWNGRADE")
     notes = [f"memory table from {pathlib.Path(str(runtime_dir or 'llama-fit-params')).name}/"
              f"llama-fit-params (model {weights / MIB:.0f} MiB, context "
              f"{context / MIB:.0f} MiB, compute {compute / MIB:.0f} MiB)"]
-    return FitPlan(n_gpu_layers=0 if host.vram_bytes <= 0 else model.n_layer, n_ctx=int(n_ctx),
+    layers = _gpu_layers(model, host, kv_bytes=kv_bytes, budget=budget,
+                         overhead_bytes=compute or OVERHEAD_BYTES)
+    if host.vram_bytes > 0 and layers < model.n_layer:
+        warnings.append("W_FIT_DOWNGRADE")
+        notes.append(
+            f"device memory bound: offloading {layers}/{model.n_layer} layers within "
+            f"{budget / MIB:.0f} MiB (--fit-target {int(fit_target_mb)} MiB, "
+            f"{host.vram_free_bytes / MIB:.0f} MiB free of {host.vram_bytes / MIB:.0f} MiB)")
+    return FitPlan(n_gpu_layers=layers, n_ctx=int(n_ctx),
                    kv_type=chosen_kv, n_seq_max=int(n_seq_max), est_weights_bytes=weights,
                    est_kv_bytes=kv_bytes, est_total_bytes=weights + kv_bytes + compute,
                    backend=host.backend, source="llama-fit-params", warnings=tuple(warnings),
@@ -562,11 +813,22 @@ def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | N
                    n_seq_max: int = DEFAULT_N_SEQ_MAX, kv_type: str = "auto",
                    fit_target_mb: int = DEFAULT_FIT_TARGET_MB,
                    min_ctx: int | None = None) -> FitPlan:
-    """The A-E1c-4 entry point: cache -> binary -> estimate, in that order."""
+    """The A-E1c-4 entry point: cache -> binary -> estimate, in that order.
+
+    A cache hit is a *candidate*, not an answer: the cached plan is re-validated against the
+    device memory free right now (`replan_for_host`) and the shrunken plan is written back, so a
+    plan that was honest when it was written cannot OOM the box after the desktop grew
+    (card t_8cb0a05e; the fresh reading comes from the caller's `host`). A plan computed from
+    fresh probe numbers was already planned against them.
+    """
     if use_cache and model.sha256:
         cached = load_cached(model.sha256, host.fingerprint, home)
         if cached is not None:
-            return cached
+            fresh = replan_for_host(model, cached, host, fit_target_mb=fit_target_mb,
+                                    min_ctx=min_ctx)
+            if fresh.to_dict() != cached.to_dict():
+                store_plan(fresh, home)
+            return fresh
     fallback_kv = kv_type if kv_type not in ("auto", None) else "f16"
     preliminary = estimate_plan(model, host, n_ctx=n_ctx, n_seq_max=n_seq_max,
                                 kv_type=fallback_kv, budget_bytes=budget_bytes,
@@ -575,6 +837,7 @@ def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | N
                                 n_seq_max=n_seq_max, fit_target_mb=fit_target_mb,
                                 min_ctx=min_ctx or n_ctx, budget_bytes=budget_bytes,
                                 runner=runner) or preliminary
+    plan = replan_for_host(model, plan, host, fit_target_mb=fit_target_mb, min_ctx=min_ctx)
     if use_cache and model.sha256:
         store_plan(plan, home)
     return plan

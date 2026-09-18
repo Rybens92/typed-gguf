@@ -864,10 +864,15 @@ def _resolve_model_ref(ref: str | None, *, home: pathlib.Path | None = None) -> 
 def fit_plan_for(model_path: str, *, home: pathlib.Path | None = None, use_cache: bool = True,
                  fit_target_mb: int | None = None, min_ctx: int | None = None,
                  n_ctx: int | None = None, n_seq_max: int | None = None,
-                 kv_type: str = "auto") -> fit.FitPlan:
-    """The A-E1c-4 plan for one model on this host (cached, binary when available)."""
+                 kv_type: str = "auto", host: fit.HostFacts | None = None) -> fit.FitPlan:
+    """The A-E1c-4 plan for one model on this host (cached, binary when available).
+
+    `host` is the fresh reading of the box (nominal + free device memory). It is passed in by
+    callers that also report it (`ggufone fit --json`), and re-read here otherwise — the plan must
+    never be built from facts an earlier call captured (card t_8cb0a05e).
+    """
     model = fit.ModelFacts.read(model_path)
-    host = fit.host_facts()
+    host = host if host is not None else fit.host_facts()
     runtime_dir = finder.find_runtime(home=home)
     kwargs: dict[str, Any] = {"use_cache": use_cache, "kv_type": kv_type}
     if fit_target_mb is not None:
@@ -895,8 +900,11 @@ def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
                             kv_type=request.options.kv_type)
         n_ctx_cap = plan.n_ctx
         request = _with_fit_options(request, plan)
-    with session_module.open_model(model_path, home=home,
-                                   fit_plan=plan) as handle:
+    with session_module.open_model(model_path, home=home, fit_plan=plan,
+                                   fit_disabled=not fit_enabled) as handle:
+        # the plan the load actually used: a degraded retry (allocation failure) may offload less
+        # than the plan that was requested (card t_8cb0a05e)
+        effective = getattr(handle, "fit_plan", None) or plan
         context_plan = decide.plan_context(request, handle, n_ctx_cap=n_ctx_cap)
         with session_module.ModelSession(handle, context_plan,
                                          backend=session_module.runtime_backend(home),
@@ -904,8 +912,10 @@ def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
             result = decide.DecisionEngine(live).decide(request, plan=context_plan,
                                                         model_alias=alias)
         body = schema.render_response(result.payload(), format=request.format)
-    if plan is not None and isinstance(body.get("engine"), dict):
-        body["engine"]["fit"] = plan.to_dict()
+    if effective is not None and isinstance(body.get("engine"), dict):
+        # surface the plan the load really used, not the one that was asked for (card t_8cb0a05e):
+        # a degraded retry offloads fewer layers, and the response has to say so.
+        body["engine"]["fit"] = effective.to_dict()
     return body
 
 
@@ -1019,14 +1029,18 @@ def _cmd_fit(args: list[str]) -> int:
     home = store.data_home()
     ref = positionals[0] if positionals else options.get("model")
     alias, model_path = _resolve_model_ref(ref, home=home)
+    host = fit.host_facts()
     plan = fit_plan_for(model_path, home=home, use_cache=not options.get("no_cache"),
                         fit_target_mb=int(options["fit_target"]) if "fit_target" in options
                         else None,
                         min_ctx=int(options["fit_ctx"]) if "fit_ctx" in options else None,
                         n_ctx=int(options["n_ctx"]) if "n_ctx" in options else None,
                         n_seq_max=int(options["n_seq_max"]) if "n_seq_max" in options else None,
-                        kv_type=options.get("kv_type", "auto"))
-    payload = {"model": alias, "path": model_path, **plan.to_dict()}
+                        kv_type=options.get("kv_type", "auto"), host=host)
+    payload = {"model": alias, "path": model_path, **plan.to_dict(),
+               # the free number the plan was bounded by (card t_8cb0a05e: any fit-touching
+               # evidence must carry it; a plan without it cannot be audited later)
+               "host": host.to_dict()}
     cache = fit.cache_path(plan.model_sha256, plan.host_fingerprint, home)
     payload["cache"] = str(cache) if cache.exists() else None
     if options.get("json"):

@@ -213,3 +213,56 @@ def test_the_live_helpers_skip_cleanly_without_a_model(monkeypatch: pytest.Monke
     monkeypatch.setattr(pathlib.Path, "exists", lambda self: False)
     with pytest.raises(pytest.skip.Exception):
         _model()
+
+
+# ------------------------------------- the fix (card t_8cb0a05e) against the REAL bundle
+@pytest.mark.model
+def test_the_log_capture_swaps_and_restores_the_real_handler() -> None:
+    """The callback swap is the one new libllama ABI surface: prove it on the pinned bundle.
+
+    `llama_log_get` is NOT called (at b11026 it writes through two out-parameters; the no-arg call
+    segfaults — measured, see `session.capture_llama_logs`), so the capture must install, collect
+    real backend output and reset with a NULL callback without any crash.
+    """
+    from ggufone.runtime import ctypes_binding
+
+    runtime = ctypes_binding.load_libraries(_runtime_dir())
+    with session_module.capture_llama_logs(runtime) as lines:
+        model = fit.ModelFacts.read(_model(), want_sha256=False)
+        assert model.arch == "spark2_5"
+    assert isinstance(lines, list)                       # may be empty; the point is the swap
+    assert any(isinstance(cb, ctypes_binding.LLAMA_LOG_CALLBACK)
+               for cb in ctypes_binding.live_log_callbacks())
+    print(f"\ncaptured {len(lines)} backend line(s) around a header read")
+
+
+@pytest.mark.model
+def test_a_busy_desktop_plan_loads_on_the_free_reading() -> None:
+    """Requirement 1, live: 8192 MiB total / 1112 MiB free must yield a load that SUCCEEDS.
+
+    The plan is built from an injected busy-desktop reading (the operator's numbers) and the real
+    bundle then loads the real model with it; before the fix this is where the 1.06 GB allocation
+    was attempted and the run died.
+    """
+    from ggufone.registry import recommend
+
+    model_path = _model()
+    runtime = _runtime_dir()
+    busy = fit.host_facts(backend="vulkan", device_probe=lambda: recommend.DeviceMemory(
+        total_bytes=8 * 1024 ** 3, free_bytes=1112 * 1024 ** 2, source="injected"))
+    plan = fit.plan_for_path(model_path, host=busy, runtime_dir=runtime, home=None, use_cache=False)
+    assert busy.budget_bytes == 1112 * 1024 ** 2
+    assert plan.budget_bytes == max(0, 1112 * 1024 ** 2 - fit.DEFAULT_FIT_TARGET_MB * 1024 ** 2)
+    assert plan.n_gpu_layers == 0
+    assert "W_FIT_DOWNGRADE" in plan.warnings
+    handle = session_module.open_model(model_path, runtime_dir=runtime, fit_plan=plan,
+                                       free_probe=lambda: 1112 * 1024 ** 2)
+    try:
+        assert handle.n_gpu_layers == 0
+        assert handle.placement.degraded is False         # nothing failed: the plan was honest
+        assert "CPU only" in handle.placement.note
+        assert handle.warnings == ()
+        print(f"\nbusy desktop: plan {plan.n_gpu_layers} layers, budget "
+              f"{plan.budget_bytes / 1024 ** 2:.0f} MiB, load_ms {handle.load_ms:.0f}")
+    finally:
+        handle.close()

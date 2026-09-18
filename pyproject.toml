@@ -74,16 +74,15 @@ quote-style = "double"
 # package still imports while only those files carry mutants. Swap the pair for a wider sweep —
 # e.g. source_paths = ["src/ggufone"] with also_copy = ["tests", ...] — when a milestone wants
 # the whole package (E1a/E1b did: readout + schema).
-source_paths = ["src/ggufone/engine/template.py", "src/ggufone/runtime/fit.py"]
+source_paths = ["src/ggufone/runtime/fit.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
-# E1c: the gates for the two files above (the `model`-marked cases stay skipped without
-# --run-network, which is what a mutation run wants: the offline gates only)
-pytest_add_cli_args_test_selection = ["tests/test_templates.py",
-                                      "tests/test_fit.py",
-                                      "tests/test_cli_e1c.py",
-                                      "tests/test_engine_fork.py",
-                                      "tests/test_cli.py",
-                                      "tests/test_e1c_mutation_pins.py"]
-max_children = 3
+# E1c FIX (card t_8cb0a05e): the gates for the file above (the `model`-marked cases stay skipped
+# without --run-network, which is what a mutation run wants: the offline gates only). The
+# selection is deliberately the FAST set, so a sweep can finish inside this container's shared
+# pid cap.
+pytest_add_cli_args_test_selection = ["tests/test_fit.py",
+                                      "tests/test_fit_free_vram.py",
+                                      "tests/test_fit_oom_recovery.py"]
+max_children = 2

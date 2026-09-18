@@ -25,6 +25,7 @@ from ggufone.errors import AmbiguousQuantError, ModelNotFoundError, UserError
 GGML_TYPE_BYTES: dict[str, int] = {"f16": 2, "q8_0": 1, "q4_0": 1}
 KV_TYPES: tuple[str, ...] = ("f16", "q8_0", "q4_0")
 OVERHEAD_BYTES = 512 * 1024 * 1024
+MIB = 1024 * 1024
 VRAM_MARGIN = 0.10
 RAM_MARGIN = 0.20
 
@@ -78,6 +79,100 @@ def recommend_quant(candidates: list[tuple[str, int]], *, vram_bytes: int, ram_b
 class Budget:
     vram_bytes: int
     ram_bytes: int
+
+
+#: Where the generic DRM reports VRAM (`card*/device/mem_info_vram_{total,used}`).
+DRM_ROOT = pathlib.Path("/sys/class/drm")
+#: The two numbers one driver query must return, in this order.
+NVIDIA_SMI_QUERY = "memory.total,memory.free"
+
+
+def _parse_nvidia_smi_memory(stdout: str) -> tuple[int, int] | None:
+    """`"8192, 1112"` lines (MiB, or "N/A") -> the best (total, free) pair in bytes."""
+    best: tuple[int, int] | None = None
+    for line in stdout.splitlines():
+        parts = [part.strip() for part in line.split(",")]
+        if len(parts) < 2:
+            continue
+        if not (parts[0].isdigit() and parts[1].isdigit()):
+            continue
+        total, free = int(parts[0]) * MIB, int(parts[1]) * MIB
+        if best is None or total > best[0]:
+            best = (total, min(free, total))
+    return best
+
+
+def _query_nvidia_smi_memory() -> tuple[int, int] | None:
+    """(total, free) device bytes from ONE `nvidia-smi` call, or None when unavailable.
+
+    The free number is the one a planner must use on a shared desktop: the driver reports what is
+    left after every other client has taken its share, and `memory.total` alone is a promise the
+    box may not be able to keep (card t_8cb0a05e: 8192 MiB total, 1112 MiB free).
+    """
+    exe = shutil.which("nvidia-smi")
+    if not exe:
+        return None
+    try:
+        out = subprocess.run(  # noqa: S603
+            [exe, f"--query-gpu={NVIDIA_SMI_QUERY}", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=15, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return _parse_nvidia_smi_memory(out.stdout)
+
+
+def _query_amdgpu_memory(root: pathlib.Path) -> tuple[int, int] | None:
+    """(total, free) from the DRM sysfs facts — the generic fallback when there is no nvidia-smi.
+
+    `mem_info_vram_used` is what every client (desktop included) holds right now, so free is
+    derived instead of guessed. An absent attribute means the driver does not expose it.
+    """
+    best: tuple[int, int] | None = None
+    for device in sorted(root.glob("card*/device")):
+        try:
+            total = int((device / "mem_info_vram_total").read_text().strip())
+            used = int((device / "mem_info_vram_used").read_text().strip())
+        except (OSError, ValueError):
+            continue
+        if total <= 0:
+            continue
+        free = max(0, total - max(0, used))
+        if best is None or total > best[0]:
+            best = (total, free)
+    return best
+
+
+@dataclass(frozen=True)
+class DeviceMemory:
+    """The device's memory as the driver reports it *now*: total plus what is actually free."""
+
+    total_bytes: int = 0
+    free_bytes: int = 0
+    source: str = "unknown"
+
+    def to_dict(self) -> dict[str, object]:
+        return {"vram_total_bytes": self.total_bytes, "vram_free_bytes": self.free_bytes,
+                "vram_source": self.source}
+
+
+def device_memory(*, probe: Callable[[], tuple[int, int] | None] | None = None,
+                  nvidia_smi: Callable[[], tuple[int, int] | None] | None = None,
+                  drm_root: pathlib.Path | None = None) -> DeviceMemory:
+    """Total + FREE device memory. An injected probe owns the answer (no host read at all)."""
+    if probe is not None or nvidia_smi is not None:
+        answer = (probe or nvidia_smi)()  # type: ignore[operator]
+        source = "injected"
+    else:
+        answer = _query_nvidia_smi_memory()
+        source = "nvidia-smi"
+        if answer is None:
+            answer = _query_amdgpu_memory(drm_root or DRM_ROOT)
+            source = "amdgpu-sysfs"
+    if not answer:
+        return DeviceMemory(0, 0, source if answer is not None else "unknown")
+    total, free = int(answer[0]), int(answer[1])
+    return DeviceMemory(total_bytes=max(0, total), free_bytes=max(0, min(free, max(0, total))),
+                        source=source)
 
 
 def _query_nvidia_smi() -> int | None:

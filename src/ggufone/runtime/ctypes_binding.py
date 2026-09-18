@@ -25,6 +25,27 @@ llama_token = C.c_int32
 llama_pos = C.c_int32
 llama_seq_id = C.c_int32
 RTLD_GLOBAL = getattr(C, "RTLD_GLOBAL", 0)
+#: `void (*)(enum ggml_log_level level, const char * text, void * user_data)` — b11026.
+LLAMA_LOG_CALLBACK = C.CFUNCTYPE(None, C.c_int, C.c_char_p, C.c_void_p)
+#: Installed callbacks. `ggml_log_set(NULL, …)` is the documented reset, but a build that ignored
+#: it would leave C holding a pointer to a Python object: keep every callback alive for the
+#: process (see `engine.session.capture_llama_logs`).
+_LIVE_LOG_CALLBACKS: list[object] = []
+
+
+def register_log_callback(callback: object) -> object:
+    """Keep a C-installed callback alive for the life of the process (returns it unchanged).
+
+    `ggml_log_set(NULL, …)` is the documented reset, but a build that ignored it would leave C
+    holding a pointer to a Python object; this list makes that impossible.
+    """
+    _LIVE_LOG_CALLBACKS.append(callback)
+    return callback
+
+
+def live_log_callbacks() -> tuple[object, ...]:
+    """The log callbacks this process has installed (kept referenced on purpose)."""
+    return tuple(_LIVE_LOG_CALLBACKS)
 
 
 # --------------------------------------------------------------------- structs
@@ -258,6 +279,32 @@ def _bind(runtime: Runtime) -> None:
             raise RuntimeSymbolsError(
                 f"E_RUNTIME_SYMBOLS: libggml.so is missing {name} — the backend loader must "
                 f"run before any model load (PoC pitfall 1)")
+    _bind_optional(runtime)
+
+
+def _bind_optional(runtime: Runtime) -> None:
+    """Signatures that are knowledge-but-not-requirements (E1c FIX: the backend log handler).
+
+    `llama_log_set(callback, user_data)` lets the engine read the backend's own diagnostics — the
+    only place an allocation failure is reported (card t_8cb0a05e). A bundle without it still loads
+    models; it just cannot be classified from its log, so it is bound when present and never
+    demanded.
+
+    `llama_log_get` is deliberately NOT bound: at b11026 it is a tail jump to
+    `ggml_log_get(callback *, void **)` — two OUT parameters — and calling it like the older
+    no-argument getter segfaults the process (measured on the pinned CPU bundle: `ggufone ask`
+    exited 139 with faulthandler pointing at the call). `capture_llama_logs` resets the handler
+    with a NULL callback instead, which is the documented reset in both ABI generations.
+    """
+    for name, (argtypes, restype) in {
+        "llama_log_set": ([LLAMA_LOG_CALLBACK, C.c_void_p], None),
+    }.items():
+        fn = getattr(runtime.llama, name, None)
+        if fn is None:
+            continue
+        fn.argtypes = argtypes
+        fn.restype = restype
+        runtime.bindings[name] = fn
 
 
 def token_piece(runtime: Runtime, vocab: C.c_void_p, token: int, *, special: bool = True) -> str:

@@ -64,6 +64,10 @@ class SessionMeta:
     load_ms: float = 0.0
     kv_type: str = "auto"            # E1c: what the context was created with (fit plan or request)
     n_gpu_layers: int = 0            # E1c: from the fit plan (0 = CPU placement)
+    #: E1c FIX (card t_8cb0a05e): WHY the model ended up where it did, and every load attempt.
+    placement: Any | None = None
+    #: Codes from the placement itself (W_BACKEND_OOM / W_FIT_DOWNGRADE) — merged into `warnings`.
+    placement_warnings: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -298,6 +302,10 @@ class DecisionEngine:
         if plan.template is not None:
             for code in plan.template.warnings:
                 _add_warning(warnings, code)
+        for code in meta.placement_warnings:
+            # E1c FIX: a degraded placement (allocation failure survived by reducing the plan) is
+            # part of the answer's provenance, not a detail of the load.
+            _add_warning(warnings, code)
         input_tokens = len(plan.prefix_tokens)
         output_tokens = 0
         for question, view, suffix_tokens, candidates in requirements:
@@ -323,6 +331,10 @@ class DecisionEngine:
                 "template": self._template_surface(plan),
                 "kv_type": meta.kv_type,
                 "n_gpu_layers": meta.n_gpu_layers,
+                # E1c FIX (card t_8cb0a05e): say WHERE the model ran and why — `n_gpu_layers: 0`
+                # on its own could mean "--no-fit", a busy desktop or a degraded retry.
+                "placement": (meta.placement.to_dict()
+                              if hasattr(meta.placement, "to_dict") else meta.placement),
             },
             answers=answers,
             usage={
