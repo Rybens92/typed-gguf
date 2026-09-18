@@ -96,10 +96,16 @@ quote-style = "double"
 # Card t_a431be85 (E3) swept `source_paths = ["src/ggufone/bench/compare.py"]` with
 # [tests/test_e3.py] — the module E3 adds (align / merge_reports / model_row / render_comparison);
 # its gate file is fast and drives every branch of it, which is what a Tier-M sweep needs on a box
-# shared with a sibling bench. Card t_57cc0179 (E2 FIX, the teardown crash's recovery) is the most
-# recent sweep and takes `source_paths` back to `src/ggufone/bench/isolation.py` with both of that
-# module's gate files (see the test-selection comment below).
-source_paths = ["src/ggufone/bench/isolation.py"]
+# shared with a sibling bench. Card t_57cc0179 (E2 FIX, the teardown crash's recovery) took
+# `source_paths` to `src/ggufone/bench/isolation.py` with both of that module's gate files (see the
+# test-selection comment below). Card t_80f1a4c6 (E3 FIX, the serving path's backend label) is the
+# current sweep and mutates the two engine modules the fix moves — `engine/session.py` (the claim
+# + `device_log`) and `engine/decide.py` (`device_evidence` + the response fields) — with
+# [tests/test_serving_attribution.py], whose gates drive both. The wider engine gate file
+# (tests/test_engine_fork.py) is 2.3 s per mutant on a shared, pid-capped box, so the selection
+# stays narrow and survivors in the *pre-existing* decide.py internals are named in the card's QA
+# note rather than chased (Tier M, soft threshold).
+source_paths = ["src/ggufone/engine/session.py", "src/ggufone/engine/decide.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -116,14 +122,13 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # src/ggufone/runtime/devices.py with tests/test_bench_attribution.py. Card t_dd62ec29 (E2 FIX,
 # mixed-bundle teardown) swept that module with tests/test_bench_isolation.py. Card t_a431be85 (E3)
 # activated `["src/ggufone/bench/compare.py"]` + `["tests/test_e3.py"]` while it landed; card
-# t_57cc0179 (E2 FIX, the teardown crash's recovery) is the most recent sweep and puts the pair back
-# on the module it changes — `src/ggufone/bench/isolation.py` with **both** isolation gate files
-# (test_bench_isolation.py = the containment, test_bench_teardown_crash.py = the retry, the warning
-# and the table): the retry lives inside `run_backend_child`, whose mutants only the pair together
-# kill. A bench sweep only has to restore the three bench gate files above; an E3 sweep restores
-# `compare.py` + `test_e3.py`.
-pytest_add_cli_args_test_selection = ["tests/test_bench_isolation.py",
-                                      "tests/test_bench_teardown_crash.py"]
-# NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
-# this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
-# with `BlockingIOError: [Errno 11]`. `.e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh` does both.
+# t_57cc0179 (E2 FIX, the teardown crash's recovery) took the pair back to the module it changes —
+# `src/ggufone/bench/isolation.py` with **both** isolation gate files (test_bench_isolation.py =
+# the containment, test_bench_teardown_crash.py = the retry, the warning and the table): the retry
+# lives inside `run_backend_child`, whose mutants only the pair together kill. A bench sweep only
+# has to restore the three bench gate files above; an E3 sweep restores `compare.py` +
+# `test_e3.py`. Card t_80f1a4c6 (E3 FIX, the serving path's backend label) is the newest sweep:
+# its two engine modules are driven by tests/test_serving_attribution.py (16 offline + 1 live
+# gate). Restore the isolation pair (or the bench triple above) when a bench card sweeps next.
+pytest_add_cli_args_test_selection = ["tests/test_serving_attribution.py"]
+max_children = 2
