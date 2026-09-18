@@ -50,7 +50,7 @@ from typing import Any
 
 from ggufone import schema
 from ggufone.bench import devset as devset_module
-from ggufone.bench import harness
+from ggufone.bench import harness, isolation
 from ggufone.engine import decide as decide_module
 from ggufone.engine import prompt, readout
 
@@ -78,20 +78,26 @@ def run_suite(config: harness.BenchConfig, *, factory: Factory | None = None) ->
     `runs` samples (with `--quick`'s `runs=1` that is one measurement per row) — and the units
     that never started are recorded (`_measure`) so the report can list them under
     `"truncated": true` while the exit code stays 0.
+
+    `isolated` is derived from the factory, and only the production one: `live_factory` is the one
+    that dlopens a bundle, so it is the one that must be kept to one bundle per process when the
+    selected backends span two local bundles (`bench.isolation`, card t_dd62ec29). The fake seams
+    stay in-process, which is what keeps every offline gate deterministic.
     """
     harness.valid_suite(config.suite)
     make = factory or live_factory
+    isolated = make is live_factory
     budget = harness.TimeBudget(config.max_seconds)
     if config.suite == "latency":
         report = _run_latency(config, make, budget)
     elif config.suite == "throughput":
-        report = _run_throughput(config, make, budget)
+        report = _run_throughput(config, make, budget, isolated=isolated)
     elif config.suite == "quality":
         report = _run_quality(config, make, budget, calibration=False)
     elif config.suite == "calibration":
         report = _run_quality(config, make, budget, calibration=True)
     else:
-        report = _run_determinism(config, make, budget)
+        report = _run_determinism(config, make, budget, isolated=isolated)
     report["truncated"] = bool(budget.skipped)
     report["skipped"] = list(budget.skipped)
     report["wall_ms"] = round(budget.elapsed() * 1000.0, 3)
@@ -492,12 +498,18 @@ def _chunks(indices: Sequence[int], size: int) -> Iterable[list[int]]:
 
 # --------------------------------------------------------------------------- throughput
 def _run_throughput(config: harness.BenchConfig, make: Factory,
-                    budget: harness.TimeBudget) -> dict[str, Any]:
+                    budget: harness.TimeBudget, *, isolated: bool = False) -> dict[str, Any]:
     runtimes = harness.backend_runtimes(home=config.home)
     report = _envelope(config)
     chosen = config.backends(available=runtimes)
     measured_backends = chosen if config.backend_limit is None else \
         chosen[:max(1, int(config.backend_limit))]
+    # two distinct bundles in one process abort at teardown (card t_dd62ec29): measure each
+    # backend in its own child instead of loading a second bundle next to the first
+    one_per_process = isolated and isolation.isolation_needed(measured_backends, runtimes)
+    if one_per_process:
+        report["isolation"] = isolation.isolation_record(config, runtimes, measured_backends)
+        report["notes"].append(isolation.isolation_used_note(config, runtimes, measured_backends))
     rows: list[dict[str, Any]] = []
     for backend in chosen:
         if backend not in measured_backends:
@@ -516,13 +528,22 @@ def _run_throughput(config: harness.BenchConfig, make: Factory,
             rows.append({"backend": backend, "measured": False,
                          "reason": budget.skip("backends", backend)["reason"]})
             continue
-        rows.append(_throughput_row(config, make, spec))
+        if one_per_process:
+            child = isolation.run_backend_child(config, backend, runtime_dir=spec.runtime_dir)
+            rows.append(isolation.isolated_row(
+                child, gap={"backend": backend, "measured": False}))
+        else:
+            rows.append(_throughput_row(config, make, spec))
     report["backends"] = rows
     measured = [row for row in rows if row.get("measured")]
     # a row that never started because the cap was already spent is incompleteness, not a failure —
     # and `--backend all` must not publish a row whose own engine log contradicts its label
     mismatched = [row for row in measured if row["warnings"]]
-    report["ok"] = (bool(measured) or bool(budget.skipped)) and not mismatched
+    # a row whose child could not be verified is a failure too: the exit code is never the answer
+    broken = isolation.broken_rows(rows)
+    report["ok"] = (bool(measured) or bool(budget.skipped)) and not mismatched and not broken
+    for row in broken:
+        report["notes"].append(isolation.isolation_note(row))
     for row in mismatched:
         report["notes"].append(_mismatch_note(row["backend"], row))
     if not measured and not budget.skipped:
@@ -717,7 +738,7 @@ def agreement_by_type(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 
 # --------------------------------------------------------------------------- determinism
 def _run_determinism(config: harness.BenchConfig, make: Factory,
-                     budget: harness.TimeBudget) -> dict[str, Any]:
+                     budget: harness.TimeBudget, *, isolated: bool = False) -> dict[str, Any]:
     runtimes = harness.backend_runtimes(home=config.home)
     usable, missing = _selected_backends(config, runtimes)
     if config.backend not in ("auto", "all") and config.backend not in usable:
@@ -727,27 +748,54 @@ def _run_determinism(config: harness.BenchConfig, make: Factory,
     report["repeats"] = int(config.determinism_repeats)
     report["threads"] = config.threads or 1
     report["request"] = _determinism_request(config)
+    # same rule as the throughput suite: this suite also measures every usable backend, so two
+    # distinct bundles are two child processes here too (card t_dd62ec29)
+    one_per_process = isolated and isolation.isolation_needed(usable, runtimes)
+    if one_per_process:
+        report["isolation"] = isolation.isolation_record(config, runtimes, usable)
+        report["notes"].append(isolation.isolation_used_note(config, runtimes, usable))
     rows: list[dict[str, Any]] = []
     for backend in usable:
         if budget.expired():
             budget.skip("backends", backend)
             continue
-        rows.append(_determinism_row(config, make, _spec(config, backend, runtimes)))
+        spec = _spec(config, backend, runtimes)
+        if one_per_process:
+            child = isolation.run_backend_child(config, backend, runtime_dir=spec.runtime_dir)
+            rows.append(isolation.isolated_row(child, gap=_determinism_gap(backend)))
+        else:
+            rows.append(_determinism_row(config, make, spec))
     report["backends"] = rows
     report["skipped_backends"] = missing
     # the gate is about the repeats that *ran*: a backend the cap never reached is incompleteness
     # (`"truncated": true` says so and the CLI still exits 0), a row that ran and differed is a
     # failure the exit code must keep at 1 — and so is a row whose own engine log refutes its label
+    # or whose isolated child the parent could not verify
+    broken = isolation.broken_rows(rows)
     failed = [row for row in rows if not row["ok"]]
     mismatched = [row for row in rows if row.get("warnings")]
     report["ok"] = not failed and not mismatched and (bool(rows) or bool(budget.skipped))
+    for row in broken:
+        report["notes"].append(isolation.isolation_note(row))
     for row in mismatched:
         report["notes"].append(_mismatch_note(row["backend"], row))
-    if failed:
+    # only a row that really ran its repeats can be a byte-identity failure; a withheld row already
+    # carries its own note above
+    differing = [row for row in failed if (row.get("process") or {}).get("ok") is not False]
+    if differing:
         report["notes"].append(
             "the repeats of one backend produced different bytes after stripping `timings`; "
             "SPEC A5 pins byte identity to (runtime, backend, threads=1)")
     return report
+
+
+def _determinism_gap(backend: str) -> dict[str, Any]:
+    """The row a determinism backend reports when nothing could be measured (the exception shape).
+
+    Kept here so an isolated backend that produced nothing reads exactly like an in-process one
+    that raised: `ok: false`, no digests, and therefore a failed report.
+    """
+    return {"backend": backend, "measured": False, "ok": False, "digests": [], "identical": False}
 
 
 def _determinism_request(config: harness.BenchConfig) -> dict[str, Any]:
