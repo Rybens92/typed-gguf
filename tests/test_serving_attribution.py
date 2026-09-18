@@ -235,6 +235,16 @@ def test_a_record_without_a_working_backend_is_not_a_claim(tmp_path: pathlib.Pat
     assert (claim.backend, claim.source) != ("cuda", "record")
 
 
+def test_the_bundle_classifier_refuses_a_platform_it_has_no_rule_for() -> None:
+    """Same rule as `finder.library_names`: an unknown platform is an error, never a guess."""
+    from ggufone.errors import RuntimeMissingError
+
+    with pytest.raises(RuntimeMissingError) as excinfo:
+        finder.accelerator_names("plan9")
+    assert "E_RUNTIME_MISSING" in str(excinfo.value)
+    assert finder.accelerator_names("linux")[0] == ("vulkan", "libggml-vulkan.so")
+
+
 # ------------------------------------------------- the live plumbing (engine side, no GPU)
 def test_the_live_session_records_the_load_and_the_context_lines(tmp_path: pathlib.Path) -> None:
     """`open_model` keeps the *successful* load's lines; the session adds its context's.

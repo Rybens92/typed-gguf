@@ -743,9 +743,6 @@ class BackendClaim:
     backend: str
     source: str
 
-    def to_dict(self) -> dict[str, str]:
-        return {"backend": self.backend, "source": self.source}
-
 
 def backend_claim(*, requested: str | None = None,
                   runtime_dir: str | os.PathLike[str] | None = None,
