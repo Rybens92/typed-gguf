@@ -1,0 +1,17 @@
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = NVIDIA GeForce RTX 3060 Ti (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0 | warp size: 32 | shared memory: 49152 | int dot: 1 | matrix cores: NV_coopmat2
+load_backend: loaded Vulkan backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-vulkan.so
+load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+ggml_vulkan: Device memory allocation of size 1071201536 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+Traceback (most recent call last):
+  File "/work/t97-ggufone/.e2e/t_97f1bc93-vulkan-teardown/hog.py", line 70, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/work/t97-ggufone/.e2e/t_97f1bc93-vulkan-teardown/hog.py", line 39, in main
+    handle = session_module.open_model(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/t97-red/src/ggufone/engine/session.py", line 322, in open_model
+    raise fit.backend_oom_error(candidate, free_bytes=_free_bytes(free_probe),
+ggufone.errors.BackendOomError: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=12, kv_type=auto, needed ~1022 MiB); the driver reports unknown free; tried 1 placement(s) down to CPU-only, none fit: n_gpu_layers=12 -> oom; the backend asked for a 1022 MiB allocation; backend log: 'alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1071201536'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant

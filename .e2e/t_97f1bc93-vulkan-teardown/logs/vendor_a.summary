@@ -1,0 +1,4 @@
+run=1 exit=0 bytes=1784 segv_bt=0 vram_free_before=3520 MiB
+run=2 exit=0 bytes=1783 segv_bt=0 vram_free_before=3512 MiB
+run=3 exit=0 bytes=1784 segv_bt=0 vram_free_before=5706 MiB
+run=4 exit=0 bytes=1784 segv_bt=0 vram_free_before=5583 MiB

@@ -1,0 +1,6 @@
+run=1 exit=0 report_lines=1 ok_true=1 faulthandler=0 vram_free_before=3613 MiB
+run=2 exit=139 report_lines=1 ok_true=1 faulthandler=0 vram_free_before=3596 MiB
+run=3 exit=1 report_lines=1 ok_true=0 faulthandler=0 vram_free_before=3402 MiB
+run=4 exit=1 report_lines=1 ok_true=0 faulthandler=0 vram_free_before=2816 MiB
+run=5 exit=1 report_lines=1 ok_true=0 faulthandler=0 vram_free_before=2552 MiB
+run=6 exit=0 report_lines=1 ok_true=1 faulthandler=0 vram_free_before=2541 MiB

@@ -16,7 +16,7 @@ import pathlib
 import sys
 import time
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, NoReturn
 
 from ggufone import __version__, schema
 from ggufone.bench import devset as devset_module
@@ -28,7 +28,7 @@ from ggufone.engine import session as session_module
 from ggufone.errors import GgufoneError, ModelNotFoundError, Sha256MismatchError, UserError
 from ggufone.registry import gguf, hf, recommend, store
 from ggufone.registry.gguf import sha256_file
-from ggufone.runtime import capability, finder, fit, install, pins
+from ggufone.runtime import capability, finder, fit, install, pins, teardown
 
 COMMANDS = ("init", "doctor", "models", "run", "ask", "serve", "mcp", "bench",
             "fit", "calibrate", "version")
@@ -1596,5 +1596,24 @@ def _fail(exc: GgufoneError, *, command: str | None = None) -> int:
     return exc.exit_code
 
 
+def run(argv: list[str] | None = None) -> NoReturn:
+    """The **process** entry point: `main`'s code, then end the process deliberately.
+
+    `main` is the pure half (options in, a code out) and stays that way for every in-process
+    caller, `tests/` included. This is the other half — what `python -m ggufone` and the installed
+    console script call — and it exists because of what happens *after* a command that dlopened a
+    bundle returns: the bundle's engine has registered third-party destructors (the Vulkan device
+    and instance, the NVIDIA ICD's own exit handlers), they run at interpreter exit, and on the
+    operator's box one of them crashes — a single-bundle `ggufone bench` prints its whole report
+    and then dies with SIGSEGV. `ggufone.runtime.teardown` carries the backtrace and the policy:
+    a process that has a bundle loaded ends itself, so its exit status is the command's, never a
+    destructor's. A process that never loaded a bundle shuts down normally.
+    """
+    code = main(argv)
+    if teardown.engine_loaded():
+        teardown.end_process(code)
+    raise SystemExit(code)
+
+
 if __name__ == "__main__":  # pragma: no cover
-    raise SystemExit(main())
+    run()

@@ -1,0 +1,52 @@
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = NVIDIA GeForce RTX 3060 Ti (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0 | warp size: 32 | shared memory: 49152 | int dot: 1 | matrix cores: NV_coopmat2
+load_backend: loaded Vulkan backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-vulkan.so
+load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+[
+  {
+    "build_commit": "b49650adb",
+    "build_number": 11026,
+    "cpu_info": "AMD Ryzen 9 3900X 12-Core Processor",
+    "gpu_info": "NVIDIA GeForce RTX 3060 Ti",
+    "backends": "Vulkan",
+    "model_filename": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "model_type": "qwen35 4B Q4_0",
+    "model_size": 2572253184,
+    "model_n_params": 4205751296,
+    "n_batch": 2048,
+    "n_ubatch": 512,
+    "n_threads": 12,
+    "cpu_mask": "0x0",
+    "cpu_strict": false,
+    "poll": 50,
+    "type_k": "f16",
+    "type_v": "f16",
+    "n_gpu_layers": 99,
+    "n_cpu_moe": 0,
+    "split_mode": "layer",
+    "main_gpu": 0,
+    "no_kv_offload": false,
+    "flash_attn": -1,
+    "devices": "auto",
+    "tensor_split": "0.00",
+    "tensor_buft_overrides": "none",
+    "load_mode": "auto",
+    "lazy_mode": "auto",
+    "embeddings": false,
+    "no_op_offload": 0,
+    "no_host": false,
+    "fit_target": 0,
+    "fit_min_ctx": 0,
+    "n_prompt": 64,
+    "n_gen": 0,
+    "n_depth": 0,
+    "test_time": "2026-09-18T16:09:14Z",
+    "avg_ns": 60640007,
+    "stddev_ns": 0,
+    "avg_ts": 1055.408849,
+    "stddev_ts": 0.000000,
+    "samples_ns": [ 60640007 ],
+    "samples_ts": [ 1055.41 ]
+  }
+]

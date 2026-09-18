@@ -1,0 +1,121 @@
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = NVIDIA GeForce RTX 3060 Ti (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0 | warp size: 32 | shared memory: 49152 | int dot: 1 | matrix cores: NV_coopmat2
+load_backend: loaded Vulkan backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-vulkan.so
+load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+ggml_vulkan: Device memory allocation of size 158072832 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+ggml_vulkan: Device memory allocation of size 158072832 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+ggml_vulkan: Device memory allocation of size 158072832 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "throughput",
+  "quick": false,
+  "generated_at": "2026-09-18T16:06:50Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15",
+    "cpu_count": 24,
+    "machine": "x86_64",
+    "cgroup_cpu_max": 2.0,
+    "cgroup_memory_bytes": 8589934592
+  },
+  "config": {
+    "suite": "throughput",
+    "model_path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "backend": "vulkan",
+    "runs": 1,
+    "threads": 4,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      64
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null,
+    "quick": false,
+    "items_per_type": null,
+    "determinism_repeats": 3,
+    "backend_limit": null,
+    "max_seconds": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "name": "Qwen3.5-4B-Q4_0.gguf",
+    "bytes": 2583221408,
+    "arch": "qwen35"
+  },
+  "notes": [
+    "no local backend bundle was available; nothing was measured"
+  ],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite throughput --model /var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf --backend vulkan --runs 1 --threads 4 --json"
+  },
+  "backends": [
+    {
+      "backend": "vulkan",
+      "measured": false,
+      "runtime_dir": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+      "placement": "n_gpu_layers=-1",
+      "threads": 4,
+      "load_ms": {
+        "n": 1,
+        "min": 2369.719622001867,
+        "p50": 2369.719622001867,
+        "p95": 2369.719622001867,
+        "max": 2369.719622001867,
+        "mean": 2369.719622001867
+      },
+      "placement_used": {
+        "requested": "n_gpu_layers=-1",
+        "used": {
+          "note": "all layers requested: n_gpu_layers=-1 (kv_type=auto)",
+          "n_gpu_layers": -1,
+          "kv_type": "auto",
+          "degraded": false,
+          "attempts": [],
+          "warnings": []
+        }
+      },
+      "reason": "BackendOomError: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=-1, kv_type=auto, needed ~151 MiB); the driver reports unknown free; tried 3 placement(s) down to CPU-only, none fit: ctx kv_type=f16 -> oom; ctx kv_type=q8_0 -> oom; ctx kv_type=q4_0 -> oom; the backend asked for a 151 MiB allocation; backend log: 'alloc_tensor_range: failed to allocate Vulkan0 buffer of size 158072832'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant"
+    }
+  ],
+  "ok": false,
+  "truncated": false,
+  "skipped": [],
+  "wall_ms": 9056.384,
+  "budget": {
+    "max_seconds": null,
+    "expired": false,
+    "skipped": 0
+  }
+}

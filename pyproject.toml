@@ -30,7 +30,10 @@ llamacpp = ["llama-cpp-python>=0.3.16"]
 dev = ["pytest>=8.0", "pytest-timeout>=2.3", "ruff>=0.6"]
 
 [project.scripts]
-ggufone = "ggufone.cli:main"
+# the console script uses the *process* entry point: a command that dlopened a bundle ends the
+# process itself, so its exit status is the command's code and never a third-party destructor's
+# signal (`ggufone.cli.run`, card t_97f1bc93)
+ggufone = "ggufone.cli:run"
 
 [project.urls]
 Homepage = "https://github.com/Rybens92/ggufone"

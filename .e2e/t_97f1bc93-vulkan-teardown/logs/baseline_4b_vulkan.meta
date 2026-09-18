@@ -1,0 +1,4 @@
+=== baseline_4b_vulkan ===
+hog layers=off model=/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf ctx=0
+runtime=/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+target: bench --suite throughput --model /var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf --backend vulkan --runs 1 --threads 4 --sizes 64 --json
