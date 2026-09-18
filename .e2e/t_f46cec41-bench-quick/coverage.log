@@ -1,0 +1,59 @@
+..........................................ssssss........................ [  7%]
+........................................................................ [ 15%]
+........................................................................ [ 22%]
+...s.................................................................... [ 30%]
+......................ss................................................ [ 38%]
+.......................................................sssssss.......... [ 45%]
+.......................................sssssss.ss....................... [ 53%]
+...................ss.......................ssss........................ [ 60%]
+........................................................................ [ 68%]
+........................................................................ [ 76%]
+........................................................................ [ 83%]
+......sssss............................................................. [ 91%]
+..............................................................ssss...... [ 98%]
+..........                                                               [100%]
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.11.15-final-0 _______________
+
+Name                                    Stmts   Miss  Cover
+-----------------------------------------------------------
+src/ggufone/__init__.py                     2      0   100%
+src/ggufone/__main__.py                     1      1     0%
+src/ggufone/api/__init__.py                 0      0   100%
+src/ggufone/api/http.py                     0      0   100%
+src/ggufone/api/mcp.py                      0      0   100%
+src/ggufone/bench/__init__.py               0      0   100%
+src/ggufone/bench/devset.py               113     16    86%
+src/ggufone/bench/harness.py              451     33    93%
+src/ggufone/bench/suites.py               390      4    99%
+src/ggufone/calibration/__init__.py         0      0   100%
+src/ggufone/calibration/calibrate.py      311      8    97%
+src/ggufone/calibration/routing.py        256      5    98%
+src/ggufone/calibration/stats.py          116      5    96%
+src/ggufone/cli.py                        904    131    86%
+src/ggufone/engine/__init__.py              0      0   100%
+src/ggufone/engine/decide.py              313     14    96%
+src/ggufone/engine/prompt.py               56      3    95%
+src/ggufone/engine/readout.py              88      0   100%
+src/ggufone/engine/session.py             362    110    70%
+src/ggufone/engine/template.py           1035    169    84%
+src/ggufone/errors.py                      52      0   100%
+src/ggufone/registry/__init__.py            0      0   100%
+src/ggufone/registry/gguf.py              102      2    98%
+src/ggufone/registry/hf.py                242     32    87%
+src/ggufone/registry/recommend.py         200     27    86%
+src/ggufone/registry/store.py             168     10    94%
+src/ggufone/runtime/__init__.py             0      0   100%
+src/ggufone/runtime/capability.py         251     25    90%
+src/ggufone/runtime/ctypes_binding.py     118     57    52%
+src/ggufone/runtime/finder.py              82      3    96%
+src/ggufone/runtime/fit.py                461     16    97%
+src/ggufone/runtime/install.py            281     47    83%
+src/ggufone/runtime/isolated.py            73     10    86%
+src/ggufone/runtime/pins.py               156      4    97%
+src/ggufone/runtime/probe_child.py         33      6    82%
+src/ggufone/schema.py                     250     11    96%
+-----------------------------------------------------------
+TOTAL                                    6867    749    89%
+Coverage JSON written to file /work/t_f46cec41/evidence/coverage.json
+906 passed, 40 skipped in 76.41s (0:01:16)

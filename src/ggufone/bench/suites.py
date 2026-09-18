@@ -73,9 +73,11 @@ def live_factory(spec: harness.ModelSpec) -> harness.ModelLike:
 def run_suite(config: harness.BenchConfig, *, factory: Factory | None = None) -> dict[str, Any]:
     """Run one suite and return its report (the only entry point the CLI needs).
 
-    The soft cap (`config.max_seconds`) is realized here as one `harness.TimeBudget` per run:
-    every suite checks it *between* its measurements and records the units it never started, so
-    the report can carry `"truncated": true` plus the unmeasured rows and still exit 0.
+    The soft cap (`--max-seconds N`) is a soft cap realized here as one `harness.TimeBudget` per
+    run: each measurement *unit* below is one budget check — a unit is a whole row including its
+    `runs` samples (with `--quick`'s `runs=1` that is one measurement per row) — and the units
+    that never started are recorded (`_measure`) so the report can list them under
+    `"truncated": true` while the exit code stays 0.
     """
     harness.valid_suite(config.suite)
     make = factory or live_factory

@@ -144,7 +144,7 @@ def test_the_quality_suite_answers_a_few_real_dev_items():
         assert abs(sum(row["probabilities"].values()) - 1.0) < 1e-6
 
 
-# ------------------------------------------------------------------ the `--quick` preset (t_f46cec41)
+# --------------------------------------------------------- the quick preset (card t_f46cec41)
 #: the model class the card's ≤ 3 min target is calibrated to (the CI smoke GGUF); a bigger local
 #: model scales the budget with its file size — the preset's cost is per-token weight traffic, so
 #: the gate stays meaningful on a 4B (and conservative on a 35B MoE, whose active slice is a

@@ -1,0 +1,19 @@
+.github/workflows/runtime-matrix.yml       24 added lines, not measured (not imported)
+docs/BENCHMARKS.md                         32 added lines, not measured (not imported)
+docs/evidence/e2_t_f46cec41_bench_quick.md  222 added lines, not measured (not imported)
+pyproject.toml                              7 added lines, not measured (not imported)
+src/ggufone/bench/devset.py                17 added  executable    7  covered    7  missing   0  -> 100.0 %
+src/ggufone/bench/harness.py              161 added  executable   63  covered   62  missing   1  ->  98.4 %
+                                         missing lines: [657]
+src/ggufone/bench/suites.py               271 added  executable  140  covered  140  missing   0  -> 100.0 %
+src/ggufone/cli.py                         83 added  executable   32  covered   31  missing   1  ->  96.9 %
+                                         missing lines: [1365]
+tests/test_bench_live.py                  118 added lines, not measured (not imported)
+tests/test_bench_quick.py                 470 added lines, not measured (not imported)
+tools/e2_reproduce.py                      81 added lines, not measured (not imported)
+tools/probe_quick_cost.py                  58 added lines, not measured (not imported)
+tools/quick_breakdown.py                   68 added lines, not measured (not imported)
+tools/rehearse_quick.sh                    43 added lines, not measured (not imported)
+tools/rehearse_quick_host.sh               46 added lines, not measured (not imported)
+TOTAL                                     532 added  executable  242  covered  240  missing   2  ->  99.2 %
+(overall suite coverage: 89.1 %)

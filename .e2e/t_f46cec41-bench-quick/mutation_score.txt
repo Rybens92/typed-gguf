@@ -1,0 +1,21 @@
+src/ggufone/bench/__init__.py.meta               total     0  killed     0  survived     0  score     n/a  not-run     0  no-tests    0
+src/ggufone/bench/devset.py.meta                 total   239  killed    59  survived    38  score  60.8 %  not-run   126  no-tests   16
+src/ggufone/bench/harness.py.meta                total  1743  killed   135  survived    71  score  65.5 %  not-run  1490  no-tests   47
+src/ggufone/bench/suites.py.meta                 total  1711  killed    35  survived    31  score  53.0 %  not-run  1645  no-tests    0
+--------------------------------------------------------------------------------------------------------------
+TOTAL total 3693  {'killed': 229, 'survived': 140, 'no-tests': 63, 'not-checked': 3261}
+SCORE killed/scored = 62.1 %   (scored=369, score-minus-no-tests-and-not-run)
+survivors by symbol (top 25):
+     36  ggufone.bench.devset.x_validate
+     31  ggufone.bench.suites.x__determinism_row
+     18  ggufone.bench.harness.x_resolve_model_path
+     13  ggufone.bench.harness.x.LiveModel.__init__
+     12  ggufone.bench.harness.x_write_report
+     10  ggufone.bench.harness.x_backend_runtimes
+      5  ggufone.bench.harness.x_runtime_roots
+      5  ggufone.bench.harness.x.LiveModel.close
+      3  ggufone.bench.harness.x_backend_unavailable_reason
+      2  ggufone.bench.devset.x_stratify
+      2  ggufone.bench.harness.x.BenchError.__init__
+      2  ggufone.bench.harness.x.LiveModel.load
+      1  ggufone.bench.harness.x_default_out_path

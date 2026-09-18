@@ -79,6 +79,9 @@ def quick_conflicts(args: argparse.Namespace) -> list[str]:
 
 
 def build_config(args: argparse.Namespace, suite: str) -> harness.BenchConfig:
+    if args.max_seconds is not None and args.max_seconds < 0:
+        raise SystemExit("--max-seconds takes a positive number of seconds "
+                         f"(got {args.max_seconds!r})")
     config = harness.BenchConfig(
         suite=suite,
         model_path=harness.resolve_model_path(args.model),

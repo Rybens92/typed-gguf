@@ -1,0 +1,18 @@
+
+==================== control: the unmutated tree passes the gate file ====================
+...............................                                          [100%]
+31 passed in 1.90s
+
+==================== mutant 1: harness.default_out_path full branch -> 'XXXX' (mutmut_7) ====================
+=========================== short test summary info ============================
+FAILED tests/test_bench_quick.py::test_a_quick_run_writes_its_own_report_and_never_a_full_campaign_file
+1 failed, 30 deselected in 0.46s
+
+==================== mutant 2: devset.stratify '<= 0' -> '<= 1' (mutmut_2) ====================
+=========================== short test summary info ============================
+FAILED tests/test_bench_quick.py::test_stratified_selection_degrades_to_what_the_dev_set_has
+1 failed, 30 deselected in 0.34s
+
+==================== restored: the tree passes again ====================
+...............................                                          [100%]
+31 passed in 2.70s

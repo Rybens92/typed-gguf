@@ -1,0 +1,31 @@
+log dir: /work/t_f46cec41/evidence/spark_quick2
+model:   /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf
+threads: 2
+runtime: /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu
+
+== quick latency
+   -> exit=0 shell=306s report_wall=306.027808s
+
+== quick throughput
+   -> exit=0 shell=123s report_wall=122.763222s
+
+== quick quality
+tools/rehearse_quick.sh: line 21: 1080404 Aborted                 (core dumped) GGUFONE_RUNTIME_DIR="$RT" uv run ggufone bench --suite "$suite" --quick --model "$MODEL" --backend auto --threads "$THREADS" --out "$LOG/quick_$suite.json" > "$LOG/quick_$suite.md" 2> "$LOG/quick_$suite.err"
+   -> exit=134 shell=0s report_wall=?s
+
+== quick calibration
+tools/rehearse_quick.sh: line 21: 1080412 Aborted                 (core dumped) GGUFONE_RUNTIME_DIR="$RT" uv run ggufone bench --suite "$suite" --quick --model "$MODEL" --backend auto --threads "$THREADS" --out "$LOG/quick_$suite.json" > "$LOG/quick_$suite.md" 2> "$LOG/quick_$suite.err"
+   -> exit=134 shell=1s report_wall=?s
+
+== quick determinism
+tools/rehearse_quick.sh: line 21: 1080420 Aborted                 (core dumped) GGUFONE_RUNTIME_DIR="$RT" uv run ggufone bench --suite "$suite" --quick --model "$MODEL" --backend auto --threads "$THREADS" --out "$LOG/quick_$suite.json" > "$LOG/quick_$suite.md" 2> "$LOG/quick_$suite.err"
+   -> exit=134 shell=0s report_wall=?s
+
+== walls (suite, exit, report wall_ms/1000)
+latency	0	306.027808
+throughput	0	122.763222
+quality	134	?
+calibration	134	?
+determinism	134	?
+quick campaign total: 428.8 s over 5 suites
+EXIT=0

@@ -85,9 +85,11 @@ COMMAND_NOTES: dict[str, tuple[str, ...]] = {
         "report file (ggufone-bench-<suite>_quick.json) instead of a full campaign's JSON. It "
         "refuses --runs/--items/--sizes/--n-seq-max (E_BENCH_QUICK): the preset fixes those, so a "
         "quick run can never be a half-applied one.",
-        "--max-seconds N is a soft cap checked between measurements: the current measurement "
-        "finishes, the report is marked \"truncated\": true with the unmeasured rows listed, and "
-        "the exit code stays 0 — a partial-but-honest report beats a timeout.",
+        "--max-seconds N is a soft cap checked between measurements (a *row*, with all of its "
+        "runs samples: with --quick's runs=1 that is one measurement, with the full runs=5 it is "
+        "the whole row). The row that started always finishes, the report is marked "
+        "\"truncated\": true with the rows that never started listed under \"skipped\", and the "
+        "exit code stays 0 — a partial-but-honest report beats a timeout.",
         "Published tables in docs/BENCHMARKS.md are full-campaign only, never --quick.",
     ),
 }

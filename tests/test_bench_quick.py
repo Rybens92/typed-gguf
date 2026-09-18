@@ -164,6 +164,11 @@ def test_stratified_selection_degrades_to_what_the_dev_set_has():
     assert [item.type for item in picked] == ["noul", "noul"]
     assert devset_module.stratify(dev_items(), per_type=2)[0].type == "choice"
     assert devset_module.stratify(dev_items(), per_type=0) == []
+    # per_type=1 is the "one of each type" case, not the empty one (a `<` for `<=` here would
+    # still return the right list for 0 and `[]` for 1 — pinned by the mutation pass)
+    assert [item.type for item in devset_module.stratify(dev_items(), per_type=1)] == \
+        ["choice", "score", "noul"]
+    assert devset_module.stratify(dev_items(), per_type=-1) == []
 
 
 def test_a_quick_calibration_run_keeps_three_modes_with_bins_as_available():
@@ -238,6 +243,11 @@ def test_a_quick_run_writes_its_own_report_and_never_a_full_campaign_file(tmp_pa
     assert code == 0, capsys.readouterr().err
     assert cli._bench_out_path({}, suite="latency", quick=False) is None
     assert cli._bench_out_path({}, suite="latency", quick=True) == \
+        "ggufone-bench-latency_quick.json"
+    # the *name* both branches produce, pinned: a quick report never lands on the full one, and the
+    # full name is spelled out rather than only "different from the quick one"
+    assert harness.default_out_path("latency", quick=False) == "ggufone-bench-latency.json"
+    assert harness.default_out_path("latency", quick=True) == \
         "ggufone-bench-latency_quick.json"
     assert harness.default_out_path("latency", quick=True) != \
         harness.default_out_path("latency", quick=False)
@@ -389,6 +399,33 @@ def test_the_rendered_report_shows_the_wall_time_the_preset_and_the_truncation()
     assert "tokens=256" in text                    # the unmeasured row is named in the report head
 
 
+def test_a_quick_run_without_json_prints_the_preset_table_and_names_its_report(
+        tmp_path, monkeypatch, capsys):
+    """The user story of the card, verbatim: a short run from the terminal, table + report path."""
+    model = model_file(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(suites, "live_factory", bench_factory())
+    code = cli.main(["bench", "--suite", "latency", "--quick", "--model", str(model),
+                     "--threads", "2"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "latency" in out and "p50" in out
+    assert "- preset: --quick" in out
+    assert "- wall:" in out
+    assert "- reproduce: `uv run ggufone bench --suite latency" in out
+    assert "report: ggufone-bench-latency_quick.json" in out
+    assert (tmp_path / "ggufone-bench-latency_quick.json").is_file()
+
+
+def test_the_reproduce_command_names_a_custom_dev_set_and_a_soft_cap():
+    """Both flags a reader needs to replay a report exactly (`--devset`, `--max-seconds`)."""
+    line = harness.reproduce_command(harness.BenchConfig(
+        suite="quality", runs=1, devset="/tmp/mine.jsonl", max_seconds=42.5, threads=4))
+    assert "--devset /tmp/mine.jsonl" in line
+    assert "--max-seconds 42.5" in line
+    assert "--quick" not in line
+
+
 # --------------------------------------------------------------------------- the reproduce tool
 def test_the_reproduce_tool_mirrors_the_quick_preset(tmp_path):
     module = reproduce_tool()
@@ -405,6 +442,9 @@ def test_the_reproduce_tool_mirrors_the_quick_preset(tmp_path):
     full = module.build_config(
         parser.parse_args(["--suite", "latency", "--model", str(model)]), "latency")
     assert full.quick is False and full.runs == harness.DEFAULT_RUNS
+    with pytest.raises(SystemExit):
+        module.build_config(parser.parse_args(["--suite", "latency", "--model", str(model),
+                                               "--max-seconds", "-1"]), "latency")
 
 
 def test_the_reproduce_tool_refuses_quick_plus_an_explicit_scale_flag(capsys):
