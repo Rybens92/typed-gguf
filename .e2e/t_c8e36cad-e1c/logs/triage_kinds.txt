@@ -1,0 +1,68 @@
+
+== src/ggufone/engine/template.py: 961 survivors, class -> count (no-diff: 0)
+     272  other
+            x_policy_for__mutmut_6
+            x_policy_for__mutmut_7
+     201  arg->None/removal
+            xǁLoopStateǁattr__mutmut_56
+            x__unescape__mutmut_30
+     165  string-XX-wrap
+            xǁUnsupportedTemplateǁ__init____mutmut_1
+            xǁUnsupportedTemplateǁ__init____mutmut_8
+     107  operator-swap
+            x_detect_family__mutmut_17
+            xǁLoopStateǁattr__mutmut_5
+      51  string-method-swap
+            xǁExprParserǁparse_comparison__mutmut_49
+            xǁExprParserǁparse_comparison__mutmut_50
+      43  bool-flip
+            xǁExprParserǁparse_comparison__mutmut_95
+            x__scan__mutmut_7
+      36  assign->None
+            xǁUnsupportedTemplateǁ__init____mutmut_2
+            xǁUnsupportedTemplateǁ__init____mutmut_3
+      33  ifexp-forced
+            xǁUnsupportedTemplateǁ__init____mutmut_6
+            xǁUnsupportedTemplateǁ__init____mutmut_7
+      32  number+1
+            xǁLoopStateǁ__init____mutmut_5
+            xǁLoopStateǁattr__mutmut_6
+      20  unary-removal
+            xǁExprParserǁparse_primary__mutmut_27
+            xǁExprParserǁparse_primary__mutmut_28
+       1  lambda-body
+            xǁLoopStateǁattr__mutmut_59
+
+== src/ggufone/runtime/fit.py: 348 survivors, class -> count (no-diff: 0)
+     120  number+1
+            xǁModelFactsǁread__mutmut_30
+            xǁModelFactsǁread__mutmut_40
+      63  operator-swap
+            xǁModelFactsǁread__mutmut_57
+            xǁModelFactsǁread__mutmut_76
+      53  other
+            x_host_facts__mutmut_2
+            x_host_facts__mutmut_3
+      37  arg->None/removal
+            x_read_tensor_index__mutmut_12
+            x_read_tensor_index__mutmut_91
+      28  string-XX-wrap
+            xǁModelFactsǁread__mutmut_46
+            xǁModelFactsǁread__mutmut_73
+      19  ifexp-forced
+            xǁModelFactsǁread__mutmut_44
+            x__kv_int__mutmut_2
+      13  bool-flip
+            x_estimate_plan__mutmut_38
+            x__run__mutmut_5
+       6  unary-removal
+            xǁModelFactsǁread__mutmut_5
+            x_host_facts__mutmut_8
+       5  assign->None
+            x_read_tensor_index__mutmut_90
+            x_read_tensor_index__mutmut_100
+       3  string-method-swap
+            x_measured_rss_bytes__mutmut_13
+            x_measured_rss_bytes__mutmut_15
+       1  string-case-swap
+            x_host_facts__mutmut_17

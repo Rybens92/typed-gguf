@@ -50,7 +50,7 @@ import platform
 import subprocess
 import time
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from ggufone.errors import GgufCorruptError, ModelNotFoundError
@@ -129,7 +129,8 @@ class ModelFacts:
             n_layer=_kv_int(kv, arch, "block_count") or 0,
             n_kv_head=_kv_int(kv, arch, "attention.head_count_kv")
             or _kv_int(kv, arch, "attention.head_count") or 1,
-            key_len=_kv_int(kv, arch, "attention.key_length") or _kv_int(kv, arch, "embedding_length") or 0,
+            key_len=_kv_int(kv, arch, "attention.key_length")
+            or _kv_int(kv, arch, "embedding_length") or 0,
             value_len=_kv_int(kv, arch, "attention.value_length")
             or _kv_int(kv, arch, "embedding_length") or 0,
             n_ctx_train=_kv_int(kv, arch, "context_length") or 0,
@@ -169,7 +170,7 @@ def read_tensor_index(path: str | os.PathLike[str]) -> list[tuple[str, list[int]
         magic = handle.read(4)
         if magic != gguf.GGUF_MAGIC:
             raise GgufCorruptError(f"E_GGUF_CORRUPT: {path}: not a GGUF file")
-        version = struct.unpack("<I", handle.read(4))[0]
+        struct.unpack("<I", handle.read(4))[0]                  # GGUF version
         n_tensors = struct.unpack("<Q", handle.read(8))[0]
         n_kv = struct.unpack("<Q", handle.read(8))[0]
 

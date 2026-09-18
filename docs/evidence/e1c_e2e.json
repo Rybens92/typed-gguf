@@ -1,0 +1,531 @@
+{
+ "schema": "ggufone.evidence.e1c-e2e/v1",
+ "captured_at": "2026-09-17T21:43:59Z",
+ "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+ "model_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+ "fit_enabled": true,
+ "thinking": false,
+ "host": {
+  "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+  "cpu_count": 24
+ },
+ "runs": [
+  {
+   "id": "incident-triage",
+   "doc": "Incident triage: which team owns it, how severe, should on-call be paged.",
+   "request": {
+    "state": "Payment flow degradation. At 09:12 the checkout page began returning HTTP 500 for every customer; the error rate is 100% on /checkout, 0% elsewhere. No deploy happened in the last 24h. The on-call engineer is already awake.",
+    "questions": {
+     "area": {
+      "type": "choice",
+      "instructions": "Which team owns this incident?",
+      "criteria": {
+       "billing": "payments, invoices, refunds",
+       "technical": "api, infrastructure, deployment",
+       "sales": "contracts and pricing",
+       "support": "customer conversations and tickets"
+      }
+     },
+     "severity": {
+      "type": "score",
+      "instructions": "How severe is it?",
+      "criteria": [
+       "cosmetic",
+       "annoying",
+       "degrading",
+       "critical",
+       "catastrophic"
+      ]
+     },
+     "page": {
+      "type": "noul",
+      "instructions": "Should we page the on-call engineer right now?",
+      "criteria": {
+       "true": "yes, page immediately",
+       "false": "no, handle it in business hours"
+      }
+     }
+    },
+    "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "options": {
+     "threads": 4,
+     "thinking": false
+    }
+   },
+   "answers": {
+    "area": {
+     "type": "choice",
+     "choice": "billing",
+     "probabilities": {
+      "billing": 0.522402,
+      "technical": 0.259355,
+      "sales": 0.21814,
+      "support": 0.000102211
+     },
+     "confidence": 0.363203,
+     "coverage": 0.00989344,
+     "reliability": "low_mass",
+     "decode_steps": 7,
+     "legend": {
+      "billing": "payments, invoices, refunds",
+      "technical": "api, infrastructure, deployment",
+      "sales": "contracts and pricing",
+      "support": "customer conversations and tickets"
+     }
+    },
+    "severity": {
+     "type": "score",
+     "score": 0.457283,
+     "probabilities": {
+      "0": 0.615581,
+      "1": 0.328723,
+      "2": 0.0426277,
+      "3": 0.00896877,
+      "4": 0.00409962
+     },
+     "confidence": 0.519476,
+     "legend": {
+      "0": "cosmetic",
+      "1": "annoying",
+      "2": "degrading",
+      "3": "critical",
+      "4": "catastrophic"
+     },
+     "coverage": 0.056932,
+     "reliability": "low_mass",
+     "decode_steps": 5
+    },
+    "page": {
+     "type": "noul",
+     "noul": 0.581282,
+     "probabilities": {
+      "yes": 0.581282,
+      "no": 0.418718
+     },
+     "coverage": 0.0225587,
+     "reliability": "low_mass",
+     "decode_steps": 2
+    }
+   },
+   "usage": {
+    "input_tokens": 276,
+    "output_tokens": 14,
+    "questions": 3,
+    "forks": 11,
+    "prefill_tokens": 127,
+    "decode_steps": 14,
+    "waves": 4
+   },
+   "timings": {
+    "model_load_ms": 703.43,
+    "prefill_ms": 14703.7,
+    "questions_ms": 22192.8,
+    "total_ms": 36900.8
+   },
+   "warnings": [
+    "W_LOW_MASS"
+   ],
+   "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 127,
+    "prefill_reused": false,
+    "kv_type": "f16",
+    "n_gpu_layers": 0,
+    "template": {
+     "kind": "gguf-renderer",
+     "renderer": "internal",
+     "source": "gguf:tokenizer.chat_template",
+     "family": "spark2_5",
+     "thinking": "suppressed",
+     "warnings": [],
+     "notes": [],
+     "explicit": false
+    }
+   },
+   "wall_ms": 43352.89899200143
+  },
+  {
+   "id": "support-routing",
+   "doc": "Support routing: queue, urgency and a yes/no on the refund request.",
+   "request": {
+    "state": "A customer on the Business plan writes: \"I was charged twice for the same seat this month. I already asked last week and got no answer. I need the refund before the end of the quarter or I have to escalate to my CFO.\" Their account shows two charges 3 days apart.",
+    "questions": {
+     "queue": {
+      "type": "choice",
+      "instructions": "Which queue should own this ticket?",
+      "criteria": {
+       "billing": "duplicate charges and refunds",
+       "technical": "product bugs",
+       "account": "plan changes and seat management",
+       "escalation": "formal complaints and account reviews"
+      }
+     },
+     "urgency": {
+      "type": "score",
+      "instructions": "How urgent is it?",
+      "criteria": [
+       "whenever",
+       "this week",
+       "this quarter",
+       "this week with a deadline"
+      ]
+     },
+     "refund": {
+      "type": "noul",
+      "instructions": "Should we refund the duplicate charge now?",
+      "criteria": {
+       "true": "yes, refund immediately",
+       "false": "no, ask for more information first"
+      }
+     }
+    },
+    "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "options": {
+     "threads": 4,
+     "thinking": false
+    }
+   },
+   "answers": {
+    "queue": {
+     "type": "choice",
+     "choice": "billing",
+     "probabilities": {
+      "billing": 0.922785,
+      "technical": 0.0135367,
+      "account": 4.09831e-06,
+      "escalation": 0.0636738
+     },
+     "confidence": 0.897047,
+     "coverage": 0.0722541,
+     "reliability": "low_mass",
+     "decode_steps": 8,
+     "legend": {
+      "billing": "duplicate charges and refunds",
+      "technical": "product bugs",
+      "account": "plan changes and seat management",
+      "escalation": "formal complaints and account reviews"
+     }
+    },
+    "urgency": {
+     "type": "score",
+     "score": 1.39319,
+     "probabilities": {
+      "0": 0.0961451,
+      "1": 0.443113,
+      "2": 0.432154,
+      "3": 0.0285886
+     },
+     "confidence": 0.257483,
+     "legend": {
+      "0": "whenever",
+      "1": "this week",
+      "2": "this quarter",
+      "3": "this week with a deadline"
+     },
+     "coverage": 0.0506935,
+     "reliability": "low_mass",
+     "decode_steps": 4
+    },
+    "refund": {
+     "type": "noul",
+     "noul": 0.802424,
+     "probabilities": {
+      "yes": 0.802424,
+      "no": 0.197576
+     },
+     "coverage": 0.00896078,
+     "reliability": "low_mass",
+     "decode_steps": 2
+    }
+   },
+   "usage": {
+    "input_tokens": 271,
+    "output_tokens": 14,
+    "questions": 3,
+    "forks": 10,
+    "prefill_tokens": 124,
+    "decode_steps": 14,
+    "waves": 5
+   },
+   "timings": {
+    "model_load_ms": 902.883,
+    "prefill_ms": 13608.4,
+    "questions_ms": 21298.1,
+    "total_ms": 34910.5
+   },
+   "warnings": [
+    "W_LOW_MASS"
+   ],
+   "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 124,
+    "prefill_reused": false,
+    "kv_type": "f16",
+    "n_gpu_layers": 0,
+    "template": {
+     "kind": "gguf-renderer",
+     "renderer": "internal",
+     "source": "gguf:tokenizer.chat_template",
+     "family": "spark2_5",
+     "thinking": "suppressed",
+     "warnings": [],
+     "notes": [],
+     "explicit": false
+    }
+   },
+   "wall_ms": 42489.749458000006
+  },
+  {
+   "id": "release-readiness",
+   "doc": "Release readiness: ship or hold, how confident, and the biggest risk area.",
+   "request": {
+    "state": "Release 4.2 candidate is built. CI is green except a flaky integration test that failed twice today and passed on retry. Two of the last five releases carried a data-migration bug. The changelog lists one schema migration and no public API change. Freeze window starts in 48 hours.",
+    "questions": {
+     "decision": {
+      "type": "choice",
+      "instructions": "What should we do with 4.2?",
+      "criteria": {
+       "ship": "ship as planned",
+       "hold": "hold until the flaky test is fixed",
+       "ship-migration": "ship without the migration"
+      }
+     },
+     "confidence": {
+      "type": "score",
+      "instructions": "How much do we trust the release candidate?",
+      "criteria": [
+       "no trust",
+       "low",
+       "medium",
+       "high"
+      ]
+     }
+    },
+    "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "options": {
+     "threads": 4,
+     "thinking": false
+    }
+   },
+   "answers": {
+    "decision": {
+     "type": "choice",
+     "choice": "ship-migration",
+     "probabilities": {
+      "ship": 0.022543,
+      "hold": 0.00102142,
+      "ship-migration": 0.976436
+     },
+     "confidence": 0.964653,
+     "coverage": 0.00434864,
+     "reliability": "low_mass",
+     "decode_steps": 5,
+     "legend": {
+      "ship": "ship as planned",
+      "hold": "hold until the flaky test is fixed",
+      "ship-migration": "ship without the migration"
+     }
+    },
+    "confidence": {
+     "type": "score",
+     "score": 0.547733,
+     "probabilities": {
+      "0": 0.514973,
+      "1": 0.431145,
+      "2": 0.0450591,
+      "3": 0.00882325
+     },
+     "confidence": 0.353297,
+     "legend": {
+      "0": "no trust",
+      "1": "low",
+      "2": "medium",
+      "3": "high"
+     },
+     "coverage": 0.00253242,
+     "reliability": "low_mass",
+     "decode_steps": 4
+    }
+   },
+   "usage": {
+    "input_tokens": 231,
+    "output_tokens": 9,
+    "questions": 2,
+    "forks": 7,
+    "prefill_tokens": 127,
+    "decode_steps": 9,
+    "waves": 4
+   },
+   "timings": {
+    "model_load_ms": 987.933,
+    "prefill_ms": 16290.8,
+    "questions_ms": 12698.5,
+    "total_ms": 28993.4
+   },
+   "warnings": [
+    "W_LOW_MASS"
+   ],
+   "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 127,
+    "prefill_reused": false,
+    "kv_type": "f16",
+    "n_gpu_layers": 0,
+    "template": {
+     "kind": "gguf-renderer",
+     "renderer": "internal",
+     "source": "gguf:tokenizer.chat_template",
+     "family": "spark2_5",
+     "thinking": "suppressed",
+     "warnings": [],
+     "notes": [],
+     "explicit": false
+    }
+   },
+   "wall_ms": 36928.170847997535
+  },
+  {
+   "id": "risk-assessment",
+   "doc": "Risk assessment: the dominant risk, the residual exposure and a go/no-go.",
+   "request": {
+    "state": "Proposal: move the nightly batch from the self-hosted cluster to a managed queue service. The service SLA is 99.95%, priced per message, and its regional availability excludes one region we serve. The team has run the self-hosted cluster for four years and has one expert on it. Migration would take six engineer-weeks.",
+    "questions": {
+     "risk": {
+      "type": "choice",
+      "instructions": "Which risk dominates this proposal?",
+      "criteria": {
+       "cost": "unit economics at peak volume",
+       "availability": "regional coverage and SLA",
+       "skills": "losing in-house operational knowledge",
+       "migration": "the migration effort itself"
+      }
+     },
+     "exposure": {
+      "type": "score",
+      "instructions": "How exposed are we if we do nothing?",
+      "criteria": [
+       "negligible",
+       "manageable",
+       "material",
+       "existential"
+      ]
+     },
+     "proceed": {
+      "type": "noul",
+      "instructions": "Should we start the migration now?",
+      "criteria": {
+       "true": "yes, start now",
+       "false": "no, keep the current cluster"
+      }
+     }
+    },
+    "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "options": {
+     "threads": 4,
+     "thinking": false
+    }
+   },
+   "answers": {
+    "risk": {
+     "type": "choice",
+     "choice": "skills",
+     "probabilities": {
+      "cost": 0.000393034,
+      "availability": 1.21684e-05,
+      "skills": 0.702045,
+      "migration": 0.297549
+     },
+     "confidence": 0.602727,
+     "coverage": 2.1187e-05,
+     "reliability": "low_mass",
+     "decode_steps": 6,
+     "legend": {
+      "cost": "unit economics at peak volume",
+      "availability": "regional coverage and SLA",
+      "skills": "losing in-house operational knowledge",
+      "migration": "the migration effort itself"
+     }
+    },
+    "exposure": {
+     "type": "score",
+     "score": 0.370829,
+     "probabilities": {
+      "0": 0.642333,
+      "1": 0.345954,
+      "2": 0.0102626,
+      "3": 0.00144997
+     },
+     "confidence": 0.523111,
+     "legend": {
+      "0": "negligible",
+      "1": "manageable",
+      "2": "material",
+      "3": "existential"
+     },
+     "coverage": 0.234883,
+     "reliability": "ok",
+     "decode_steps": 4
+    },
+    "proceed": {
+     "type": "noul",
+     "noul": 0.682506,
+     "probabilities": {
+      "yes": 0.682506,
+      "no": 0.317494
+     },
+     "coverage": 0.00776953,
+     "reliability": "low_mass",
+     "decode_steps": 2
+    }
+   },
+   "usage": {
+    "input_tokens": 280,
+    "output_tokens": 12,
+    "questions": 3,
+    "forks": 10,
+    "prefill_tokens": 136,
+    "decode_steps": 12,
+    "waves": 4
+   },
+   "timings": {
+    "model_load_ms": 653.571,
+    "prefill_ms": 16984.9,
+    "questions_ms": 21103.9,
+    "total_ms": 38093.5
+   },
+   "warnings": [
+    "W_LOW_MASS"
+   ],
+   "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 136,
+    "prefill_reused": false,
+    "kv_type": "f16",
+    "n_gpu_layers": 0,
+    "template": {
+     "kind": "gguf-renderer",
+     "renderer": "internal",
+     "source": "gguf:tokenizer.chat_template",
+     "family": "spark2_5",
+     "thinking": "suppressed",
+     "warnings": [],
+     "notes": [],
+     "explicit": false
+    }
+   },
+   "wall_ms": 45077.07840600051
+  }
+ ]
+}

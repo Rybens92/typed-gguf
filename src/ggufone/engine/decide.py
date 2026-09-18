@@ -35,7 +35,8 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 from ggufone import schema
-from ggufone.engine import prompt, readout, template as template_module
+from ggufone.engine import prompt, readout
+from ggufone.engine import template as template_module
 from ggufone.errors import (
     CandidateCollisionError,
     ContextTooSmallError,
@@ -61,6 +62,8 @@ class SessionMeta:
     model_path: str = ""
     model_alias: str | None = None
     load_ms: float = 0.0
+    kv_type: str = "auto"            # E1c: what the context was created with (fit plan or request)
+    n_gpu_layers: int = 0            # E1c: from the fit plan (0 = CPU placement)
 
 
 @dataclass(frozen=True, slots=True)
@@ -318,6 +321,8 @@ class DecisionEngine:
                 "state_id": state_id,
                 "prefill_reused": bool(prefill.prefill_reused),
                 "template": self._template_surface(plan),
+                "kv_type": meta.kv_type,
+                "n_gpu_layers": meta.n_gpu_layers,
             },
             answers=answers,
             usage={

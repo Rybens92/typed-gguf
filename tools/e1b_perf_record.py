@@ -23,9 +23,9 @@ from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
-from ggufone import schema                                    # noqa: E402
-from ggufone.engine import decide                             # noqa: E402
-from ggufone.engine import session as session_module          # noqa: E402
+from ggufone import schema  # noqa: E402
+from ggufone.engine import decide  # noqa: E402
+from ggufone.engine import session as session_module  # noqa: E402
 
 MODELS = {
     "qwen35": pathlib.Path.home() / ".cache" / "llama.cpp" / "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",

@@ -46,6 +46,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ggufone.errors import RuntimeError_
+from ggufone.runtime import ctypes_binding
 
 # ---------------------------------------------------------------------- the chain
 CHAIN: tuple[str, ...] = ("gguf-renderer", "builtin", "user", "error")
@@ -151,10 +152,15 @@ FAMILIES: dict[str, FamilyPolicy] = {
     "k2-horizon": FamilyPolicy(
         arch="k2-horizon", template_key=TEMPLATE_KEY, thinking="soft", soft_marker="/no_think",
         strip_empty_think_block=False,
-        label_policy="option name / level number after the assistant header",
-        notes="Kimi-K2 horizon family: the template has no enable_thinking switch, so suppression "
-              "uses the documented `/no_think` soft marker appended to the user turn; a variant "
-              "that ignores the marker as well has its trailing opener stripped.",
+        label_policy="option name / level number after the `<|im_assistant|>assistant"
+                     "<|im_middle|>` header",
+        notes="Kimi-K2 lineage (`<|im_system|>...<|im_middle|>` roles, no enable_thinking in the "
+              "template). Thinking in this family is controlled by the *serving stack* "
+              "(`thinking.type` on Moonshot's API), not by the prompt: ggufone appends the "
+              "documented `/no_think` soft marker AND keeps the trailing-opener strip, but the "
+              "marker is advisory here — the guarantee is the `no_open_think` predicate. The "
+              "llama.cpp bundle also ships a `kimi-k2` built-in, so chain step 2 covers variants "
+              "our renderer rejects.",
         aliases=("kimi-k2", "kimi_k2", "kimi-k2-horizon", "k2")),
 }
 FAMILY_ALIASES: dict[str, str] = {alias: arch for arch, policy in FAMILIES.items()
@@ -1525,27 +1531,24 @@ def _append_soft_marker(messages: Sequence[Mapping[str, Any]], marker: str
 
 
 # --------------------------------------------------- the runtime side of step 2
-class llama_chat_message(C.Structure):
-    """`struct llama_chat_message { const char * role; const char * content; }` (b11026)."""
-
-    _fields_ = [("role", C.c_char_p), ("content", C.c_char_p)]
+#: `struct llama_chat_message` lives in the ABI module (`runtime/ctypes_binding.py`) so the
+#: signature pin covers it; re-exported here for callers that only import the resolver.
+llama_chat_message = ctypes_binding.llama_chat_message
 
 
 def runtime_builtin_renderer(runtime: Any) -> Callable[..., str | None]:
     """A renderer backed by `llama_chat_apply_template` (returns None when unsupported)."""
     apply_template = runtime.llama.llama_chat_apply_template
+    message_struct = ctypes_binding.llama_chat_message
 
     def render_builtin(template: str, messages: Sequence[Mapping[str, Any]],
                        add_ass: bool) -> str | None:
-        entries = []
-        for message in messages:
-            role = C.c_char_p(str(message.get("role", "")).encode())
-            content = C.c_char_p(str(message.get("content", "")).encode())
-            entries.append(llama_chat_message(role, content))
-        array = (llama_chat_message * len(entries))(*entries) if entries else None
+        entries = [message_struct(str(message.get("role", "")).encode(),
+                                  str(message.get("content", "")).encode())
+                   for message in messages]
+        array = (message_struct * len(entries))(*entries) if entries else None
         buffer = C.create_string_buffer(1 << 20)
-        written = apply_template(str(template).encode(), C.cast(array, C.c_void_p).value
-                                 if array is not None else None, len(entries), bool(add_ass),
+        written = apply_template(str(template).encode(), array, len(entries), bool(add_ass),
                                  buffer, len(buffer))
         if written < 0:
             return None
@@ -1556,11 +1559,12 @@ def runtime_builtin_renderer(runtime: Any) -> Callable[..., str | None]:
 
 def runtime_builtin_names(runtime: Any) -> tuple[str, ...]:
     """`llama_chat_builtin_templates()` — the names the installed runtime knows."""
-    count = int(runtime.llama.llama_chat_builtin_templates(None, 0))
+    builtin = runtime.llama.llama_chat_builtin_templates
+    count = int(builtin(None, 0))
     if count <= 0:
         return BUILTIN_TEMPLATES
     array = (C.c_char_p * count)()
-    runtime.llama.llama_chat_builtin_templates(array, count)
+    builtin(array, count)
     return tuple(name.decode() for name in array if name)
 
 

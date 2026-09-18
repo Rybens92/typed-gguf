@@ -31,6 +31,20 @@ Default model: [`XHToken/Spark-X2.5-4B-GGUF`](https://huggingface.co/XHToken/Spa
   the fork readout (one prefill per state, waves bounded by `n_seq_max`, prefix states cached on
   disk), the schema/error catalog and the typesafe adapter. Measured numbers:
   `docs/evidence/e1b_perf.json`, gate-by-gate report `docs/evidence/e1b_t_34abf324_engine.md`.
+- **E1c (done)** — the reasoning resolver + fit: the ordered template chain (the model's own
+  `tokenizer.chat_template` through the internal renderer → `llama_chat_apply_template` built-ins
+  → `--template` override → `E_TEMPLATE_UNRESOLVED` with the fix), provable thinking suppression,
+  `ggufone fit` (the bundle's `llama-fit-params` or ggufone's own estimate, cached per
+  `(model sha256, host fingerprint)`, applied on load unless `--no-fit`) and `docs/TEMPLATES.md`.
+  Measured numbers: `docs/evidence/e1c_e2e.json` (four example question sets end to end),
+  `docs/evidence/e1c_t_c8e36cad_*.md` (gate table + receipts).
+
+## Thinking models are supported, thinking is off by default
+
+The pinned `spark2_5` and `qwen35` templates both ship a reasoning block. ggufone renders through
+the model's **own** template with `enable_thinking=false` and *checks the bytes*: the prompt that
+is tokenized never leaves the model inside a thinking block (`docs/TEMPLATES.md` §3). `--thinking`
+turns the block back on; `--template plain` switches to the model-agnostic framing.
 
 ## Quickstart (decide)
 
@@ -53,6 +67,22 @@ a file. Reuse a prefix across calls with `--state-id my-screen` (+ `--save-state
 call reports `prefill_reused: true` and costs no prefill (the state file lives under
 `$GGUFONE_HOME/states/`).
 
+## Fit: what this host can actually hold
+
+```bash
+ggufone fit                                  # the default model, human-readable
+ggufone fit Spark-X2.5-4B-Q8_0 --json        # {n_gpu_layers, n_ctx, kv_type, n_seq_max,
+                                             #  est_weights_bytes, est_kv_bytes, est_total_bytes,
+                                             #  backend, source}
+```
+
+`source` is `llama-fit-params` when the bundle's own tool produced the numbers, `estimate`
+otherwise (with `W_FIT_ESTIMATED`). The plan is cached per `(model sha256, host fingerprint)` and
+applied on load — `run`/`ask` honour it unless `--no-fit` is passed. Over budget, `kv_type` walks
+`f16 → q8_0 → q4_0` (each step warns `W_KV_TYPE_DOWNGRADE`) before the context shrinks; the
+estimate is cross-checked against measured load RSS within ±20 % on this box
+(`docs/TEMPLATES.md` §5).
+
 ## Verification
 
 ```bash
@@ -60,6 +90,9 @@ uv run pytest -q                                    # unit gate (offline: live t
 uv run pytest -q --run-network                      # + real HF downloads / real GGUF headers
 uv run pytest -q --run-network tests/test_engine_fork.py tests/test_cli.py   # fork equivalence,
                                                     # waves, determinism, state save/load, CLI e2e
+uv run pytest -q --run-network tests/test_templates.py tests/test_fit_live.py  # E1c: the real
+                                                    # templates + the real fit plan (RSS ±20%)
+uv run python tools/e1c_offline_gate.py             # every E1c test with the network disabled
 python3 docs/verify_runtime_contract.py             # oracle: pinned facts + formulas
 GGUFONE_RUNTIME_DIR=<runtime> python3 docs/verify_runtime_contract.py   # + live ctypes probes
 ```

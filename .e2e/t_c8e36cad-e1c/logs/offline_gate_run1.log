@@ -1,0 +1,8 @@
+$ GGUFONE_TEST_BLOCK_NET=1 /workspace/ggufone/.venv/bin/python3 -m pytest -q tests/test_templates.py tests/test_fit.py tests/test_fit_live.py tests/test_cli_e1c.py tests/test_engine_fork.py tests/test_ctypes_binding.py tests/test_cli.py tests/test_no_finetune.py
+...............................ssss................................sssss [ 44%]
+ss...................................................sssssss..........ss [ 88%]
+................s..                                                      [100%]
+142 passed, 21 skipped in 1.11s
+
+
+network-disabled run: {'passed': 142, 'skipped': 21} (exit 0)

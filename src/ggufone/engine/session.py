@@ -29,6 +29,7 @@ import pathlib
 import struct
 import time
 from collections.abc import Callable, Sequence
+from typing import Any
 
 from ggufone.engine.decide import Batch, ContextPlan, PrefillInfo, SessionMeta
 from ggufone.errors import (
@@ -64,12 +65,13 @@ class ModelHandle:
     """A loaded GGUF model + its vocabulary (no context yet)."""
 
     def __init__(self, runtime: ctypes_binding.Runtime, model: C.c_void_p, path: str,
-                 *, arch: str | None, load_ms: float) -> None:
+                 *, arch: str | None, load_ms: float, n_gpu_layers: int = 0) -> None:
         self.runtime = runtime
         self.model = model
         self.path = path
         self.arch = arch
         self.load_ms = load_ms
+        self.n_gpu_layers = int(n_gpu_layers)
         llama = runtime.llama
         self.vocab = llama.llama_model_get_vocab(model)
         self.n_vocab = int(llama.llama_vocab_n_tokens(self.vocab))
@@ -124,7 +126,8 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
     runtime = ctypes_binding.load_libraries(rt_dir, system=system)
     llama = runtime.llama
     params = llama.llama_model_default_params()
-    params.n_gpu_layers = int(getattr(fit_plan, "n_gpu_layers", 0) or 0)
+    n_gpu_layers = int(getattr(fit_plan, "n_gpu_layers", 0) or 0)
+    params.n_gpu_layers = n_gpu_layers
     started = time.perf_counter()
     model = llama.llama_model_load_from_file(str(model_path).encode(), params)
     load_ms = (time.perf_counter() - started) * 1000.0
@@ -133,7 +136,8 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
             f"E_MODEL_ARCH_UNSUPPORTED: llama.cpp could not load {model_path} (arch "
             f"{arch or 'unknown'}); the pinned runtime must support the architecture "
             f"(run `ggufone doctor`)")
-    return ModelHandle(runtime, model, str(model_path), arch=arch, load_ms=load_ms)
+    return ModelHandle(runtime, model, str(model_path), arch=arch, load_ms=load_ms,
+                       n_gpu_layers=n_gpu_layers)
 
 
 class ModelSession:
@@ -181,7 +185,9 @@ class ModelSession:
                            n_seq_max=int(self.handle.runtime.llama.llama_n_seq_max(self.ctx)),
                            kv_unified=True, threads=int(self.plan.threads),
                            n_vocab=self.handle.n_vocab, model_path=self.handle.path,
-                           model_alias=None, load_ms=self.handle.load_ms)
+                           model_alias=None, load_ms=self.handle.load_ms,
+                           kv_type=self.plan.kv_type,
+                           n_gpu_layers=int(getattr(self.handle, "n_gpu_layers", 0) or 0))
 
     def tokenize(self, text: str) -> list[int]:
         return self.handle.tokenize(text)

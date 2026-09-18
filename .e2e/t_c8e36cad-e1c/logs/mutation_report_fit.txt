@@ -1,0 +1,9 @@
+src/ggufone/runtime/fit.py mutants: 1209  killed=831  survived=348  other={33: 30}
+mutation score: 68.7%
+
+survivors (first 40):
+  [0] ggufone.runtime.fit.xǁModelFactsǁread__mutmut_5
+  [0] ggufone.runtime.fit.xǁModelFactsǁread__mutmut_30
+  [0] ggufone.runtime.fit.xǁModelFactsǁread__mutmut_40
+
+source sha256: 56543b851fdbc121a603cf975d2eef9b91b870293d49633e0e40a336659cc939

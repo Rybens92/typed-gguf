@@ -69,28 +69,21 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM"]
 quote-style = "double"
 
 [tool.mutmut]
-# E1a mutation testing (Tier M). The E1a FIX (t_eae35404) scoped the *test selection* to the
-# modules it touched (pins/capability/install/cli + the probe isolation modules); `source_paths`
-# stays the whole package because mutmut copies the source tree from it — a file list would
-# leave the copied package unable to import (mutants/src/ggufone would miss errors.py,
-# registry/, ...).
-source_paths = ["src/ggufone"]
-also_copy = ["tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md", "SPEC.md",
-             "LICENSE"]
+# Mutation testing (Tier M). `source_paths` lists the *files under mutation*; `also_copy` brings
+# the rest of the package (plus tests/docs/tools) into the mutants tree verbatim, so the copied
+# package still imports while only those files carry mutants. Swap the pair for a wider sweep —
+# e.g. source_paths = ["src/ggufone"] with also_copy = ["tests", ...] — when a milestone wants
+# the whole package (E1a/E1b did: readout + schema).
+source_paths = ["src/ggufone/engine/template.py", "src/ggufone/runtime/fit.py"]
+also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
+             "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
-pytest_add_cli_args_test_selection = ["tests/test_pins.py",
-                                      "tests/test_host_purity.py",
-                                      "tests/test_capability.py",
-                                      "tests/test_probe_isolation.py",
-                                      "tests/test_runtime_fallback.py",
-                                      "tests/test_runtime_install.py",
-                                      "tests/test_cli_e1a.py",
-                                      "tests/test_cli_doctor_branches.py",
-                                      # E1b: the engine's own gates (offline files; the
-                                      # `model`-marked cases stay skipped without --run-network)
-                                      "tests/test_readout_math.py",
-                                      "tests/test_schema.py",
-                                      "tests/test_typesafe_adapter.py",
+# E1c: the gates for the two files above (the `model`-marked cases stay skipped without
+# --run-network, which is what a mutation run wants: the offline gates only)
+pytest_add_cli_args_test_selection = ["tests/test_templates.py",
+                                      "tests/test_fit.py",
+                                      "tests/test_cli_e1c.py",
                                       "tests/test_engine_fork.py",
-                                      "tests/test_cli.py"]
-max_children = 8
+                                      "tests/test_cli.py",
+                                      "tests/test_e1c_mutation_pins.py"]
+max_children = 3

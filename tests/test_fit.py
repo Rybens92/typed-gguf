@@ -8,7 +8,6 @@ numbers (the binary on this box, RSS cross-check) are in `tests/test_fit_live.py
 from __future__ import annotations
 
 import json
-import os
 import pathlib
 import stat
 import struct

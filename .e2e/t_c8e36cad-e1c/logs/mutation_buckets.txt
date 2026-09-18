@@ -1,0 +1,31 @@
+== src/ggufone/engine/template.py: 2465 mutants, killed=1219, survived=961, other={33: 276, -24: 9}
+   score: 49.5%
+      104  ggufone.engine.template.x__user_resolution
+       87  ExprParser.parse_comparison
+       56  ggufone.engine.template.x__scan
+       54  ggufone.engine.template.x_resolve
+       51  LoopState.attr
+       40  ExprParser.parse_primary
+       35  ggufone.engine.template.x__render_raw
+       26  TemplateParser.parse_for
+       23  Renderer._eval_binary
+       22  ExprParser.parse_multiplicative
+       21  ExprParser.parse_or
+       21  ggufone.engine.template.x_suppress_thinking
+   (survivors in 67 distinct functions)
+== src/ggufone/runtime/fit.py: 1209 mutants, killed=831, survived=348, other={33: 30}
+   score: 68.7%
+       59  ggufone.runtime.fit.x_read_tensor_index
+       48  ModelFacts.read
+       31  ggufone.runtime.fit.x_run_llama_fit_params
+       31  ggufone.runtime.fit.x__kv_from_budget
+       27  ggufone.runtime.fit.x_estimate_plan
+       25  ggufone.runtime.fit.x_plan_from_binary
+       21  ggufone.runtime.fit.x_plan_for_model
+       16  FitPlan.from_dict
+       15  ggufone.runtime.fit.x_store_plan
+       14  ggufone.runtime.fit.x_host_facts
+       12  ggufone.runtime.fit.x__gpu_layers
+       11  ggufone.runtime.fit.x_measured_rss_bytes
+   (survivors in 23 distinct functions)
+== src/ggufone/schema.py: no meta (not reached)

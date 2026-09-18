@@ -1080,8 +1080,9 @@ def main(argv: list[str] | None = None) -> int:
     # carried finding #1 (E1c card): `ggufone <cmd> --help` used to be an E_UNKNOWN_KEY error
     if any(arg in ("-h", "--help") for arg in rest):
         if cmd == "models" and rest and rest[0] in MODELS_SUBCOMMANDS:
-            print(f"usage: ggufone models {rest[0]} "
-                  f"{' '.join(flag for flag in COMMAND_HELP['models'] if flag.startswith(rest[0]))}")
+            wanted = rest[0]
+            flags = " ".join(flag for flag in COMMAND_HELP["models"] if flag.startswith(wanted))
+            print(f"usage: ggufone models {wanted} {flags}")
             return 0
         print(_command_usage(cmd))
         return 0

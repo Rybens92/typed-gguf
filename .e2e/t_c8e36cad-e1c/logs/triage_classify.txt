@@ -1,0 +1,166 @@
+
+== src/ggufone/engine/template.py: 961 survivors in 67 functions
+    104  ggufone.engine.template.x__user_resolution
+     87  ExprParser.parse_comparison
+     56  ggufone.engine.template.x__scan
+     54  ggufone.engine.template.x_resolve
+     51  LoopState.attr
+     40  ExprParser.parse_primary
+     35  ggufone.engine.template.x__render_raw
+     26  TemplateParser.parse_for
+     23  Renderer._eval_binary
+     22  ExprParser.parse_multiplicative
+     21  ExprParser.parse_or
+     21  ggufone.engine.template.x_suppress_thinking
+     20  TemplateParser.parse_tag
+     20  Renderer._make_macro
+     19  ggufone.engine.template.x__unescape
+     19  TemplateParser.parse_macro
+     18  TemplateParser.parse_block
+     16  ggufone.engine.template.x__with_thinking
+     15  Renderer._render_for
+     14  ggufone.engine.template.x_tokenize_expression
+     14  ExprParser.parse_filter
+     14  TemplateParser.parse_if
+     14  Renderer._eval_compare
+     13  ExprParser.parse_subscript
+     12  ExprParser.parse_concat
+     12  ExprParser.parse_call_args
+     12  ggufone.engine.template.x_parse
+     12  ggufone.engine.template.x__probe_thinking
+     11  ggufone.engine.template.x_detect_family
+     10  ExprParser.parse_postfix
+     10  ggufone.engine.template.x__lookup
+     10  ggufone.engine.template.x__stringify
+     10  ggufone.engine.template.x__filter_default
+      9  Renderer._eval_name
+      9  Renderer._eval_boolop
+      9  ggufone.engine.template.x__unresolved_reason
+      8  ggufone.engine.template.x__split_commas
+      6  UnsupportedTemplate.__init__
+      6  ExprParser.expect_op
+      6  ExprParser.parse
+      6  TemplateParser.parse
+      6  ggufone.engine.template.x_render_prompt
+      5  ggufone.engine.template.x_render
+      4  ExprParser.parse_additive
+      4  Renderer._eval_sliceexpr
+      4  Renderer._eval_call
+      3  ggufone.engine.template.x_policy_for
+      3  LoopState.__init__
+      3  ExprParser.parse_and
+      3  ExprParser.parse_unary
+      3  ggufone.engine.template.x_parse_expression
+      3  Renderer.eval
+      3  Renderer._eval_filter
+      3  ggufone.engine.template.x_strip_trailing_empty_think_block
+      2  _Undefined.__init__
+      2  ExprParser.__init__
+      2  Renderer._eval_test
+      2  Renderer._eval_ternary
+      2  Renderer._render_set
+      2  ggufone.engine.template.x_no_open_think
+      2  ggufone.engine.template.x_strip_trailing_open_think
+      1  ExprParser.parse_not
+      1  ggufone.engine.template.x_supports
+      1  Renderer._eval_attr
+      1  Renderer._eval_unary
+      1  Renderer.render
+      1  ggufone.engine.template.x__apply_suppression
+
+--- ggufone.engine.template.x__user_resolution: 104 survivors, digest of first 4 ---
+   [ggufone.engine.template.x__user_resolution__mutmut_5] no orig span
+   [ggufone.engine.template.x__user_resolution__mutmut_6] no orig span
+   [ggufone.engine.template.x__user_resolution__mutmut_7] no orig span
+   [ggufone.engine.template.x__user_resolution__mutmut_8] no orig span
+
+--- ExprParser.parse_comparison: 87 survivors, digest of first 4 ---
+   [ggufone.engine.template.xǁExprParserǁparse_comparison__mutmut_5] no orig span
+   [ggufone.engine.template.xǁExprParserǁparse_comparison__mutmut_6] no orig span
+   [ggufone.engine.template.xǁExprParserǁparse_comparison__mutmut_7] no orig span
+   [ggufone.engine.template.xǁExprParserǁparse_comparison__mutmut_11] no orig span
+
+--- ggufone.engine.template.x__scan: 56 survivors, digest of first 4 ---
+   [ggufone.engine.template.x__scan__mutmut_5] no orig span
+   [ggufone.engine.template.x__scan__mutmut_6] no orig span
+   [ggufone.engine.template.x__scan__mutmut_7] no orig span
+   [ggufone.engine.template.x__scan__mutmut_8] no orig span
+
+--- ggufone.engine.template.x_resolve: 54 survivors, digest of first 4 ---
+   [ggufone.engine.template.x_resolve__mutmut_1] no orig span
+   [ggufone.engine.template.x_resolve__mutmut_2] no orig span
+   [ggufone.engine.template.x_resolve__mutmut_3] no orig span
+   [ggufone.engine.template.x_resolve__mutmut_6] no orig span
+
+--- LoopState.attr: 51 survivors, digest of first 4 ---
+   [ggufone.engine.template.xǁLoopStateǁattr__mutmut_3] no orig span
+   [ggufone.engine.template.xǁLoopStateǁattr__mutmut_4] no orig span
+   [ggufone.engine.template.xǁLoopStateǁattr__mutmut_5] no orig span
+   [ggufone.engine.template.xǁLoopStateǁattr__mutmut_6] no orig span
+
+--- ExprParser.parse_primary: 40 survivors, digest of first 4 ---
+   [ggufone.engine.template.xǁExprParserǁparse_primary__mutmut_14] no orig span
+   [ggufone.engine.template.xǁExprParserǁparse_primary__mutmut_16] no orig span
+   [ggufone.engine.template.xǁExprParserǁparse_primary__mutmut_17] no orig span
+   [ggufone.engine.template.xǁExprParserǁparse_primary__mutmut_18] no orig span
+
+== src/ggufone/runtime/fit.py: 348 survivors in 23 functions
+     59  ggufone.runtime.fit.x_read_tensor_index
+     48  ModelFacts.read
+     31  ggufone.runtime.fit.x_run_llama_fit_params
+     31  ggufone.runtime.fit.x__kv_from_budget
+     27  ggufone.runtime.fit.x_estimate_plan
+     25  ggufone.runtime.fit.x_plan_from_binary
+     21  ggufone.runtime.fit.x_plan_for_model
+     16  FitPlan.from_dict
+     15  ggufone.runtime.fit.x_store_plan
+     14  ggufone.runtime.fit.x_host_facts
+     12  ggufone.runtime.fit.x__gpu_layers
+     11  ggufone.runtime.fit.x_measured_rss_bytes
+      6  ggufone.runtime.fit.x_parse_fit_table
+      6  ggufone.runtime.fit.x_plan_for_path
+      5  ggufone.runtime.fit.x_size_of_tensor
+      5  ggufone.runtime.fit.x__run
+      4  ggufone.runtime.fit.x__timestamp
+      3  ggufone.runtime.fit.x_load_cached
+      2  ggufone.runtime.fit.x__kv_int
+      2  ggufone.runtime.fit.x_session_overrides
+      2  ggufone.runtime.fit.x_rss_ratio
+      2  ggufone.runtime.fit.x_within_tolerance
+      1  ggufone.runtime.fit.x_fit_binary
+
+--- ggufone.runtime.fit.x_read_tensor_index: 59 survivors, digest of first 4 ---
+   [ggufone.runtime.fit.x_read_tensor_index__mutmut_12] no orig span
+   [ggufone.runtime.fit.x_read_tensor_index__mutmut_18] no orig span
+   [ggufone.runtime.fit.x_read_tensor_index__mutmut_28] no orig span
+   [ggufone.runtime.fit.x_read_tensor_index__mutmut_38] no orig span
+
+--- ModelFacts.read: 48 survivors, digest of first 4 ---
+   [ggufone.runtime.fit.xǁModelFactsǁread__mutmut_5] no orig span
+   [ggufone.runtime.fit.xǁModelFactsǁread__mutmut_30] no orig span
+   [ggufone.runtime.fit.xǁModelFactsǁread__mutmut_40] no orig span
+   [ggufone.runtime.fit.xǁModelFactsǁread__mutmut_41] no orig span
+
+--- ggufone.runtime.fit.x_run_llama_fit_params: 31 survivors, digest of first 4 ---
+   [ggufone.runtime.fit.x_run_llama_fit_params__mutmut_11] no orig span
+   [ggufone.runtime.fit.x_run_llama_fit_params__mutmut_15] no orig span
+   [ggufone.runtime.fit.x_run_llama_fit_params__mutmut_17] no orig span
+   [ggufone.runtime.fit.x_run_llama_fit_params__mutmut_18] no orig span
+
+--- ggufone.runtime.fit.x__kv_from_budget: 31 survivors, digest of first 4 ---
+   [ggufone.runtime.fit.x__kv_from_budget__mutmut_4] no orig span
+   [ggufone.runtime.fit.x__kv_from_budget__mutmut_5] no orig span
+   [ggufone.runtime.fit.x__kv_from_budget__mutmut_6] no orig span
+   [ggufone.runtime.fit.x__kv_from_budget__mutmut_7] no orig span
+
+--- ggufone.runtime.fit.x_estimate_plan: 27 survivors, digest of first 4 ---
+   [ggufone.runtime.fit.x_estimate_plan__mutmut_4] no orig span
+   [ggufone.runtime.fit.x_estimate_plan__mutmut_15] no orig span
+   [ggufone.runtime.fit.x_estimate_plan__mutmut_37] no orig span
+   [ggufone.runtime.fit.x_estimate_plan__mutmut_38] no orig span
+
+--- ggufone.runtime.fit.x_plan_from_binary: 25 survivors, digest of first 4 ---
+   [ggufone.runtime.fit.x_plan_from_binary__mutmut_12] no orig span
+   [ggufone.runtime.fit.x_plan_from_binary__mutmut_19] no orig span
+   [ggufone.runtime.fit.x_plan_from_binary__mutmut_20] no orig span
+   [ggufone.runtime.fit.x_plan_from_binary__mutmut_27] no orig span

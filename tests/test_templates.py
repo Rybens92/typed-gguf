@@ -14,12 +14,12 @@ Chain (SPEC 5 / A-E1c-1), in order:
 from __future__ import annotations
 
 import pathlib
+from typing import Any
 
 import pytest
 
 from ggufone.engine import template as tpl
 from ggufone.errors import ERROR_CODES, WARNING_CODES
-
 
 # --------------------------------------------------------------------- fixtures
 SPARK_LIKE = (
@@ -344,3 +344,166 @@ def test_render_warnings_are_useable_by_the_response() -> None:
                                      builtin_renderer=lambda *a, **k: "x"))
     for code in resolution.warnings:
         assert code in WARNING_CODES
+
+
+# ------------------------------- A-E1c-3: post-cue degenerate output (synthetic logits)
+def test_post_cue_degenerate_output_never_affects_the_readout() -> None:
+    """A model that *would* start reasoning after the cue cannot move the answer.
+
+    The synthetic logits fixture gives the degenerate continuation token (`think`, the first
+    token of a `<think>` opener in this vocabulary) an overwhelming logit at **every** position,
+    including the cue row. The engine reads the candidate rows at the cue, and the restricted
+    softmax is shift-invariant — so the answers are byte-identical while the coverage diagnostic
+    (full-vocab mass) legitimately collapses.
+    """
+    from ggufone import schema
+    from ggufone.engine import decide
+    from tests.fake_engine import FakeSession, biased_row
+
+    payload = {
+        "state": "The billing dashboard is blank for every user after login.",
+        "questions": {"area": {"type": "choice", "instructions": "Which area owns this?",
+                               "criteria": {"billing": None, "technical": None}}},
+    }
+    request = schema.parse_request(payload)
+
+    def run_with(bias: dict[int, float]):
+        session = FakeSession(n_vocab=256)
+        billing, technical = session.tokenize("billing")[0], session.tokenize("technical")[0]
+        row = biased_row(session.n_vocab, {billing: 6.0, technical: 5.0, **bias})
+        session.row_fn = lambda ctx, row=row: row
+        engine = decide.DecisionEngine(session)
+        return engine.decide(request, plan=decide.plan_context(request, session))
+
+    quiet = run_with({})
+    # a degenerate model that wants to emit `think`-flavoured continuations after the cue
+    degenerate_token = 255                                   # not a candidate label token
+    session = FakeSession(n_vocab=256)
+    assert degenerate_token not in (session.tokenize("billing")[0],
+                                    session.tokenize("technical")[0])
+    degenerate = run_with({degenerate_token: 40.0})
+
+    def readout(result):
+        return {key: value for key, value in result.answers["area"].items()
+                if key in ("type", "choice", "probabilities", "confidence")}
+
+    assert readout(quiet) == readout(degenerate)                  # the readout is untouched
+    assert degenerate.answers["area"]["choice"] == "billing"
+    assert degenerate.answers["area"]["probabilities"] == quiet.answers["area"]["probabilities"]
+    assert degenerate.answers["area"]["confidence"] == quiet.answers["area"]["confidence"]
+    # the diagnostic tells the truth about the full-vocab mass (it is not part of the readout)
+    assert degenerate.answers["area"]["coverage"] < quiet.answers["area"]["coverage"]
+    assert "W_LOW_MASS" in degenerate.warnings
+
+
+# ------------------------------------------------------------- live: real GGUFs
+# Run with: GGUFONE_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_templates.py
+MODEL_PATHS = {
+    "spark2_5": pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf",
+    "qwen35": pathlib.Path.home() / ".cache" / "llama.cpp" / "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+}
+LIVE_MESSAGES = [
+    {"role": "system", "content": "You are a decision engine."},
+    {"role": "user", "content": "STATE:\nthe dashboard is blank"},
+]
+EXPECTED_TAIL = {"spark2_5": "<|Bot|></think>", "qwen35": "<|im_start|>assistant"}
+
+
+def _model_template(name: str) -> tuple[str, str]:
+    from ggufone.registry import gguf
+    path = MODEL_PATHS[name]
+    if not path.exists():
+        pytest.skip(f"{path} is not on this box")
+    kv = gguf.parse_gguf_metadata(path)["kv"]
+    template = kv.get("tokenizer.chat_template")
+    assert isinstance(template, str) and template
+    return gguf.arch_of(kv) or name, template
+
+
+@pytest.mark.model
+@pytest.mark.parametrize("name", ["spark2_5", "qwen35"])
+def test_a_real_gguf_template_renders_through_chain_step_one(name: str) -> None:
+    arch, template = _model_template(name)
+    resolution = tpl.resolve(messages=LIVE_MESSAGES, model_template=template, arch=arch)
+    assert resolution.kind == "gguf-renderer"
+    assert resolution.renderer == "internal"
+    assert resolution.family == arch
+    assert resolution.warnings == ()                       # no fallback was needed
+    rendered = tpl.render_prompt(LIVE_MESSAGES, resolution, add_generation_prompt=True,
+                                 enable_thinking=False)
+    assert tpl.no_open_think(rendered) is True
+    assert "<think>" not in rendered
+    assert rendered.rstrip("\n").endswith(EXPECTED_TAIL[arch])
+    thinking_on = tpl.render_prompt(LIVE_MESSAGES, resolution, add_generation_prompt=True,
+                                    enable_thinking=True)
+    assert tpl.no_open_think(thinking_on) is False         # the switch is real, not a no-op
+
+
+@pytest.mark.model
+def test_the_real_prompt_has_no_think_token_on_the_real_vocabulary() -> None:
+    """The strongest form of A-E1c-2: the model's *own vocabulary* sees no think-opener."""
+    import os
+
+    from ggufone.engine import session as session_module
+    from ggufone.runtime import finder
+
+    path = MODEL_PATHS["spark2_5"]
+    if not path.exists():
+        pytest.skip(f"{path} is not on this box")
+    runtime_dir = os.environ.get("GGUFONE_RUNTIME_DIR") or finder.find_runtime()
+    if not runtime_dir:
+        pytest.skip("no llama.cpp runtime on this box")
+    arch, template = _model_template("spark2_5")
+    resolution = tpl.resolve(messages=LIVE_MESSAGES, model_template=template, arch=arch)
+    rendered = tpl.render_prompt(LIVE_MESSAGES, resolution, add_generation_prompt=True,
+                                 enable_thinking=False)
+    with session_module.open_model(path, runtime_dir=runtime_dir) as handle:
+        decoded = _decode(handle, rendered)
+        thinking_on = tpl.render_prompt(LIVE_MESSAGES, resolution, add_generation_prompt=True,
+                                        enable_thinking=True)
+        decoded_on = _decode(handle, thinking_on)
+    assert decoded and decoded_on
+    assert "<think>" not in decoded
+    assert tpl.no_open_think(decoded) is True
+    assert "<think>" in decoded_on                      # the check discriminates
+    assert tpl.no_open_think(decoded_on) is False
+
+
+def _decode(handle: Any, text: str) -> str:
+    from ggufone.runtime import ctypes_binding
+    return "".join(ctypes_binding.token_piece(handle.runtime, handle.vocab, token)
+                   for token in handle.tokenize(text))
+
+
+@pytest.mark.model
+def test_step_two_renders_through_the_runtime_builtin_table() -> None:
+    """`llama_chat_apply_template` really is a second source (Qwen's template matches chatml)."""
+    import os
+
+    from ggufone.runtime import ctypes_binding, finder
+
+    runtime_dir = os.environ.get("GGUFONE_RUNTIME_DIR") or finder.find_runtime()
+    if not runtime_dir:
+        pytest.skip("no llama.cpp runtime on this box")
+    runtime = ctypes_binding.load_libraries(runtime_dir)
+    builtin = tpl.runtime_builtin_renderer(runtime)
+    names = tpl.runtime_builtin_names(runtime)
+    assert "chatml" in names and len(names) >= 50
+    chatml = builtin("chatml", LIVE_MESSAGES, True)
+    assert chatml and chatml.startswith("<|im_start|>")
+    assert builtin("not-a-template-name", LIVE_MESSAGES, True) is None
+    _arch, template = _model_template("qwen35")
+    detected = builtin(template, LIVE_MESSAGES, True)
+    assert detected and "<|im_start|>" in detected          # step 2 covers this family
+    # a template outside our subset *and* recognised by llama.cpp's family table -> step 2
+    fallback_template = ("{%- include 'tools.jinja' %}"
+                         "{{- '<|im_start|>system\\n' + messages[0].content + '<|im_end|>\\n' }}"
+                         "{{- '<|im_start|>assistant\\n' }}")
+    resolution = tpl.resolve(messages=LIVE_MESSAGES, model_template=fallback_template,
+                             arch="qwen35", builtin_renderer=builtin)
+    assert resolution.kind == "builtin"
+    assert resolution.warnings == ("W_TEMPLATE_FALLBACK",)
+    rendered = tpl.render_prompt(LIVE_MESSAGES, resolution, add_generation_prompt=True,
+                                 enable_thinking=False, builtin_renderer=builtin)
+    assert rendered.startswith("<|im_start|>system")
+    assert "<|im_start|>assistant" in rendered

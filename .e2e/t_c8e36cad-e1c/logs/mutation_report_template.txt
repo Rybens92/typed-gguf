@@ -1,0 +1,32 @@
+src/ggufone/engine/template.py mutants: 2465  killed=1219  survived=961  other={33: 276, -24: 9}
+mutation score: 49.5%
+
+survivors (first 40):
+  [0] ggufone.engine.template.xǁUnsupportedTemplateǁ__init____mutmut_1
+  [0] ggufone.engine.template.xǁUnsupportedTemplateǁ__init____mutmut_2
+  [0] ggufone.engine.template.xǁUnsupportedTemplateǁ__init____mutmut_3
+  [0] ggufone.engine.template.xǁUnsupportedTemplateǁ__init____mutmut_6
+  [0] ggufone.engine.template.xǁUnsupportedTemplateǁ__init____mutmut_7
+  [0] ggufone.engine.template.xǁUnsupportedTemplateǁ__init____mutmut_8
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_1
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_2
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_3
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_4
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_5
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_6
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_7
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_8
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_9
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_10
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_11
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_12
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_13
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_14
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_15
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_16
+  [33] ggufone.engine.template.xǁFamilyPolicyǁto_dict__mutmut_17
+  [0] ggufone.engine.template.x_policy_for__mutmut_6
+  [0] ggufone.engine.template.x_policy_for__mutmut_7
+  [0] ggufone.engine.template.x_policy_for__mutmut_8
+
+source sha256: a769f890669cf7f66c8c26c38dc913461ae5f8162058d74f069277dbc9042997

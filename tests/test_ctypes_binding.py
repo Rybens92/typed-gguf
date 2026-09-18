@@ -152,3 +152,33 @@ def test_state_seq_file_signatures_match_the_header() -> None:
     finally:
         ctypes_binding._LOADED.clear()
         ctypes_binding._LOADED.update(before)
+
+
+@pytest.mark.model
+def test_chat_template_signatures_match_the_header() -> None:
+    """include/llama.h @ b11026:1222/1230 + 1224 — the E1c chain's step 2.
+
+    `llama_chat_apply_template` takes **six** arguments — `(const char * tmpl, const struct
+    llama_chat_message * chat, size_t n_msg, bool add_ass, char * buf, int32_t length)` — and
+    `llama_chat_builtin_templates` writes `const char *` names into an array. The scaffold's
+    signature had a stray extra parameter and a `void *` for the message array; calling it that
+    way marshals garbage (the resolver would have "rendered" whatever happened to be in the
+    registers). Pinned live because ctypes only exposes `argtypes` after `load_libraries()`.
+    """
+    import ctypes as C
+    before = dict(ctypes_binding._LOADED)
+    try:
+        runtime = ctypes_binding.load_libraries(_runtime_dir())
+        apply_template = runtime.bindings["llama_chat_apply_template"]
+        assert list(apply_template.argtypes) == [
+            C.c_char_p, C.POINTER(ctypes_binding.llama_chat_message), C.c_size_t, C.c_bool,
+            C.c_char_p, C.c_int32]
+        assert apply_template.restype is C.c_int32
+        assert [field[0] for field in ctypes_binding.llama_chat_message._fields_] == \
+            ["role", "content"]
+        builtin = runtime.bindings["llama_chat_builtin_templates"]
+        assert list(builtin.argtypes) == [C.POINTER(C.c_char_p), C.c_size_t]
+        assert builtin.restype is C.c_int32
+    finally:
+        ctypes_binding._LOADED.clear()
+        ctypes_binding._LOADED.update(before)

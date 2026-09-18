@@ -40,6 +40,12 @@ class llama_batch(C.Structure):
                 ("logits", C.POINTER(C.c_int8))]
 
 
+class llama_chat_message(C.Structure):
+    """`struct llama_chat_message { const char * role; const char * content; }` (b11026)."""
+
+    _fields_ = [("role", C.c_char_p), ("content", C.c_char_p)]
+
+
 class llama_model_params(C.Structure):
     _fields_ = [("devices", C.c_void_p),
                 ("tensor_buft_overrides", C.c_void_p),
@@ -224,8 +230,12 @@ def _bind(runtime: Runtime) -> None:
                             C.c_int32, C.c_bool, C.c_bool], C.c_int32),
         "llama_token_to_piece": ([C.c_void_p, llama_token, C.c_char_p, C.c_int32, C.c_int32,
                                   C.c_bool], C.c_int32),
-        "llama_chat_apply_template": ([C.c_char_p, C.c_void_p, C.c_char_p, C.c_size_t,
+        # Header @ b11026 (include/llama.h:1222/1230): the chat-template entry point takes a
+        # `const llama_chat_message *` and (tmpl, chat, n_msg, add_ass, buf, length) — six
+        # arguments, in that order. E1c renders through it (chain step 2).
+        "llama_chat_apply_template": ([C.c_char_p, C.POINTER(llama_chat_message), C.c_size_t,
                                        C.c_bool, C.c_char_p, C.c_int32], C.c_int32),
+        "llama_chat_builtin_templates": ([C.POINTER(C.c_char_p), C.c_size_t], C.c_int32),
         "llama_synchronize": ([C.c_void_p], None),
     }
     missing: list[str] = []
@@ -248,6 +258,18 @@ def _bind(runtime: Runtime) -> None:
             raise RuntimeSymbolsError(
                 f"E_RUNTIME_SYMBOLS: libggml.so is missing {name} — the backend loader must "
                 f"run before any model load (PoC pitfall 1)")
+
+
+def token_piece(runtime: Runtime, vocab: C.c_void_p, token: int, *, special: bool = True) -> str:
+    """Decode one token id back to text (special tokens rendered as their literal form)."""
+    size = 256
+    for _ in range(4):
+        buf = C.create_string_buffer(size)
+        written = runtime.llama.llama_token_to_piece(vocab, token, buf, size, 0, special)
+        if written >= 0:
+            return buf.raw[:written].decode("utf-8", errors="replace")
+        size = max(size * 4, -written + 1)
+    return ""
 
 
 def tokenize(runtime: Runtime, vocab: C.c_void_p, text: str, *, add_special: bool = False,
