@@ -89,9 +89,12 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # E1c FIX (card t_8cb0a05e) used [tests/test_fit.py, tests/test_fit_free_vram.py,
 # tests/test_fit_oom_recovery.py] with max_children = 2 (the fast set, so a sweep can finish
 # inside this container's shared pid cap). E2 (card t_858c54d1) mutates the bench package, whose
-# gate files are tests/test_bench.py plus — from card t_31b3943a — tests/test_bench_placement.py
-# (the bench<->loader seam: fit.coerce_plan / degrade_ladder). E2.5 (card t_630f32a3) mutates the
-# calibration package: both of its gate files are the selection (test_calibration.py drives the
-# math/fit/store/CLI, test_routing.py the router and the escalation policy).
+# gate files are tests/test_bench.py (the suite/report contract), tests/test_bench_placement.py
+# (card t_31b3943a: the bench<->loader seam) and tests/test_bench_quick.py (card t_f46cec41: the
+# `--quick` preset, the soft cap and report integrity — a CLI-level test cannot kill a bench
+# mutant: it drives a different module). E2.5 (card t_630f32a3) mutates the calibration package:
+# both of its gate files are the selection (test_calibration.py drives the math/fit/store/CLI,
+# test_routing.py the router and the escalation policy); this pair is the most recent sweep, and
+# a bench sweep only has to restore the three bench gate files above.
 pytest_add_cli_args_test_selection = ["tests/test_calibration.py", "tests/test_routing.py"]
 max_children = 2

@@ -149,3 +149,27 @@ jobs:
           GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite quality \
             --model /tmp/smoke.gguf --backend auto --threads 2 --items 6 --json > /tmp/e2_quality.json
           python3 -c "import json;r=json.load(open('/tmp/e2_quality.json'));assert r['overall']['n']==6;assert 0.0<=r['overall']['agreement']<=1.0"
+      # Card t_f46cec41: the fast preset the GPU-less workers iterate with — the whole campaign
+      # (`--quick`, five suites) end to end, with its wall time summed from the reports. The
+      # agent container's target is 180 s (tests/test_bench_live.py); the CI guard is deliberately
+      # looser (300 s) because a cold macOS runner pays a first-load + first-decode cost this box
+      # does not.
+      - name: Engine smoke — `bench --quick` end to end (card t_f46cec41)
+        run: |
+          set -euo pipefail
+          for suite in latency throughput quality calibration determinism; do
+            GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite "$suite" --quick \
+              --model /tmp/smoke.gguf --backend auto --threads 2 \
+              --out "/tmp/quick_${suite}.json" --json > /dev/null
+          done
+          python3 - <<'PY'
+          import json, pathlib
+          total = 0.0
+          for suite in ("latency", "throughput", "quality", "calibration", "determinism"):
+              report = json.loads(pathlib.Path(f"/tmp/quick_{suite}.json").read_text())
+              assert report["quick"] is True, suite
+              assert report["truncated"] is False, suite
+              total += float(report["wall_ms"])
+          print(f"quick campaign: {total / 1000:.1f} s")
+          assert total <= 300_000, total
+          PY

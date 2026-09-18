@@ -31,6 +31,38 @@ path on disk (an alias is a hard `E_BENCH_MODEL` error that says so), the runtim
 llama.cpp bundle, and the dev set ships inside the package. `tests/test_bench.py` asserts it with
 the network and the registry store poisoned.
 
+## Quick preset — iteration, not publication (card `t_f46cec41`)
+
+**Every table on this page is a full-campaign table: it was produced without `--quick`.** A quick
+report carries `"quick": true`, the effective preset config and the note; it writes
+`ggufone-bench-<suite>_quick.json` unless `--out` says otherwise, so it can never land on an
+`e2_<suite>.json`. Do **not** quote a `--quick` number as a published one — the preset measures one
+sample per row (no `p95` worth the name), one prefill size, six dev items and two determinism
+repeats:
+
+```
+# the fast loop (all five suites, ~5 min on this container, reports in /tmp/quick)
+GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all --quick \
+    --model <path.gguf> --threads 2 --out-dir /tmp/quick
+```
+
+| suite | full campaign | `--quick` |
+|---|---|---|
+| latency | runs=5, sizes 256/2k/8k, candidates 2/4/10, waves N=1..16 | runs=1, size 256, candidates 2/4, waves N∈{1,2} |
+| throughput | every documented backend | 1 resolved backend, 1 sample (the rest are reported unmeasured, with the preset named as the reason) |
+| quality | 60 items | 6 items, stratified 2/2/2 across choice/score/noul |
+| calibration | 10 bins over 60 items | the same 6 items, bins as available (6 = samples), all three confidence modes |
+| determinism | 3 repeats × 3 question types | 1 request × 2 repeats |
+
+`--quick` refuses `--runs`/`--items`/`--sizes`/`--n-seq-max` (`E_BENCH_QUICK`): the preset fixes
+those, so a quick run is never a half-applied one. `--max-seconds N` is a soft cap checked *between*
+measurements — the current measurement finishes, the report is marked `"truncated": true` with the
+unmeasured rows listed, and the exit code stays 0. The measured wall times (quick vs full, this
+container, 2 CPU-seconds/s, CPU only) are in
+`docs/evidence/e2_t_f46cec41_bench_quick.md`; the headline is that the *quick latency suite* costs
+~2 minutes where the full one needs >40 minutes of pure measurement, with the same model and the
+same rows.
+
 ## 0. The box and the models
 
 | what | value |
