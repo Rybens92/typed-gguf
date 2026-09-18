@@ -945,8 +945,16 @@ def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
         # than the plan that was requested (card t_8cb0a05e)
         effective = getattr(handle, "fit_plan", None) or plan
         context_plan = decide.plan_context(request, handle, n_ctx_cap=n_ctx_cap)
+        # E3 FIX (card t_80f1a4c6): name the label this run is published under and where it came
+        # from — the request's own `--backend`, else the bundle that loaded, else the record. The
+        # device that *computed* is read back from the session's own log (`engine.devices` /
+        # `engine.effective_backend`), never from this claim.
+        claim = session_module.backend_claim(
+            requested=request.options.backend,
+            runtime_dir=getattr(getattr(handle, "runtime", None), "directory", None),
+            home=home)
         with session_module.ModelSession(handle, context_plan,
-                                         backend=session_module.runtime_backend(home),
+                                         backend=claim.backend, backend_source=claim.source,
                                          states_home=store.states_dir(home)) as live:
             result = decide.DecisionEngine(live, calibration=calibration).decide(
                 request, plan=context_plan, model_alias=alias)

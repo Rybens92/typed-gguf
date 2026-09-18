@@ -50,16 +50,17 @@ from tests.fake_engine import FakeSession
 
 #: The E3 batch's own lines (`/work/e3scratch/batch.log`, Occamy 1.0 on the Vulkan bundle): the
 #: loader's device/backend lines are requests the backend *loads* — the compute buffers below are
-#: the measurement (rule 1 of `runtime/devices.py`).
-E3_VULKAN_LOG = textwrap.dedent("""\
-    load_backend: loaded RPC backend from …/b11026-linux-x64-vulkan/libggml-rpc.so
-    ggml_vulkan: 0 = NVIDIA GeForce RTX 3060 Ti (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0
-    load_backend: loaded Vulkan backend from …/b11026-linux-x64-vulkan/libggml-vulkan.so
-    load_backend: loaded CPU backend from …/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
-    sched_reserve:    Vulkan0 compute buffer size =   363.54 MiB
-    ~llama_context:    Vulkan0 compute buffer size is 363.5412 MiB, matches expectation of 363.5412 MiB
-    ~llama_context: Vulkan_Host compute buffer size is  17.4555 MiB, matches expectation of  17.4555 MiB
-""")
+#: the measurement (rule 1 of `runtime/devices.py`). The two `~llama_context:` lines are the
+#: operator's verbatim output, hence the `noqa`s.
+E3_VULKAN_LOG = "\n".join((
+    "load_backend: loaded RPC backend from …/b11026-linux-x64-vulkan/libggml-rpc.so",
+    "ggml_vulkan: 0 = NVIDIA GeForce RTX 3060 Ti (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0",
+    "load_backend: loaded Vulkan backend from …/b11026-linux-x64-vulkan/libggml-vulkan.so",
+    "load_backend: loaded CPU backend from …/b11026-linux-x64-vulkan/libggml-cpu-haswell.so",
+    "sched_reserve:    Vulkan0 compute buffer size =   363.54 MiB",
+    "~llama_context:    Vulkan0 compute buffer size is 363.5412 MiB, matches expectation of 363.5412 MiB",  # noqa: E501
+    "~llama_context: Vulkan_Host compute buffer size is  17.4555 MiB, matches expectation of  17.4555 MiB",  # noqa: E501
+)) + "\n"
 
 #: A pure CPU bundle's own lines (the E2 provenance probe's `probe-cpubundle.raw` shape).
 CPU_LOG = textwrap.dedent("""\
@@ -144,7 +145,7 @@ def test_the_request_side_offload_line_is_never_evidence() -> None:
     """`offloaded N/M layers to GPU` is a request; the CPU compute buffer is the measurement."""
     body = serving(OFFLOAD_REQUEST_LOG, backend="cpu")
     assert body["engine"]["effective_backend"] == "cpu"
-    assert body["warnings"] == []
+    assert "W_BACKEND_MISMATCH" not in body["warnings"]
 
 
 def test_the_device_evidence_is_not_read_from_the_fit_plan_or_the_record() -> None:
@@ -186,7 +187,7 @@ def test_a_silent_log_reads_as_unverified_never_as_a_claim() -> None:
     assert engine["effective_backend"] is None
     assert engine["devices"] == [] and engine["device_buffers"] == {}
     assert engine["backend"] == "cpu" and engine["backend_source"] == "default"
-    assert body["warnings"] == []
+    assert "W_BACKEND_MISMATCH" not in body["warnings"]
 
 
 def test_a_verified_vulkan_run_is_not_flagged() -> None:
@@ -265,6 +266,8 @@ def test_the_live_session_records_the_load_and_the_context_lines(tmp_path: pathl
     backend.llama.llama_init_from_model = init
     backend.llama.llama_get_memory = lambda ctx: 8
     backend.llama.llama_free = lambda ctx: None
+    backend.llama.llama_n_ctx = lambda ctx: 512
+    backend.llama.llama_n_seq_max = lambda ctx: 3
 
     with fake_runtime(tmp_path, backend):
         handle = session_module.open_model(model_path, runtime_dir=backend.directory,
@@ -308,6 +311,8 @@ def test_the_live_session_names_the_bundle_it_loaded(tmp_path: pathlib.Path) -> 
     backend.llama.llama_init_from_model = lambda model, params: 7
     backend.llama.llama_get_memory = lambda ctx: 8
     backend.llama.llama_free = lambda ctx: None
+    backend.llama.llama_n_ctx = lambda ctx: 512
+    backend.llama.llama_n_seq_max = lambda ctx: 3
 
     with fake_runtime(tmp_path, backend):
         (backend.directory / "libggml-vulkan.so").write_bytes(b"")
@@ -340,7 +345,9 @@ def test_the_serving_payload_hands_the_claim_and_the_log_to_the_session(
     class RecordingSession(FakeSession):
         def __init__(self, handle: Any, plan: Any, **kwargs: Any) -> None:
             seen["session_kwargs"] = kwargs
-            super().__init__(n_vocab=512, backend=kwargs.get("backend") or "cpu")
+            super().__init__(n_vocab=512, backend=kwargs.get("backend") or "cpu",
+                             device_log=E3_VULKAN_LOG,
+                             backend_source=kwargs.get("backend_source", ""))
 
         def __enter__(self) -> RecordingSession:
             return self
@@ -387,3 +394,69 @@ def test_the_serving_payload_hands_the_claim_and_the_log_to_the_session(
     assert seen["session_kwargs"]["backend_source"] == "request"
     assert body["engine"]["backend"] == "vulkan"
     assert body["engine"]["backend_source"] == "request"
+    assert body["engine"]["effective_backend"] == "vulkan"     # from the session's own log
+    assert body["engine"]["device_buffers"] == {"Vulkan0": 2, "Vulkan_Host": 1}
+    assert body["engine"]["backend_source"] in session_module.CLAIM_SOURCES
+
+
+# --------------------------------------------------------- the live row (pinned bundle)
+def _runtime_dir() -> pathlib.Path:
+    """The bundle the live gate runs (`$GGUFONE_RUNTIME_DIR`, else the installed one)."""
+    import os
+    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    if env and (pathlib.Path(env) / finder.library_names()["llama"]).exists():
+        return pathlib.Path(env)
+    found = finder.find_runtime()
+    if found:
+        return found
+    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR)")
+
+
+#: the operator's smallest local GGUFs, in preference order (a live row never downloads one)
+LIVE_MODELS = ("Qwen3.5-4B-Q4_0.gguf", "Spark-X2.5-4B-Q8_0.gguf",
+               "Accio-Lab_occamy-1.0-Q4_K_L.gguf")
+
+
+def _live_model() -> pathlib.Path:
+    """`GGUFONE_ATTRIB_MODEL`, else the smallest known local GGUF (the card's is Occamy)."""
+    import os
+    explicit = os.environ.get("GGUFONE_ATTRIB_MODEL")
+    candidates = [pathlib.Path(explicit)] if explicit else []
+    candidates += [pathlib.Path.home() / ".hermes" / "models" / name for name in LIVE_MODELS]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    pytest.skip(f"no local GGUF for the live gate ({' / '.join(LIVE_MODELS)})")
+
+
+@pytest.mark.model
+def test_a_live_serving_run_reports_the_bundle_backend_it_computed_on(
+        tmp_path: pathlib.Path) -> None:
+    """One live row on the pinned bundle (card t_80f1a4c6, requirement 3).
+
+        GGUFONE_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> \\
+            uv run pytest -q --run-network tests/test_serving_attribution.py -k live
+
+    The request names no backend, so the label must come from the bundle this run *loaded* (the
+    E3 failure exactly: a scratch `$HOME` left no install record and the label silently read
+    `cpu`). The device buffers must be counts the engine's own log produced, naming that same
+    backend, and the response must not be flagged.
+    """
+    from ggufone.runtime import devices as devices_module
+
+    runtime_dir = _runtime_dir()
+    expected = finder.backend_of_bundle(runtime_dir)
+    if expected in (None, "cpu"):
+        pytest.skip(f"{runtime_dir} carries no accelerator backend; there is nothing to attribute")
+
+    payload = request_payload({"threads": 4})
+    payload["model"] = str(_live_model())
+    body = cli.decide_payload(payload, home=tmp_path, fit_enabled=True)
+
+    engine = body["engine"]
+    assert engine["backend_source"] == "bundle" and engine["backend"] == expected
+    assert engine["effective_backend"] == expected
+    assert engine["device_buffers"], "the engine logged no compute buffer — nothing to attribute"
+    assert {devices_module.backend_of(device)
+            for device in engine["device_buffers"]} == {expected}
+    assert "W_BACKEND_MISMATCH" not in body["warnings"]

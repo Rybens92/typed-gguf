@@ -383,14 +383,14 @@ def runtime_roots(*, home: pathlib.Path | None = None,
 
 
 def classify_runtime(directory: pathlib.Path) -> str | None:
-    """`vulkan | cuda | metal | cpu` from the ggml backends a bundle carries, else None."""
+    """`vulkan | cuda | metal | cpu` from the ggml backends a bundle carries, else None.
+
+    The rule itself lives in `runtime.finder.backend_of_bundle` (the engine's backend *claim*
+    uses it too, card t_80f1a4c6); it is imported lazily here so the bench stack stays
+    `ggufone.runtime`-free at import time (A-E2-7).
+    """
     from ggufone.runtime import finder
-    if not (directory / finder.library_names()["llama"]).exists():
-        return None
-    for backend, library in BACKEND_LIBRARIES.items():
-        if (directory / library).exists():
-            return backend
-    return CPU_BACKEND
+    return finder.backend_of_bundle(directory)
 
 
 def backend_runtimes(*, home: pathlib.Path | None = None,

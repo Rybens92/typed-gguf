@@ -27,8 +27,49 @@ _LIB_NAMES: dict[str, dict[str, str]] = {
                "ggml_base": "libggml-base.dylib"},
     "windows": {"llama": "llama.dll", "ggml": "ggml.dll", "ggml_base": "ggml-base.dll"},
 }
+#: the ggml accelerator backend library a bundle must carry to run a graph on that backend. A
+#: bundle with none of them is a complete llama.cpp bundle whose only compute path is the CPU.
+#: Ordered: a bundle carrying several is classified by the first hit (`backend_of_bundle`).
+_ACCELERATOR_NAMES: dict[str, tuple[tuple[str, str], ...]] = {
+    "linux": (("vulkan", "libggml-vulkan.so"), ("cuda", "libggml-cuda.so")),
+    "darwin": (("metal", "libggml-metal.dylib"), ("vulkan", "libggml-vulkan.dylib"),
+               ("cuda", "libggml-cuda.dylib")),
+    "windows": (("vulkan", "ggml-vulkan.dll"), ("cuda", "ggml-cuda.dll"),
+                ("metal", "ggml-metal.dll")),
+}
 RUNTIME_RECORD_SCHEMA = "ggufone.runtime/v1"
 TOOL_NAMES = ("llama-cli", "llama-fit-params", "llama-tokenize")
+
+
+def accelerator_names(system: str | None = None) -> tuple[tuple[str, str], ...]:
+    """`((backend, library), …)` for the platform — which ggml backend a bundle advertises."""
+    resolved = (system or platform.system()).lower()
+    if resolved not in _ACCELERATOR_NAMES:
+        raise RuntimeMissingError(
+            f"E_RUNTIME_MISSING: no accelerator naming rule for platform {resolved!r} "
+            f"(known: {', '.join(sorted(_ACCELERATOR_NAMES))})")
+    return _ACCELERATOR_NAMES[resolved]
+
+
+def backend_of_bundle(directory: str | os.PathLike[str] | None, *,
+                      system: str | None = None) -> str | None:
+    """`vulkan | cuda | metal | cpu` — what backends the bundle at `directory` can run.
+
+    The claim side of the device attribution (card t_80f1a4c6): a *complete* bundle (it carries
+    `libllama`) with no accelerator library answers `cpu`, and a directory that is not a bundle
+    at all answers `None` — a run that loaded nothing cannot be labelled from what it loaded.
+    What the engine *really* used is `ggufone.runtime.devices`, read from its own log; this is
+    only the label that log is checked against.
+    """
+    if directory is None:
+        return None
+    directory = pathlib.Path(directory)
+    if not (directory / library_names(system)["llama"]).exists():
+        return None
+    for backend, library in accelerator_names(system):
+        if (directory / library).exists():
+            return backend
+    return "cpu"
 
 
 def library_names(system: str | None = None) -> dict[str, str]:

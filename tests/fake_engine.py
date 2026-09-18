@@ -54,6 +54,11 @@ class FakeSession:
     threads: int = 1
     runtime: str = "llama.cpp b11026 (fake)"
     backend: str = "cpu"
+    #: the engine's own log lines (card t_80f1a4c6): a live session fills this from its load +
+    #: context captures, a test scripts the operator's own lines verbatim.
+    device_log: str = ""
+    #: where `backend` came from (request | bundle | record | default | explicit)
+    backend_source: str = ""
     model_alias: str | None = "fake-model"
     model_path: str = "/fake/model.gguf"
     load_ms: float = 12.5
@@ -95,7 +100,8 @@ class FakeSession:
     # ---- session surface
     @property
     def meta(self) -> SessionMeta:
-        return SessionMeta(runtime=self.runtime, backend=self.backend, n_ctx=self.n_ctx,
+        return SessionMeta(runtime=self.runtime, backend=self.backend,
+                           backend_source=self.backend_source, n_ctx=self.n_ctx,
                            n_seq_max=self.n_seq_max, kv_unified=True, threads=self.threads,
                            n_vocab=self.n_vocab, model_path=self.model_path,
                            model_alias=self.model_alias, load_ms=self.load_ms)

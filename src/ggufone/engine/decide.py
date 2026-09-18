@@ -68,6 +68,9 @@ class SessionMeta:
     placement: Any | None = None
     #: Codes from the placement itself (W_BACKEND_OOM / W_FIT_DOWNGRADE) — merged into `warnings`.
     placement_warnings: tuple[str, ...] = ()
+    #: card t_80f1a4c6: where `backend` came from (request | bundle | record | default |
+    #: explicit). A label with no source is exactly the silent claim the E3 fix removes.
+    backend_source: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -294,6 +297,9 @@ class DecisionEngine:
         started = time.perf_counter()
         session = self.session
         meta = session.meta
+        # card t_80f1a4c6: the device evidence the session's own log carries, read once here and
+        # published next to the label — `meta.backend` is a *claim*, this is the measurement.
+        evidence = device_evidence(session, meta.backend)
         plan = plan or plan_context(request, session)
         requirements = question_requirements(request, session)
         self._guard_context(request, plan, meta, requirements)
@@ -318,6 +324,11 @@ class DecisionEngine:
             # E1c FIX: a degraded placement (allocation failure survived by reducing the plan) is
             # part of the answer's provenance, not a detail of the load.
             _add_warning(warnings, code)
+        for code in evidence["warnings"]:
+            # E3 FIX (card t_80f1a4c6): a backend label the engine's own log refutes is named,
+            # never published silently (the serving path's `engine.backend` read `cpu` while the
+            # process' stderr showed `Vulkan0 compute buffer size`).
+            _add_warning(warnings, code)
         input_tokens = len(plan.prefix_tokens)
         output_tokens = 0
         for question, view, suffix_tokens, candidates in requirements:
@@ -333,6 +344,13 @@ class DecisionEngine:
             engine={
                 "runtime": meta.runtime,
                 "backend": meta.backend,
+                # E3 FIX (card t_80f1a4c6): the label above is a claim — say where it came from
+                # and what the engine's own log proves (`effective_backend` is `null` when the
+                # log carries no compute-buffer line: unverified, never claimed).
+                "backend_source": meta.backend_source,
+                "devices": evidence["devices"],
+                "device_buffers": evidence["device_buffers"],
+                "effective_backend": evidence["effective_backend"],
                 "readout": options.readout,
                 "kv_unified": bool(meta.kv_unified),
                 "n_ctx": meta.n_ctx,
@@ -609,6 +627,34 @@ def _check_collisions(question: schema.Question, view: prompt.RenderedQuestion,
 def _add_warning(warnings: list[str], code: str) -> None:
     if code not in warnings:
         warnings.append(code)
+
+
+def _device_module() -> Any:
+    """The device-evidence parser, imported in-function so the engine path stays light."""
+    from ggufone.runtime import devices as devices_module
+    return devices_module
+
+
+def device_evidence(session: Any, claimed: str) -> dict[str, Any]:
+    """What one serving session's own log proves about the device that computed.
+
+    `devices` is every device name the engine touched, `device_buffers` its **compute** buffers
+    per device, `effective_backend` the compute path read from them (`None` when the log carries
+    no compute-buffer line — unverified, never claimed), and `warnings` holds
+    `W_BACKEND_MISMATCH` when `claimed` is refuted by that evidence, or cannot be corroborated
+    by it (an accelerator claim with no device line at all). This mirrors `harness.device_usage`,
+    which fixed the same class of lie for the bench tables (card t_603a35a0); here it is the
+    serving path — `run`/`ask` — whose `engine.backend` is the field a reader trusts (card
+    t_80f1a4c6).
+    """
+    text = getattr(session, "device_log", "") or ""
+    usage = _device_module().parse_device_usage(
+        text if isinstance(text, str) else "\n".join(text))
+    warning = "W_BACKEND_MISMATCH" if _device_module().contradicts(claimed, usage) else None
+    return {"devices": list(usage.devices),
+            "device_buffers": dict(usage.compute_buffers),
+            "effective_backend": usage.effective,
+            "warnings": [warning] if warning else []}
 
 
 def decide_request(request: schema.Request, session: Session,

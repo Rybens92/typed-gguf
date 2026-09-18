@@ -112,12 +112,17 @@ class ModelHandle:
     `placement` records HOW the model was placed (`--no-fit`, the fit plan's offload, or a
     degraded retry) so `response.engine` can say it outright instead of leaving the reader to
     interpret `n_gpu_layers: 0` (card t_8cb0a05e, requirement 3).
+
+    `load_log` keeps the engine's own lines from the load that *succeeded* (`llama_log_set`
+    capture, failed ladder rungs excluded) — `ModelSession.device_log` reads the device evidence
+    back out of them (card t_80f1a4c6).
     """
 
     def __init__(self, runtime: ctypes_binding.Runtime, model: C.c_void_p, path: str,
                  *, arch: str | None, load_ms: float, n_gpu_layers: int = 0,
                  fit_plan: Any | None = None,
-                 placement: Placement | None = None) -> None:
+                 placement: Placement | None = None,
+                 load_log: Sequence[str] = ()) -> None:
         self.runtime = runtime
         self.model = model
         self.path = path
@@ -125,6 +130,8 @@ class ModelHandle:
         self.load_ms = load_ms
         self.n_gpu_layers = int(n_gpu_layers)
         self.fit_plan = fit_plan
+        #: the successful load's engine lines (buffers, layer assignments)
+        self.load_log: tuple[str, ...] = tuple(load_log)
         self.placement = placement or Placement(note="", n_gpu_layers=self.n_gpu_layers,
                                                 kv_type="auto")
         llama = runtime.llama
@@ -304,7 +311,7 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
                 degraded=degraded, attempts=tuple(attempts), warnings=tuple(warnings))
             return ModelHandle(runtime, model, str(model_path), arch=arch, load_ms=load_ms,
                                n_gpu_layers=n_gpu_layers, fit_plan=candidate,
-                               placement=placement)
+                               placement=placement, load_log=captured)
         text = "\n".join(captured)
         kind = fit.classify_load_failure(text)
         oom_seen = oom_seen or kind == "oom"
@@ -370,12 +377,19 @@ class ModelSession:
     """A llama.cpp context plus the fork/wave bookkeeping the engine needs."""
 
     def __init__(self, handle: ModelHandle, plan: ContextPlan, *,
-                 backend: str = "cpu", decode_spy: Callable[[Batch], None] | None = None,
+                 backend: str | None = None, backend_source: str = "",
+                 decode_spy: Callable[[Batch], None] | None = None,
                  states_home: pathlib.Path | None = None, degrade: bool = True,
                  log: list[str] | None = None) -> None:
         self.handle = handle
         self.plan = plan
-        self.backend = backend
+        #: the label this session is published under (`engine.backend`) and where it came from
+        #: (`engine.backend_source`). It is a *claim*: the device that really computed is read
+        #: out of `device_log` below (card t_80f1a4c6). `backend=None` asks the bundle this
+        #: handle loaded — what the record cannot know, since the run may use another one.
+        claim = backend_claim(runtime_dir=_runtime_dir_of(handle)) if backend is None else None
+        self.backend = backend if backend is not None else claim.backend
+        self.backend_source = backend_source or (claim.source if claim is not None else "explicit")
         self.decode_spy = decode_spy
         self.decode_calls = 0
         self.loaded_states: list[str] = []
@@ -383,9 +397,13 @@ class ModelSession:
         self.kv_type = plan.kv_type           # what the request (or plan) asked for — HEAD contract
         self.kv_type_used = ""               # the rung the context was really created with
         self.extra_warnings: list[str] = []
+        self._ctx_lines: list[str] = []      # the successful context's own engine lines
         llama = handle.runtime.llama
         self.ctx, failure, kv_used = _init_context(llama, handle, plan, degrade=degrade,
-                                                  warnings=self.extra_warnings, log=log)
+                                                  warnings=self.extra_warnings,
+                                                  log=self._ctx_lines)
+        if log is not None:
+            log.extend(self._ctx_lines)      # a caller-owned sink (the bench) sees every line
         if self.ctx:
             self.kv_type_used = kv_used
         if not self.ctx:
@@ -394,6 +412,17 @@ class ModelSession:
                 f"n_seq_max={plan.n_seq_max}); the runtime refused these context parameters")
         self.memory = llama.llama_get_memory(self.ctx)
         self._runtime_name = _runtime_name(handle)
+
+    @property
+    def device_log(self) -> str:
+        """The engine's own lines for this session: the successful load + the live context.
+
+        `llama_context`/`sched_reserve` print `<device> compute buffer size` when the graph
+        scheduler reserves memory on a device — the measurement `runtime/devices.py` turns into
+        `devices` / `device_buffers` / `effective_backend`. Empty when the engine logged no such
+        line: that reads as *unverified*, never as a claim.
+        """
+        return "\n".join((*getattr(self.handle, "load_log", ()), *self._ctx_lines))
 
     # ---- surface
     @property
@@ -405,6 +434,7 @@ class ModelSession:
             placement = dataclasses.replace(placement, kv_type=self.kv_type_used)
         carried = tuple(getattr(placement, "warnings", ()) or ())
         return SessionMeta(runtime=self._runtime_name, backend=self.backend,
+                           backend_source=self.backend_source,
                            n_ctx=int(self.handle.runtime.llama.llama_n_ctx(self.ctx)),
                            n_seq_max=int(self.handle.runtime.llama.llama_n_seq_max(self.ctx)),
                            kv_unified=True, threads=int(self.plan.threads),
@@ -681,7 +711,67 @@ def _runtime_dir_of(handle: ModelHandle) -> pathlib.Path:
     return pathlib.Path(handle.runtime.directory)
 
 
+def recorded_backend(home: pathlib.Path | None = None) -> str | None:
+    """The backend `init` **proved** on this host (`runtime.json`), or None.
+
+    Only `backend_working` counts. The E3 record carries `backend_requested: cuda` for a variant
+    that was skipped before its download (its libs cannot load here); claiming `cuda` from that
+    field would be the same class of lie as claiming `cpu` from a missing record — the label has
+    to come from something that happened (card t_80f1a4c6).
+    """
+    record = finder.runtime_record(home) or {}
+    working = record.get("backend_working")
+    return str(working) if working else None
+
+
 def runtime_backend(home: pathlib.Path | None = None) -> str:
     """The backend `init` proved working on this host (report-only; defaults to cpu)."""
     record = finder.runtime_record(home) or {}
-    return str(record.get("backend_working") or record.get("backend_requested") or "cpu")
+    return recorded_backend(home) or str(record.get("backend_requested") or "cpu")
+
+
+@dataclass(frozen=True, slots=True)
+class BackendClaim:
+    """The backend a run is *labelled* with, and where that label came from.
+
+    A label is not a measurement: `ggufone.runtime.devices` reads the device set out of the
+    engine's own log (`ModelSession.device_log`), and this object is the claim that log is
+    checked against (`session.CLAIM_SOURCES` names the sources, `decide.device_evidence` raises
+    `W_BACKEND_MISMATCH` when the two disagree — card t_80f1a4c6).
+    """
+
+    backend: str
+    source: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {"backend": self.backend, "source": self.source}
+
+
+def backend_claim(*, requested: str | None = None,
+                  runtime_dir: str | os.PathLike[str] | None = None,
+                  home: pathlib.Path | None = None) -> BackendClaim:
+    """What backend this run claims, and where that claim came from (card t_80f1a4c6).
+
+    Most specific first:
+
+    * `requested` — the request's own `--backend` option (`None`/`auto` asks the box);
+    * `runtime_dir` — the bundle this run **loaded** (`ModelHandle.runtime.directory`): a better
+      claim than the install record, because the record describes the bundle `init` installed
+      while `$GGUFONE_RUNTIME_DIR`/the fit may run another one (the E3 serving run did);
+    * `home` — the install record's proved backend;
+    * nothing at all — `cpu`, with `source: "default"`, so the response says the label was
+      invented rather than measured (the E3 lie: a missing record silently read as `cpu`).
+    """
+    if requested and requested != "auto":
+        return BackendClaim(str(requested), "request")
+    carried = finder.backend_of_bundle(runtime_dir)
+    if carried:
+        return BackendClaim(carried, "bundle")
+    recorded = recorded_backend(home)
+    if recorded:
+        return BackendClaim(recorded, "record")
+    return BackendClaim("cpu", "default")
+
+
+#: where a run's backend label can come from (`BackendClaim.source`)
+CLAIM_SOURCES = ("request", "bundle", "record", "default", "explicit")
