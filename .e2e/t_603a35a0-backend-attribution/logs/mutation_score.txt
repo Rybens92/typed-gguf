@@ -1,0 +1,10 @@
+exit-code histogram: {0: 8, 1: 73}
+81 mutants · 8 survivors · 90.1% killed/ran
+  SURVIVED: ggufone.runtime.devices.x_backend_of__mutmut_10
+  SURVIVED: ggufone.runtime.devices.x_backend_of__mutmut_14
+  SURVIVED: ggufone.runtime.devices.x_backend_of__mutmut_16
+  SURVIVED: ggufone.runtime.devices.x_backend_of__mutmut_21
+  SURVIVED: ggufone.runtime.devices.x_backend_of__mutmut_22
+  SURVIVED: ggufone.runtime.devices.x_backend_of__mutmut_3
+  SURVIVED: ggufone.runtime.devices.x_backend_of__mutmut_4
+  SURVIVED: ggufone.runtime.devices.x_parse_device_usage__mutmut_11

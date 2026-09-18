@@ -601,10 +601,12 @@ def _run_quality(config: harness.BenchConfig, make: Factory, budget: harness.Tim
         # the load is a measurement too, but the item loop below runs regardless: when the cap is
         # already spent, every item is recorded as unmeasured (the lambda is never called, so an
         # unloaded model is never asked anything) and the report lists all six rows by id
-        _measure(budget, "model_load", "load#1", model.load)
+        loaded = _measure(budget, "model_load", "load#1", model.load)
         rows = _devset_rows(config, model, items, budget)
-        # which device the engine's own log proves computed (card t_603a35a0)
-        _attribution(report, backend, model)
+        if loaded is not None:
+            # which device the engine's own log proves computed (card t_603a35a0). A cap that
+            # expired before the load is incompleteness, never an unverifiable backend claim.
+            _attribution(report, backend, model)
     finally:
         model.close()
     report["devset"]["measured"] = len(rows)

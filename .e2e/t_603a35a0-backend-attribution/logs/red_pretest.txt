@@ -1,0 +1,181 @@
+....FFFFFFFF                                                             [100%]
+=================================== FAILURES ===================================
+______ test_a_vulkan_row_that_ran_on_cpu_is_flagged_and_fails_the_report _______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-29/test_a_vulkan_row_that_ran_on_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f07b701ffd0>
+
+    def test_a_vulkan_row_that_ran_on_cpu_is_flagged_and_fails_the_report(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """The exact operator case: a CPU bundle first, the Vulkan bundle also visible."""
+        root = two_bundles(tmp_path)
+        install(monkeypatch, tmp_path, runtime_dir=root / "b11026-linux-x64-cpu", root=root)
+    
+        report = suites.run_suite(throughput(), factory=factory(
+            logs={"cpu": CPU_LOG, "vulkan": MIXED_BUNDLE_LOG}))
+    
+        row = rows_by_backend(report)["vulkan"]
+        assert row["runtime_dir"] == str(root / "b11026-linux-x64-vulkan")   # the bundle it *named*
+>       assert row["effective_backend"] == "cpu"                             # the device it *used*
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_bench_attribution.py:175: KeyError
+_______________ test_a_cpu_row_that_ran_on_the_device_is_flagged _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-29/test_a_cpu_row_that_ran_on_the0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f07b701dd10>
+
+    def test_a_cpu_row_that_ran_on_the_device_is_flagged(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """The other direction: only the Vulkan bundle is installed, so `cpu` resolves to *its*
+        directory and op offload runs the graph on the device under a `cpu` label."""
+        root = tmp_path / "runtime"
+        vulkan = root / "b11026-linux-x64-vulkan"
+        vulkan.mkdir(parents=True)
+        (vulkan / finder.library_names()["llama"]).write_bytes(b"")
+        (vulkan / "libggml-vulkan.so").write_bytes(b"")
+        install(monkeypatch, tmp_path, runtime_dir=None, root=root)
+    
+        found = harness.backend_runtimes(home=tmp_path / "data-home")
+        assert found["cpu"] == found["vulkan"] == vulkan
+    
+        report = suites.run_suite(throughput("auto"), factory=factory(
+            logs={"cpu": OP_OFFLOAD_LOG, "vulkan": GPU_LOG}))
+    
+        row = rows_by_backend(report)["cpu"]
+        assert row["runtime_dir"] == str(root / "b11026-linux-x64-vulkan")
+>       assert row["effective_backend"] == "vulkan"
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_bench_attribution.py:206: KeyError
+_________________________ test_honest_rows_stay_clean __________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-29/test_honest_rows_stay_clean0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f07b72074d0>
+
+    def test_honest_rows_stay_clean(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """One bundle per process (the auditor's F4 recommendation): both labels hold, report ok."""
+        root = two_bundles(tmp_path)
+        install(monkeypatch, tmp_path, runtime_dir=root / "b11026-linux-x64-cpu", root=root)
+    
+        report = suites.run_suite(throughput(), factory=factory(
+            logs={"cpu": CPU_LOG, "vulkan": GPU_LOG}))
+    
+        rows = rows_by_backend(report)
+>       assert rows["cpu"]["effective_backend"] == "cpu"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_bench_attribution.py:221: KeyError
+____ test_an_unreadable_device_set_is_reported_as_unverified_not_as_a_claim ____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-29/test_an_unreadable_device_set_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f07b7026e50>
+
+    def test_an_unreadable_device_set_is_reported_as_unverified_not_as_a_claim(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """A log that names no device cannot corroborate a claim — the row says so (`None`) instead
+        of repeating the flag as if it were measured."""
+        root = two_bundles(tmp_path)
+        install(monkeypatch, tmp_path, runtime_dir=root / "b11026-linux-x64-cpu", root=root)
+    
+        report = suites.run_suite(throughput(), factory=factory(logs={}))
+    
+        row = rows_by_backend(report)["vulkan"]
+>       assert row["effective_backend"] is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_bench_attribution.py:238: KeyError
+__________________ test_determinism_rows_carry_the_device_set __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-29/test_determinism_rows_carry_th0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f07b7025c10>
+
+    def test_determinism_rows_carry_the_device_set(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        root = two_bundles(tmp_path)
+        install(monkeypatch, tmp_path, runtime_dir=root / "b11026-linux-x64-cpu", root=root)
+    
+        report = suites.run_suite(
+            harness.BenchConfig(suite="determinism", model_path="/tmp/fake.gguf", backend="all"),
+            factory=factory(logs={"cpu": CPU_LOG, "vulkan": MIXED_BUNDLE_LOG}))
+    
+        row = rows_by_backend(report)["vulkan"]
+>       assert row["runtime_dir"] == str(root / "b11026-linux-x64-vulkan")
+               ^^^^^^^^^^^^^^^^^^
+E       KeyError: 'runtime_dir'
+
+tests/test_bench_attribution.py:254: KeyError
+__________ test_the_single_backend_suites_record_what_the_engine_used __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-29/test_the_single_backend_suites0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f07b71b8310>
+
+    def test_the_single_backend_suites_record_what_the_engine_used(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        root = two_bundles(tmp_path)
+        install(monkeypatch, tmp_path, runtime_dir=root / "b11026-linux-x64-cpu", root=root)
+    
+        report = suites.run_suite(
+            harness.BenchConfig(suite="latency", model_path="/tmp/fake.gguf", runs=1,
+                                prefill_sizes=(64,)),
+            factory=factory(logs={"cpu": OP_OFFLOAD_LOG}))
+    
+        assert report["backend_selection"]["selected"] == "cpu"
+>       assert report["effective_backend"] == "vulkan"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_bench_attribution.py:272: KeyError
+____ test_the_rendered_table_shows_the_effective_backend_next_to_the_claim _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-29/test_the_rendered_table_shows_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f07b7020850>
+
+    def test_the_rendered_table_shows_the_effective_backend_next_to_the_claim(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        root = two_bundles(tmp_path)
+        install(monkeypatch, tmp_path, runtime_dir=root / "b11026-linux-x64-cpu", root=root)
+    
+        report = suites.run_suite(throughput(), factory=factory(
+            logs={"cpu": CPU_LOG, "vulkan": MIXED_BUNDLE_LOG}))
+        markdown = harness.render_report(report)
+    
+>       assert "| backend | effective |" in markdown
+E       AssertionError: assert '| backend | effective |' in '### throughput — fake.gguf\n\n- generated: 2026-09-18T14:20:12Z\n- host: Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-g...rks never download one: run `ggufone init --backend cuda` or point GGUFONE_BENCH_RUNTIME_DIR at extracted bundles) |\n'
+
+tests/test_bench_attribution.py:289: AssertionError
+___________ test_the_placement_note_does_not_claim_the_compute_path ____________
+
+    def test_the_placement_note_does_not_claim_the_compute_path() -> None:
+        """`n_gpu_layers=0` is a statement about the weights; op offload can still compute on the
+        device, so the load-time note must not read as a measurement of the compute path."""
+        from ggufone.engine import session as session_module
+        from ggufone.runtime import fit
+    
+        plan = fit.coerce_plan(harness.Placement(0))
+        note = session_module._placement_note(plan, degraded=False, fit_disabled=False)
+        assert plan.n_gpu_layers == 0
+>       assert "CPU only" not in note
+E       AssertionError: assert 'CPU only' not in 'CPU only: t...v_type=auto)'
+E         
+E         'CPU only' is contained here:
+E           CPU only: the fit plan offloads nothing (kv_type=auto)
+E         ? ++++++++
+
+tests/test_bench_attribution.py:304: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_bench_attribution.py::test_a_vulkan_row_that_ran_on_cpu_is_flagged_and_fails_the_report
+FAILED tests/test_bench_attribution.py::test_a_cpu_row_that_ran_on_the_device_is_flagged
+FAILED tests/test_bench_attribution.py::test_honest_rows_stay_clean - KeyErro...
+FAILED tests/test_bench_attribution.py::test_an_unreadable_device_set_is_reported_as_unverified_not_as_a_claim
+FAILED tests/test_bench_attribution.py::test_determinism_rows_carry_the_device_set
+FAILED tests/test_bench_attribution.py::test_the_single_backend_suites_record_what_the_engine_used
+FAILED tests/test_bench_attribution.py::test_the_rendered_table_shows_the_effective_backend_next_to_the_claim
+FAILED tests/test_bench_attribution.py::test_the_placement_note_does_not_claim_the_compute_path
+8 failed, 4 passed in 0.72s
+exit=1

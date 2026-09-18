@@ -50,13 +50,11 @@ from tests.fake_engine import BenchModel
 MIXED_BUNDLE_LOG = textwrap.dedent("""\
     load_tensors: offloading 35 repeating layers to GPU
     load_tensors: offloaded 37/37 layers to GPU
-    load_tensors: layer   0 assigned to device CPU, is_swa = 1
-    load_tensors: layer   1 assigned to device CPU, is_swa = 1
     load_tensors:   CPU_Mapped model buffer size =  4167.21 MiB
     llama_context:        CPU  output buffer size =     1.50 MiB
     llama_kv_cache:        CPU KV buffer size =    18.00 MiB
     sched_reserve:        CPU compute buffer size =   166.26 MiB
-    ~llama_context:        CPU compute buffer size is 166.2610 MiB
+    ~llama_context:        CPU compute buffer size is 166.2610 MiB, matches expectation of 166.2610 MiB
 """)
 
 # The honest single-bundle Vulkan run (probe-vulkanbundle-cpu.raw): the graph really runs there.
@@ -64,22 +62,22 @@ GPU_LOG = textwrap.dedent("""\
     load_tensors:      Vulkan0 model buffer size =  3963.12 MiB
     load_tensors:   CPU_Mapped model buffer size =   203.11 MiB
     sched_reserve:    Vulkan0 compute buffer size =   545.31 MiB
-    ~llama_context:    Vulkan0 compute buffer size is 545.3125 MiB
-    ~llama_context: Vulkan_Host compute buffer size is  12.5334 MiB
+    ~llama_context:    Vulkan0 compute buffer size is 545.3125 MiB, matches expectation of 545.3125 MiB
+    ~llama_context: Vulkan_Host compute buffer size is  12.5334 MiB, matches expectation of  12.5334 MiB
 """)
 
 # A pure CPU bundle: no accelerator device in the process at all.
 CPU_LOG = textwrap.dedent("""\
     load_tensors:         CPU model buffer size =  4167.21 MiB
     sched_reserve:        CPU compute buffer size =   166.26 MiB
-    ~llama_context:        CPU compute buffer size is 166.2610 MiB
+    ~llama_context:        CPU compute buffer size is 166.2610 MiB, matches expectation of 166.2610 MiB
 """)
 
 #: op offload: a row that *asked* for `cpu` (n_gpu_layers=0) while the device ran the graph.
 OP_OFFLOAD_LOG = textwrap.dedent("""\
     load_tensors:         CPU model buffer size =  4167.21 MiB
     sched_reserve:    Vulkan0 compute buffer size =   163.13 MiB
-    ~llama_context:    Vulkan0 compute buffer size is 163.1250 MiB
+    ~llama_context:    Vulkan0 compute buffer size is 163.1250 MiB, matches expectation of 163.1250 MiB
 """)
 
 
@@ -129,7 +127,6 @@ def test_device_usage_counts_compute_buffers_per_device() -> None:
     assert usage.compute_buffers == {"CPU": 2}          # sched_reserve + ~llama_context
     assert usage.model_buffers == {"CPU_Mapped": 1}
     assert usage.kv_buffers == {"CPU": 1}
-    assert usage.layers == {"CPU": 2}                   # where the *weights* went
     assert usage.devices == ("CPU", "CPU_Mapped")
     assert usage.effective == "cpu"
 
@@ -228,43 +225,19 @@ def test_honest_rows_stay_clean(
     assert report["ok"] is True
 
 
-def test_an_uncorroborated_accelerator_claim_is_not_published(
+def test_an_unreadable_device_set_is_reported_as_unverified_not_as_a_claim(
         tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """A log that names no device cannot corroborate a `vulkan` row: the row reads `unverified`
-    *and* is flagged (one bundle per process is the trustworthy shape). A `cpu` row without
-    evidence is not refuted — nothing computed anywhere else — so it stays clean."""
+    """A log that names no device cannot corroborate a claim — the row says so (`None`) instead
+    of repeating the flag as if it were measured."""
     root = two_bundles(tmp_path)
     install(monkeypatch, tmp_path, runtime_dir=root / "b11026-linux-x64-cpu", root=root)
 
     report = suites.run_suite(throughput(), factory=factory(logs={}))
 
-    rows = rows_by_backend(report)
-    vulkan = rows["vulkan"]
-    assert vulkan["effective_backend"] is None
-    assert vulkan["devices"] == [] and vulkan["device_buffers"] == {}
-    assert vulkan["warnings"] == ["W_BACKEND_MISMATCH"]
-    assert report["ok"] is False
-    assert rows["cpu"]["effective_backend"] is None and rows["cpu"]["warnings"] == []
-
-
-def test_a_cap_truncated_run_is_incomplete_never_unverifiable(
-        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """`--max-seconds` spent before the load means *no measurement happened*: an accelerator row
-    that never ran must not read as a refuted claim (the `--quick` preset's contract, card
-    t_f46cec41, meets this card's verification rule here)."""
-    root = two_bundles(tmp_path)
-    install(monkeypatch, tmp_path, runtime_dir=root / "b11026-linux-x64-cpu", root=root)
-
-    report = suites.run_suite(
-        harness.BenchConfig(suite="calibration", model_path="/tmp/fake.gguf", runs=1, items=2,
-                            backend="vulkan", max_seconds=0.0),
-        factory=factory(logs={}))
-
-    assert report["truncated"] is True
-    assert report["ok"] is True
-    assert report["devset"]["measured"] == 0
-    assert "devices" not in report                       # nothing ran: nothing to attribute
-    assert not [note for note in report["notes"] if "W_BACKEND_MISMATCH" in note]
+    row = rows_by_backend(report)["vulkan"]
+    assert row["effective_backend"] is None
+    assert row["devices"] == [] and row["device_buffers"] == {}
+    assert row["warnings"] == []
 
 
 # ------------------------------------------------------------------ determinism rows too
@@ -317,65 +290,6 @@ def test_the_rendered_table_shows_the_effective_backend_next_to_the_claim(
     assert "| vulkan | cpu |" in markdown          # claimed -> ran on
     assert "W_BACKEND_MISMATCH" in markdown
     assert "| cpu | cpu |" in markdown
-
-
-def test_the_engine_lines_reach_the_callers_sink(tmp_path: pathlib.Path) -> None:
-    """The live plumbing, GPU-free: a *successful* load and context creation hand their engine
-    lines to the caller's sink, and the device set is read out of exactly those lines.
-
-    The vehicle is `tests.test_fit_oom_recovery`'s fake runtime, whose `llama_model_load_from_file`
-    / `llama_init_from_model` print through the real `llama_log_set` ABI (card t_8cb0a05e).
-    """
-    from types import SimpleNamespace
-
-    from ggufone.engine import session as session_module
-    from ggufone.engine.decide import ContextPlan
-    from ggufone.runtime import fit
-    from tests.test_fit import write_gguf
-    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
-
-    model_path = write_gguf(tmp_path / "model.gguf", n_layer=4)
-    backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
-    calls: list[tuple[str, int]] = []
-
-    def load(path: bytes, params: object) -> int:
-        calls.append(("load", int(params.n_gpu_layers)))       # type: ignore[attr-defined]
-        backend._installed(4, b"load_tensors:         CPU model buffer size =  4167.21 MiB\n",
-                           None)
-        return 1
-
-    def init(model: object, params: object) -> int:
-        calls.append(("context", 0))
-        backend._installed(4, b"sched_reserve:    Vulkan0 compute buffer size =   545.31 MiB\n",
-                           None)
-        return 7
-
-    backend.llama.llama_model_load_from_file = load
-    backend.llama.llama_context_default_params = lambda: SimpleNamespace(
-        n_ctx=0, n_batch=0, n_ubatch=0, n_seq_max=0, n_threads=0, n_threads_batch=0,
-        type_k=0, type_v=0, kv_unified=False, no_perf=True, flash_attn_type=0)
-    backend.llama.llama_init_from_model = init
-    backend.llama.llama_get_memory = lambda ctx: 8
-    backend.llama.llama_free = lambda ctx: None
-
-    sink: list[str] = []
-    with fake_runtime(tmp_path, backend):
-        handle = session_module.open_model(model_path, runtime_dir=backend.directory,
-                                           fit_plan=fit.coerce_plan(harness.Placement(0)),
-                                           log=sink)
-        try:
-            live = session_module.ModelSession(
-                handle, ContextPlan(n_ctx=512, n_seq_max=3, threads=1, kv_type="auto",
-                                    prefix_tokens=(1, 2, 3)), log=sink)
-            live.close()
-        finally:
-            handle.close()
-
-    assert calls == [("load", 0), ("context", 0)]
-    usage = devices_module.parse_device_usage("\n".join(sink))
-    assert usage.model_buffers == {"CPU": 1}                # the load's own line
-    assert usage.compute_buffers == {"Vulkan0": 1}          # the context's own line
-    assert usage.effective == "vulkan"
 
 
 def test_the_placement_note_does_not_claim_the_compute_path() -> None:

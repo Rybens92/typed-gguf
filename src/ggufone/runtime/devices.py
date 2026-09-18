@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any
 
 #: `sched_reserve:        CPU compute buffer size =   166.26 MiB` (creation) and
 #: `~llama_context:    Vulkan0 compute buffer size is 545.3125 MiB, …` (destruction)

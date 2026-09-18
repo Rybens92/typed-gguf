@@ -1,0 +1,60 @@
+==============================================================================
+BEFORE mixed (parent tree) — before_mixed.raw
+==============================================================================
+  cpu     measured=True prefill=7.698 tok/s decision=1.435 tok/s
+      runtime_dir: "/work/t603-runtime/b11026-linux-x64-cpu"
+      placement: "n_gpu_layers=0"
+      placement_used.note: 'CPU only: the fit plan offloads nothing (kv_type=auto)'
+  vulkan  measured=True prefill=12.291 tok/s decision=2.093 tok/s
+      runtime_dir: "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+      placement: "n_gpu_layers=-1"
+      placement_used.note: 'all layers requested: n_gpu_layers=-1 (kv_type=auto)'
+  cuda    measured=False reason=no local llama.cpp bundle carries libggml-cuda.so (benchmark…
+  report ok=True
+
+==============================================================================
+AFTER mixed (fixed tree) — after_mixed.raw
+==============================================================================
+  cpu     measured=True prefill=7.117 tok/s decision=1.137 tok/s
+      runtime_dir: "/work/t603-runtime/b11026-linux-x64-cpu"
+      placement: "n_gpu_layers=0"
+      effective_backend: "cpu"
+      devices: ["CPU", "CPU_Mapped", "CPU_REPACK"]
+      device_buffers: {"CPU": 3}
+      warnings: []
+      placement_used.note: 'no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)'
+  vulkan  measured=True prefill=5.082 tok/s decision=0.932 tok/s
+      runtime_dir: "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+      placement: "n_gpu_layers=-1"
+      effective_backend: null
+      devices: []
+      device_buffers: {}
+      warnings: ["W_BACKEND_MISMATCH"]
+      placement_used.note: 'all layers requested: n_gpu_layers=-1 (kv_type=auto)'
+  cuda    measured=False reason=no local llama.cpp bundle carries libggml-cuda.so (benchmark…
+  report ok=False
+  note: W_BACKEND_MISMATCH: the row claims backend `vulkan` but the engine's own log carries no compute-buffer line for that backend, so the row cannot be corroborated; re-run one backend per process (`--backend <one>`) before publishing it.
+
+==============================================================================
+BEFORE op-offload (parent tree) — before_opoffload.raw
+==============================================================================
+  cpu     measured=True prefill=4.839 tok/s decision=5.106 tok/s
+      runtime_dir: "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+      placement: "n_gpu_layers=0"
+      placement_used.note: 'CPU only: the fit plan offloads nothing (kv_type=auto)'
+  report ok=True
+
+==============================================================================
+AFTER op-offload (fixed tree) — after_opoffload.raw
+==============================================================================
+  cpu     measured=True prefill=1.147 tok/s decision=0.718 tok/s
+      runtime_dir: "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+      placement: "n_gpu_layers=0"
+      effective_backend: "vulkan"
+      devices: ["CPU", "CPU_Mapped", "Vulkan0", "Vulkan_Host"]
+      device_buffers: {"Vulkan0": 3, "Vulkan_Host": 3}
+      warnings: ["W_BACKEND_MISMATCH"]
+      placement_used.note: 'no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)'
+  report ok=False
+  note: W_BACKEND_MISMATCH: the row claims backend `cpu` but the engine's own log shows the compute on vulkan (compute buffers: Vulkan0=3 · Vulkan_Host=3); read this row as a vulkan measurement — re-run one backend per process (`--backend vulkan`) for a clean attribution.
+

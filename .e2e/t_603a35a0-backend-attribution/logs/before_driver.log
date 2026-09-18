@@ -1,0 +1,6 @@
+=== mixed 13:52:37Z | GGUFONE_RUNTIME_DIR=/work/t603-runtime/b11026-linux-x64-cpu GGUFONE_BENCH_RUNTIME_DIR=/var/home/rybens/.local/share/ggufone/runtime | ggufone bench --backend all
+3031 MiB, 4860 MiB, 29 %
+=== mixed exit=134 13:55:54Z (raw: /work/t603-evidence/before_mixed.raw, 87370 bytes)
+=== opoffload 13:55:54Z | GGUFONE_BENCH_RUNTIME_DIR=/var/home/rybens/.local/share/ggufone/runtime | ggufone bench --backend cpu
+3280 MiB, 4612 MiB, 25 %
+=== opoffload exit=0 13:56:49Z (raw: /work/t603-evidence/before_opoffload.raw, 4565 bytes)

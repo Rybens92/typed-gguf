@@ -1,0 +1,32 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_the_cli_fit_command_returns_the_documented_json _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-20/test_the_cli_fit_command_retur0')
+capsys = <_pytest.capture.CaptureFixture object at 0x7f7caa9eafd0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7caa9e97d0>
+
+    def test_the_cli_fit_command_returns_the_documented_json(tmp_path: pathlib.Path,
+                                                             capsys: pytest.CaptureFixture[str],
+                                                             monkeypatch: pytest.MonkeyPatch) -> None:
+        model = write_gguf(tmp_path / "synthetic.gguf")
+        monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+        monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+        code = cli.main(["fit", str(model), "--json"])
+        assert code == 0
+        payload = json.loads(capsys.readouterr().out)
+        for field in fit.FIT_FIELDS:
+            assert field in payload, field
+        assert payload["source"] == "estimate"
+>       assert payload["warnings"] == ["W_FIT_ESTIMATED"]
+E       AssertionError: assert ['W_KV_TYPE_D...IT_ESTIMATED'] == ['W_FIT_ESTIMATED']
+E         
+E         At index 0 diff: 'W_KV_TYPE_DOWNGRADE' != 'W_FIT_ESTIMATED'
+E         Left contains 2 more items, first extra item: 'W_FIT_DOWNGRADE'
+E         Use -v to get more diff
+
+tests/test_fit.py:349: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_fit.py::test_the_cli_fit_command_returns_the_documented_json
+1 failed in 0.35s
+exit=1
