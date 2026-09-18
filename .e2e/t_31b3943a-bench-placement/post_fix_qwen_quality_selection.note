@@ -1,0 +1,2 @@
+# $ GGUFONE_BENCH_RUNTIME_DIR=/var/home/rybens/.hermes/runtime uv run ggufone bench --suite quality --model /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf --backend auto --items 3 --threads 4 --json
+# started 2026-09-18T13:21:15Z

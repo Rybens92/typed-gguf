@@ -1,0 +1,67 @@
+# RED — tests/test_bench_placement.py at a42aa13 (pre-change tree, same file copied in unchanged)
+# $ uv run pytest -q tests/test_bench_placement.py -k "auto_run_records or forced_backend_is_reported or default_gpu_layers"
+Using CPython 3.11.15 interpreter at: /usr/local/bin/python3
+Creating virtual environment at: .venv
+   Building ggufone @ file:///work/wt-t31b-red-1789737251
+      Built ggufone @ file:///work/wt-t31b-red-1789737251
+Installed 1 package in 2ms
+FF.                                                                      [100%]
+=================================== FAILURES ===================================
+__ test_an_auto_run_records_the_bundle_it_selected_and_the_one_it_passed_over __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11267/test_an_auto_run_records_the_b0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f9c7466c4d0>
+
+    def test_an_auto_run_records_the_bundle_it_selected_and_the_one_it_passed_over(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """A box with a CPU *and* an accelerator bundle: the report must say which one ran.
+    
+        Reported from the operator's Vulkan host (card t_31b3943a, coordinator note): `bench --suite
+        latency --backend auto` without `--gpu-layers` measured CPU only, and neither the report nor
+        the rendered table said a Vulkan bundle had been left unused. `auto` resolves to the locally
+        installed bundles in `DEFAULT_BACKENDS` order (`cpu` first) and one run measures the first of
+        them, so a reader must be able to tell "no accelerator here" from "not selected".
+        """
+        from tests.fake_engine import BenchModel
+    
+        bundles = {"cpu": tmp_path / "b11026-linux-x64-cpu",
+                   "vulkan": tmp_path / "b11026-linux-x64-vulkan"}
+        monkeypatch.setattr(harness, "backend_runtimes", lambda **kwargs: dict(bundles))
+        config = harness.BenchConfig(suite="latency", model_path="/tmp/fake.gguf", runs=1,
+                                    prefill_sizes=(64,))
+    
+        report = suites.run_suite(config, factory=lambda spec: BenchModel(spec))
+    
+>       selection = report["backend_selection"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'backend_selection'
+
+tests/test_bench_placement.py:264: KeyError
+__________ test_a_forced_backend_is_reported_as_such_not_as_a_choice ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11267/test_a_forced_backend_is_repor0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f9c74c2ef10>
+
+    def test_a_forced_backend_is_reported_as_such_not_as_a_choice(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """`--backend vulkan` is not a selection among bundles: the record must not blame `auto`."""
+        from tests.fake_engine import BenchModel
+    
+        bundles = {"cpu": tmp_path / "b11026-linux-x64-cpu",
+                   "vulkan": tmp_path / "b11026-linux-x64-vulkan"}
+        monkeypatch.setattr(harness, "backend_runtimes", lambda **kwargs: dict(bundles))
+        config = harness.BenchConfig(suite="quality", model_path="/tmp/fake.gguf", backend="vulkan",
+                                    items=2)
+    
+        report = suites.run_suite(config, factory=lambda spec: BenchModel(spec))
+    
+>       selection = report["backend_selection"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'backend_selection'
+
+tests/test_bench_placement.py:289: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_bench_placement.py::test_an_auto_run_records_the_bundle_it_selected_and_the_one_it_passed_over
+FAILED tests/test_bench_placement.py::test_a_forced_backend_is_reported_as_such_not_as_a_choice
+2 failed, 1 passed, 10 deselected in 1.73s
+RED_EXIT=1

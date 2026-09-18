@@ -1,0 +1,2 @@
+# $ GGUFONE_BENCH_RUNTIME_DIR=/var/home/rybens/.hermes/runtime uv run ggufone bench --suite throughput --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend auto --gpu-layers -1 --runs 1 --threads 4 --json
+# started 2026-09-18T13:15:30Z

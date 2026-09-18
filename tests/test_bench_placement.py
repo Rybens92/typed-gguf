@@ -32,7 +32,7 @@ from typing import Any
 import pytest
 
 from ggufone import cli
-from ggufone.bench import harness
+from ggufone.bench import harness, suites
 from ggufone.engine import session as session_module
 from ggufone.errors import BackendOomError
 from ggufone.runtime import fit
@@ -238,6 +238,75 @@ def test_a_placement_that_fits_nowhere_is_a_typed_oom_error(tmp_path: pathlib.Pa
                                   fit_plan=harness.Placement(LAYERS), free_probe=lambda: 1112 * MIB)
     assert excinfo.value.code == "E_BACKEND_OOM"
     assert backend.load_calls == [LAYERS, LAYERS // 2, 0]
+
+
+# ------------------------------------------- which bundle `--backend auto` really measured
+def test_an_auto_run_records_the_bundle_it_selected_and_the_one_it_passed_over(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A box with a CPU *and* an accelerator bundle: the report must say which one ran.
+
+    Reported from the operator's Vulkan host (card t_31b3943a, coordinator note): `bench --suite
+    latency --backend auto` without `--gpu-layers` measured CPU only, and neither the report nor
+    the rendered table said a Vulkan bundle had been left unused. `auto` resolves to the locally
+    installed bundles in `DEFAULT_BACKENDS` order (`cpu` first) and one run measures the first of
+    them, so a reader must be able to tell "no accelerator here" from "not selected".
+    """
+    from tests.fake_engine import BenchModel
+
+    bundles = {"cpu": tmp_path / "b11026-linux-x64-cpu",
+               "vulkan": tmp_path / "b11026-linux-x64-vulkan"}
+    monkeypatch.setattr(harness, "backend_runtimes", lambda **kwargs: dict(bundles))
+    config = harness.BenchConfig(suite="latency", model_path="/tmp/fake.gguf", runs=1,
+                                prefill_sizes=(64,))
+
+    report = suites.run_suite(config, factory=lambda spec: BenchModel(spec))
+
+    selection = report["backend_selection"]
+    assert selection["requested"] == "auto"
+    assert selection["selected"] == "cpu"                       # DEFAULT_BACKENDS order
+    assert selection["available"] == ["cpu", "vulkan"]
+    assert selection["missing"] == {}                           # nothing was unavailable here
+    hint = [note for note in report["notes"] if "--backend vulkan" in note]
+    assert hint, report["notes"]
+    assert "cpu" in hint[0]
+    assert "- backend selection: cpu of the local bundles (cpu, vulkan)" in \
+        harness.render_report(report)
+
+
+def test_a_forced_backend_is_reported_as_such_not_as_a_choice(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`--backend vulkan` is not a selection among bundles: the record must not blame `auto`."""
+    from tests.fake_engine import BenchModel
+
+    bundles = {"cpu": tmp_path / "b11026-linux-x64-cpu",
+               "vulkan": tmp_path / "b11026-linux-x64-vulkan"}
+    monkeypatch.setattr(harness, "backend_runtimes", lambda **kwargs: dict(bundles))
+    config = harness.BenchConfig(suite="quality", model_path="/tmp/fake.gguf", backend="vulkan",
+                                items=2)
+
+    report = suites.run_suite(config, factory=lambda spec: BenchModel(spec))
+
+    selection = report["backend_selection"]
+    assert selection["requested"] == "vulkan"
+    assert selection["selected"] == "vulkan"
+    assert selection["available"] == ["vulkan"]                 # only what the run asked for
+    assert not [note for note in report["notes"] if "--backend auto" in note]
+    assert "- backend selection" not in harness.render_report(report)   # a forced run is no choice
+
+
+def test_the_default_gpu_layers_follow_the_backend_and_the_flag_always_wins() -> None:
+    """The default-side contract the operator note is about, pinned next to the ladder it feeds.
+
+    `spec_for` turns `--backend` into a layer count: a CPU bundle asks for no offload, an
+    accelerator bundle for *all* layers (`-1`), and `--gpu-layers` overrides both.
+    """
+    runtimes = {"cpu": "/tmp/cpu", "vulkan": "/tmp/vulkan"}
+    auto = harness.BenchConfig(suite="throughput", model_path="/tmp/m.gguf")
+    assert harness.spec_for(auto, "cpu", runtimes=runtimes).n_gpu_layers == 0
+    assert harness.spec_for(auto, "vulkan", runtimes=runtimes).n_gpu_layers == -1
+    forced = harness.BenchConfig(suite="throughput", model_path="/tmp/m.gguf", gpu_layers=36)
+    assert harness.spec_for(forced, "vulkan", runtimes=runtimes).n_gpu_layers == 36
+    assert harness.spec_for(forced, "cpu", runtimes=runtimes).n_gpu_layers == 36
 
 
 def test_the_bench_cli_reports_the_typed_reason_never_an_attribute_error(

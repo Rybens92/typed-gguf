@@ -26,8 +26,10 @@ def main(argv: list[str]) -> int:
     module = root / argv[2]
     needles = argv[3:]
     sources = module.read_text(encoding="utf-8").splitlines()
-    spans = json.loads((module.parent / (module.name + ".spans")).read_text(encoding="utf-8"))["spans"]
-    codes = json.loads((module.parent / (module.name + ".meta")).read_text(encoding="utf-8"))["exit_code_by_key"]
+    spans = json.loads((module.parent / (module.name + ".spans"))
+                       .read_text(encoding="utf-8"))["spans"]
+    codes = json.loads((module.parent / (module.name + ".meta"))
+                       .read_text(encoding="utf-8"))["exit_code_by_key"]
     for needle in needles:
         hits = [index + 1 for index, line in enumerate(sources) if needle in line]
         print(f"== {needle!r} at mutants-copy line(s) {hits or '<not found>'}")

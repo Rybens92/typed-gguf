@@ -597,6 +597,13 @@ def render_report(report: Mapping[str, Any]) -> str:
                        f"n_gpu_layers={used.get('n_gpu_layers')} kv_type={used.get('kv_type')}"
                        + (" (degraded)" if used.get("degraded") else "")]
                       if used else [])
+    # `--backend auto` resolved to more than one local bundle: this suite measured one of them
+    selection = report.get("backend_selection") or {}
+    chosen = selection.get("selected")
+    available = list(selection.get("available") or [])
+    selection_line = ([f"- backend selection: {chosen} of the local bundles "
+                       f"({', '.join(available)}) — one suite run measures one backend"]
+                      if chosen and len(available) > 1 else [])
     lines = [f"### {report.get('suite')} — {name}",
              "",
              f"- generated: {report.get('generated_at')}",
@@ -607,6 +614,8 @@ def render_report(report: Mapping[str, Any]) -> str:
              f"- reproduce: `{report.get('commands', {}).get('reproduce')}`",
              # what the row really ran with (a degradation offloads less than the flags asked)
              *placement_line,
+             # which local bundle `auto` picked, when there was a choice
+             *selection_line,
              ""]
     summary_header = ["n", "p50", "p95", "min", "max"]
     if report.get("suite") == "latency":

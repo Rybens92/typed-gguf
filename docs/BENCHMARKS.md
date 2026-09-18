@@ -3,7 +3,8 @@
 Every table below is produced by one command, on the box described in §0, and stored as JSON in
 `docs/evidence/e2_*.json`. Tags follow SPEC.md: **[executed]** = measured by this repository,
 right now; **[recon]** = quoted from the coordinator's reconnaissance notes and *not* re-run by
-us; **[target]** = a number we intend to hit later.
+us; **[host]** = measured on the operator host (GPU present) by the coordinator's run, not re-run in
+this container; **[target]** = a number we intend to hit later.
 
 ```
 # one suite, table on stdout, JSON report written next to it
@@ -392,6 +393,25 @@ One row per documented backend on the same model. A backend with no local bundle
 its reason rather than dropped silently; non-CPU backends offload all layers (`--gpu-layers`)
 unless told otherwise, and the placement is printed in the row.
 
+**How `--backend` and `--gpu-layers` resolve** (established from the operator's Vulkan host, card
+`t_31b3943a`; the evidence is `docs/evidence/e2_fix_t_31b3943a_bench_placement.md` §8–9):
+
+* `--backend auto` resolves to **every locally installed bundle**, in `DEFAULT_BACKENDS` order
+  (`cpu`, `vulkan`, `cuda`). The single-backend suites (latency, quality, calibration, determinism)
+  measure the **first** of them, which is `cpu` — a GPU box that also carries a CPU bundle therefore
+  measures CPU when it asks for `auto`. That is deliberate (the primary tables stay
+  CPU-reproducible), and since this card the report says so: `backend_selection = {requested,
+  selected, available, missing}`, a rendered `- backend selection: csv of the local bundles` line
+  when there was more than one to choose from, and a note naming the flag that measures the
+  accelerator instead — `--backend vulkan`, or `--suite throughput` (every local backend, one
+  report).
+* `--gpu-layers` is derived when it is not passed: `0` for a CPU bundle, `-1` ("every layer") for an
+  accelerator bundle. An explicit `--gpu-layers N` always wins.
+* A placement that cannot load *degrades* through the ladder (fewer layers → smaller `kv_type` →
+  CPU-only) and the row prints `placement.requested` next to `placement.used`
+  (`n_gpu_layers`, `kv_type`, `degraded`, `attempts`) — a degraded retry offloads fewer layers than
+  the flags asked, and the table must say so.
+
 | model | backend | placement | prefill tok/s (p50) | decision ms (p50) | load ms (p50) | decision tok/s (p50) | unavailable |
 |---|---|---|---|---|---|---|---|
 | Spark-X2.5-4B | cpu | `n_gpu_layers=0` | 6.756 | 8,010.987 | 802.017 | 0.9986 | |
@@ -514,6 +534,30 @@ The earlier "same request, second run slower (11.6 → 16.3 s)" observation has 
 explanation on this box too: llama.cpp defaults to `threads = os.cpu_count()` = 24 while the
 container is capped at 2 CPU-seconds/s, and §3.5 measures that setting as 5–20× slower than
 `--threads 4` — run-to-run variance under oversubscription, not something the engine does.
+
+### 3.8 The bench run on the operator host (E2 FIX t_31b3943a, requirement 4) **[host]**
+
+The fix card's fourth requirement was the accelerated re-run: `ggufone bench` must reach the loader
+on a GPU box. The coordinator's run (RTX 3060 Ti, Vulkan bundle `b11026`) — `--suite latency
+--backend vulkan --gpu-layers -1 --runs 3 --threads 4`, exit 0, VRAM free 5522/5495 MiB — reports:
+
+| field | value | tag |
+|---|---|---|
+| `placement.requested` | `n_gpu_layers=-1` | **[host]** |
+| `placement.used` | `{n_gpu_layers: -1, degraded: false, attempts: [], kv_type: auto}` — all layers requested, **no degradation** | **[host]** |
+| `model_load_ms` (p50 / p95) | 1094.1 / 1199.9 | **[host]** |
+| prefill 256 / 2048 / 8192 tok | 2436.0 / 2786.0 / 2504.9 tok/s (105 / 735 / 3270 ms) | **[host]** |
+| per question, 2 / 4 / 10 candidates | 92 / 157 / 234 ms | **[host]** |
+| warm cache `questions_ms` | 129.4 (p95 130.2), `prefill_reused: true`, `prefill_ms` 0.0 | **[host]** |
+| load amortisation | serve 412 ms/req · one-shot 1506 ms/req | **[host]** |
+| `--suite determinism --backend vulkan --threads 1` | `ok: true`, digest `sha256:d9978816…` ×3, `identical: true` | **[host]** |
+
+Raw JSONs live on the host (`~/.ggufone-host-gate-2026-09-18/`); the verbatim report, the placement
+JSON and what this does *not* cover are in
+`docs/evidence/e2_fix_t_31b3943a_bench_placement.md` §8 and
+`.e2e/t_31b3943a-bench-placement/host_run_vulkan_reported.md`. These are the first Vulkan numbers with
+a *working* bench path; the Vulkan rows of the E2 tables above were produced on this container
+(**[recon]** / `measured: false`), and nothing here retroactively re-measures them.
 
 ## 4. What these tables deliberately do not claim
 

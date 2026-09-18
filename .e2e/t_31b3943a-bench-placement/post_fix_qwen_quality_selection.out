@@ -1,0 +1,161 @@
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "quality",
+  "generated_at": "2026-09-18T13:21:18Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15",
+    "cpu_count": 24,
+    "machine": "x86_64",
+    "cgroup_cpu_max": 2.0,
+    "cgroup_memory_bytes": 8589934592
+  },
+  "config": {
+    "suite": "quality",
+    "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "backend": "auto",
+    "runs": 5,
+    "threads": 4,
+    "devset": null,
+    "items": 3,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      256,
+      2048,
+      8192
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "name": "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "bytes": 558772480,
+    "arch": "qwen35"
+  },
+  "notes": [
+    "agreement = the highest-probability candidate equals the gold candidate (the discrete decision), measured per question type and overall with 95% Wilson intervals; report-only in v1 (SPEC S-11)."
+  ],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf --backend auto --runs 5 --threads 4 --items 3 --json"
+  },
+  "backend_selection": {
+    "requested": "auto",
+    "selected": "cpu",
+    "available": [
+      "cpu"
+    ],
+    "missing": {}
+  },
+  "devset": {
+    "path": "/workspace/ggufone/src/ggufone/bench/devset.jsonl",
+    "items": 3,
+    "counts": {
+      "choice": 3
+    },
+    "provenance": "authored for ggufone E2 (2026-09-18); no vendor evaluation set is reused"
+  },
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "expected": "technical",
+      "got": "billing",
+      "correct": false,
+      "confidence": 0.9025173012155556,
+      "coverage": 0.044354217970961264,
+      "reliability": "low_mass",
+      "probabilities": {
+        "billing": 0.9268879759116667,
+        "technical": 0.0039914521023703,
+        "sales": 0.005843579240574406,
+        "support": 0.06327699274538857
+      },
+      "questions_ms": 4313.952776996302,
+      "wall_ms": 11630.169407995709
+    },
+    {
+      "id": "c02",
+      "type": "choice",
+      "expected": "billing",
+      "got": "billing",
+      "correct": true,
+      "confidence": 0.8151270561552767,
+      "coverage": 0.060714642846428836,
+      "reliability": "low_mass",
+      "probabilities": {
+        "billing": 0.8613452921164575,
+        "technical": 3.369292129185995e-05,
+        "account": 0.09330018064606202,
+        "escalation": 0.04532083431618874
+      },
+      "questions_ms": 3798.272275002091,
+      "wall_ms": 11463.250808999874
+    },
+    {
+      "id": "c03",
+      "type": "choice",
+      "expected": "mobile",
+      "got": "mobile",
+      "correct": true,
+      "confidence": 0.9952007957869955,
+      "coverage": 0.04480108813227077,
+      "reliability": "low_mass",
+      "probabilities": {
+        "mobile": 0.9964005968402466,
+        "backend": 0.0007296773746638881,
+        "design": 0.0019243294745521216,
+        "marketing": 0.0009453963105372241
+      },
+      "questions_ms": 6079.192500998033,
+      "wall_ms": 16899.249080997834
+    }
+  ],
+  "per_type": {
+    "choice": {
+      "n": 3,
+      "correct": 2,
+      "agreement": 0.6666666666666666,
+      "ci": [
+        0.2076549551264879,
+        0.9385096847238394
+      ]
+    }
+  },
+  "overall": {
+    "n": 3,
+    "correct": 2,
+    "agreement": 0.6666666666666666,
+    "ci": [
+      0.2076549551264879,
+      0.9385096847238394
+    ]
+  },
+  "ok": true
+}

@@ -232,6 +232,58 @@ Uwaga: 20 czerwonych testów w drzewie = **WIP E2** (nie regresja); `test_cli_e1
 **E2 (benchmarki) `t_858c54d1`** — wystawione; **powiązane jako dziecko FIX-a `t_8cb0a05e`**; wejście: zmierzyć i wyjaśnić
 `questions_ms 11.6–18.8 s` dla 5 forków oraz accounting `waves=8` (pipeline cache Vulkan? grupowanie sufiksów?).
 
+## 2026-09-18 16:3x — @bots-coordinator — ✅ WORKERY MAJĄ GPU (koniec ręcznych bramek hostowych)
+
+Problem: terminal workera (code-tdd/reviewer/e2e) działa w kontenerze podman bez GPU → każda bramka GPU szła ręcznie przez koordynatora.
+**Rozwiązanie (config-only, zero zmian w źródłach Hermesa) — sprawdzone end-to-end smoke-testem przez `hermes -p code-tdd`:**
+
+1. Host ma CDI (`/etc/cdi/nvidia.yaml`, `nvidia-ctk`, `/dev/nvidia*`); CDI daje kontenerowi urządzenia + liby NVIDIA + ICD Vulkan.
+2. Obrazy: `localhost/hermes-worker-vulkan:2` (code-tdd, code-reviewer) i `localhost/qa-e2e-vulkan:e2e-hermes` (code-e2e),
+   zbudowane jako `FROM <obecny obraz> + apt-get install libvulkan1 libx11-6 libxext6 libxcb1`.
+   ⚠️ Pitfall zmierzony: build z `--no-install-recommends`/`vulkan-tools` → llama.cpp **cicho pomija backend Vulkan** (tylko RPC+CPU).
+3. Profile: `docker_image: <nowy obraz>`, `docker_extra_args: ["--device=nvidia.com/gpu=all", "--security-opt=label=disable"]`,
+   `docker_shared_container_key: "<profil>-gpu"` (⚠️ tożsamość kontenera = hash klucza, **nie obrazu** — stary kontener był reużywany!),
+   wolumeny: `~/.hermes/models` (ro), `~/.local/share/ggufone` (rw), `~/.cache/llama.cpp` (ro).
+4. **Werdykt smoke-testu (terminal workera code-tdd):** `/dev/nvidia0` widoczny, `load_backend: loaded Vulkan backend`,
+   wiersz `spark2_5 Q8_0 | Vulkan | ngl -1 | pp16 | 6.40 t/s` → **GPU_IN_CONTAINER=yes**.
+5. Procedura zapisana w skillu (`bot-fleet-dispatch` → `references/gpu-containers.md`).
+6. Stare kontenery (bez GPU) dogorywają w spokoju — nowe sesje dostają świeże, z GPU; sprzątanie `podman rm -f` gdy będą bezczynne.
+
+**Konsekwencja dla pipeline'u:** E2.5/E3 i kolejne bramki GPU robią workery same; rola koordynatora wraca do weryfikacji, nie do wyręczania.
+
+## 2026-09-18 16:0x — @bots-coordinator — FIX bench: host run ZALICZONY (Vulkan, bez degradacji); proweniencja E2 potwierdzona jako zepsuta → AUDYT
+
+**FIX `t_31b3943a` — wymaganie 4 wykonane na hoście (moje biegi, karta odblokowana):**
+- `bench --suite latency --backend vulkan --gpu-layers -1 --runs 3 --threads 4` → **exit 0**;
+  placement `requested: n_gpu_layers=-1` → `used {n_gpu_layers: -1, degraded: false, attempts: []}` — **przyspieszony placement potwierdzony**.
+- Tabela (p50): `model_load 1094 ms`; prefill 256/2048/8192 = **2436/2786/2505 tok/s** (105/735/3270 ms);
+  decyzje 2/4/10 kand. = **92/157/234 ms**; warm cache **129 ms**; serve **412 ms** vs one-shot 1506 ms/req.
+- Bonus A-E2-5 dla GPU: `--suite determinism --backend vulkan --threads 1` → **3/3 identyczne** (`sha256:d9978816…`), `ok: true`.
+- Artefakty: `~/.ggufone-host-gate-2026-09-18/` (3 JSON-y).
+- Obserwacja do udokumentowania: `--backend auto` bez `--gpu-layers` mierzy **CPU-only** na maszynie z GPU (`n_gpu_layers=0`).
+
+**Proweniencja E2 — potwierdzona niezależnie (worktree `fff127e` i `4e1d549`):** komenda z `e2_latency.json.commands.reproduce`
+pada `AttributeError: 'Placement' object has no attribute 'kv_type'` (także z `--backend cpu`) → tabele E2 nie pochodzą
+z udokumentowanej komendy na commicie, który je dostarcza. → **AUDYT `t_78f5ea7a`** (auditor): potwierdzić crash, sprawdzić
+wszystkie `commands.reproduce`, ograniczony re-run na naprawionym drzewie, werdykt (REPRODUCED / NOT / UNVERIFIABLE)
++ rekomendacja (regeneracja publikowanych tabel?).
+
+## 2026-09-18 09:4x — @bots-coordinator — E2 ✅ (zweryfikowane) + 🔴 FIX bench na hoście; decyzja zakresu E3
+
+**E2 zweryfikowane:** `fff127e` (harness + 5 suit + 60-itemowy dev set + `ggufone bench`) + `4e1d549` (tabele + QA).
+Kluczowe: jakość 4B **38/60 = 63,3%** (choice 75%, noul 88,9%, **score 22,2%**), determinizm 3/3 identyczne, threads **4 vs 24 = 6 s vs 43 s prefill**,
+waves wyjaśnione (batche dekodowania), tabele oznaczone [executed] vs [recon]. Pomiary z kontenera CPU (bez GPU — uczciwie opisane).
+
+🔴 **Znalezisko z hosta:** `ggufone bench` pada przy ładowaniu na maszynie z GPU —
+`E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'` (`fit.py:489` ← `session.py:250`);
+deterministycznie (CLI + repro tool; z cache fit i bez); `ask` działa; w kontenerze bez GPU niewidoczne.
+→ **FIX `t_31b3943a`** (priorytet 14; wymogi: normalizacja typu, test RED→GREEN bez GPU, scenariusz „bench + placement retry" w CI/host-gate).
+E2.5 (`t_630f32a3`, running) poinformowane komentarzem.
+
+**Decyzje użytkownika (zakres E3):** (1) tylko klasa MoE 35B-A3B, **27B dense poza zakresem**; (2) **E3 wyłącznie na Occamy 1.0** — lokalny plik, **zero downloadu**.
+Karta `t_23393cb8` (pin Qwena) **zarchiwizowana**; nowa **`t_a431be85`** z parentami [E2.5, FIX].
+Model: `~/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf` (23 GB, arch **`qwen35moe`** — zweryfikowane w runtime b11026, Q4_K_L, Apache-2.0); tabela porównawcza: **4B (Spark) vs Occamy 1.0**.
+
 **E2 — status od `code-tdd` (2026-09-18, `fff127e` w drzewie współdzielonym):**
 
 - **Kolizja wyjaśniona i naprawiona.** 20 czerwonych testów to moje *przed-fixowe* kopie plików E2
@@ -614,3 +666,138 @@ rehearsalu sandboxowym — **bieg na hoście pozostaje PENDING** (brak `/dev/dri
 nowych testów offline; pełny zestaw 714P/28F, gdzie wszystkie 28 są poza kartą (20× `test_bench.py`
 bliźniaczej karty E2 + 7 flaków środowiskowych, które przechodzą w izolacji). Dowody:
 `docs/evidence/e1c_t_8cb0a05e_fit_oom.md`, surowe logi `.e2e/t_8cb0a05e-fit-oom/`.
+
+## 2026-09-18 11:20 — @code-tdd (t_31b3943a) — FIX bench/placement: naprawione; **host-run Vulkan PENDING** (1 polecenie)
+
+**Korekta analizy z karty: bug NIE jest GPU-specific.** Odtworzyłem go w tym kontenerze, na przypiętym
+bundlu CPU `b11026` i przypiętym modelu — *dokładna* komenda z opublikowanego evidence
+(`docs/evidence/e2_latency.json` → linia `reproduce:`) kończy się:
+
+    load_backend: loaded CPU backend from .../b11026-linux-x64-cpu/libggml-cpu-haswell.so
+    error: E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'      (exit 4)
+
+Drabina degradacji jest budowana PRZED pierwszą próbą loadu (`session.py:250`), więc wystarczy, że
+odczyt nagłówka modelu się uda — device nie jest do tego potrzebny. **Wniosek uboczny, ważny dla E2:**
+tabele w `docs/evidence/e2_*.json` nie mogły powstać z drzewa, które je zacommitowało (`4e1d549`) —
+ich własna linia `reproduce:` wywala się na tym drzewie. Liczby mogą być prawdziwe, ale komenda
+odtwarzająca była zepsuta; po tym fixie działa (dowód w sekcji niżej).
+
+**Fix (`8d4fc9f` + `d459601`):** `fit.coerce_plan` (jedna normalizacja na granicy loadera; prawdziwy
+`FitPlan` zachowuje tożsamość), `fit.kv_start` (`auto`/nieznany `kv_type` startuje od szczytu drabiny —
+ta sama reguła, której już używają `estimate_plan` i `session._kv_ladder`; koniec z `KeyError` i
+fałszywym `W_KV_TYPE_DOWNGRADE`), `fit.planned_layers` + `plan_device_bytes` (`n_gpu_layers < 0` =
+„wszystkie warstwy", czyli domyślny placement benchu na GPU — drabina ma z czego schodzić),
+`session.open_model` normalizuje raz i chodzi po warstwach od rozwiązanego rungu (a placement ujemny
+dostaje taki sam retry CPU jak dodatni). Bench raportuje teraz `placement: requested X, used Y`
++ `placement.used` w JSON-ie — degradacja nie kłamie już w tabeli.
+
+**Test regresyjny (wymaganie 2):** `tests/test_bench_placement.py`, 8 bramek. Na `4e1d549` (drzewo
+pre-fix, worktree + `PYTHONPATH`) **8 failed** — m.in. surowy `AttributeError` w ścieżce bench→loader
+i w CLI; na drzewie po fixie **8 passed**. Pełny offline: `756P/38S` (z pokryciem `757P/38S`).
+
+**Wymaganie 3 (scenariusz bez GPU, żeby ta klasa była w automacie):** `runtime-matrix.yml`
+(linux-cpu) ma teraz dwa kroki: (a) `bench --suite latency --gpu-layers 4` na przypiętym bundlu —
+wiersz musi nieść `placement.used`; (b) bench na fake-OOM bundlu (`tools/fixtures/fit_oom_bundle.c`)
+z `GGUFONE_FAKE_OOM_ALL=1` — wiersz musi nazwać `E_BACKEND_OOM` + `3 placement(s)`, nigdy
+`AttributeError`/`E_INTERNAL`. To samo w `host_gate_e1c_fit.sh` (kroki 8–9) + `bench_placement` /
+`bench_placement_oom` w `host_gate_e1c_fit_summary.py`. Rehearsal sandboxowy niżej.
+
+**Wymaganie 4 — PENDING, proszę koordynatora o jedno polecenie na maszynie z GPU (nie mam `/dev/dri`):**
+
+    tools/host_gate_e1c_fit.sh                 # kroki 8-9 to nowe scenariusze bench
+    # minimum:
+    GGUFONE_RUNTIME_DIR=<vulkan b11026> uv run ggufone bench --suite latency \
+        --model ~/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --runs 3 --threads 4 \
+        --json --out /tmp/host_latency.json
+
+Do wątku wystarczy wkleić: nagłówek tabeli + `placement.requested` / `placement.used`
+(`n_gpu_layers`, `degraded`, `attempts`) z JSON-a. Odpowiednik na CPU z tego kontenera jest w
+`docs/evidence/e2_fix_t_31b3943a_bench_placement.md`.
+
+## 2026-09-18 13:05 — @code-tdd (t_31b3943a) — domknięte poza hostem: RED→GREEN 10/10, rehearsal CI **+ kontrola pre-fix**, bieg 4B, mutacja; commit `a42aa13`
+
+Wszystko poniżej jest zmierzone i leży w repo (`8d4fc9f`, `d459601`, `cb2022f`, `c614b47`,
+`a42aa13`; surowe logi `.e2e/t_31b3943a-bench-placement/`). **Do zamknięcia karty brakuje tylko
+jednego polecenia na maszynie z GPU** — patrz ostatnia sekcja.
+
+**RED→GREEN (wym. 2).** `tests/test_bench_placement.py` — **10 bramek**. Na `4e1d549`
+(worktree + `PYTHONPATH`, plik testu bez zmian): **10 failed** (m.in. surowy
+`AttributeError: 'Placement' object has no attribute 'kv_type'` w ścieżce bench→loader i w wierszu CLI).
+Na drzewie po fixie: **10 passed**. Pełny offline: **759P/38S, exit 0**; `ruff` czysty; pokrycie
+zmienionych modułów: `fit.py` 97 %, `suites.py` 99 %, `harness.py` 91 %, `session.py` 69 %
+(braki w session to istniejące ścieżki live-only).
+
+**Wym. 3 — automat łapie tę klasę (dowiedzione w obie strony).** `runtime-matrix.yml` (linux-cpu):
+(a) `bench --suite latency --gpu-layers 4` na przypiętym bundlu → wiersz musi nieść `placement.used`;
+(b) bench na fake-OOM bundlu + `GGUFONE_FAKE_OOM_ALL=1` → wiersz musi nazwać `E_BACKEND_OOM` +
+`3 placement(s)`, bez `AttributeError`/`E_INTERNAL`. Rehearsal w sandboxie: krok A **exit 0** (503 s,
+`requested n_gpu_layers=4` / `used {n_gpu_layers: 4, kv_type: auto, degraded: false}`), krok B
+**exit 1** z reason `BackendOomError: E_BACKEND_OOM: … tried 3 placement(s) down to CPU-only, none
+fit: n_gpu_layers=4 -> oom; n_gpu_layers=2 -> oom; n_gpu_layers=0 -> oom`. **Kontrola na `4e1d549`
+(te same komendy w worktree): krok A → exit 4 + `E_INTERNAL: AttributeError…`, krok B → reason =
+`AttributeError: 'Placement' object has no attribute 'kv_type'`.** To samo dołożone do
+`host_gate_e1c_fit.sh` (kroki 8–9) + `bench_placement` / `bench_placement_oom` w summary.
+
+**Wym. 4 — odpowiednik CPU (Vulkan PENDING).** Karta: `bench --suite latency --runs 1 --sizes 256
+--threads 4` na przypiętym 4B → **exit 0**, pełna tabela (load p50 738 ms, prefill 256 = 23,2 s /
+11,0 tok/s, per-question 2/4/10 = 4,2/5,8/9,7 s, wave scaling 1..16). `ask` (kontrola z karty) →
+exit 0, `engine.placement` obecny. Nowe pole placementu działa: 4B throughput `--gpu-layers -1` →
+`placement_used {requested: "n_gpu_layers=-1", used: {n_gpu_layers: -1, degraded: false, note: "all
+layers requested: n_gpu_layers=-1 (kv_type=auto)"}}`. **Uwaga: `-1` (domyślny placement benchu na
+GPU) był drugą dziurą tej samej umowy** — drabina czytała `layers <= 0` jako „nie ma z czego
+schodzić", więc na maszynie z GPU z domyślnymi flagami retry nie istniał, a `plan_device_bytes`
+liczył pełny offload jako 0 B. Teraz `-1` = wszystkie warstwy (`fit.planned_layers`), a notatka
+placementu nie kłamie już „CPU only" przy pełnym offloadzie (`c614b47`).
+
+**Mutacja (Tier M, soft).** Dwa przebiegi na tym samym zakresie (`src/ggufone/bench`, selekcja
+`tests/test_bench.py` + nowy plik bramek): **60,0 % → 61,5 %** killed/scored (killed 1873,
+survived 1173, no-tests 63, **126 nieuruchomionych** — raportowane, nie wliczane; box 2 CPU-s/s,
+`max_children` 2 potem 1 po `BlockingIOError` od sąsiedniej karty). 60,0 % to dokładnie liczba E2
+dla tego pakietu — karta nie zmienia obrazu jakości testów benchu; +1,5 pp to nowe bramki renderu
+i notatki placementu. **Żaden survivor nie leży na linii dodanej przez ten fix** (`x_placement_of`:
+0; `self.placement`: 0 survived per `tools/mutation_span_check.py`).
+
+**PENDING = wymaganie 4 na hoście (nie mam `/dev/dri`):**
+
+    tools/host_gate_e1c_fit.sh                     # kroki 8-9 to nowe scenariusze bench
+    # albo minimum (karta, Vulkan, runs 3):
+    GGUFONE_RUNTIME_DIR=<vulkan b11026> uv run ggufone bench --suite latency \
+        --model ~/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --runs 3 --threads 4 \
+        --json --out /tmp/host_latency.json
+
+Oczekiwany kształt w JSON-ie: `placement.requested == "n_gpu_layers=-1"` (albo `36` przy
+`--gpu-layers 36`) obok `placement.used.n_gpu_layers` / `.degraded` / `.attempts`. Karta zostaje
+zablokowana na to jedno polecenie (`kanban_block`), żeby nikt nie zamknął jej jako „host gate
+pending".
+
+**P.S. (kernel):** po `kanban_block` worker nie może już zamknąć karty (próba `kanban_complete`
+zwraca „already terminal"), więc ścieżka jest taka: **uruchomić komendę na hoście → wkleić wynik →
+odblokować** (świeży run dokończy kartę i odblokuje dzieci: E3 `t_a431be85` czeka z rodzicami
+[`t_630f32a3`, `t_31b3943a`]). Kod fixa jest w drzewie, więc E3 może z niego korzystać od razu —
+jego bramki i tak mierzy się na hoście.
+
+## 2026-09-18 15:3x — @code-tdd (t_31b3943a) — FIX ZAMKNIĘTY: host-run potwierdzony, strona domyślna udokumentowana
+
+**Wymaganie 4 zamknięte** raportem koordynatora (Vulkan `b11026`, exit 0): `placement.requested
+n_gpu_layers=-1` → `used {n_gpu_layers: -1, degraded: false, attempts: []}` — **przyspieszenie
+potwierdzone, bez degradacji**. Pełna tabela + determinizm (`d9978816…` ×3) w
+`docs/evidence/e2_fix_t_31b3943a_bench_placement.md` §8 i
+`.e2e/t_31b3943a-bench-placement/host_run_vulkan_reported.md`; surowe JSON-y zostały na hoście
+(`~/.ggufone-host-gate-2026-09-18/`) — sandbox nie ma bind-mountu home hosta, więc to pomiar
+*raportowany*, jawnie tak oznaczony. Kontenerowy bliźniak tego samego `-1` na przypiętym 4B:
+`post_fix_spark_throughput_neg.*`, exit 0, notatka „all layers requested”.
+
+**Nota koordynatora 1 (`--backend auto` bez `--gpu-layers` = CPU-only na maszynie z GPU) —
+rozwiązana jako KONTRAKT, nie bug.** `auto` = wszystkie lokalne bundle w kolejności
+`DEFAULT_BACKENDS` (`cpu` pierwszy), a suite'y jedno-backendowe (latency/quality/calibration/
+determinism) mierzą pierwszy z nich — tabele główne zostają CPU-odtwarzalne; `-1` jest domyślne
+tylko dla backendu akceleratora. Oba fakty pinuje nowy test
+`test_the_default_gpu_layers_follow_the_backend_and_the_flag_always_wins`. Realny brak był w
+**artefakcie**: raport nie mówił, KTÓRY lokalny bundle wybrał. Teraz mówi —
+`backend_selection {requested, selected, available, missing}`, linia `- backend selection:` w tabeli
+i notatka z flagą, gdy lokalnych bundli jest >1 (`--backend vulkan`, albo `--suite throughput`,
+który mierzy wszystkie). RED→GREEN: `tests/test_bench_placement.py` **13 bramek** (dwie nowe padają
+`KeyError: 'backend_selection'` na drzewie sprzed zmiany), pełny offline **874 passed, 39 skipped**,
+ruff clean (przy okazji E501 w `tools/mutation_span_check.py` z wcześniejszego commita tej karty).
+Dokumentacja kontraktu: `docs/BENCHMARKS.md` §3.2 (jak rozwiązują się `--backend`/`--gpu-layers`) i
+nowy §3.8 z tagiem **[host]**.

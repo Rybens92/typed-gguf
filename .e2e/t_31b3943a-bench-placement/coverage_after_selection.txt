@@ -1,0 +1,20 @@
+# coverage of the two changed bench modules after the auto-selection record
+# 2026-09-18T13:24:58Z
+# $ uv run --with pytest-cov pytest -q tests/test_bench.py tests/test_bench_placement.py --cov=ggufone.bench.suites --cov=ggufone.bench.harness
+warning: Ignoring existing virtual environment linked to non-existent Python interpreter: .venv/bin/python3 -> python
+Using CPython 3.11.15 interpreter at: /usr/local/bin/python3
+Removed virtual environment at: .venv
+Creating virtual environment at: .venv
+Installed 1 package in 47ms
+.......................................................                  [100%]
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.11.15-final-0 _______________
+
+Name                           Stmts   Miss  Cover
+--------------------------------------------------
+src/ggufone/bench/harness.py     396     33    92%
+src/ggufone/bench/suites.py      328      4    99%
+--------------------------------------------------
+TOTAL                            724     37    95%
+55 passed in 44.73s
+COV_EXIT=0

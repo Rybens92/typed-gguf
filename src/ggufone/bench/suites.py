@@ -25,6 +25,11 @@ Measurement conventions, pinned so a published number can be reproduced by hand:
   stored distributions, so no extra model run is needed.
 * `determinism` — 3 repeats per backend of the same request, compared byte-for-byte after
   stripping `timings` (`harness.digest`), with `threads=1` unless `--threads` overrides it.
+* `latency` / `quality` / `calibration` measure **one** backend per run: `--backend auto` resolves
+  to every locally installed bundle but these suites take the first of them (`DEFAULT_BACKENDS`
+  order, `cpu` first), so the report records the choice (`backend_selection`) and says which bundle
+  was passed over — a GPU box asking for `auto` must not look like a box without an accelerator
+  (card t_31b3943a, coordinator note). `throughput` and `determinism` measure every usable backend.
 """
 from __future__ import annotations
 
@@ -94,6 +99,28 @@ def _spec(config: harness.BenchConfig, backend: str, runtimes: Mapping[str, Any]
     return harness.spec_for(config, backend, runtimes=runtimes)
 
 
+def _record_backend_selection(report: dict[str, Any], config: harness.BenchConfig, *,
+                              selected: str, usable: Sequence[str],
+                              missing: Mapping[str, str]) -> None:
+    """Say which local bundle a single-backend suite measured, and which ones it passed over.
+
+    `--backend auto` resolves to *every* locally installed bundle (`BenchConfig.backends`) but
+    the single-backend suites measure one run's worth: the first of them, `DEFAULT_BACKENDS`
+    order (`cpu` first). Without this record a published row reads `backend: cpu` on a box that
+    also carries a Vulkan bundle, and the reader cannot tell "no accelerator here" from "the
+    accelerator was not selected" — reported from the operator's Vulkan host (card t_31b3943a).
+    """
+    report["backend_selection"] = {"requested": config.backend, "selected": selected,
+                                   "available": list(usable), "missing": dict(missing)}
+    passed_over = [backend for backend in usable if backend != selected]
+    if passed_over:
+        report["notes"].append(
+            f"one suite run measures one backend: with `--backend {config.backend}` the local "
+            f"bundles are {', '.join(usable)} and {selected} was selected; pass `--backend "
+            f"{passed_over[0]}` to measure that one instead, or run `--suite throughput`, which "
+            f"measures every local backend in one report.")
+
+
 def _envelope(config: harness.BenchConfig) -> dict[str, Any]:
     return harness.envelope(config, model=harness.model_facts(config.model_path or ""))
 
@@ -101,10 +128,11 @@ def _envelope(config: harness.BenchConfig) -> dict[str, Any]:
 # --------------------------------------------------------------------------- latency
 def _run_latency(config: harness.BenchConfig, make: Factory) -> dict[str, Any]:
     runtimes = harness.backend_runtimes(home=config.home)
-    usable, _missing = _selected_backends(config, runtimes)
+    usable, missing = _selected_backends(config, runtimes)
     backend = usable[0]
     spec = _spec(config, backend, runtimes)
     report = _envelope(config)
+    _record_backend_selection(report, config, selected=backend, usable=usable, missing=missing)
     model = make(spec)
     try:
         loads = [float(model.load()) for _ in range(max(1, config.runs))]
@@ -408,11 +436,12 @@ def _dev_items(config: harness.BenchConfig) -> list[devset_module.DevItem]:
 def _run_quality(config: harness.BenchConfig, make: Factory, *,
                  calibration: bool) -> dict[str, Any]:
     runtimes = harness.backend_runtimes(home=config.home)
-    usable, _missing = _selected_backends(config, runtimes)
+    usable, missing = _selected_backends(config, runtimes)
     backend = usable[0]
     spec = _spec(config, backend, runtimes)
     items = _dev_items(config)
     report = _envelope(config)
+    _record_backend_selection(report, config, selected=backend, usable=usable, missing=missing)
     report["devset"] = {"path": str(devset_module.devset_path(config.devset)),
                         "items": len(items), "counts": devset_module.counts(items),
                         "provenance": devset_module.PROVENANCE}

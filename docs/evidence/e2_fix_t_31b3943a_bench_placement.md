@@ -7,7 +7,9 @@ CPU bundle `/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu`, the pinned m
 `Spark-X2.5-4B-Q8_0.gguf` (4 375 021 152 B) and `Qwen3.5-0.8B-UD-Q4_K_XL.gguf` (558 772 480 B).
 
 Commits: `8d4fc9f` (fix + the 8 new gates), `d459601` (CI + host gate + rehearsal script),
-`<evidence commit>` (this document, the raw logs in `.e2e/t_31b3943a-bench-placement/`).
+`cb2022f`/`c614b47` (render + negative-placement gates), `a42aa13` (the container evidence in this
+document + `.e2e/t_31b3943a-bench-placement/`), and the commit that carries *this* revision (the host
+run, the `--backend auto` selection record, the docs — §8–§9 below).
 
 ## 0. What was wrong, in one call path
 
@@ -248,21 +250,115 @@ render/negative-placement gates this card added. The 126 unrun mutants are the s
 passes (the sweep is time-boxed: 3300 s and 1500 s boxes, `max_children` 2 then 1 after a
 `BlockingIOError` from a sibling card on this shared box); they are reported, never counted.
 
-## 8. What is PENDING and the exact command for the operator host
+## 8. Requirement 4 — the operator-host run (acceleration confirmed)
 
-Requirement 4 asks for the re-run on the operator host (RTX 3060 Ti, Vulkan `b11026`). This sandbox
-has no `/dev/dri` and no GPU, so that slot is **PENDING — operator run required**; everything above is
-the container's CPU-side equivalent.
+The Vulkan re-run happened **on the operator host** (RTX 3060 Ti, bundle `b11026`), executed and
+reported by @bots-coordinator; the verbatim report is
+`.e2e/t_31b3943a-bench-placement/host_run_vulkan_reported.md`.
 
 ```
-tools/host_gate_e1c_fit.sh                       # steps 8-9 are the new bench scenarios
-# or the card's own command:
-GGUFONE_RUNTIME_DIR=<vulkan b11026 bundle> uv run ggufone bench --suite latency \
-    --model ~/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --runs 3 --threads 4 \
-    --json --out /tmp/host_latency.json
+GGUFONE_BENCH_RUNTIME_DIR=~/.local/share/ggufone/runtime/b11026-linux-x64-vulkan uv run ggufone bench \
+  --suite latency --model ~/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend vulkan --gpu-layers -1 \
+  --runs 3 --threads 4 --json --out /tmp/host_latency_vulkan.json
+# -> exit 0. VRAM free: 5522 MiB before / 5495 MiB after.
 ```
 
-Expected shape (what the reviewer should see): the table head, and
-`placement.requested == "n_gpu_layers=-1"` (or `36` with `--gpu-layers 36`) next to
-`placement.used.n_gpu_layers` + `placement.used.degraded` + `placement.used.attempts` — a busy desktop
-that cannot hold the offload must show `degraded: true` with the walked rungs, not an `E_INTERNAL`.
+| what | value |
+|---|---|
+| `placement.requested` | `n_gpu_layers=-1` |
+| `placement.used` | `{n_gpu_layers: -1, degraded: false, attempts: [], kv_type: "auto", note: "all layers requested: n_gpu_layers=-1 (kv_type=auto)", warnings: []}` |
+| `model_load_ms` (p50 / p95) | 1094.1 / 1199.9 |
+| prefill 256 / 2048 / 8192 tok | 2436.0 / 2786.0 / 2504.9 tok/s (105 / 735 / 3270 ms) |
+| per question 2 / 4 / 10 candidates | 92 / 157 / 234 ms |
+| warm cache `questions_ms` | 129.4 (p95 130.2), `prefill_reused: true`, `prefill_ms` 0.0 |
+| load amortisation | serve 412 ms/req · one-shot 1506 ms/req |
+| `--suite determinism --backend vulkan --gpu-layers -1 --threads 1` | `ok: true`, digest `sha256:d9978816…` ×3 → `identical: true` |
+
+**What this settles:** on the host the ladder's first rung *loads* — `degraded: false`, `attempts: []`
+— i.e. the fix did not turn a working offload into a conservative degradation, and no `E_INTERNAL`
+escaped. What it does **not** settle here: the raw JSONs stay on the host
+(`~/.ggufone-host-gate-2026-09-18/`), because this sandbox has no bind mount of the host home and no
+`/dev/dri` — the numbers above are a reported measurement, tagged as such, never re-derived here.
+
+**The container twin of the same placement** (this box, pinned CPU bundle, 4B model) is §8.1: the
+same `--gpu-layers -1` flag through the CLI, on a real bundle, with no GPU present.
+
+### 8.1 The `-1` placement on the real pinned bundle (container, CPU)
+
+`bench --suite throughput --model Spark-X2.5-4B-Q8_0.gguf --backend auto --gpu-layers -1 --runs 1
+--threads 4` — the same request the operator sent to Vulkan, sent to the pinned CPU bundle here:
+
+```
+$ GGUFONE_BENCH_RUNTIME_DIR=/var/home/rybens/.hermes/runtime uv run ggufone bench --suite throughput \
+      --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend auto \
+      --gpu-layers -1 --runs 1 --threads 4 --json
+EXIT=0   "ok": true
+backends[0]: {backend: "cpu", measured: true, runtime_dir: ".../b11026-linux-x64-cpu",
+              placement: "n_gpu_layers=-1",
+              placement_used: {requested: "n_gpu_layers=-1",
+                               used: {n_gpu_layers: -1, kv_type: "auto", degraded: false,
+                                      attempts: [], warnings: [],
+                                      note: "all layers requested: n_gpu_layers=-1 (kv_type=auto)"}},
+              load_ms.p50: 1193.7, prefill[256].tok_per_s.p50: 2.98 (threads 4, backend cpu)}
+```
+
+raw: `.e2e/t_31b3943a-bench-placement/post_fix_spark_throughput_neg.{note,out,err,exit}` (the
+identical earlier run, before this document's §9 addition, is `post_fix_spark_throughput_final.json`
+— same placement, same note, `EXIT=0`). The negative count reaches llama.cpp unchanged (`-1`), the
+load succeeds, and the row reports the request next to the usage — on a bundle with no device at all,
+which is exactly why the note says "all layers requested" and not "CPU only".
+
+## 9. The `--backend auto` observation (the coordinator's note 1): resolved as contract, not as a bug
+
+Reported from the same host run: `--backend auto` **without** `--gpu-layers` measured CPU only
+(`placement.requested: n_gpu_layers=0`, every row `backend: cpu`). Two facts explain it, both in
+`spec_for` / `BenchConfig.backends` (measured, not inferred):
+
+1. `--backend auto` resolves to *every locally installed bundle*, in `DEFAULT_BACKENDS` order —
+   `("cpu", "vulkan", "cuda")` — and the single-backend suites (latency, quality, calibration,
+   determinism) measure the **first** of them: `cpu`. The primary tables are meant to stay
+   CPU-reproducible (`harness.Placement`'s docstring says so), so this is the designed default, not
+   the `-1` hole seen from the other side.
+2. With `backend == "cpu"`, `spec_for` derives `n_gpu_layers = 0` (a CPU bundle has nothing to
+   offload to); `-1` is derived only for an *accelerator* backend. Both derivations are pinned by
+   `test_the_default_gpu_layers_follow_the_backend_and_the_flag_always_wins`.
+
+What *was* a real gap is that the artifact did not say which bundle it had chosen: a reader looking
+at `backend: cpu` on a box that also carries a Vulkan bundle cannot tell "no accelerator here" from
+"the accelerator was not selected". The report now carries
+`backend_selection = {requested, selected, available, missing}` (the `missing` reasons were computed
+and then dropped by those suites before this change), the rendered table prints
+`- backend selection: cpu of the local bundles (cpu, vulkan) — one suite run measures one backend`,
+and a note names the flag that measures the accelerator instead
+(`--backend vulkan`, or `--suite throughput`, which measures every local backend in one report).
+
+RED → GREEN for that addition (same file, same fake-runtime vehicle; the RED ran on this tree before
+the change, where `report["backend_selection"]` did not exist yet):
+
+```
+$ uv run pytest -q tests/test_bench_placement.py -k "auto_run_records or forced_backend_is_reported or default_gpu_layers"
+FF.        # KeyError: 'backend_selection'  (2 failed, 1 passed) — the right reason, not a typo
+$ uv run pytest -q tests/test_bench_placement.py
+13 passed in 1.39s
+```
+
+raw: `.e2e/t_31b3943a-bench-placement/green_placement_selection.txt` (GREEN, 13 passed) and
+`red_placement_selection.txt` (the two `KeyError`s). The third gate in the selection above
+(`test_the_default_gpu_layers_follow_the_backend_and_the_flag_always_wins`) passes on both trees: it
+pins the default-side contract that note 1 is about.
+
+**The record on a real run** (0.8B pinned model, pinned CPU bundle, `--suite quality --items 3
+--backend auto`, `EXIT=0`) — the report carries the choice and, with a single local bundle, does not
+claim there was one:
+
+```
+"backend_selection": {"requested": "auto", "selected": "cpu", "available": ["cpu"], "missing": {}}
+```
+
+raw: `.e2e/t_31b3943a-bench-placement/post_fix_qwen_quality_selection.{note,out,err,exit}`
+(`.err` is empty, `.exit` is `EXIT=0`). On a box with two bundles the same field reads
+`{"available": ["cpu", "vulkan"], ...}` and the note + the rendered line name the flag that measures
+the other one — pinned by the two gates above.
+
+No behaviour of a measurement changed: the addition is one record plus one note (and one rendered
+line when, and only when, `auto` really had more than one local bundle to choose from).

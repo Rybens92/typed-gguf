@@ -1,0 +1,5 @@
+# GREEN — tests/test_bench_placement.py on the fixed tree (13 gates: 10 from the ladder + 3 from the auto-selection record)
+# $ uv run pytest -q tests/test_bench_placement.py
+.............                                                            [100%]
+13 passed in 1.66s
+GREEN_EXIT=0

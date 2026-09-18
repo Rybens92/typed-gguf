@@ -1,0 +1,10 @@
+warning: Ignoring existing virtual environment linked to non-existent Python interpreter: .venv/bin/python3 -> python
+Using CPython 3.11.15 interpreter at: /usr/local/bin/python3
+Removed virtual environment at: .venv
+Creating virtual environment at: .venv
+Installed 1 package in 102ms
+load_backend: loaded RPC backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 187.1047 MiB, matches expectation of 187.1047 MiB
+~llama_context:        CPU compute buffer size is 176.5584 MiB, matches expectation of 176.5584 MiB
+~llama_context:        CPU compute buffer size is 173.7049 MiB, matches expectation of 173.7049 MiB
