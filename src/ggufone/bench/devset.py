@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -135,6 +136,56 @@ def request_for(item: DevItem, *, model: str, **options: Any) -> dict[str, Any]:
     if options:
         payload["options"] = dict(options)
     return payload
+
+
+def batch_payload(items: Sequence[DevItem], *, model: str, limit: int = 20,
+                  n_seq_max: int | None = None) -> dict[str, Any]:
+    """One request that asks the first `limit` items as a *batch* on a single state (A-E3-2).
+
+    The engine answers N questions against one prefilled state; the E3 gate needs 20 of them on a
+    model that does not fit in VRAM, with `n_seq_max` small enough that the branches no longer fit
+    in one decode batch (waves). The state of the first item is reused for the whole batch — the
+    items are independent decisions, and this is a load/wave test, not an agreement measurement
+    (that is `--suite quality`, which asks each item against its own state).
+    """
+    chosen = list(items)[:int(limit)]
+    if not chosen:
+        raise ValueError("a batch needs at least one dev item")
+    questions: dict[str, Any] = {}
+    for item in chosen:
+        body: dict[str, Any] = {"type": item.type, "criteria": item.criteria}
+        if item.instructions:
+            body["instructions"] = item.instructions
+        questions[item.id] = body
+    payload: dict[str, Any] = {"state": chosen[0].state, "model": model, "questions": questions}
+    if n_seq_max is not None:
+        payload["options"] = {"n_seq_max": int(n_seq_max)}
+    return payload
+
+
+def stratified_chunks(items: Sequence[DevItem], size: int) -> list[list[DevItem]]:
+    """Split the dev set into chunks of `size`, round-robin over the question types.
+
+    A prefix of the committed file is type-skewed, so a shortened run would measure one question
+    type and call it the suite. Round-robin keeps every chunk (and therefore every prefix of
+    chunks) a mixture of `choice | score | noul`, which is what makes an interrupted campaign
+    still comparable — the pairing with the baseline stays valid however many chunks landed.
+    """
+    if size < 1:
+        raise ValueError("a chunk needs size >= 1")
+    buckets: dict[str, list[DevItem]] = {qtype: [] for qtype in QUESTION_TYPES}
+    for item in items:
+        buckets.setdefault(item.type, []).append(item)
+    ordered: list[DevItem] = []
+    while any(buckets.values()):
+        for qtype in QUESTION_TYPES:
+            queue = buckets.get(qtype) or []
+            if queue:
+                ordered.append(queue.pop(0))
+    for leftover in buckets.values():
+        if leftover:
+            ordered.extend(leftover)
+    return [ordered[start:start + size] for start in range(0, len(ordered), size)]
 
 
 def validate(items: list[DevItem], *, max_words: int = MAX_STATE_WORDS) -> list[str]:

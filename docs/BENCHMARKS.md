@@ -682,3 +682,105 @@ nothing on the 20 held-out items. Every re-ask is logged with its trigger and it
   (doubling the held-out split per type to 12–16).
 * **No GPU on the measuring box**, so the router's device-budget branch is exercised offline
   (injected VRAM numbers, the free-VRAM margin, the KV-floor fallback) and only its CPU branch live.
+## 6. E3 — the 23 GB MoE on this box (Occamy 1.0, `qwen35moe`)
+
+**These rows are not comparable with §0–§5 without their environment**: E2 was measured in a
+container with **no GPU reachable** (`/dev/dri` absent); E3 ran in a worker container that *has*
+the GPU (an ICD manifest fix, see the evidence doc §1.1), so its rows carry a `backend: vulkan`
+that E2 could never produce. Everything else — the box, the shared quota, the pinned runtime — is
+the same, and the same caveats apply: **2 CPU-seconds/s** of cgroup quota and an **8 GiB** memory
+limit, the second of which decides this section.
+
+### 6.1 The pin and the box (A-E3-5, A-E3-1)
+
+| what | value |
+|---|---|
+| model | `Accio-Lab_occamy-1.0-Q4_K_L.gguf` — 24 113 674 848 B, arch `qwen35moe`, 40 layers, 24.1 GB of weights |
+| SHA-256 | `633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757` (`docs/evidence/e3_environment.json`) |
+| downloads | none in this milestone: the artifact was already on disk (`mtime` 2026-09-18 09:18, the card started at 13:27) |
+| runtime | pinned `b11026-linux-x64-vulkan`; every Occamy row below forces `--backend vulkan` |
+| GPU | `Vulkan0: NVIDIA GeForce RTX 3060 Ti (8192 MiB, 5669 MiB free)` — via an ICD manifest fix, evidence doc §1.1 |
+| container | `cpu.max = 2 CPU-seconds/s`, `memory.max = 8 GiB` (the number that decides this section) |
+
+### 6.2 What the 23 GB model costs here (A-E3-1, A-E3-4)
+
+`ggufone fit --print --json` (E1c, measured against free VRAM) says **`n_gpu_layers 7/40,
+n_ctx 4096, kv_type q4_0, n_seq_max 8`** — 7 layers is all that 5685 MiB of free VRAM buys at
+~600 MB per layer. The cost, however, is not the GPU: an mmap'd GGUF is cached by whichever cgroup
+faults it in, this container is capped at 8 GiB, so 23 GB of weights can never be resident and
+every forward pass re-reads experts from disk (~14 000 major faults/s ≈ 55 MB/s measured).
+
+| measurement | value |
+|---|---|
+| model load (7 layers up) | **30.8 s** |
+| dev item `c01` (choice): prefill / decision / wall | 152.8 s / 105.2 s / **258.6 s** |
+| dev item `c02` (same process): prefill / decision / wall | 73.0 s / 74.2 s / **147.2 s** |
+| placement used | `{n_gpu_layers: 7, kv_type: auto, degraded: false, attempts: []}`, log line `Vulkan0 compute buffer size 362.2 MiB` |
+| degraded attempt seen later | `ErrorOutOfDeviceMemory` (~950 MB buffer) → ladder settled at 3 layers / CPU-only, per chunk |
+
+A 60-item pass is therefore ~2.5–4.5 h on this box. That is a property of `23 GB vs 8 GiB`, not a
+flag to tune, and it is why the campaign below is **chunked** (10 items per chunk, each chunk a
+complete `--suite quality` report of its own subset; `compare.merge_reports` stitches them):
+
+| chunk | items (choice/score/noul) | placement used | per-item wall (median) | correct |
+|---|---|---:|---:|---:|
+| `docs/evidence/e3_chunks/report_001.json` | 10 (4/3/3) | CPU-only, `degraded: true` (`7→oom`, `3→oom`) | 113.2 s | 5/10 |
+| `docs/evidence/e3_chunks/report_002.json` | 10 (3/4/3) | `n_gpu_layers 3`, `degraded: true` (`7→oom`) | 99.5 s | 4/10 |
+
+Merged: `docs/evidence/e3_occamy_quality.json` — 20 items, 9 correct (0.450, 95 % CI 0.258–0.658).
+
+### 6.3 The 20-question batch (A-E3-2)
+
+`ggufone run` with 20 dev-set questions on one state and `n_seq_max = 4` (`docs/evidence/e3_batch.json`):
+
+| what | value |
+|---|---|
+| wall (load + prefill + 65 decode batches) | **3 633.6 s** (60.6 min) |
+| `usage` | `prefill_tokens` 109, `forks` 80, `decode_steps` 117, **`waves` 65**, `input_tokens` 1175, `output_tokens` 117 |
+| placement used | `{n_gpu_layers: 3, kv_type: q4_0, degraded: false, attempts: []}` + the log's `Vulkan0 compute buffer size is 363.5 MiB` |
+| outcome | exit 0, 20/20 answers, no OOM |
+
+`waves = 65` for `forks = 80` is the adaptation the gate asks about: with `n_seq_max = 4` only 3
+candidate slots fit in one decode batch, so the engine splits the forks into waves instead of
+failing. (The response's `engine.backend` still reads `cpu` while the Vulkan device computed — the
+mislabelling class `t_603a35a0` fixed in the bench path, still present in the serving path.)
+
+### 6.4 Occamy vs the 4B default (A-E3-3)
+
+Paired on the 20 dev items both models measured (`e2_quality.json` cut to the same ids —
+`tools/e3_reproduce.py --suite compare --align`):
+
+| metric | 4B default (E2, CPU) | Occamy 1.0 (E3, vulkan) | delta |
+|---|---|---|---|
+| overall | 0.500 (10/20) [0.299–0.701] | 0.450 (9/20) [0.258–0.658] | -0.050 |
+| choice | 0.429 (3/7) [0.158–0.750] | 0.571 (4/7) [0.250–0.842] | +0.143 |
+| noul | 1.000 (6/6) [0.610–1.000] | 0.167 (1/6) [0.030–0.564] | -0.833 |
+| score | 0.143 (1/7) [0.026–0.513] | 0.571 (4/7) [0.250–0.842] | +0.429 |
+| `low_mass` (below the 0.10 floor) | 0.333 (1/3) | 0.450 (9/20) | +0.117 |
+| `measured` (at or above it) | 0.529 (9/17) [0.310–0.738] | — (no measured row: 20/20 low-mass) | — |
+
+The two models are one item apart overall; the rows that separate them are `noul` (the 4B 6/6,
+Occamy 1/6 — five of six Occamy answers are `no` at confidence 0.76–0.90) and the mass split:
+**every Occamy answer on this dev set is `low_mass`**, while the 4B's are mostly not. Both prompts
+were verified to end at their own assistant header (no template failure): the difference is the
+model's answer distribution, not the bytes it was given.
+
+### 6.5 Threads, and the routing recommendation (A-E3-4)
+
+`llama-bench` from the pinned bundle, one model load per row (~2 min), on the same container:
+
+| setting | pp64 (tok/s) | tg8 (tok/s) |
+|---|---:|---:|
+| `-ngl 7 -t 4` | **1.71** | **0.28** |
+| `-ngl 7 -t 8` | 0.91 | 0.13 |
+| `-ngl 7 -t 12` | 1.07 | 0.11 |
+| `-ngl 0 -t 4` (CPU only) | 0.87 | 0.09 |
+
+`threads = 4` wins and 8/12 lose by ~2× (the oversubscription E2 §3.5 measured for the 4B), and the
+7 offloaded layers buy ~2× prefill / ~3× decode against CPU-only — worth doing, and worth doing
+*only* as far as the free VRAM allows. Recommendation for this artifact: **`--backend vulkan
+--gpu-layers 7 --threads 4`, `kv_type auto` (`q4_0` at 4k if you go through `ggufone fit`), small
+requests — and route the interactive work elsewhere**: 0.28 tok/s decode is the box's physics for a
+23 GB model that cannot be cached in 8 GiB, and no flag changes that. A host that can keep the
+weights resident (the operator host's own 31 GiB) turns the same command into a compute-bound run.
+

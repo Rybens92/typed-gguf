@@ -1,0 +1,30 @@
+{
+  "generated_from": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+  "gpu": {
+    "nvidia_smi": "NVIDIA GeForce RTX 3060 Ti, 8192 MiB, 1025 MiB, 615.71.09",
+    "vulkan_icd_library": "libEGL_nvidia.so.0",
+    "vulkan_icd_manifest": "/work/e3scratch/nvidia_egl_icd.json",
+    "why": "the CDI-mounted /etc/vulkan/icd.d/nvidia_icd.x86_64.json names libGLX_nvidia.so.0, whose vk_icdNegotiateLoaderICDInterfaceVersion returns -3 (INITIALIZATION_FAILED) without an X display, so the loader sees no driver at all; libEGL_nvidia.so.0 negotiates rc=0 and yields Vulkan0: NVIDIA GeForce RTX 3060 Ti"
+  },
+  "host_facts": {
+    "cgroup_cpu_max": "200000 100000",
+    "cgroup_memory_max": "8589934592",
+    "cgroup_pids_max": "256",
+    "cpu_count_seen": 24,
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15"
+  },
+  "model": {
+    "bytes": 24113674848,
+    "mtime": 1789723135.7612338,
+    "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757"
+  },
+  "pins": {
+    "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+    "no_downloads": "the model file predates this card (mtime above); the pinned runtime bundle was installed by E1a/E1c (`ggufone init`)",
+    "no_weight_mutation": "ggufone never opens a .gguf for writing; this run only reads the file (sha256 re-verified after the campaign)"
+  },
+  "runtime": null,
+  "schema": "ggufone.e3.environment/v1"
+}

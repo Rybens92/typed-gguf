@@ -1,0 +1,13 @@
+=== ngl=7 threads=4 ===
+| qwen35moe 35B.A3B Q4_K - Medium |  22.45 GiB |    34.66 B | Vulkan     |   7 |       4 |            pp64 |          1.71 ± 0.00 |
+| qwen35moe 35B.A3B Q4_K - Medium |  22.45 GiB |    34.66 B | Vulkan     |   7 |       4 |             tg8 |          0.28 ± 0.00 |
+=== ngl=7 threads=8 ===
+| qwen35moe 35B.A3B Q4_K - Medium |  22.45 GiB |    34.66 B | Vulkan     |   7 |       8 |            pp64 |          0.91 ± 0.00 |
+| qwen35moe 35B.A3B Q4_K - Medium |  22.45 GiB |    34.66 B | Vulkan     |   7 |       8 |             tg8 |          0.13 ± 0.00 |
+=== ngl=7 threads=12 ===
+| qwen35moe 35B.A3B Q4_K - Medium |  22.45 GiB |    34.66 B | Vulkan     |   7 |            pp64 |          1.07 ± 0.00 |
+| qwen35moe 35B.A3B Q4_K - Medium |  22.45 GiB |    34.66 B | Vulkan     |   7 |             tg8 |          0.11 ± 0.00 |
+=== ngl=0 threads=4 ===
+| qwen35moe 35B.A3B Q4_K - Medium |  22.45 GiB |    34.66 B | Vulkan     |   0 |       4 |            pp64 |          0.87 ± 0.00 |
+| qwen35moe 35B.A3B Q4_K - Medium |  22.45 GiB |    34.66 B | Vulkan     |   0 |       4 |             tg8 |          0.09 ± 0.00 |
+=== done 15:50:43 ===

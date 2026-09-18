@@ -34,12 +34,13 @@ def main(argv: list[str]) -> int:
     print()
     latency = load(quick_dir / "quick_latency.json")
     print("quick latency rows (p50 ms, n):")
-    print(f"  model load          {latency['model_load']['p50']:10.1f}  n={latency['model_load']['n']}")
+    load_p50 = latency["model_load"]
+    print(f"  model load          {load_p50['p50']:10.1f}  n={load_p50['n']}")
     for row in latency["prefill"]:
         print(f"  prefill {row['tokens']:>5} tok   {row['ms']['p50']:10.1f}  n={row['ms']['n']}")
     for row in latency["per_question"]:
-        print(f"  candidates {row['candidates']:>2}      {row['ms']['p50']:10.1f}  n={row['ms']['n']}"
-              f"  (warm-up call not counted)")
+        print(f"  candidates {row['candidates']:>2}      {row['ms']['p50']:10.1f}  "
+              f"n={row['ms']['n']}  (warm-up call not counted)")
     for row in latency["wave_scaling"]:
         print(f"  N={row['questions']:<2} questions    {row['ms']['p50']:10.1f}  n={row['ms']['n']}"
               f"  (warm-up call not counted)")
@@ -52,9 +53,11 @@ def main(argv: list[str]) -> int:
         full = load(pathlib.Path(argv[2]))
         print(f"full campaign latency report: {argv[2]} (runs={full['config']['runs']}, "
               f"threads={full['config']['threads']})")
-        print(f"  model load p50      {full['model_load']['p50']:10.1f}  n={full['model_load']['n']}")
+        full_load = full["model_load"]
+        print(f"  model load p50      {full_load['p50']:10.1f}  n={full_load['n']}")
         for row in full["prefill"]:
-            print(f"  prefill {row['tokens']:>5} tok   {row['ms']['p50']:10.1f}  n={row['ms']['n']}")
+            print(f"  prefill {row['tokens']:>5} tok   {row['ms']['p50']:10.1f}  "
+                  f"n={row['ms']['n']}")
         for row in full["per_question"]:
             print(f"  candidates {row['candidates']:>2}      {row['ms']['p50']:10.1f}")
         print(f"  wave rows N=1..{full['wave_scaling'][-1]['questions']}: "

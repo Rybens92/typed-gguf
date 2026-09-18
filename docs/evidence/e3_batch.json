@@ -1,0 +1,499 @@
+{
+  "model": "Accio-Lab_occamy-1.0-Q4_K_L",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "readout": "sequence",
+    "kv_unified": true,
+    "n_ctx": 256,
+    "n_seq_max": 4,
+    "prefix_tokens": 109,
+    "state_id": "sha256:c206645c0f17551a425f5f4e76d4a4da745144c0119e91e2bf821e756ace0ebb",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "qwen35moe",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "q4_0",
+    "n_gpu_layers": 3,
+    "placement": {
+      "note": "fit plan: 3 layer(s) offloaded, kv_type=q4_0",
+      "n_gpu_layers": 3,
+      "kv_type": "q4_0",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    },
+    "fit": {
+      "n_gpu_layers": 3,
+      "n_ctx": 4096,
+      "kv_type": "q4_0",
+      "n_seq_max": 8,
+      "est_weights_bytes": 24101519360,
+      "est_kv_bytes": 94371840,
+      "est_total_bytes": 24746393600,
+      "backend": "cpu",
+      "source": "llama-fit-params",
+      "warnings": [
+        "W_KV_TYPE_DOWNGRADE",
+        "W_FIT_DOWNGRADE"
+      ],
+      "notes": [
+        "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 22985 MiB, context 142 MiB, compute 525 MiB)",
+        "device memory bound: offloading 7/40 layers within 4661 MiB (--fit-target 1024 MiB, 5685 MiB free of 8192 MiB)",
+        "re-planned for free device memory: 3995 MiB budget (driver reported 5019 MiB free of 8192 MiB, --fit-target 1024 MiB); n_gpu_layers 7 -> 3, kv_type q4_0 -> q4_0"
+      ],
+      "arch": "qwen35moe",
+      "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+      "host_fingerprint": "e2f65aaa0226c162",
+      "budget_bytes": 4189061120,
+      "created_at": "2026-09-18T13:32:13Z",
+      "schema": "ggufone.fit/v1"
+    },
+    "escalations": {
+      "enabled": false,
+      "limit": 0,
+      "threshold": 0.5,
+      "target": null,
+      "count": 0,
+      "decisions": [],
+      "skipped": []
+    }
+  },
+  "answers": {
+    "c01": {
+      "type": "choice",
+      "choice": "sales",
+      "probabilities": {
+        "billing": 0.251627,
+        "technical": 0.0483991,
+        "sales": 0.400445,
+        "support": 0.299528
+      },
+      "confidence": 0.200593,
+      "coverage": 3.83014e-08,
+      "reliability": "low_mass",
+      "decode_steps": 4,
+      "legend": {
+        "billing": "payments, invoices and refunds",
+        "technical": "api, infrastructure and deploys",
+        "sales": "contracts and pricing",
+        "support": "customer conversations"
+      }
+    },
+    "c02": {
+      "type": "choice",
+      "choice": "escalation",
+      "probabilities": {
+        "billing": 3.98025e-05,
+        "technical": 0.000711506,
+        "account": 2.09557e-05,
+        "escalation": 0.999228
+      },
+      "confidence": 0.99897,
+      "coverage": 2.14258e-07,
+      "reliability": "low_mass",
+      "decode_steps": 5,
+      "legend": {
+        "billing": "duplicate charges and refunds",
+        "technical": "product bugs",
+        "account": "plan changes and seat management",
+        "escalation": "formal complaints"
+      }
+    },
+    "c03": {
+      "type": "choice",
+      "choice": "backend",
+      "probabilities": {
+        "mobile": 0.0339401,
+        "backend": 0.674632,
+        "design": 0.0336289,
+        "marketing": 0.257799
+      },
+      "confidence": 0.566177,
+      "coverage": 8.83839e-07,
+      "reliability": "low_mass",
+      "decode_steps": 4,
+      "legend": {
+        "mobile": "android and ios clients",
+        "backend": "api and database",
+        "design": "visual and interaction design",
+        "marketing": "campaigns and copy"
+      }
+    },
+    "c04": {
+      "type": "choice",
+      "choice": "confidential",
+      "probabilities": {
+        "public": 0.000101568,
+        "internal": 0.00010381,
+        "confidential": 0.998138,
+        "restricted": 0.00165635
+      },
+      "confidence": 0.997518,
+      "coverage": 2.22799e-06,
+      "reliability": "low_mass",
+      "decode_steps": 5,
+      "legend": {
+        "public": "safe for anyone",
+        "internal": "employees only",
+        "confidential": "restricted business data under nda",
+        "restricted": "personal or highly sensitive data with legal exposure"
+      }
+    },
+    "c05": {
+      "type": "choice",
+      "choice": "support",
+      "probabilities": {
+        "security": 0.255677,
+        "support": 0.587911,
+        "docs": 0.00019516,
+        "finance": 0.156217
+      },
+      "confidence": 0.450548,
+      "coverage": 1.54781e-07,
+      "reliability": "low_mass",
+      "decode_steps": 4,
+      "legend": {
+        "security": "vulnerability response and incident command",
+        "support": "customer conversations",
+        "docs": "documentation and guides",
+        "finance": "budgets and reporting"
+      }
+    },
+    "c06": {
+      "type": "choice",
+      "choice": "fixed",
+      "probabilities": {
+        "added": 0.0139732,
+        "changed": 0.113217,
+        "fixed": 0.857602,
+        "removed": 0.0152073
+      },
+      "confidence": 0.810137,
+      "coverage": 8.81719e-09,
+      "reliability": "low_mass",
+      "decode_steps": 4,
+      "legend": {
+        "added": "new features",
+        "changed": "behaviour that changed",
+        "fixed": "bugs that are gone",
+        "removed": "features that were deleted"
+      }
+    },
+    "c07": {
+      "type": "choice",
+      "choice": "liability",
+      "probabilities": {
+        "liability": 0.917661,
+        "termination": 0.000160819,
+        "payment": 0.0702752,
+        "ip": 0.0119035
+      },
+      "confidence": 0.890214,
+      "coverage": 5.45023e-07,
+      "reliability": "low_mass",
+      "decode_steps": 5,
+      "legend": {
+        "liability": "caps on damages",
+        "termination": "exit conditions and their costs",
+        "payment": "invoicing terms",
+        "ip": "ownership of work"
+      }
+    },
+    "c08": {
+      "type": "choice",
+      "choice": "weekend",
+      "probabilities": {
+        "business_hours": 0.279508,
+        "off_hours": 0.321553,
+        "weekend": 0.398895,
+        "freeze": 4.35421e-05
+      },
+      "confidence": 0.198527,
+      "coverage": 2.83359e-07,
+      "reliability": "low_mass",
+      "decode_steps": 7,
+      "legend": {
+        "business_hours": "while the team is online",
+        "off_hours": "overnight with a rollback ready",
+        "weekend": "saturday or sunday",
+        "freeze": "not until the code freeze ends"
+      }
+    },
+    "c09": {
+      "type": "choice",
+      "choice": "harassment",
+      "probabilities": {
+        "spam": 9.45094e-05,
+        "harassment": 0.921939,
+        "off_topic": 0.0777633,
+        "fine": 0.000203009
+      },
+      "confidence": 0.895919,
+      "coverage": 1.18833e-06,
+      "reliability": "low_mass",
+      "decode_steps": 7,
+      "legend": {
+        "spam": "unsolicited promotion",
+        "harassment": "abuse aimed at a person",
+        "off_topic": "irrelevant but honest",
+        "fine": "no action needed"
+      }
+    },
+    "c10": {
+      "type": "choice",
+      "choice": "compensation",
+      "probabilities": {
+        "skills": 4.7342e-05,
+        "experience": 3.43624e-05,
+        "compensation": 0.999906,
+        "availability": 1.26036e-05
+      },
+      "confidence": 0.999874,
+      "coverage": 1.97284e-08,
+      "reliability": "low_mass",
+      "decode_steps": 5,
+      "legend": {
+        "skills": "not enough technical depth",
+        "experience": "too few years",
+        "compensation": "outside the approved band",
+        "availability": "cannot start in time"
+      }
+    },
+    "c11": {
+      "type": "choice",
+      "choice": "expedited",
+      "probabilities": {
+        "standard": 1.05452e-05,
+        "expedited": 0.658238,
+        "freight": 0.341747,
+        "international": 3.68276e-06
+      },
+      "confidence": 0.544318,
+      "coverage": 1.33991e-08,
+      "reliability": "low_mass",
+      "decode_steps": 6,
+      "legend": {
+        "standard": "three to five days, cheapest",
+        "expedited": "guaranteed next morning",
+        "freight": "palletised, appointment only",
+        "international": "customs required"
+      }
+    },
+    "c12": {
+      "type": "choice",
+      "choice": "backend",
+      "probabilities": {
+        "frontend": 0.0206166,
+        "backend": 0.886961,
+        "data": 0.00692434,
+        "network": 0.0854978
+      },
+      "confidence": 0.849282,
+      "coverage": 7.62504e-08,
+      "reliability": "low_mass",
+      "decode_steps": 4,
+      "legend": {
+        "frontend": "rendering and client state",
+        "backend": "api and business logic",
+        "data": "stored records",
+        "network": "dns or transport"
+      }
+    },
+    "c13": {
+      "type": "choice",
+      "choice": "partnerships",
+      "probabilities": {
+        "sales": 0.000313317,
+        "support": 5.46069e-05,
+        "billing": 0.00108306,
+        "partnerships": 0.998549
+      },
+      "confidence": 0.998065,
+      "coverage": 7.87122e-07,
+      "reliability": "low_mass",
+      "decode_steps": 5,
+      "legend": {
+        "sales": "contracts and pricing",
+        "support": "product questions",
+        "billing": "invoices and refunds",
+        "partnerships": "partner and alliance agreements"
+      }
+    },
+    "c14": {
+      "type": "choice",
+      "choice": "non_deductible",
+      "probabilities": {
+        "deductible": 0.0288936,
+        "capital": 1.20458e-07,
+        "expense": 1.18182e-06,
+        "non_deductible": 0.971105
+      },
+      "confidence": 0.961473,
+      "coverage": 2.27045e-07,
+      "reliability": "low_mass",
+      "decode_steps": 9,
+      "legend": {
+        "deductible": "fully deducted this year",
+        "capital": "recorded as an asset and depreciated",
+        "expense": "consumed immediately",
+        "non_deductible": "not tax relevant"
+      }
+    },
+    "c15": {
+      "type": "choice",
+      "choice": "neurology",
+      "probabilities": {
+        "cardiology": 0.0760976,
+        "orthopedics": 0.304767,
+        "neurology": 0.385506,
+        "dermatology": 0.23363
+      },
+      "confidence": 0.180675,
+      "coverage": 1.04472e-08,
+      "reliability": "low_mass",
+      "decode_steps": 11,
+      "legend": {
+        "cardiology": "heart and vessels",
+        "orthopedics": "bones and joints",
+        "neurology": "nerves and brain",
+        "dermatology": "skin"
+      }
+    },
+    "c16": {
+      "type": "choice",
+      "choice": "meals",
+      "probabilities": {
+        "travel": 1.99291e-05,
+        "meals": 0.995079,
+        "software": 0.00211469,
+        "hardware": 0.00278671
+      },
+      "confidence": 0.993438,
+      "coverage": 4.43802e-07,
+      "reliability": "low_mass",
+      "decode_steps": 5,
+      "legend": {
+        "travel": "flights, hotels and transport",
+        "meals": "food and entertainment",
+        "software": "licences and subscriptions",
+        "hardware": "devices and peripherals"
+      }
+    },
+    "c17": {
+      "type": "choice",
+      "choice": "smb",
+      "probabilities": {
+        "smb": 0.734918,
+        "midmarket": 0.264839,
+        "enterprise": 1.98746e-05,
+        "consumer": 0.000223437
+      },
+      "confidence": 0.646557,
+      "coverage": 2.66114e-08,
+      "reliability": "low_mass",
+      "decode_steps": 6,
+      "legend": {
+        "smb": "small teams, self serve",
+        "midmarket": "hundreds of seats, invoice terms",
+        "enterprise": "thousands of seats, procurement",
+        "consumer": "single individuals"
+      }
+    },
+    "c18": {
+      "type": "choice",
+      "choice": "retrospective",
+      "probabilities": {
+        "standup": 0.0772187,
+        "retrospective": 0.830389,
+        "planning": 0.0923847,
+        "review": 7.56704e-06
+      },
+      "confidence": 0.773852,
+      "coverage": 1.02621e-06,
+      "reliability": "low_mass",
+      "decode_steps": 8,
+      "legend": {
+        "standup": "daily coordination",
+        "retrospective": "reflection on the last iteration",
+        "planning": "sizing the next iteration",
+        "review": "demoing finished work"
+      }
+    },
+    "c19": {
+      "type": "choice",
+      "choice": "infrastructure",
+      "probabilities": {
+        "configuration": 1.55684e-05,
+        "code": 0.00436451,
+        "data": 1.36004e-05,
+        "infrastructure": 0.995606
+      },
+      "confidence": 0.994142,
+      "coverage": 6.11276e-07,
+      "reliability": "low_mass",
+      "decode_steps": 5,
+      "legend": {
+        "configuration": "settings and environment",
+        "code": "application logic",
+        "data": "stored content",
+        "infrastructure": "hosts and network"
+      }
+    },
+    "c20": {
+      "type": "choice",
+      "choice": "copyleft",
+      "probabilities": {
+        "permissive": 0.140522,
+        "copyleft": 0.703436,
+        "public_domain": 0.0361186,
+        "proprietary": 0.119924
+      },
+      "confidence": 0.604581,
+      "coverage": 1.69687e-06,
+      "reliability": "low_mass",
+      "decode_steps": 8,
+      "legend": {
+        "permissive": "no obligations beyond attribution",
+        "copyleft": "the combined binary inherits the licence",
+        "public_domain": "no restrictions at all",
+        "proprietary": "a commercial licence was bought"
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 1175,
+    "output_tokens": 117,
+    "questions": 20,
+    "forks": 80,
+    "prefill_tokens": 109,
+    "decode_steps": 117,
+    "waves": 65
+  },
+  "timings": {
+    "model_load_ms": 26581.5,
+    "prefill_ms": 193296.0,
+    "questions_ms": 3272430.0,
+    "total_ms": 3465810.0
+  },
+  "warnings": [
+    "W_LOW_MASS"
+  ],
+  "calibrated": false,
+  "calibration": {
+    "source": "",
+    "applied": false,
+    "model": null,
+    "params_hash": "",
+    "temperatures": {},
+    "confidence_modes": {},
+    "accepted_types": []
+  }
+}
