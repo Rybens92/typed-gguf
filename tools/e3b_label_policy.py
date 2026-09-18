@@ -13,12 +13,14 @@ several documented renderings of the same question inside one run on the same bo
   the label mass, `docs/TEMPLATES.md` §4), `explicit` (the cue names the labels);
 * optionally the **ranked** readout (restricted softmax over sequence scores — the engine's own
   decision) for chosen `cue=label` policies;
-* optionally a second **prefix variant** (`--extra-prefix kept`): the same prompt with the
-  template's own empty `<think></think>` block left in place, i.e. without the family policy's
-  `strip_empty_think_block`. That is not a label policy — it is the control that tells a
-  *distribution* finding ("the model barely puts mass on our labels") apart from a *prompt shape*
-  finding ("the model closes the assistant turn before answering"). It costs one more prefill per
-  item, so `--extra-prefix-items N` caps how many items pay for it.
+* optionally a second **prefix variant** (`--extra-prefix kept`, or `--only-prefix kept` for the
+  re-measure path): the same prompt with the template's own empty `<think></think>` block left in
+  place, i.e. without the family policy's `strip_empty_think_block`. That is not a label policy —
+  it is the control that tells a *distribution* finding ("the model barely puts mass on our
+  labels") apart from a *prompt shape* finding ("the model closes the assistant turn before
+  answering"). It costs one prefill per item, so `--extra-prefix-items N` caps how many items pay
+  for it (and `--only-prefix kept` skips the shipped prefix entirely — the shipped side of a
+  before/after is E3's published report, already on disk).
 
 Design constraints that make this affordable on a box where one weight sweep costs minutes:
 
@@ -302,12 +304,21 @@ def cross_check_item(handle: session_module.ModelHandle, item: devset.DevItem, *
 
 
 # --------------------------------------------------------------------------- offline report
-def piece_of(item: dict[str, Any], prefix: str = SHIPPED_PREFIX) -> dict[str, Any]:
-    """One item's measurement under a prefix variant (the shipped one when `prefix` is absent)."""
+def piece_of(item: dict[str, Any], prefix: str | None = None) -> dict[str, Any]:
+    """One item's measurement under a prefix variant (`None` = the first one measured there).
+
+    A run with `--only-prefix kept` has no `shipped` piece at all — every report function reads
+    this helper, so "the prefix this run is about" is the first key the item carries.
+    """
     prefixes = item.get("prefixes") or {}
-    if prefix in prefixes:
-        return prefixes[prefix]
-    raise KeyError(f"item {item.get('id')} has no `{prefix}` prefix measurement")
+    if not prefixes:
+        raise KeyError(f"item {item.get('id')} carries no prefix measurement")
+    key = SHIPPED_PREFIX if prefix is None and SHIPPED_PREFIX in prefixes else prefix
+    if key is None:
+        return next(iter(prefixes.values()))
+    if key in prefixes:
+        return prefixes[key]
+    raise KeyError(f"item {item.get('id')} has no `{key}` prefix measurement")
 
 
 def shipped_items(record: dict[str, Any]) -> list[dict[str, Any]]:
@@ -570,8 +581,8 @@ def live_run(args: argparse.Namespace) -> int:
     states.mkdir(parents=True, exist_ok=True)
     try:
         for number, item in enumerate(items):
-            variants = [SHIPPED_PREFIX]
-            if args.extra_prefix and number < int(args.extra_prefix_items):
+            variants = [args.only_prefix] if args.only_prefix else [SHIPPED_PREFIX]
+            if not args.only_prefix and args.extra_prefix and number < int(args.extra_prefix_items):
                 variants.append(args.extra_prefix)
             piece: dict[str, Any] = {"id": item.id, "type": item.type,
                                      "expected": devset.gold_key(item), "prefixes": {}}
@@ -642,6 +653,10 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--extra-prefix", dest="extra_prefix", default=None,
                      choices=[KEPT_PREFIX],
                      help="a second prefix variant for the first N items (the strip control)")
+    run.add_argument("--only-prefix", dest="only_prefix", default=None,
+                     choices=[KEPT_PREFIX],
+                     help="measure only this prefix variant (the re-measure path: the shipped "
+                          "side is E3's published report, already on disk)")
     run.add_argument("--extra-prefix-items", dest="extra_prefix_items", type=int, default=2)
     run.add_argument("--cross-check", dest="cross_check", type=int, default=0,
                      help="cross-check the first N items against DecisionEngine (one extra "

@@ -1,0 +1,8 @@
+calibration ggufone.calibration/v1  model file:Accio-Lab_occamy-1.0-Q4_K_L.gguf:24113674848
+  devset 20 item(s) docs/evidence/e3_occamy_quality.json digest sha256:6c222815aa850fecf2b
+  mode auto  holdout 0.333  params sha256:5a96f400a953dc726f484efdc2b4f35ab4837a6959631f7b8475be2da8806d16
+  type     temperature          holdout ECE              fit ECE  verdict
+  choice        1.0000     0.2687 -> 0.2687     0.4538 -> 0.4538  no calibration applied: too few fit rows (5 < 8)
+  noul          1.0000     0.4178 -> 0.4178     0.6290 -> 0.6290  no calibration applied: too few fit rows (4 < 8)
+  score         1.0000     0.5308 -> 0.5308     0.2469 -> 0.2469  no calibration applied: too few fit rows (5 < 8)
+  no calibration applied (no question type improved on the held-out split)
