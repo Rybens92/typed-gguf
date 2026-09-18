@@ -49,7 +49,7 @@ OPTION_DEFAULTS: dict[str, Any] = {
     "temperature": 1.0,
     "length_norm": 1.0,
     "readout": "sequence",
-    "confidence_mode": "normalized_peak",
+    "confidence_mode": None,       # None = the documented default, or the calibrated statistic
     "n_ctx": None,
     "n_seq_max": None,
     "kv_type": "auto",
@@ -100,7 +100,10 @@ class Options:
     temperature: float = 1.0
     length_norm: float = 1.0
     readout: str = "sequence"
-    confidence_mode: str = "normalized_peak"
+    #: None = "whatever the stored calibration says for this question type, else
+    #: normalized_peak" (E2.5 / A-E2p5-3: a promoted mode is only visible if the readout reports
+    #: it). An explicit mode always wins over the table.
+    confidence_mode: str | None = None
     n_ctx: int | None = None
     n_seq_max: int | None = None
     kv_type: str = "auto"
@@ -278,8 +281,8 @@ def _parse_options(raw: Any) -> tuple[Options, list[str]]:
         temperature=_number("temperature", values["temperature"], low=0.0, inclusive=False),
         length_norm=_number("length_norm", values["length_norm"], low=0.0, inclusive=True),
         readout=_choice("readout", values["readout"], ("sequence", "single_token")),
-        confidence_mode=_choice("confidence_mode", values["confidence_mode"],
-                                tuple(CONFIDENCE_MODES)),
+        confidence_mode=_optional_choice("confidence_mode", values["confidence_mode"],
+                                         tuple(CONFIDENCE_MODES)),
         n_ctx=_optional_int("n_ctx", values["n_ctx"], low=1),
         n_seq_max=_optional_int("n_seq_max", values["n_seq_max"], low=3),
         kv_type=_choice("kv_type", values["kv_type"], KV_TYPES),
@@ -368,6 +371,13 @@ def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
         raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
                     "E_UNKNOWN_KEY")
     return str(value)
+
+
+def _optional_choice(name: str, value: Any, allowed: tuple[str, ...]) -> str | None:
+    """`null` means "the engine's documented default" (E2.5: a calibrated table may promote one)."""
+    if value is None:
+        return None
+    return _choice(name, value, allowed)
 
 
 # -------------------------------------------------------------------- rendering

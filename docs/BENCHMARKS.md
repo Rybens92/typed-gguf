@@ -520,8 +520,9 @@ container is capped at 2 CPU-seconds/s, and §3.5 measures that setting as 5–2
 * **No cross-backend equality** (SPEC R8): determinism is pinned to (runtime, backend,
   `threads=1`); CPU and Vulkan are compared for *speed*, never for identical bits.
 * **No vendor-parity claim**: the dev set is ours and agreement is reported as a measurement.
-* **No escalation, no calibration applied**: `max_escalations` stays 0 in E2 (S-7) and the
-  calibration suite *measures* ECE for the three confidence modes; fitting and applying a
-  temperature is E2.5's card (`ggufone calibrate`).
+* **No escalation, no calibration applied in the E2 tables**: `max_escalations` stays 0 in E2 (S-7)
+  and the calibration suite *measures* ECE for the three confidence modes. Fitting a temperature,
+  the held-out acceptance gate, `--route auto` and the bounded escalation are E2.5
+  (`ggufone calibrate`) and are measured in `docs/BENCHMARKS.md` §5.
 * **No CUDA**: no CUDA device and no CUDA bundle exist in this container; the throughput table
   says so per row instead of omitting the backend.

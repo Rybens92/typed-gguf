@@ -41,7 +41,6 @@ sys.path.insert(0, str(ROOT))
 
 from ggufone import cli  # noqa: E402
 from ggufone.bench import devset as devset_module  # noqa: E402
-from ggufone.bench import harness, suites  # noqa: E402
 from ggufone.calibration import calibrate, routing  # noqa: E402
 from ggufone.registry import store  # noqa: E402
 from ggufone.runtime import finder, fit  # noqa: E402
@@ -85,6 +84,8 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
         argv += ["--items", str(args.items)]
     if args.devset:
         argv += ["--devset", args.devset]
+    if args.rows_out:
+        argv += ["--out", args.rows_out]
     if args.dry_run:
         argv.append("--dry-run")
     for repeat in range(max(1, args.repeat)):
@@ -98,9 +99,18 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
         payload = json.loads(text)
         runs.append({"code": code, "params_hash": payload["params_hash"],
                      "accepted": payload["accepted"],
-                     "temperatures": payload["params"]["types"]})
+                     "temperatures": payload["params"]["types"],
+                     "verdicts": {name: {"accepted": entry["accepted"],
+                                         "reason": entry["reason"],
+                                         "temperature": entry["temperature"],
+                                         "holdout_ece": entry["ece"]["holdout"]}
+                                  for name, entry in payload["types"].items()}})
         print(f"repeat {repeat}: code={code} accepted={payload['accepted']} "
               f"params={payload['params_hash']}")
+        for name, verdict in runs[-1]["verdicts"].items():
+            print(f"  {name}: T={verdict['temperature']:.4f} "
+                  f"holdout ECE {verdict['holdout_ece']['before']:.4f} -> "
+                  f"{verdict['holdout_ece']['after']:.4f} :: {verdict['reason']}")
     stored = calibrate.load_table(store.calibration_path(),
                                   calibrate.model_key_for(args.model))
     report = {
@@ -110,6 +120,7 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
         "model": args.model,
         "runtime": _runtime(),
         "home": str(store.data_home()),
+        "rows_out": args.rows_out,
         "repeats": runs,
         "reproducible": len({entry["params_hash"] for entry in runs}) == 1,
         "stored": bool(stored),
@@ -232,22 +243,21 @@ def _registry_snapshot() -> dict[str, Any]:
 
 # --------------------------------------------------------------------- escalate
 def _measure(path: str, *, threads: int, devset_path: str | None = None,
-             items: int | None = None) -> dict[str, Any]:
-    """One calibration-suite pass: per-item probabilities, confidence and reliability."""
-    config = harness.BenchConfig(suite="calibration", model_path=path, threads=threads,
-                                 devset=devset_path, items=items)
-    report = suites.run_suite(config, factory=suites.live_factory)
-    return report
+             items: int | None = None) -> list[Any]:
+    """One dev-set pass **through the serving path** (`cli.calibration_rows`).
+
+    The escalation measurement must see the same distributions `run`/`ask` report, so it reuses
+    the CLI's collector instead of re-implementing a load: the bench harness has its own
+    placement seam (and its own open bug, card t_31b3943a) that E2.5 deliberately does not depend
+    on.
+    """
+    options = {"threads": threads, "devset": devset_path, "items": items, "kv_type": "auto"}
+    rows, _source = cli.calibration_rows(options, path)
+    return rows
 
 
-def _answers_of(report: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    answers: dict[str, dict[str, Any]] = {}
-    for row in report.get("items", []):
-        answers[row["id"]] = {
-            "type": row["type"], "probabilities": row["probabilities"],
-            "confidence": row["confidence"], "reliability": row.get("reliability"),
-        }
-    return answers
+def _answers_of(rows: list[Any]) -> dict[str, dict[str, Any]]:
+    return {row.id: row.as_answer() for row in rows}
 
 
 def _subset_rows(items: list[devset_module.DevItem], ids: set[str]) -> dict[str, Any]:
@@ -260,10 +270,9 @@ def cmd_escalate(args: argparse.Namespace) -> int:
     items = devset_module.load(args.devset)
     if args.items:
         items = items[: args.items]
-    primary = _measure(args.primary, threads=args.threads, devset=args.devset, items=args.items)
-    rows = [calibrate.Row.from_item(item) for item in primary.get("items", [])]
+    rows = _measure(args.primary, threads=args.threads, devset=args.devset, items=args.items)
     by_id = {item.id: item for item in items}
-    answers = _answers_of(primary)
+    answers = _answers_of(rows)
     decisions = routing.escalation_candidates(answers, threshold=args.threshold,
                                               max_escalations=args.limit)
     print(f"primary {args.primary}: {len(rows)} items, {len(decisions)} low-confidence "
@@ -272,12 +281,12 @@ def cmd_escalate(args: argparse.Namespace) -> int:
     subset = _subset_rows(items, {decision.question for decision in decisions})
     replacement: dict[str, Any] = {}
     target_seconds = 0.0
+    target_rows: list[Any] = []
     if subset:
         target_started = time.time()
-        target_report = _measure(args.target, threads=args.threads,
-                                 devset=_write_subset(subset, args.workdir),
-                                 items=len(subset))
-        replacement = _answers_of(target_report)
+        target_rows = _measure(args.target, threads=args.threads, items=len(subset),
+                               devset_path=_write_subset(subset, args.workdir))
+        replacement = _answers_of(target_rows)
         target_seconds = time.time() - target_started
     merged, log = routing.apply_escalation(
         answers, replacement, decisions,
@@ -364,6 +373,7 @@ def build_parser() -> argparse.ArgumentParser:
     work.add_argument("--from-report", help="fit from a stored `--suite calibration` report")
     work.add_argument("--devset", help="a dev-set JSONL to measure instead of the committed one")
     work.add_argument("--items", type=int, help="measure only the first N dev items")
+    work.add_argument("--rows-out", help="write the measured rows (the raw, refittable artifact)")
     work.add_argument("--dry-run", action="store_true")
     work.add_argument("--repeat", type=int, default=1,
                       help="run the whole fit again to show the params hash is identical")

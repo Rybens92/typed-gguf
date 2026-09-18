@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import math
+import pathlib
 
 import pytest
 
@@ -360,34 +361,29 @@ def test_every_type_keeps_at_least_one_row_on_both_sides() -> None:
 
 
 # ---------------------------------------------- the fit, the gate, the table (A-E2p5-1/2/3/6)
-def _calibrated_rows(types: tuple[str, ...] = ("choice",), *, per_type: int = 12,
-                     confidence: float = 0.5) -> list:
-    """Rows whose confidence *is* their accuracy: ECE is exactly zero at temperature 1.0.
+def _flat_rows(types: tuple[str, ...] = ("choice",), *, per_type: int = 12) -> list:
+    """Rows that carry no information: uniform probabilities, half of them labelled right.
 
-    Half the rows hit and half miss, and every row reports the same confidence, so any move away
-    from the identity makes the ECE worse — the fit has to choose "no calibration".
+    Every candidate is equally likely, so *every* confidence statistic — `normalized_peak`,
+    `entropy` and `margin` — reports 0 for each row at any temperature, while the accuracy is 0.5:
+    the ECE is 0.5 everywhere and the fit can only choose the identity (ties break towards it).
+    That is the honest "there is nothing to learn here" fixture — a type that is *already* right
+    cannot be improved, and the gate must say so instead of picking up a statistic nobody asked
+    about.
     """
     items = []
     for offset, qtype in enumerate(types):
         for index in range(per_type):
             hit = index % 2 == 0
             if qtype == "choice":
-                peak = 1 / 3 + (2 / 3) * confidence
-                probabilities = {"billing": peak, "api": (1 - peak) * 2 / 3,
-                                 "sales": (1 - peak) / 3}
-                expected = "billing"
-                got = "billing" if hit else "api"
-                if not hit:               # the miss must be the argmax failure, not the peak
-                    probabilities = {"billing": (1 - peak) * 2 / 3, "api": peak,
-                                     "sales": (1 - peak) / 3}
+                probabilities = {"billing": 1 / 3, "api": 1 / 3, "sales": 1 / 3}
+                expected, got = ("billing", "billing") if hit else ("api", "billing")
             else:
-                peak = 0.5 + 0.5 * confidence
-                probabilities = {"yes": peak if hit else 1 - peak,
-                                 "no": (1 - peak) if hit else peak}
-                expected, got = "yes", ("yes" if hit else "no")
+                probabilities = {"yes": 0.5, "no": 0.5}
+                expected, got = ("yes", "yes") if hit else ("no", "yes")
             items.append({
-                "id": f"cal-{qtype}-{offset}-{index:02d}", "type": qtype, "expected": expected,
-                "got": got, "correct": hit, "confidence": confidence, "coverage": 0.9,
+                "id": f"flat-{qtype}-{offset}-{index:02d}", "type": qtype, "expected": expected,
+                "got": got, "correct": hit, "confidence": 0.0, "coverage": 0.9,
                 "reliability": "ok", "probabilities": probabilities,
             })
     return [calibrate.Row.from_item(item) for item in items]
@@ -398,7 +394,12 @@ def test_the_fit_produces_one_temperature_per_question_type() -> None:
                                 model_key="sha256:test")
     assert set(table.types) == {"choice", "noul"}
     assert all(entry.temperature > 0 for entry in table.types.values())
-    assert table.mode == readout.DEFAULT_CONFIDENCE_MODE == "normalized_peak"
+    # the documented default: fit every mode, keep `normalized_peak` unless another wins by the
+    # margin (A-E2p5-3)
+    assert table.mode == calibrate.MODE_AUTO
+    assert set(table.modes) == set(readout.CONFIDENCE_MODES)
+    for entry in table.types.values():
+        assert entry.mode == readout.DEFAULT_CONFIDENCE_MODE
 
 
 def test_the_gate_accepts_a_miscalibrated_type_on_the_held_out_split() -> None:
@@ -413,7 +414,7 @@ def test_the_gate_accepts_a_miscalibrated_type_on_the_held_out_split() -> None:
 
 
 def test_a_type_that_is_already_calibrated_reports_no_calibration_applied() -> None:
-    table = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="sha256:test")
+    table = calibrate.fit_table(_flat_rows(per_type=18), model_key="sha256:test")
     entry = table.types["choice"]
     assert entry.accepted is False
     assert entry.temperature == 1.0
@@ -439,17 +440,18 @@ def _renamed(rows: list, prefix: str) -> list:
 def test_a_fit_that_does_not_survive_the_holdout_is_rejected() -> None:
     """The gate is the held-out split, not the fit split: a correction that only fits wins nothing.
 
-    The fit half is miscalibrated (so a temperature other than 1.0 is chosen) while the held-out
-    half is already honest — applying the fitted temperature there makes the ECE worse, which is
-    exactly the case "record the score and apply nothing" exists for.
+    The fit half is miscalibrated (so a temperature other than 1.0 is proposed) while the held-out
+    half carries no information at all — applying the fitted temperature there changes nothing for
+    the better, which is exactly the case "record the score and apply nothing" exists for.
     """
     rows = (_renamed(_fit_rows(("choice",), per_type=12, temperature=2.0), "a")
-            + _renamed(_calibrated_rows(per_type=6), "z"))
+            + _renamed(_flat_rows(per_type=6), "z"))
     table = calibrate.fit_table(rows, model_key="sha256:test")
     entry = table.types["choice"]
-    assert entry.temperature != 1.0
+    assert entry.modes[entry.mode]["temperature"] != 1.0      # the fit did propose something
     assert entry.accepted is False
-    assert "held-out split did not improve" in entry.reason
+    assert entry.temperature == 1.0
+    assert entry.reason == "no calibration applied: the held-out split did not improve"
     assert table.accepted is False
 
 
@@ -469,15 +471,116 @@ def test_the_report_measures_all_three_confidence_modes() -> None:
     for name, report in modes.items():
         assert report["mode"] == name
         assert {"ece_fit_before", "ece_fit_after", "ece_holdout_before", "ece_holdout_after",
-                "agreement_holdout_before", "agreement_holdout_after"} <= set(report)
-    assert table.mode == "normalized_peak"
-    assert table.to_json()["mode"] == "normalized_peak"
+                "agreement_holdout_before", "agreement_holdout_after", "temperature",
+                "eligible", "selected", "holdout_ece_improvement"} <= set(report)
+    assert table.mode == calibrate.MODE_AUTO
+    assert table.to_json()["mode"] == calibrate.MODE_AUTO
+    assert table.types["choice"].mode == readout.DEFAULT_CONFIDENCE_MODE
+
+
+# ------------------------------------------------- the mode selection (A-E2p5-3)
+def _mode_case(holdout_before: float, holdout_after: float,
+               temperature: float = 1.5) -> dict:
+    return {"temperature": temperature, "holdout_before": {"ece": holdout_before},
+            "holdout_after": {"ece": holdout_after}}
+
+
+def test_the_selection_rule_keeps_the_default_whenever_it_is_eligible() -> None:
+    per_mode = {"normalized_peak": _mode_case(0.30, 0.20),
+                "entropy": _mode_case(0.30, 0.05),        # better, but the default is eligible
+                "margin": _mode_case(0.30, 0.29)}
+    assert calibrate._select_mode(per_mode, default="normalized_peak") == ("normalized_peak", "")
+
+
+def test_the_selection_rule_switches_only_when_the_margin_is_met() -> None:
+    """A switch is user-visible: it has to beat the identity by more than the documented margin."""
+    below = {"normalized_peak": _mode_case(0.30, 0.30),
+             "entropy": _mode_case(0.30, 0.30 - 0.003),
+             "margin": _mode_case(0.30, 0.30)}
+    selected, reason = calibrate._select_mode(below, default="normalized_peak", margin=0.005)
+    assert selected is None and "margin a mode switch needs" in reason
+    above = {"normalized_peak": _mode_case(0.30, 0.31),
+             "entropy": _mode_case(0.30, 0.28),           # 0.02 > 0.005
+             "margin": _mode_case(0.30, 0.30)}
+    assert calibrate._select_mode(above, default="normalized_peak", margin=0.005)[0] == "entropy"
+
+
+def test_the_selection_rule_reports_the_identity_when_no_mode_moved() -> None:
+    same = {name: _mode_case(0.3, 0.3, 1.0) for name in readout.CONFIDENCE_MODES}
+    selected, reason = calibrate._select_mode(same, default="normalized_peak")
+    assert selected is None and "identity" in reason
+
+
+def test_the_selection_rule_reports_a_plain_holdout_rejection() -> None:
+    worse = {"normalized_peak": _mode_case(0.30, 0.44, 2.2),
+             "entropy": _mode_case(0.30, 0.31, 1.5),
+             "margin": _mode_case(0.30, 0.31, 2.0)}
+    selected, reason = calibrate._select_mode(worse, default="normalized_peak")
+    assert selected is None
+    assert reason == "no calibration applied: the held-out split did not improve"
+
+
+def test_the_fit_accepts_a_type_only_with_an_eligible_selected_mode() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice", "noul"), per_type=18, temperature=2.0),
+                                model_key="sha256:test")
+    for name, entry in table.types.items():
+        assert entry.mode in readout.CONFIDENCE_MODES
+        if entry.accepted:
+            assert entry.modes[entry.mode]["eligible"] is True
+            assert entry.modes[entry.mode]["selected"] is True
+            assert entry.temperature == entry.modes[entry.mode]["temperature"]
+        else:
+            assert entry.temperature == 1.0, name
+            assert entry.modes[entry.mode]["selected"] is False
+
+
+def test_an_explicit_mode_is_fitted_alone_and_keeps_its_name() -> None:
+    table = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
+                                model_key="sha256:test", mode="entropy")
+    assert table.mode == "entropy"
+    assert set(table.types["choice"].modes) == {"entropy"}
+
+
+def test_an_unknown_mode_is_refused() -> None:
+    with pytest.raises(KeyError):
+        calibrate.fit_table(_fit_rows(("choice",), per_type=18), model_key="sha256:test",
+                            mode="vibes")
+
+
+# ------------------------------------- the live 0.8B rows, refit (A-E2p5-2/3 evidence pin)
+EVIDENCE_ROWS = (pathlib.Path(__file__).resolve().parents[1]
+                 / "docs" / "evidence" / "e2p5_rows_qwen08.json")
+QWEN_KEY = "file:Qwen3.5-0.8B-UD-Q4_K_XL.gguf:558772480"
+
+
+def test_the_live_rows_accept_exactly_one_type_and_switch_that_type_to_entropy() -> None:
+    """The measured rows (docs/evidence), refit: the gate keeps only what survives the holdout.
+
+    `score` is the type whose held-out ECE improves — and only under the `entropy` statistic, which
+    is why the mode selection exists at all; `choice` and `noul` are rejected (the fit chose the
+    identity there, and `margin`'s +0.003 improvement on `choice` is under the margin a switch
+    needs). Pinned so a change to the gate has to face the published data.
+    """
+    if not EVIDENCE_ROWS.exists():            # a checkout without the evidence artifacts
+        pytest.skip("docs/evidence/e2p5_rows_qwen08.json is not present")
+    table = calibrate.fit_table(calibrate.load_rows(EVIDENCE_ROWS), model_key=QWEN_KEY)
+    assert table.accepted_types == ("score",)
+    assert table.types["score"].mode == "entropy"
+    assert table.types["score"].temperature == pytest.approx(1.6475, abs=0.002)
+    assert table.types["score"].holdout_before["ece"] == pytest.approx(0.4672, abs=0.001)
+    assert table.types["score"].holdout_after["ece"] == pytest.approx(0.4479, abs=0.001)
+    assert table.types["choice"].accepted is False
+    assert table.types["choice"].modes["margin"]["holdout_ece_improvement"] == pytest.approx(
+        0.0031, abs=0.001)
+    assert table.types["noul"].accepted is False
+    assert table.params_hash.startswith("sha256:")
+    assert table.to_json()["accepted"] is True
 
 
 def test_the_table_applies_only_to_accepted_types() -> None:
     accepted = calibrate.fit_table(_fit_rows(("choice",), per_type=18, temperature=2.0),
                                    model_key="sha256:test")
-    rejected = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="sha256:test")
+    rejected = calibrate.fit_table(_flat_rows(per_type=18), model_key="sha256:test")
     probabilities = [0.6, 0.3, 0.1]
     applied = accepted.apply(probabilities, "choice")
     untouched = rejected.apply(probabilities, "choice")
@@ -560,7 +663,7 @@ def test_the_store_round_trips_one_table(tmp_path) -> None:
 
 
 def test_nothing_is_stored_when_no_type_was_accepted(tmp_path) -> None:
-    table = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="sha256:test")
+    table = calibrate.fit_table(_flat_rows(per_type=18), model_key="sha256:test")
     path = tmp_path / "calibration.json"
     assert calibrate.save_table(path, table) is None
     assert not path.exists()
@@ -576,7 +679,7 @@ def test_a_rejected_fit_retires_a_previously_stored_table(tmp_path) -> None:
     assert calibrate.save_table(path, good) == path
     assert calibrate.save_table(path, other) == path
     assert calibrate.load_table(path, "sha256:test") is not None
-    rejected = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="sha256:test")
+    rejected = calibrate.fit_table(_flat_rows(per_type=18), model_key="sha256:test")
     assert calibrate.save_table(path, rejected) is None
     assert calibrate.load_table(path, "sha256:test") is None
     assert calibrate.load_table(path, "sha256:other") is not None
@@ -653,7 +756,7 @@ def test_the_calibrate_command_reports_when_nothing_was_stored(tmp_path, monkeyp
     from ggufone.registry import store
     home = tmp_path / "home"
     monkeypatch.setenv("GGUFONE_HOME", str(home))
-    items = [row.to_json() for row in _calibrated_rows(per_type=18)]
+    items = [row.to_json() for row in _flat_rows(per_type=18)]
     report = _report_file(tmp_path, items)
     code = cli.main(["calibrate", "--model", str(_model_file(tmp_path)),
                      "--from-report", str(report)])
@@ -669,9 +772,8 @@ def test_the_calibrate_command_needs_a_model(tmp_path, monkeypatch, capsys) -> N
     assert "E_MODEL_NOT_FOUND" in capsys.readouterr().err
 
 
-def test_the_calibrate_command_measures_the_committed_dev_set_without_a_report(
-        tmp_path, monkeypatch, capsys) -> None:
-    """Without `--from-report` the dev set is re-measured through the serving path."""
+def _fake_serving_path(monkeypatch, tmp_path) -> None:
+    """Patch the model out of `calibrate`'s live path: the same code, a deterministic session."""
     import contextlib
 
     from ggufone import cli
@@ -694,6 +796,38 @@ def test_the_calibrate_command_measures_the_committed_dev_set_without_a_report(
     monkeypatch.setattr(cli.session_module, "ModelSession", fake_session)
     monkeypatch.setattr(cli.session_module, "runtime_backend", lambda home=None: "cpu")
     monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+
+
+def test_the_calibrate_command_writes_the_measured_rows_and_refits_them_identically(
+        tmp_path, monkeypatch, capsys) -> None:
+    """`--out` is the raw artifact: the same rows refit from the file give the same params hash."""
+    from ggufone import cli
+    from ggufone.registry import store
+    _fake_serving_path(monkeypatch, tmp_path)
+    rows_out = tmp_path / "rows.json"
+    model = _model_file(tmp_path)
+    code = cli.main(["calibrate", "--model", str(model), "--items", "18",
+                     "--out", str(rows_out), "--json"])
+    first = json.loads(capsys.readouterr().out)
+    assert rows_out.exists()
+    rows = json.loads(rows_out.read_text(encoding="utf-8"))
+    assert rows["suite"] == "calibration" and len(rows["items"]) == 18
+    assert code == (0 if first["accepted"] else 1)
+    # refit the very same rows from disk: the stored artifact must reproduce the parameters
+    code = cli.main(["calibrate", "--model", str(model), "--from-report", str(rows_out),
+                     "--json"])
+    second = json.loads(capsys.readouterr().out)
+    assert code == (0 if second["accepted"] else 1)
+    assert second["params_hash"] == first["params_hash"]
+    assert second["params"]["types"] == first["params"]["types"]
+    assert store.calibration_path(tmp_path / "home").exists() == first["accepted"]
+
+
+def test_the_calibrate_command_measures_the_committed_dev_set_without_a_report(
+        tmp_path, monkeypatch, capsys) -> None:
+    """Without `--from-report` the dev set is re-measured through the serving path."""
+    from ggufone import cli
+    _fake_serving_path(monkeypatch, tmp_path)
     code = cli.main(["calibrate", "--model", str(_model_file(tmp_path)), "--items", "18",
                      "--dry-run", "--json"])
     assert code == 0
@@ -714,13 +848,14 @@ def _choice_request(options: dict | None = None):
     return schema.parse_request(payload)
 
 
-def _biased_session():
+def _biased_session(labels: tuple[str, ...] = ("billing", "api", "sales")):
     from tests.fake_engine import FakeSession, biased_row
     session = FakeSession(n_vocab=512)
-    ids = {"billing": session.tokenize("billing")[0], "api": session.tokenize("api")[0],
-           "sales": session.tokenize("sales")[0]}
-    session.row_fn = lambda ctx, ids=ids, session=session: biased_row(
-        session.n_vocab, {ids["billing"]: 6.0, ids["api"]: 6.0 - 0.7, ids["sales"]: 6.0 - 3.0})
+    biases = {}
+    for index, label in enumerate(labels):
+        biases[session.tokenize(label)[0]] = 6.0 - 0.7 * index
+    session.row_fn = lambda ctx, biases=biases, session=session: biased_row(session.n_vocab,
+                                                                           biases)
     return session
 
 
@@ -754,10 +889,44 @@ def test_a_calibrated_table_scales_the_readout_and_marks_the_response() -> None:
 
 def test_the_engine_ignores_a_table_that_was_never_accepted() -> None:
     from ggufone.engine import decide
-    table = calibrate.fit_table(_calibrated_rows(per_type=18), model_key="file:tiny.gguf:36")
+    table = calibrate.fit_table(_flat_rows(per_type=18), model_key="file:tiny.gguf:36")
     payload = decide.DecisionEngine(_biased_session(), calibration=table).decide(
         _choice_request()).payload()
     assert table.accepted is False
     assert payload["calibrated"] is False
     assert payload["calibration"]["source"] == ""
     assert payload["calibration"]["applied"] is False
+
+
+def _score_request(confidence_mode: str | None = None):
+    from ggufone import schema
+    payload = {"state": "The checkout page returns HTTP 500 for every customer.",
+               "questions": {"sev": {"type": "score",
+                                     "criteria": ["cosmetic", "degraded", "blocking"]}}}
+    if confidence_mode is not None:
+        payload["options"] = {"confidence_mode": confidence_mode}
+    return schema.parse_request(payload)
+
+
+def test_a_promoted_mode_is_the_reported_statistic_unless_the_request_names_one() -> None:
+    """A-E2p5-3 with the live table: `score` was accepted under `entropy`, so that is its
+    confidence — and an explicit `confidence_mode` in the request still wins."""
+    from ggufone.engine import decide
+    table = calibrate.fit_table(calibrate.load_rows(EVIDENCE_ROWS), model_key=QWEN_KEY)
+    assert table.mode_for("score") == "entropy"
+    payload = decide.DecisionEngine(_biased_session(("0", "1", "2")),
+                                    calibration=table).decide(_score_request()).payload()
+    probabilities = list(payload["answers"]["sev"]["probabilities"].values())
+    assert payload["calibration"]["confidence_modes"] == {"score": "entropy"}
+    assert payload["calibration"]["temperatures"]["score"] == table.types["score"].temperature
+    assert payload["answers"]["sev"]["confidence"] == pytest.approx(
+        readout.confidence(probabilities, "entropy"))
+    assert payload["answers"]["sev"]["confidence"] != pytest.approx(
+        readout.confidence(probabilities, "normalized_peak"))
+    named = decide.DecisionEngine(_biased_session(("0", "1", "2")),
+                                  calibration=table).decide(
+        _score_request("normalized_peak")).payload()
+    assert named["calibration"]["confidence_modes"] == {"score": "normalized_peak"}
+    assert named["answers"]["sev"]["confidence"] == pytest.approx(
+        readout.confidence(list(named["answers"]["sev"]["probabilities"].values()),
+                           "normalized_peak"))

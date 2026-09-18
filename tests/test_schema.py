@@ -42,7 +42,11 @@ def test_choice_request_parses_with_the_documented_defaults() -> None:
     assert question.descriptions == ("all users down", "a typo")
     options = parsed.options
     assert (options.temperature, options.length_norm, options.readout) == (1.0, 1.0, "sequence")
-    assert options.confidence_mode == "normalized_peak"
+    # `None` = "the documented default" (`normalized_peak`), which is what the readout uses
+    # unless a stored calibration promoted another statistic for the question type (E2.5,
+    # A-E2p5-3). An explicit mode always wins over a promotion.
+    assert options.confidence_mode is None
+    assert schema.Options().confidence_mode is None
     assert options.coverage_floor == 0.10
     assert options.kv_type == "auto" and options.n_ctx is None and options.n_seq_max is None
     assert options.state_cache is True and options.save_state is False and options.strict is False

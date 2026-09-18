@@ -35,6 +35,12 @@ MIN_FIT_ROWS = 8
 MIN_HOLDOUT_ROWS = 3
 #: the ECE improvement an accepted fit must show on the held-out split (absolute)
 ACCEPT_EPSILON = 1e-6
+#: how much better a non-default confidence mode must be on the held-out split to be selected
+#: at all (A-E2p5-3: "the default stays normalized_peak unless a mode wins by a documented
+#: margin" — a switch is a user-visible change and must be worth more than noise)
+MODE_MARGIN = 0.005
+#: "fit every documented mode, then pick one with the rule above"
+MODE_AUTO = "auto"
 HOLDOUT_FRACTION = 1 / 3
 QUESTION_TYPES = ("choice", "score", "noul")
 
@@ -54,6 +60,9 @@ class Row:
     expected: str = ""
     got: str = ""
     model: str = ""
+    #: the engine's own `reliability` (ok | low_mass | low_confidence) — the escalation policy
+    #: reads it, so the row keeps it instead of dropping it at the fit boundary
+    reliability: str = ""
 
     @property
     def correct_index(self) -> int | None:
@@ -61,6 +70,12 @@ class Row:
         if self.expected and self.expected in self.labels:
             return self.labels.index(self.expected)
         return None
+
+    def as_answer(self) -> dict[str, Any]:
+        """The row as an `answers`-shaped object (what `routing.escalation_candidates` reads)."""
+        return {"type": self.type,
+                "probabilities": dict(zip(self.labels, self.probabilities, strict=True)),
+                "confidence": self.confidence, "reliability": self.reliability}
 
     @classmethod
     def from_item(cls, item: Mapping[str, Any], *, model: str = "") -> Row:
@@ -81,12 +96,12 @@ class Row:
                    coverage=(float(item["coverage"]) if item.get("coverage") is not None else None),
                    expected=expected or (labels[readout.argmax_first(values)] if labels else ""),
                    got=got or (labels[readout.argmax_first(values)] if labels else ""),
-                   model=model)
+                   model=model, reliability=str(item.get("reliability") or ""))
 
     def to_json(self) -> dict[str, Any]:
         return {"id": self.id, "type": self.type, "correct": self.correct,
                 "confidence": self.confidence, "coverage": self.coverage,
-                "expected": self.expected, "got": self.got,
+                "reliability": self.reliability, "expected": self.expected, "got": self.got,
                 "probabilities": dict(zip(self.labels, self.probabilities, strict=True))}
 
 
@@ -207,12 +222,47 @@ class TypeFit:
         return float(self.holdout_before["ece"]) - float(self.holdout_after["ece"])
 
 
+def _select_mode(per_mode: Mapping[str, Mapping[str, Any]], *, default: str,
+                 margin: float = MODE_MARGIN) -> tuple[str | None, str]:
+    """Which confidence mode the parameter was accepted with — `None` when none was (A-E2p5-3).
+
+    `per_mode[mode]` carries `holdout_before`, `holdout_after` and `temperature` for that mode's
+    *own* fitted parameter. The rule, in order:
+
+    1. a mode is **eligible** when its own held-out ECE improves (by more than `ACCEPT_EPSILON`);
+    2. the default mode wins whenever it is eligible (it is the documented default);
+    3. otherwise the best eligible mode is selected only when it beats the identity by at least
+       `margin` — a switch is a user-visible change and does not happen on noise;
+    4. when the fit chose the identity everywhere, the answer is "no calibration applied" with
+       that stated as the reason.
+    """
+    improvements = {
+        name: float(report["holdout_before"]["ece"]) - float(report["holdout_after"]["ece"])
+        for name, report in per_mode.items()}
+    identity_everywhere = all(
+        float(report["temperature"]) == 1.0 for report in per_mode.values())
+    eligible = {name: value for name, value in improvements.items() if value > ACCEPT_EPSILON}
+    if default in eligible:
+        return default, ""
+    best = max(eligible.items(), key=lambda item: (item[1], item[0] == default,
+                                                   item[0])) if eligible else None
+    if best is not None and best[1] >= margin:
+        return best[0], ""
+    if identity_everywhere:
+        return None, "no calibration applied: the fit chose the identity (temperature 1.0)"
+    if eligible:
+        winner = best[0] if best else default
+        return None, (f"no calibration applied: {winner} improved the held-out ECE by only "
+                      f"{improvements[winner]:.4f} (< the {margin:.4f} margin a mode switch needs)")
+    return None, "no calibration applied: the held-out split did not improve"
+
+
 def _fit_type(qtype: str, fit_rows: Sequence[Row], holdout_rows: Sequence[Row], *,
               mode: str, n_bins: int, grid: Sequence[float],
               min_fit: int, min_holdout: int) -> TypeFit:
-    """One type: fit on the fit split, accept only on the held-out split (A-E2p5-2)."""
-    identity_fit = _evaluate(fit_rows, 1.0, mode=mode, n_bins=n_bins)
-    identity_holdout = _evaluate(holdout_rows, 1.0, mode=mode, n_bins=n_bins)
+    """One type: fit every requested mode, accept on the held-out split (A-E2p5-2/3)."""
+    identity_fit = _evaluate(fit_rows, 1.0, mode=_default_mode(mode), n_bins=n_bins)
+    identity_holdout = _evaluate(holdout_rows, 1.0, mode=_default_mode(mode), n_bins=n_bins)
     too_thin = ""
     if len(fit_rows) < min_fit:
         too_thin = f"too few fit rows ({len(fit_rows)} < {min_fit})"
@@ -220,25 +270,58 @@ def _fit_type(qtype: str, fit_rows: Sequence[Row], holdout_rows: Sequence[Row], 
         too_thin = f"too few held-out rows ({len(holdout_rows)} < {min_holdout})"
     if too_thin:
         return TypeFit(qtype=qtype, temperature=1.0, accepted=False,
-                       reason=f"no calibration applied: {too_thin}", mode=mode,
-                       n_fit=len(fit_rows), n_holdout=len(holdout_rows),
+                       reason=f"no calibration applied: {too_thin}",
+                       mode=_default_mode(mode), n_fit=len(fit_rows), n_holdout=len(holdout_rows),
                        fit_before=identity_fit, fit_after=identity_fit,
                        holdout_before=identity_holdout, holdout_after=identity_holdout,
                        modes=_mode_report(fit_rows, holdout_rows, 1.0, n_bins=n_bins))
 
     usable = [row for row in fit_rows if _index_of(row) is not None]
-    fitted = stats.fit_temperature([row.probabilities for row in usable],
-                                   [int(_index_of(row)) for row in usable],
-                                   grid=grid, mode=mode, n_bins=n_bins)
-    temperature = float(fitted["temperature"])
-    fitted_holdout = _evaluate(holdout_rows, temperature, mode=mode, n_bins=n_bins)
-    accepted, reason = _accept(temperature, identity_holdout, fitted_holdout)
+    per_mode: dict[str, dict[str, Any]] = {}
+    for name in _modes_to_fit(mode):
+        fitted = stats.fit_temperature([row.probabilities for row in usable],
+                                       [int(_index_of(row)) for row in usable],
+                                       grid=grid, mode=name, n_bins=n_bins)
+        temperature = float(fitted["temperature"])
+        per_mode[name] = {
+            "mode": name, "temperature": temperature, "fitted": fitted,
+            "fit_before": _evaluate(fit_rows, 1.0, mode=name, n_bins=n_bins),
+            "fit_after": _evaluate(fit_rows, temperature, mode=name, n_bins=n_bins),
+            "holdout_before": _evaluate(holdout_rows, 1.0, mode=name, n_bins=n_bins),
+            "holdout_after": _evaluate(holdout_rows, temperature, mode=name, n_bins=n_bins),
+        }
+    selected, reason = _select_mode(per_mode, default=_default_mode(mode))
+    if selected is None:
+        return TypeFit(qtype=qtype, temperature=1.0, accepted=False, reason=reason,
+                       mode=_default_mode(mode), n_fit=len(fit_rows), n_holdout=len(holdout_rows),
+                       fit_before=identity_fit, fit_after=identity_fit,
+                       holdout_before=identity_holdout, holdout_after=identity_holdout,
+                       modes=_mode_report(fit_rows, holdout_rows, 1.0, n_bins=n_bins,
+                                          per_mode=per_mode, selected=None))
+    chosen = per_mode[selected]
+    temperature = float(chosen["temperature"])
+    # `_select_mode` only returns a mode whose own held-out ECE improved by more than
+    # ACCEPT_EPSILON, which is exactly what `_accept` re-checks — the call is here for the
+    # *reason* string, and it must agree (a test pins that one implies the other).
+    accepted, reason = _accept(temperature, chosen["holdout_before"], chosen["holdout_after"])
     return TypeFit(qtype=qtype, temperature=temperature, accepted=accepted, reason=reason,
-                   mode=mode, n_fit=len(fit_rows), n_holdout=len(holdout_rows),
-                   fit_before=identity_fit, fit_after=_evaluate(fit_rows, temperature, mode=mode,
-                                                                n_bins=n_bins),
-                   holdout_before=identity_holdout, holdout_after=fitted_holdout,
-                   modes=_mode_report(fit_rows, holdout_rows, temperature, n_bins=n_bins))
+                   mode=selected, n_fit=len(fit_rows), n_holdout=len(holdout_rows),
+                   fit_before=chosen["fit_before"], fit_after=chosen["fit_after"],
+                   holdout_before=chosen["holdout_before"], holdout_after=chosen["holdout_after"],
+                   modes=_mode_report(fit_rows, holdout_rows, temperature, n_bins=n_bins,
+                                      per_mode=per_mode, selected=selected))
+
+
+def _default_mode(mode: str) -> str:
+    return readout.DEFAULT_CONFIDENCE_MODE if mode == MODE_AUTO else mode
+
+
+def _modes_to_fit(mode: str) -> tuple[str, ...]:
+    if mode == MODE_AUTO:
+        return tuple(sorted(readout.CONFIDENCE_MODES))
+    if mode not in readout.CONFIDENCE_MODES:
+        raise KeyError(f"unknown confidence mode {mode!r}")
+    return (mode,)
 
 
 def _accept(temperature: float, before: Mapping[str, Any], after: Mapping[str, Any]
@@ -261,21 +344,31 @@ def _accept(temperature: float, before: Mapping[str, Any], after: Mapping[str, A
 
 
 def _mode_report(fit_rows: Sequence[Row], holdout_rows: Sequence[Row], temperature: float, *,
-                 n_bins: int) -> dict[str, Any]:
-    """A-E2p5-3: every confidence mode measured at the same fitted temperature, in one report.
+                 n_bins: int, per_mode: Mapping[str, Mapping[str, Any]] | None = None,
+                 selected: str | None = None) -> dict[str, Any]:
+    """A-E2p5-3: every confidence mode measured in one report, with its own fitted parameter.
 
-    The temperature is the one fitted for the *active* mode; every other mode is measured at that
-    same parameter, so the three columns of the report differ only by the statistic they apply —
-    a reader can see whether another mode would have won without a second fit.
+    Each mode is evaluated at its **own** fitted temperature (that is the number the selection
+    rule compares) and the report also says whether that mode was eligible and which one was
+    selected. When no per-mode fits exist (too few rows), every mode is measured at the given
+    temperature — the identity there — so the report keeps its three columns.
     """
+    names = sorted(per_mode) if per_mode else sorted(readout.CONFIDENCE_MODES)
     report: dict[str, Any] = {}
-    for name in sorted(readout.CONFIDENCE_MODES):
+    for name in names:
+        measured = per_mode.get(name) if per_mode else None
+        mode_temperature = float(measured["temperature"]) if measured else temperature
         fit_before = _evaluate(fit_rows, 1.0, mode=name, n_bins=n_bins)
-        fit_after = _evaluate(fit_rows, temperature, mode=name, n_bins=n_bins)
+        fit_after = _evaluate(fit_rows, mode_temperature, mode=name, n_bins=n_bins)
         holdout_before = _evaluate(holdout_rows, 1.0, mode=name, n_bins=n_bins)
-        holdout_after = _evaluate(holdout_rows, temperature, mode=name, n_bins=n_bins)
+        holdout_after = _evaluate(holdout_rows, mode_temperature, mode=name, n_bins=n_bins)
+        improvement = float(holdout_before["ece"]) - float(holdout_after["ece"])
         report[name] = {
             "mode": name,
+            "temperature": mode_temperature,
+            "selected": name == selected,
+            "eligible": improvement > ACCEPT_EPSILON,
+            "holdout_ece_improvement": improvement,
             "ece_fit_before": float(fit_before["ece"]),
             "ece_fit_after": float(fit_after["ece"]),
             "ece_holdout_before": float(holdout_before["ece"]),
@@ -316,6 +409,8 @@ class Table:
     n_bins: int = stats.N_BINS
     created_at: str = ""
     source: str = ""                      # where it was loaded from ("" = never stored)
+    #: the confidence modes this fit was asked for (MODE_AUTO = all of them)
+    modes: tuple[str, ...] = ()
 
     @property
     def accepted_types(self) -> tuple[str, ...]:
@@ -331,6 +426,7 @@ class Table:
         return {
             "model": self.model,
             "mode": self.mode,
+            "modes": list(self.modes),
             "holdout_fraction": self.holdout_fraction,
             "n_bins": self.n_bins,
             "devset_digest": self.devset_digest,
@@ -342,6 +438,18 @@ class Table:
     def params_hash(self) -> str:
         return stats.params_hash(self.params)
 
+    def mode_for(self, qtype: str) -> str | None:
+        """The confidence statistic this type's parameter was accepted with, or None.
+
+        A-E2p5-3: the default stays `normalized_peak` unless another mode won by the documented
+        margin — when one did, that statistic *is* the readout's confidence for the type (a
+        parameter that improves a statistic nobody reports would be pointless).
+        """
+        entry = self.types.get(qtype)
+        if entry is None or not entry.accepted:
+            return None
+        return entry.mode
+
     def temperature_for(self, qtype: str) -> float | None:
         entry = self.types.get(qtype)
         if entry is None or not entry.accepted:
@@ -350,18 +458,24 @@ class Table:
 
     def apply(self, probabilities: Sequence[float], qtype: str, *,
               mode: str | None = None) -> dict[str, Any]:
-        """The readout hook: scale one question's probabilities (never its ranking)."""
-        confidence_mode = mode or self.mode
+        """The readout hook: scale one question's probabilities (never its ranking).
+
+        `mode` is the statistic the *confidence* is computed with: the caller's explicit choice
+        wins, otherwise the statistic this type was accepted with, otherwise the documented
+        default (`normalized_peak`).
+        """
+        confidence_mode = mode or self.mode_for(qtype) or readout.DEFAULT_CONFIDENCE_MODE
         values = [float(value) for value in probabilities]
         temperature = self.temperature_for(qtype)
         if temperature is None:
             return {"probabilities": values, "temperature": 1.0, "calibrated": False,
                     "confidence": readout.confidence(values, confidence_mode),
-                    "source": self.source, "params_hash": self.params_hash if self.accepted else ""}
+                    "mode": confidence_mode, "source": self.source,
+                    "params_hash": self.params_hash if self.accepted else ""}
         scaled = stats.power_scale(values, temperature)
         return {"probabilities": scaled, "temperature": temperature, "calibrated": True,
                 "confidence": readout.confidence(scaled, confidence_mode),
-                "source": self.source, "params_hash": self.params_hash}
+                "mode": confidence_mode, "source": self.source, "params_hash": self.params_hash}
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -372,6 +486,7 @@ class Table:
             "model_sha256": self.model_sha256,
             "alias": self.alias,
             "mode": self.mode,
+            "modes": list(self.modes),
             "accepted": self.accepted,
             "accepted_types": list(self.accepted_types),
             "holdout_fraction": self.holdout_fraction,
@@ -398,22 +513,29 @@ class Table:
             devset_digest=str((payload.get("devset") or {}).get("digest", "")),
             holdout_fraction=float(payload.get("holdout_fraction", HOLDOUT_FRACTION)),
             n_bins=int(payload.get("n_bins", stats.N_BINS)),
+            modes=tuple(payload.get("modes") or ()),
             created_at=str(payload.get("created_at", "")),
             source=source)
 
-    def response_fields(self, applied: Sequence[str] = ()) -> dict[str, Any]:
+    def response_fields(self, applied: Mapping[str, str] | Sequence[str] = ()) -> dict[str, Any]:
         """The response's `calibration` block (A-E2p5-1): what was applied, and its source.
 
-        `source` is the store the table was read from, so a caller can tell a calibrated answer
-        from an uncalibrated one without guessing; `applied` is true only when at least one
-        question type really was rescaled (`applied` lists exactly those types).
+        `applied` maps the question types that were really rescaled to the confidence statistic
+        that was *actually used* in this response (which is the caller's explicit choice when the
+        request named one, not necessarily the promoted one) — so a reader can tell what the
+        numbers in `answers` mean without guessing. `source` is the store the table was read from.
         """
+        modes = dict(applied) if isinstance(applied, Mapping) else {
+            name: self.types[name].mode for name in applied if name in self.types}
+        names = sorted(modes)
         return {
             "source": self.source if self.accepted else "",
-            "applied": bool(applied),
+            "applied": bool(names),
             "model": self.model if self.accepted else None,
             "params_hash": self.params_hash if self.accepted else "",
-            "temperatures": {name: self.types[name].temperature for name in sorted(set(applied))},
+            "temperatures": {name: self.types[name].temperature for name in names
+                             if name in self.types},
+            "confidence_modes": {name: modes[name] for name in names},
             "accepted_types": list(self.accepted_types),
         }
 
@@ -440,15 +562,19 @@ class Table:
 
 def fit_table(rows: Sequence[Row], *, model_key: str, model_path: str = "",
               model_sha256: str = "", alias: str | None = None, devset_path: str = "",
-              mode: str = readout.DEFAULT_CONFIDENCE_MODE,
+              mode: str = MODE_AUTO,
               n_bins: int = stats.N_BINS, grid: Sequence[float] = stats.DEFAULT_GRID,
               holdout_fraction: float = HOLDOUT_FRACTION, min_fit: int = MIN_FIT_ROWS,
               min_holdout: int = MIN_HOLDOUT_ROWS) -> Table:
-    """Fit every question type present in `rows` and build the table (A-E2p5-1/2/3/6)."""
+    """Fit every question type present in `rows` and build the table (A-E2p5-1/2/3/6).
+
+    `mode` is a confidence statistic (`normalized_peak` / `entropy` / `margin`) or `"auto"`, the
+    default: fit each of the three, then keep the documented default unless another statistic wins
+    by `MODE_MARGIN` on the held-out split (A-E2p5-3).
+    """
     if not rows:
         raise ValueError("fit_table needs at least one row")
-    if mode not in readout.CONFIDENCE_MODES:
-        raise KeyError(f"unknown confidence mode {mode!r}")
+    modes = _modes_to_fit(mode)
     split = split_rows(rows, holdout_fraction=holdout_fraction)
     types: dict[str, TypeFit] = {}
     for qtype in sorted({row.type for row in rows}):
@@ -461,7 +587,8 @@ def fit_table(rows: Sequence[Row], *, model_key: str, model_path: str = "",
                  model_sha256=model_sha256, alias=alias, devset_path=devset_path,
                  devset_items=len(rows), devset_digest=_devset_digest(rows),
                  holdout_fraction=holdout_fraction, n_bins=n_bins,
-                 created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+                 created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                 modes=tuple(modes))
 
 
 # ------------------------------------------------------------------ the store

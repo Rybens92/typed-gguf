@@ -275,7 +275,8 @@ class DecisionEngine:
         #: contract) or None. Imported structurally so the engine keeps its zero-dependency
         #: surface — the table arrives from the CLI, already resolved for this model.
         self.calibration = calibration
-        self.calibrated_types: set[str] = set()
+        #: question type -> the confidence statistic this response actually reported for it
+        self.calibrated_types: dict[str, str] = {}
         self.batches: list[Batch] = []      # every decode issued for this engine (the spy)
         self.forks = 0
 
@@ -370,13 +371,26 @@ class DecisionEngine:
 
     def _calibration_surface(self) -> dict[str, Any]:
         """The response's `calibrated` / `calibration` block (A-E2p5-1), never guessed."""
-        applied = sorted(self.calibrated_types)
         if self.calibration is None:
             return {"source": "", "applied": False, "model": None, "params_hash": "",
-                    "temperatures": {}, "accepted_types": []}
-        return self.calibration.response_fields(applied)
+                    "temperatures": {}, "confidence_modes": {}, "accepted_types": []}
+        return self.calibration.response_fields(self.calibrated_types)
 
     # ---- guards
+    def _confidence_mode(self, qtype: str, options: schema.Options) -> str:
+        """The statistic the answer's `confidence` is computed with (E2.5 / A-E2p5-3).
+
+        An explicit `options.confidence_mode` always wins; otherwise a stored calibration that
+        promoted a mode for this question type supplies it; otherwise the documented default.
+        """
+        if options.confidence_mode:
+            return options.confidence_mode
+        if self.calibration is not None:
+            promoted = self.calibration.mode_for(qtype)
+            if promoted:
+                return promoted
+        return readout.DEFAULT_CONFIDENCE_MODE
+
     def _calibrate(self, probabilities: list[float], qtype: str, mode: str
                    ) -> tuple[list[float], float]:
         """E2.5 (SPEC 2.10): scale one question's probabilities, never its ranking.
@@ -392,7 +406,7 @@ class DecisionEngine:
         applied = self.calibration.apply(probabilities, qtype, mode=mode)
         if not applied["calibrated"]:
             return probabilities, readout.confidence(probabilities, mode)
-        self.calibrated_types.add(qtype)
+        self.calibrated_types[qtype] = str(applied.get("mode") or mode)
         return list(applied["probabilities"]), float(applied["confidence"])
 
     @staticmethod
@@ -453,8 +467,8 @@ class DecisionEngine:
              for values in logprobs]
         probabilities = readout.restricted_softmax(z, options.temperature)
         coverage = min(1.0, coverage)
-        probabilities, confidence_value = self._calibrate(probabilities, question.type,
-                                                          options.confidence_mode)
+        mode = self._confidence_mode(question.type, options)
+        probabilities, confidence_value = self._calibrate(probabilities, question.type, mode)
         reliability = readout.reliability(coverage, coverage_floor=coverage_floor,
                                           confidence_floor=self.confidence_floor,
                                           confidence_value=confidence_value)

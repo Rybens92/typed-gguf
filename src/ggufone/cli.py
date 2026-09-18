@@ -1300,7 +1300,7 @@ CALIBRATE_VALUE_FLAGS = ("model", "out", "from-report", "devset", "items", "hold
 CALIBRATE_BOOL_FLAGS = ("dry-run", "json", "no-fit-cache")
 
 
-def _calibration_rows(options: dict[str, Any], model_path: str) -> tuple[list[Any], str]:
+def calibration_rows(options: dict[str, Any], model_path: str) -> tuple[list[Any], str]:
     """The labelled rows the fit runs on: a committed report, or a live calibration suite.
 
     `--from-report` is the reproducible path (fit without a model, from the JSON `--suite
@@ -1342,8 +1342,23 @@ def _calibration_rows(options: dict[str, Any], model_path: str) -> tuple[list[An
     return rows, path
 
 
+def _rows_payload(rows: list[Any], *, model_path: str, devset: str) -> dict[str, Any]:
+    """The measured rows as a `--suite calibration`-shaped report (feed it back with --from-report).
+
+    This is the raw artifact of a live calibration: the exact distributions the fit ran on, so
+    the fit is reproducible from the file without loading a model again (SPEC 2.10 / A-E2p5-6).
+    """
+    return {"schema": "ggufone.bench/v1", "suite": "calibration",
+            "produced_by": "ggufone calibrate", "model_path": model_path, "devset": devset,
+            "items": [row.to_json() for row in rows]}
+
+
 def _cmd_calibrate(args: list[str]) -> int:
     """`ggufone calibrate [--model REF] [--dry-run]` (SPEC 2.8/2.10, A-E2p5-1..3/6).
+
+    `--out FILE` writes the measured rows (the reproducible raw artifact, readable back with
+    `--from-report`); the fitted table goes to stdout (or `--json`) and, unless `--dry-run`, into
+    the data home's `calibration.json`.
 
     Exit 0 = a table was fitted (and stored unless `--dry-run`), 1 = the fit was rejected and
     nothing was stored, 2 = user error, 3 = runtime/model error.
@@ -1353,27 +1368,32 @@ def _cmd_calibrate(args: list[str]) -> int:
     if positionals:
         raise UserError(f"unexpected argument {positionals[0]!r}", code="E_UNKNOWN_KEY")
     alias, model_path = _resolve_model_ref(options.get("model"))
-    rows, devset = _calibration_rows(options, model_path)
+    rows, devset = calibration_rows(options, model_path)
     table = calibration_module.fit_table(
         rows, model_key=calibration_module.model_key_for(model_path), model_path=model_path,
         alias=alias, devset_path=devset,
         mode=options.get("mode", calibration_module.readout.DEFAULT_CONFIDENCE_MODE),
         holdout_fraction=float(options.get("holdout", calibration_module.HOLDOUT_FRACTION)))
+    out = options.get("out")
+    if out:
+        pathlib.Path(out).write_text(json.dumps(
+            _rows_payload(rows, model_path=model_path, devset=devset), indent=2, sort_keys=False)
+            + "\n", encoding="utf-8")
     if options.get("dry_run"):
         print(json.dumps(table.to_json(), indent=2, sort_keys=False) if options.get("json")
               else calibration_module.render_table(table))
+        if out:
+            print(f"rows: {out}")
         return 0
     stored = calibration_module.save_table(store.calibration_path(), table)
-    out = options.get("out")
-    if out:
-        pathlib.Path(out).write_text(json.dumps(table.to_json(), indent=2, sort_keys=False)
-                                     + "\n", encoding="utf-8")
     if options.get("json"):
         print(json.dumps(table.to_json(), indent=2, sort_keys=False))
     else:
         print(calibration_module.render_table(table))
         if stored:
             print(f"stored: {stored}")
+        if out:
+            print(f"rows: {out}")
     return 0 if stored else 1
 
 

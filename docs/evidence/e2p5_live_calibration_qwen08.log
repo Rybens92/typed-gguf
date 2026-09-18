@@ -1,0 +1,145 @@
+load_backend: loaded RPC backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 187.1047 MiB, matches expectation of 187.1047 MiB
+~llama_context:        CPU compute buffer size is 176.5584 MiB, matches expectation of 176.5584 MiB
+~llama_context:        CPU compute buffer size is 173.7049 MiB, matches expectation of 173.7049 MiB
+~llama_context:        CPU compute buffer size is 176.5584 MiB, matches expectation of 176.5584 MiB
+~llama_context:        CPU compute buffer size is 163.1169 MiB, matches expectation of 163.1169 MiB
+~llama_context:        CPU compute buffer size is 161.2146 MiB, matches expectation of 161.2146 MiB
+~llama_context:        CPU compute buffer size is 166.0121 MiB, matches expectation of 166.0121 MiB
+~llama_context:        CPU compute buffer size is 181.3560 MiB, matches expectation of 181.3560 MiB
+~llama_context:        CPU compute buffer size is 165.0609 MiB, matches expectation of 165.0609 MiB
+~llama_context:        CPU compute buffer size is 169.8585 MiB, matches expectation of 169.8585 MiB
+~llama_context:        CPU compute buffer size is 176.5584 MiB, matches expectation of 176.5584 MiB
+~llama_context:        CPU compute buffer size is 168.9073 MiB, matches expectation of 168.9073 MiB
+~llama_context:        CPU compute buffer size is 164.1098 MiB, matches expectation of 164.1098 MiB
+~llama_context:        CPU compute buffer size is 178.5024 MiB, matches expectation of 178.5024 MiB
+~llama_context:        CPU compute buffer size is 163.1169 MiB, matches expectation of 163.1169 MiB
+~llama_context:        CPU compute buffer size is 158.3194 MiB, matches expectation of 158.3194 MiB
+~llama_context:        CPU compute buffer size is 189.9998 MiB, matches expectation of 189.9998 MiB
+~llama_context:        CPU compute buffer size is 168.9073 MiB, matches expectation of 168.9073 MiB
+~llama_context:        CPU compute buffer size is 166.9633 MiB, matches expectation of 166.9633 MiB
+~llama_context:        CPU compute buffer size is 177.5096 MiB, matches expectation of 177.5096 MiB
+~llama_context:        CPU compute buffer size is 169.8585 MiB, matches expectation of 169.8585 MiB
+~llama_context:        CPU compute buffer size is 172.7120 MiB, matches expectation of 172.7120 MiB
+~llama_context:        CPU compute buffer size is 164.1098 MiB, matches expectation of 164.1098 MiB
+~llama_context:        CPU compute buffer size is 169.8585 MiB, matches expectation of 169.8585 MiB
+~llama_context:        CPU compute buffer size is 160.2467 MiB, matches expectation of 160.2467 MiB
+~llama_context:        CPU compute buffer size is 155.4659 MiB, matches expectation of 155.4659 MiB
+~llama_context:        CPU compute buffer size is 162.1991 MiB, matches expectation of 162.1991 MiB
+~llama_context:        CPU compute buffer size is 163.1503 MiB, matches expectation of 163.1503 MiB
+~llama_context:        CPU compute buffer size is 152.5873 MiB, matches expectation of 152.5873 MiB
+~llama_context:        CPU compute buffer size is 158.3194 MiB, matches expectation of 158.3194 MiB
+~llama_context:        CPU compute buffer size is 166.0121 MiB, matches expectation of 166.0121 MiB
+~llama_context:        CPU compute buffer size is 159.2955 MiB, matches expectation of 159.2955 MiB
+~llama_context:        CPU compute buffer size is 161.2146 MiB, matches expectation of 161.2146 MiB
+~llama_context:        CPU compute buffer size is 157.3682 MiB, matches expectation of 157.3682 MiB
+~llama_context:        CPU compute buffer size is 158.3443 MiB, matches expectation of 158.3443 MiB
+~llama_context:        CPU compute buffer size is 159.3122 MiB, matches expectation of 159.3122 MiB
+~llama_context:        CPU compute buffer size is 149.6837 MiB, matches expectation of 149.6837 MiB
+~llama_context:        CPU compute buffer size is 148.7243 MiB, matches expectation of 148.7243 MiB
+~llama_context:        CPU compute buffer size is 150.6682 MiB, matches expectation of 150.6682 MiB
+~llama_context:        CPU compute buffer size is 154.5147 MiB, matches expectation of 154.5147 MiB
+~llama_context:        CPU compute buffer size is 144.9196 MiB, matches expectation of 144.9196 MiB
+~llama_context:        CPU compute buffer size is 148.7243 MiB, matches expectation of 148.7243 MiB
+~llama_context:        CPU compute buffer size is 151.6111 MiB, matches expectation of 151.6111 MiB
+~llama_context:        CPU compute buffer size is 158.3194 MiB, matches expectation of 158.3194 MiB
+~llama_context:        CPU compute buffer size is 154.4897 MiB, matches expectation of 154.4897 MiB
+~llama_context:        CPU compute buffer size is 145.8541 MiB, matches expectation of 145.8541 MiB
+~llama_context:        CPU compute buffer size is 153.5385 MiB, matches expectation of 153.5385 MiB
+~llama_context:        CPU compute buffer size is 152.5623 MiB, matches expectation of 152.5623 MiB
+~llama_context:        CPU compute buffer size is 149.6837 MiB, matches expectation of 149.6837 MiB
+~llama_context:        CPU compute buffer size is 147.7814 MiB, matches expectation of 147.7814 MiB
+~llama_context:        CPU compute buffer size is 149.6837 MiB, matches expectation of 149.6837 MiB
+~llama_context:        CPU compute buffer size is 147.7814 MiB, matches expectation of 147.7814 MiB
+~llama_context:        CPU compute buffer size is 154.4897 MiB, matches expectation of 154.4897 MiB
+~llama_context:        CPU compute buffer size is 150.6599 MiB, matches expectation of 150.6599 MiB
+~llama_context:        CPU compute buffer size is 146.8053 MiB, matches expectation of 146.8053 MiB
+~llama_context:        CPU compute buffer size is 142.9755 MiB, matches expectation of 142.9755 MiB
+~llama_context:        CPU compute buffer size is 138.1696 MiB, matches expectation of 138.1696 MiB
+~llama_context:        CPU compute buffer size is 151.6111 MiB, matches expectation of 151.6111 MiB
+~llama_context:        CPU compute buffer size is 152.5623 MiB, matches expectation of 152.5623 MiB
+~llama_context:        CPU compute buffer size is 143.9267 MiB, matches expectation of 143.9267 MiB
+~llama_context:        CPU compute buffer size is 187.1047 MiB, matches expectation of 187.1047 MiB
+~llama_context:        CPU compute buffer size is 176.5584 MiB, matches expectation of 176.5584 MiB
+~llama_context:        CPU compute buffer size is 173.7049 MiB, matches expectation of 173.7049 MiB
+~llama_context:        CPU compute buffer size is 176.5584 MiB, matches expectation of 176.5584 MiB
+~llama_context:        CPU compute buffer size is 163.1169 MiB, matches expectation of 163.1169 MiB
+~llama_context:        CPU compute buffer size is 161.2146 MiB, matches expectation of 161.2146 MiB
+~llama_context:        CPU compute buffer size is 166.0121 MiB, matches expectation of 166.0121 MiB
+~llama_context:        CPU compute buffer size is 181.3560 MiB, matches expectation of 181.3560 MiB
+~llama_context:        CPU compute buffer size is 165.0609 MiB, matches expectation of 165.0609 MiB
+~llama_context:        CPU compute buffer size is 169.8585 MiB, matches expectation of 169.8585 MiB
+~llama_context:        CPU compute buffer size is 176.5584 MiB, matches expectation of 176.5584 MiB
+~llama_context:        CPU compute buffer size is 168.9073 MiB, matches expectation of 168.9073 MiB
+~llama_context:        CPU compute buffer size is 164.1098 MiB, matches expectation of 164.1098 MiB
+~llama_context:        CPU compute buffer size is 178.5024 MiB, matches expectation of 178.5024 MiB
+~llama_context:        CPU compute buffer size is 163.1169 MiB, matches expectation of 163.1169 MiB
+~llama_context:        CPU compute buffer size is 158.3194 MiB, matches expectation of 158.3194 MiB
+~llama_context:        CPU compute buffer size is 189.9998 MiB, matches expectation of 189.9998 MiB
+~llama_context:        CPU compute buffer size is 168.9073 MiB, matches expectation of 168.9073 MiB
+~llama_context:        CPU compute buffer size is 166.9633 MiB, matches expectation of 166.9633 MiB
+~llama_context:        CPU compute buffer size is 177.5096 MiB, matches expectation of 177.5096 MiB
+~llama_context:        CPU compute buffer size is 169.8585 MiB, matches expectation of 169.8585 MiB
+~llama_context:        CPU compute buffer size is 172.7120 MiB, matches expectation of 172.7120 MiB
+~llama_context:        CPU compute buffer size is 164.1098 MiB, matches expectation of 164.1098 MiB
+~llama_context:        CPU compute buffer size is 169.8585 MiB, matches expectation of 169.8585 MiB
+~llama_context:        CPU compute buffer size is 160.2467 MiB, matches expectation of 160.2467 MiB
+~llama_context:        CPU compute buffer size is 155.4659 MiB, matches expectation of 155.4659 MiB
+~llama_context:        CPU compute buffer size is 162.1991 MiB, matches expectation of 162.1991 MiB
+~llama_context:        CPU compute buffer size is 163.1503 MiB, matches expectation of 163.1503 MiB
+~llama_context:        CPU compute buffer size is 152.5873 MiB, matches expectation of 152.5873 MiB
+~llama_context:        CPU compute buffer size is 158.3194 MiB, matches expectation of 158.3194 MiB
+~llama_context:        CPU compute buffer size is 166.0121 MiB, matches expectation of 166.0121 MiB
+~llama_context:        CPU compute buffer size is 159.2955 MiB, matches expectation of 159.2955 MiB
+~llama_context:        CPU compute buffer size is 161.2146 MiB, matches expectation of 161.2146 MiB
+~llama_context:        CPU compute buffer size is 157.3682 MiB, matches expectation of 157.3682 MiB
+~llama_context:        CPU compute buffer size is 158.3443 MiB, matches expectation of 158.3443 MiB
+~llama_context:        CPU compute buffer size is 159.3122 MiB, matches expectation of 159.3122 MiB
+~llama_context:        CPU compute buffer size is 149.6837 MiB, matches expectation of 149.6837 MiB
+~llama_context:        CPU compute buffer size is 148.7243 MiB, matches expectation of 148.7243 MiB
+~llama_context:        CPU compute buffer size is 150.6682 MiB, matches expectation of 150.6682 MiB
+~llama_context:        CPU compute buffer size is 154.5147 MiB, matches expectation of 154.5147 MiB
+~llama_context:        CPU compute buffer size is 144.9196 MiB, matches expectation of 144.9196 MiB
+~llama_context:        CPU compute buffer size is 148.7243 MiB, matches expectation of 148.7243 MiB
+~llama_context:        CPU compute buffer size is 151.6111 MiB, matches expectation of 151.6111 MiB
+~llama_context:        CPU compute buffer size is 158.3194 MiB, matches expectation of 158.3194 MiB
+~llama_context:        CPU compute buffer size is 154.4897 MiB, matches expectation of 154.4897 MiB
+~llama_context:        CPU compute buffer size is 145.8541 MiB, matches expectation of 145.8541 MiB
+~llama_context:        CPU compute buffer size is 153.5385 MiB, matches expectation of 153.5385 MiB
+~llama_context:        CPU compute buffer size is 152.5623 MiB, matches expectation of 152.5623 MiB
+~llama_context:        CPU compute buffer size is 149.6837 MiB, matches expectation of 149.6837 MiB
+~llama_context:        CPU compute buffer size is 147.7814 MiB, matches expectation of 147.7814 MiB
+~llama_context:        CPU compute buffer size is 149.6837 MiB, matches expectation of 149.6837 MiB
+~llama_context:        CPU compute buffer size is 147.7814 MiB, matches expectation of 147.7814 MiB
+~llama_context:        CPU compute buffer size is 154.4897 MiB, matches expectation of 154.4897 MiB
+~llama_context:        CPU compute buffer size is 150.6599 MiB, matches expectation of 150.6599 MiB
+~llama_context:        CPU compute buffer size is 146.8053 MiB, matches expectation of 146.8053 MiB
+~llama_context:        CPU compute buffer size is 142.9755 MiB, matches expectation of 142.9755 MiB
+~llama_context:        CPU compute buffer size is 138.1696 MiB, matches expectation of 138.1696 MiB
+~llama_context:        CPU compute buffer size is 151.6111 MiB, matches expectation of 151.6111 MiB
+~llama_context:        CPU compute buffer size is 152.5623 MiB, matches expectation of 152.5623 MiB
+~llama_context:        CPU compute buffer size is 143.9267 MiB, matches expectation of 143.9267 MiB
+repeat 0: code=1 accepted=False params=sha256:3b9605dd5f1f7fb647605600930d13e67409eff32b7aebe296c37fd2837b7aff
+  choice: T=1.0000 holdout ECE 0.2266 -> 0.2266 :: no calibration applied: the fit chose the identity (temperature 1.0)
+  noul: T=1.0000 holdout ECE 0.3843 -> 0.3843 :: no calibration applied: the fit chose the identity (temperature 1.0)
+  score: T=2.2230 holdout ECE 0.3732 -> 0.4400 :: no calibration applied: the held-out split did not improve
+repeat 1: code=1 accepted=False params=sha256:3b9605dd5f1f7fb647605600930d13e67409eff32b7aebe296c37fd2837b7aff
+  choice: T=1.0000 holdout ECE 0.2266 -> 0.2266 :: no calibration applied: the fit chose the identity (temperature 1.0)
+  noul: T=1.0000 holdout ECE 0.3843 -> 0.3843 :: no calibration applied: the fit chose the identity (temperature 1.0)
+  score: T=2.2230 holdout ECE 0.3732 -> 0.4400 :: no calibration applied: the held-out split did not improve
+Traceback (most recent call last):
+  File "/work/e2p5repo2/tools/e2p5_reproduce.py", line 420, in <module>
+  File "/work/e2p5repo2/tools/e2p5_reproduce.py", line 416, in main
+    if __name__ == "__main__":
+                   ^^^^^^^^^^^^
+  File "/work/e2p5repo2/tools/e2p5_reproduce.py", line 128, in cmd_calibrate
+    }
+      
+  File "/work/e2p5repo2/tools/e2p5_reproduce.py", line 139, in _table_payload
+    model_path=args.model)
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/e2p5repo2/src/ggufone/calibration/calibrate.py", line 449, in fit_table
+    
+ValueError: fit_table needs at least one row
+exit=1

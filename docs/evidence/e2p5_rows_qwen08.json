@@ -1,0 +1,878 @@
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "calibration",
+  "produced_by": "ggufone calibrate",
+  "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+  "devset": "/work/e2p5repo2/src/ggufone/bench/devset.jsonl",
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.2855777064347274,
+      "coverage": 0.041074971405465045,
+      "expected": "technical",
+      "got": "technical",
+      "probabilities": {
+        "billing": 0.12079601860607665,
+        "technical": 0.46418327982604557,
+        "sales": 0.0017696898405607812,
+        "support": 0.4132510117273169
+      }
+    },
+    {
+      "id": "c02",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.8375604050772836,
+      "coverage": 0.1728254782675879,
+      "expected": "billing",
+      "got": "billing",
+      "probabilities": {
+        "billing": 0.8781703038079627,
+        "technical": 5.6062447429160446e-05,
+        "account": 0.011782221743097168,
+        "escalation": 0.10999141200151097
+      }
+    },
+    {
+      "id": "c03",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9822588320895439,
+      "coverage": 0.06157151910855615,
+      "expected": "mobile",
+      "got": "mobile",
+      "probabilities": {
+        "mobile": 0.986694124067158,
+        "backend": 0.001849939354302827,
+        "design": 0.007822867716842782,
+        "marketing": 0.003633068861696374
+      }
+    },
+    {
+      "id": "c04",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.32874212905874006,
+      "coverage": 0.017829568904278843,
+      "expected": "restricted",
+      "got": "confidential",
+      "probabilities": {
+        "public": 0.2127280863819153,
+        "internal": 0.28844154604835404,
+        "confidential": 0.49655659679405506,
+        "restricted": 0.002273770775675634
+      }
+    },
+    {
+      "id": "c05",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9486790097687177,
+      "coverage": 0.22372865395767724,
+      "expected": "security",
+      "got": "security",
+      "probabilities": {
+        "security": 0.9615092573265382,
+        "support": 0.024849268237493033,
+        "docs": 0.0021906649008933913,
+        "finance": 0.01145080953507526
+      }
+    },
+    {
+      "id": "c06",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.9239945329426592,
+      "coverage": 0.043896188500335914,
+      "expected": "fixed",
+      "got": "added",
+      "probabilities": {
+        "added": 0.9429958997069944,
+        "changed": 0.019679059454771636,
+        "fixed": 0.029073836579584195,
+        "removed": 0.008251204258649981
+      }
+    },
+    {
+      "id": "c07",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.9079661011974688,
+      "coverage": 0.07153220882233742,
+      "expected": "termination",
+      "got": "liability",
+      "probabilities": {
+        "liability": 0.9309745758981016,
+        "termination": 0.02247136892950539,
+        "payment": 0.04580750277371605,
+        "ip": 0.0007465523986768941
+      }
+    },
+    {
+      "id": "c08",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.7460067972375178,
+      "coverage": 0.22778235760131324,
+      "expected": "business_hours",
+      "got": "business_hours",
+      "probabilities": {
+        "business_hours": 0.8095050979281384,
+        "off_hours": 0.1785040477201291,
+        "weekend": 0.011695130065729382,
+        "freeze": 0.00029572428600302885
+      }
+    },
+    {
+      "id": "c09",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.7921233253606895,
+      "coverage": 0.30882122648659016,
+      "expected": "spam",
+      "got": "spam",
+      "probabilities": {
+        "spam": 0.8440924940205171,
+        "harassment": 0.02768105193718477,
+        "off_topic": 0.08975481508453494,
+        "fine": 0.03847163895776308
+      }
+    },
+    {
+      "id": "c10",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.4724645465663386,
+      "coverage": 0.0018522080108732614,
+      "expected": "compensation",
+      "got": "compensation",
+      "probabilities": {
+        "skills": 0.38833460337706865,
+        "experience": 0.0017650510663767835,
+        "compensation": 0.6043484099247539,
+        "availability": 0.005551935631800627
+      }
+    },
+    {
+      "id": "c11",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.3384449004955326,
+      "coverage": 0.17888187335716904,
+      "expected": "expedited",
+      "got": "expedited",
+      "probabilities": {
+        "standard": 0.43241869377342496,
+        "expedited": 0.5038336753716495,
+        "freight": 0.06205071949207448,
+        "international": 0.0016969113628510699
+      }
+    },
+    {
+      "id": "c12",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.4874725877013158,
+      "coverage": 0.0767407910994576,
+      "expected": "frontend",
+      "got": "backend",
+      "probabilities": {
+        "frontend": 0.36780179439022537,
+        "backend": 0.6156044407759869,
+        "data": 0.016524024416652208,
+        "network": 6.974041713558643e-05
+      }
+    },
+    {
+      "id": "c13",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9454994846893437,
+      "coverage": 0.0732851194377218,
+      "expected": "partnerships",
+      "got": "partnerships",
+      "probabilities": {
+        "sales": 0.039604213331459893,
+        "support": 0.0011944025977524884,
+        "billing": 7.677055377981451e-05,
+        "partnerships": 0.9591246135170078
+      }
+    },
+    {
+      "id": "c14",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.4644402913681209,
+      "coverage": 0.01870319302182766,
+      "expected": "capital",
+      "got": "deductible",
+      "probabilities": {
+        "deductible": 0.5983302185260907,
+        "capital": 0.003178265220160029,
+        "expense": 0.004955404578352388,
+        "non_deductible": 0.3935361116753969
+      }
+    },
+    {
+      "id": "c15",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.840769752142479,
+      "coverage": 0.33719940132357346,
+      "expected": "cardiology",
+      "got": "cardiology",
+      "probabilities": {
+        "cardiology": 0.8805773141068592,
+        "orthopedics": 0.027333964463643858,
+        "neurology": 0.07219699647855203,
+        "dermatology": 0.019891724950944704
+      }
+    },
+    {
+      "id": "c16",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.95806633739948,
+      "coverage": 0.0961333218898754,
+      "expected": "travel",
+      "got": "travel",
+      "probabilities": {
+        "travel": 0.96854975304961,
+        "meals": 0.031369407689009816,
+        "software": 7.175142861274343e-05,
+        "hardware": 9.087832767411532e-06
+      }
+    },
+    {
+      "id": "c17",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.3558628483872088,
+      "coverage": 0.016430061980057878,
+      "expected": "midmarket",
+      "got": "smb",
+      "probabilities": {
+        "smb": 0.5168971362904066,
+        "midmarket": 0.4811691560114349,
+        "enterprise": 0.00034416436244844804,
+        "consumer": 0.001589543335710175
+      }
+    },
+    {
+      "id": "c18",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.938091627680634,
+      "coverage": 0.09462852838437588,
+      "expected": "standup",
+      "got": "standup",
+      "probabilities": {
+        "standup": 0.9535687207604755,
+        "retrospective": 0.030661354737648742,
+        "planning": 0.01554858723092624,
+        "review": 0.00022133727094955142
+      }
+    },
+    {
+      "id": "c19",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.696329261941334,
+      "coverage": 0.05576917934067983,
+      "expected": "configuration",
+      "got": "configuration",
+      "probabilities": {
+        "configuration": 0.7722469464560006,
+        "code": 0.01884246963643445,
+        "data": 0.0009475252582346501,
+        "infrastructure": 0.20796305864933026
+      }
+    },
+    {
+      "id": "c20",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.43771772625206484,
+      "coverage": 0.11094630998549708,
+      "expected": "copyleft",
+      "got": "permissive",
+      "probabilities": {
+        "permissive": 0.5782882946890486,
+        "copyleft": 0.3638507212919726,
+        "public_domain": 0.04472805062683376,
+        "proprietary": 0.013132933392144976
+      }
+    },
+    {
+      "id": "c21",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.3103689612509981,
+      "coverage": 0.21170207564979268,
+      "expected": "archive",
+      "got": "archive",
+      "probabilities": {
+        "hot": 0.3219785473163589,
+        "warm": 0.040972394705855314,
+        "cold": 0.15427233703953708,
+        "archive": 0.4827767209382486
+      }
+    },
+    {
+      "id": "c22",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.8414006506437955,
+      "coverage": 0.02882925344307105,
+      "expected": "sms",
+      "got": "email",
+      "probabilities": {
+        "email": 0.8810504879828467,
+        "chat": 0.008636164229257974,
+        "sms": 0.08856327943343693,
+        "dashboard": 0.021750068354458432
+      }
+    },
+    {
+      "id": "c23",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.8159735536645468,
+      "coverage": 0.042856414254430056,
+      "expected": "identity",
+      "got": "identity",
+      "probabilities": {
+        "payments": 0.13594900088174316,
+        "identity": 0.8619801652484101,
+        "search": 0.0015097040088064713,
+        "reports": 0.0005611298610402847
+      }
+    },
+    {
+      "id": "c24",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9812640517346383,
+      "coverage": 0.036119214151644645,
+      "expected": "runbook",
+      "got": "runbook",
+      "probabilities": {
+        "runbook": 0.9859480388009787,
+        "design": 0.001425442616461121,
+        "ticket": 0.007345885406088985,
+        "policy": 0.0052806331764713044
+      }
+    },
+    {
+      "id": "s01",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.23364026540678462,
+      "coverage": 0.2909958623563423,
+      "expected": "3",
+      "got": "0",
+      "probabilities": {
+        "0": 0.3869122123254277,
+        "1": 0.18968963124557173,
+        "2": 0.16958098108248643,
+        "3": 0.21816450099551407,
+        "4": 0.03565267435100011
+      }
+    },
+    {
+      "id": "s02",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.4260266114448846,
+      "coverage": 0.7791859834126272,
+      "expected": "3",
+      "got": "3",
+      "probabilities": {
+        "0": 0.11684180164537492,
+        "1": 0.20018091790737133,
+        "2": 0.1134573218635903,
+        "3": 0.5695199585836634
+      }
+    },
+    {
+      "id": "s03",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.17317397144993446,
+      "coverage": 0.32445437395850857,
+      "expected": "4",
+      "got": "1",
+      "probabilities": {
+        "0": 0.23452696692400196,
+        "1": 0.3385391771599476,
+        "2": 0.3003200659145771,
+        "3": 0.10193407237928587,
+        "4": 0.024679717622187573
+      }
+    },
+    {
+      "id": "s04",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.26182670866571456,
+      "coverage": 0.1836523032230947,
+      "expected": "4",
+      "got": "0",
+      "probabilities": {
+        "0": 0.4094613669325717,
+        "1": 0.30551233525528937,
+        "2": 0.13895051195146274,
+        "3": 0.08707349879348328,
+        "4": 0.059002287067193085
+      }
+    },
+    {
+      "id": "s05",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.5511747899949421,
+      "coverage": 0.22750756819614423,
+      "expected": "0",
+      "got": "0",
+      "probabilities": {
+        "0": 0.6409398319959537,
+        "1": 0.23670240800429915,
+        "2": 0.08695314092803541,
+        "3": 0.02613118355282092,
+        "4": 0.009273435518890724
+      }
+    },
+    {
+      "id": "s06",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.27071972632007385,
+      "coverage": 0.27634684995147557,
+      "expected": "3",
+      "got": "0",
+      "probabilities": {
+        "0": 0.4530397947400554,
+        "1": 0.23941783034104078,
+        "2": 0.16694909625507118,
+        "3": 0.14059327866383275
+      }
+    },
+    {
+      "id": "s07",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.4264918890090332,
+      "coverage": 0.21267653646862755,
+      "expected": "1",
+      "got": "0",
+      "probabilities": {
+        "0": 0.5698689167567749,
+        "1": 0.2573258922934058,
+        "2": 0.134152102584314,
+        "3": 0.038653088365505205
+      }
+    },
+    {
+      "id": "s08",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.43236674930933794,
+      "coverage": 0.1851366620924038,
+      "expected": "1",
+      "got": "0",
+      "probabilities": {
+        "0": 0.5458933994474704,
+        "1": 0.2849917802628697,
+        "2": 0.128338308362084,
+        "3": 0.02886465202199814,
+        "4": 0.011911859905577792
+      }
+    },
+    {
+      "id": "s09",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.32478203620625395,
+      "coverage": 0.5092707175588655,
+      "expected": "1",
+      "got": "3",
+      "probabilities": {
+        "0": 0.04958546971199107,
+        "1": 0.09436124594765327,
+        "2": 0.36246675718566507,
+        "3": 0.4935865271546905
+      }
+    },
+    {
+      "id": "s10",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.12314349677332626,
+      "coverage": 0.13712160890626143,
+      "expected": "1",
+      "got": "2",
+      "probabilities": {
+        "0": 0.28967034074009584,
+        "1": 0.2789161670602793,
+        "2": 0.3423576225799947,
+        "3": 0.08905586961963025
+      }
+    },
+    {
+      "id": "s11",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.5988440193500161,
+      "coverage": 0.29469877736012184,
+      "expected": "1",
+      "got": "0",
+      "probabilities": {
+        "0": 0.6790752154800129,
+        "1": 0.17147717322960315,
+        "2": 0.0988244118541471,
+        "3": 0.037034317613317505,
+        "4": 0.013588881822919336
+      }
+    },
+    {
+      "id": "s12",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.46510534673477427,
+      "coverage": 0.34585542327692703,
+      "expected": "3",
+      "got": "0",
+      "probabilities": {
+        "0": 0.5988290100510807,
+        "1": 0.19762921983366077,
+        "2": 0.17714253757477647,
+        "3": 0.026399232540482067
+      }
+    },
+    {
+      "id": "s13",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.09720020717265955,
+      "coverage": 0.2139615595894679,
+      "expected": "1",
+      "got": "1",
+      "probabilities": {
+        "0": 0.3083651410413585,
+        "1": 0.3981334714484397,
+        "2": 0.2935013875102018
+      }
+    },
+    {
+      "id": "s14",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.14314244754993855,
+      "coverage": 0.3721497644108444,
+      "expected": "1",
+      "got": "0",
+      "probabilities": {
+        "0": 0.3573568356624539,
+        "1": 0.3214189351198007,
+        "2": 0.27474805028258825,
+        "3": 0.04647617893515719
+      }
+    },
+    {
+      "id": "s15",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.08047023072982351,
+      "coverage": 0.3204210786791964,
+      "expected": "2",
+      "got": "1",
+      "probabilities": {
+        "0": 0.29224640709116134,
+        "1": 0.31035267304736763,
+        "2": 0.2525937357930997,
+        "3": 0.14480718406837145
+      }
+    },
+    {
+      "id": "s16",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.1541186127154844,
+      "coverage": 0.14592146525179778,
+      "expected": "0",
+      "got": "0",
+      "probabilities": {
+        "0": 0.3655889595366133,
+        "1": 0.2185601964077271,
+        "2": 0.3181184734023299,
+        "3": 0.0977323706533298
+      }
+    },
+    {
+      "id": "s17",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.3083773710636862,
+      "coverage": 0.26613099565758996,
+      "expected": "2",
+      "got": "0",
+      "probabilities": {
+        "0": 0.48128302829776465,
+        "1": 0.23193649381406406,
+        "2": 0.23255133597256758,
+        "3": 0.05422914191560378
+      }
+    },
+    {
+      "id": "s18",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.594067800858327,
+      "coverage": 0.341345633173808,
+      "expected": "0",
+      "got": "0",
+      "probabilities": {
+        "0": 0.6955508506437452,
+        "1": 0.17612026030531547,
+        "2": 0.08755430301152121,
+        "3": 0.04077458603941805
+      }
+    },
+    {
+      "id": "n01",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.7459496349166856,
+      "coverage": 0.4323275509650991,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.7459496349166856,
+        "no": 0.2540503650833144
+      }
+    },
+    {
+      "id": "n02",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.6101295728026297,
+      "coverage": 0.4381136397836007,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.6101295728026297,
+        "no": 0.38987042719737036
+      }
+    },
+    {
+      "id": "n03",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.7452564566150237,
+      "coverage": 0.48723449950130926,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.7452564566150237,
+        "no": 0.25474354338497635
+      }
+    },
+    {
+      "id": "n04",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.781372006797148,
+      "coverage": 0.4420131356809934,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.781372006797148,
+        "no": 0.21862799320285192
+      }
+    },
+    {
+      "id": "n05",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.770563604403028,
+      "coverage": 0.4402564115664909,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.770563604403028,
+        "no": 0.22943639559697196
+      }
+    },
+    {
+      "id": "n06",
+      "type": "noul",
+      "correct": false,
+      "confidence": 0.8157413311361037,
+      "coverage": 0.4597716384082734,
+      "expected": "no",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.8157413311361037,
+        "no": 0.18425866886389639
+      }
+    },
+    {
+      "id": "n07",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.646289748674589,
+      "coverage": 0.5674738709777984,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.646289748674589,
+        "no": 0.353710251325411
+      }
+    },
+    {
+      "id": "n08",
+      "type": "noul",
+      "correct": false,
+      "confidence": 0.718232853009174,
+      "coverage": 0.6340298234412611,
+      "expected": "no",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.718232853009174,
+        "no": 0.281767146990826
+      }
+    },
+    {
+      "id": "n09",
+      "type": "noul",
+      "correct": false,
+      "confidence": 0.6377105760009695,
+      "coverage": 0.38429777225870876,
+      "expected": "no",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.6377105760009695,
+        "no": 0.36228942399903064
+      }
+    },
+    {
+      "id": "n10",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.8116121625372935,
+      "coverage": 0.47166798595023596,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.8116121625372935,
+        "no": 0.18838783746270663
+      }
+    },
+    {
+      "id": "n11",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.6536957891484343,
+      "coverage": 0.48578856598535686,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.6536957891484343,
+        "no": 0.3463042108515658
+      }
+    },
+    {
+      "id": "n12",
+      "type": "noul",
+      "correct": false,
+      "confidence": 0.7418807941964679,
+      "coverage": 0.5010939356895994,
+      "expected": "no",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.7418807941964679,
+        "no": 0.2581192058035321
+      }
+    },
+    {
+      "id": "n13",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.6672582120744218,
+      "coverage": 0.4965189693106156,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.6672582120744218,
+        "no": 0.33274178792557824
+      }
+    },
+    {
+      "id": "n14",
+      "type": "noul",
+      "correct": false,
+      "confidence": 0.741553033684046,
+      "coverage": 0.419151638201143,
+      "expected": "no",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.741553033684046,
+        "no": 0.25844696631595393
+      }
+    },
+    {
+      "id": "n15",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.67856288174941,
+      "coverage": 0.4936860119499338,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.67856288174941,
+        "no": 0.32143711825058996
+      }
+    },
+    {
+      "id": "n16",
+      "type": "noul",
+      "correct": false,
+      "confidence": 0.6658983055726989,
+      "coverage": 0.32351088162747343,
+      "expected": "no",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.6658983055726989,
+        "no": 0.33410169442730103
+      }
+    },
+    {
+      "id": "n17",
+      "type": "noul",
+      "correct": false,
+      "confidence": 0.7330071293376231,
+      "coverage": 0.3529333551627345,
+      "expected": "no",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.7330071293376231,
+        "no": 0.2669928706623768
+      }
+    },
+    {
+      "id": "n18",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.8098026812214817,
+      "coverage": 0.49759881970224035,
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.8098026812214817,
+        "no": 0.19019731877851836
+      }
+    }
+  ]
+}
