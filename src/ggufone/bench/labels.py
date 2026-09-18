@@ -26,6 +26,7 @@ that instead of hiding it).
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+from typing import Any, Protocol
 
 from ggufone.bench import harness
 from ggufone.engine import prompt, readout
@@ -167,6 +168,78 @@ def shared_first_tokens(texts: Sequence[str],
         tokens = tokenize(text)
         groups.setdefault(tuple(tokens[:1]), []).append(text)
     return [tuple(group) for _, group in sorted(groups.items()) if len(group) > 1]
+
+
+def trie_levels(paths: Sequence[Sequence[int]]) -> list[list[tuple[int, ...]]]:
+    """The distinct prefixes to decode, one list per trie level (pure — the ranked readout's plan).
+
+    Level `k` holds every prefix of length `k` that some path of length `> k` passes through: the
+    row produced by decoding such a prefix's *last* token scores that path's token at index `k`
+    (the engine's `decide._score_group` indexing, with the shared prefixes decoded once instead of
+    once per candidate). A single-token path needs no level at all — its logprob is the decision
+    row's.
+    """
+    widest = max((len(path) for path in paths), default=0)
+    return [sorted({tuple(path[:level]) for path in paths if len(path) > level})
+            for level in range(1, widest)]
+
+
+def trie_nodes(paths: Sequence[Sequence[int]]) -> int:
+    """How many sequences the trie needs — one per prefix in `trie_levels` (the forks it makes)."""
+    return sum(len(level) for level in trie_levels(paths))
+
+
+class ScoreSession(Protocol):
+    """The slice of `engine.session.ModelSession` the ranked readout needs (fake-able offline)."""
+
+    def fork(self, src: int, dst: int, upto: int) -> None: ...
+
+    def decode(self, batch: Any) -> list[list[float]]: ...
+
+
+def score_paths(session: ScoreSession, *, head_seq: int, base: int, pool: Sequence[int],
+                paths: Sequence[Sequence[int]]) -> dict[tuple[int, ...], list[float]]:
+    """Sequence logprobs for every path, sharing prefixes (the engine's step protocol, deduped).
+
+    `base` is the position of the first candidate token (`prefix + suffix`): a path's token at
+    index `k` is decoded at `base + k`, and the row that decode produces scores that path's token
+    `k + 1` — exactly the indexing `decide._score_group` uses. Distinguished prefixes live on their
+    own sequence taken from `pool` and are forked from the node one level up, so two candidates
+    that open with the same token pay for that token once. Somebody else's pool is a bug: the
+    caller sizes it with `trie_nodes` and an exhausted pool raises instead of reusing a sequence.
+    """
+    from ggufone.engine import decide  # local: `decide` imports the engine, not the bench
+
+    results: dict[tuple[int, ...], list[float]] = {tuple(path): [] for path in paths}
+    nodes: dict[tuple[int, ...], int] = {(): int(head_seq)}
+    available = list(pool)
+    for level, children in enumerate(trie_levels(paths), start=1):
+        tokens: list[int] = []
+        seqs: list[int] = []
+        positions: list[int] = []
+        for child in children:
+            if not available:
+                raise LabelsError(
+                    f"the ranked readout needs more than {len(pool)} sequences for "
+                    f"{len(paths)} candidate path(s); size the pool with trie_nodes()",
+                    code="E_LABEL_POOL")
+            seq = available.pop(0)
+            session.fork(nodes[child[:-1]], seq, base + level - 1)
+            nodes[child] = seq
+            tokens.append(int(child[-1]))
+            seqs.append(seq)
+            positions.append(base + level - 1)
+        rows = session.decode(decide.Batch(tokens=tuple(tokens), seq_ids=tuple(seqs),
+                                           positions=tuple(positions),
+                                           logits=tuple(True for _ in tokens)))
+        by_child = dict(zip(children, rows, strict=True))
+        for path in paths:
+            key = tuple(path)
+            if len(key) > level:
+                row = by_child[key[:level]]
+                scale = readout.logsumexp(row)
+                results[key].append(readout.logprob_from_scale(row, key[level], scale))
+    return results
 
 
 def reliability_of(coverage_value: float, *, floor: float = MASS_FLOOR) -> str:

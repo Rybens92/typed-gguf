@@ -17,6 +17,8 @@ These gates pin the variants themselves — the strings a probe can ask for — 
 """
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from ggufone.bench import labels
@@ -209,3 +211,84 @@ def test_the_dev_set_labels_are_what_the_card_measured():
         ("billing", "technical")
     assert labels.label_texts("score", ("0", "1"), ("cosmetic", "annoying"), "bare") == ("0", "1")
     assert labels.label_texts("noul", ("yes", "no"), ("y", "n"), "bare") == ("yes", "no")
+
+
+# ------------------------------------------------------------------ the ranked readout's trie
+class FakeRowSession:
+    """A session seam: canned rows **by position**, plus a record of every fork and decode.
+
+    The ranked readout's whole contract is *which* token is decoded at *which* position off
+    *which* sequence — that is what these gates pin, with rows whose logprobs are exact.
+    """
+
+    def __init__(self, rows_by_position: dict[int, list[float]]) -> None:
+        self.rows_by_position = rows_by_position
+        self.forks: list[tuple[int, int, int]] = []
+        self.batches: list[Any] = []
+
+    def fork(self, src: int, dst: int, upto: int) -> None:
+        self.forks.append((int(src), int(dst), int(upto)))
+
+    def decode(self, batch: Any) -> list[list[float]]:
+        self.batches.append(batch)
+        return [self.rows_by_position[int(position)] for position in batch.positions]
+
+
+def exact_row(mass: dict[int, float], *, width: int = 4) -> list[float]:
+    """A logit row whose softmax is exactly `mass` on the given tokens (rest zero logits)."""
+    import math
+    row = [0.0] * width
+    for token, value in mass.items():
+        row[token] = math.log(value)
+    return row
+
+
+def test_the_trie_levels_are_the_prefixes_the_readout_must_decode():
+    # a single-token path needs no level: its logprob is the decision row's
+    assert labels.trie_levels([(2,)]) == []
+    # two paths sharing their first token decode it once, at level 1
+    assert labels.trie_levels([(2, 3), (2, 4)]) == [[(2,)]]
+    # level k holds every prefix of length k that a *longer* path passes through: (2, 4) is a
+    # leaf (its token 4 comes from the row after (2,)) and is never decoded
+    assert labels.trie_levels([(2, 3, 9), (2, 3, 7), (2, 4)]) == [[(2,)], [(2, 3)]]
+    assert labels.trie_nodes([(2, 3, 9), (2, 3, 7), (2, 4)]) == 2
+
+
+def test_score_paths_decodes_the_shared_prefix_once_at_the_engines_positions():
+    """The bug this gate is for: the parent of a level-`k` prefix is the prefix of length `k-1`."""
+    row_a = exact_row({1: 3.0}, width=10)           # p(1) = 3/7
+    row_b = exact_row({3: 1.0}, width=10)           # p(3) = 1/7
+    session = FakeRowSession({10: row_a, 11: row_b})
+    got = labels.score_paths(session, head_seq=1, base=10, pool=[7, 8, 9],
+                             paths=[(2, 1, 3), (2, 1, 0), (2, 3, 9), (2, 3)])
+    # level 1: one child prefix (2,) — decoded once, forked from the head sequence
+    # level 2: (2, 1) and (2, 3) — both forked from the (2,) sequence, in one batch
+    assert session.forks == [(1, 7, 10), (7, 8, 11), (7, 9, 11)]
+    assert [(batch.tokens, batch.positions) for batch in session.batches] == [
+        ((2,), (10,)), ((1, 3), (11, 11))]
+    scale_a, scale_b = readout.logsumexp(row_a), readout.logsumexp(row_b)
+    assert got[(2, 1, 3)] == [readout.logprob_from_scale(row_a, 1, scale_a),
+                              readout.logprob_from_scale(row_b, 3, scale_b)]
+    assert got[(2, 1, 0)] == [readout.logprob_from_scale(row_a, 1, scale_a),
+                              readout.logprob_from_scale(row_b, 0, scale_b)]
+    assert got[(2, 3, 9)] == [readout.logprob_from_scale(row_a, 3, scale_a),
+                              readout.logprob_from_scale(row_b, 9, scale_b)]
+    # a two-token path is a leaf one level up: its last token is scored by the level-1 row
+    assert got[(2, 3)] == [readout.logprob_from_scale(row_a, 3, scale_a)]
+    assert list(got) == [(2, 1, 3), (2, 1, 0), (2, 3, 9), (2, 3)]      # keyed by tuple(path)
+
+
+def test_score_paths_needs_no_decode_for_single_token_labels():
+    session = FakeRowSession({})
+    assert labels.score_paths(session, head_seq=1, base=10, pool=[], paths=[(2,), (3,)]) == \
+        {(2,): [], (3,): []}
+    assert session.forks == [] and session.batches == []
+
+
+def test_an_exhausted_pool_is_an_error_not_a_silent_reuse():
+    """A reused sequence would read another candidate's state — the pool is the caller's job."""
+    session = FakeRowSession({10: exact_row({1: 1.0})})
+    with pytest.raises(labels.LabelsError) as info:
+        labels.score_paths(session, head_seq=1, base=10, pool=[], paths=[(2, 1), (2, 3)])
+    assert "E_LABEL_POOL" in str(info.value)
+    assert session.forks == []

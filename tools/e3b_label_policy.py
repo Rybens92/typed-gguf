@@ -56,7 +56,6 @@ import os
 import pathlib
 import sys
 import time
-from collections import defaultdict
 from collections.abc import Sequence
 from typing import Any
 
@@ -173,68 +172,13 @@ def top_tokens(row: Sequence[float], scale: float, handle: session_module.ModelH
              "p_full": readout.coverage_from_scale(row, (token,), scale)} for token in order]
 
 
-def trie_nodes(paths: Sequence[tuple[int, ...]]) -> int:
-    """Distinct prefixes the candidate paths share — the sequences a ranked readout needs."""
-    return sum(len({path[:index] for path in paths if len(path) >= index})
-               for index in range(1, max((len(path) for path in paths), default=0) + 1))
-
-
-def score_paths(live: session_module.ModelSession, *, head_seq: int, base: int,
-                pool: Sequence[int], paths: Sequence[tuple[int, ...]]
-                ) -> dict[tuple[int, ...], list[float]]:
-    """Sequence logprobs for every path, sharing prefixes (the engine's step protocol, deduped).
-
-    `base` is the position of the first candidate token (`prefix + suffix`): a path's token at
-    index `k` is decoded at `base + k`, and the row that decode produces scores that path's token
-    `k + 1` — the indexing `decide._score_group` uses. Distinguished prefixes live on their own
-    sequence from `pool`, so two candidates that open with the same token pay for it once.
-    """
-    results: dict[tuple[int, ...], list[float]] = {path: [] for path in paths}
-    nodes: dict[tuple[int, ...], int] = {(): int(head_seq)}
-    available = list(pool)
-    max_len = max((len(path) for path in paths), default=0)
-    for step in range(1, max_len + 1):                     # step = index of the token decoded
-        by_parent: dict[tuple[int, ...], list[tuple[int, ...]]] = defaultdict(list)
-        for path in paths:
-            if len(path) > step:
-                by_parent[path[:step]].append(path)
-        if not by_parent:
-            continue
-        tokens: list[int] = []
-        seqs: list[int] = []
-        positions: list[int] = []
-        owners: list[tuple[int, ...]] = []
-        for parent, group in sorted(by_parent.items()):
-            source = nodes.get(parent)
-            if source is None:                             # pragma: no cover - the trie is complete
-                raise RuntimeError(f"no sequence holds the shared prefix {parent}")
-            for path in sorted(group):
-                if not available:
-                    raise RuntimeError(
-                        f"the ranked readout needed more than {len(pool)} sequences; raise "
-                        f"--max-sequences (the trie has {trie_nodes(paths)} nodes)")
-                seq = available.pop()
-                live.fork(source, seq, base + step - 1)
-                nodes[path[:step + 1]] = seq
-                tokens.append(int(path[step - 1]))
-                seqs.append(seq)
-                positions.append(base + step - 1)
-                owners.append(path)
-        rows = live.decode(decide.Batch(tokens=tuple(tokens), seq_ids=tuple(seqs),
-                                        positions=tuple(positions),
-                                        logits=tuple(True for _ in tokens)))
-        for row, path in zip(rows, owners, strict=True):
-            scale = readout.logsumexp(row)
-            results[path].append(readout.logprob_from_scale(row, path[step], scale))
-    return results
-
-
 def rank_policy(live: session_module.ModelSession, *, head_seq: int, base: int,
                 decision_row: Sequence[float], decision_scale: float, pool: Sequence[int],
                 sequences: Sequence[tuple[int, ...]], options: Sequence[str], length_norm: float,
                 temperature: float) -> dict[str, Any]:
     """The engine's decision for one policy: sequence scores -> restricted softmax -> argmax."""
-    logprobs = score_paths(live, head_seq=head_seq, base=base, pool=pool, paths=sequences)
+    logprobs = labels.score_paths(live, head_seq=head_seq, base=base, pool=pool,
+                                  paths=sequences)
     first = [readout.logprob_from_scale(decision_row, path[0], decision_scale)
              for path in sequences]
     z = [readout.candidate_sequence_score([first[index], *logprobs[path]], length_norm)
@@ -316,7 +260,7 @@ def measure_prefix(handle: session_module.ModelHandle, item: devset.DevItem, *,
         cursor = 1 + len(cues)
         for cue, variant in rank:
             sequences = [tuple(tokenized[variant][text]) for text in sets[variant]]
-            nodes = trie_nodes(sequences)
+            nodes = labels.trie_nodes(sequences)
             if cursor + nodes > max_sequences:
                 raise SystemExit(
                     f"--max-sequences {max_sequences} is too small: the ranked policy "
