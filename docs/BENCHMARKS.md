@@ -581,11 +581,12 @@ nothing on the 20 held-out items. Every re-ask is logged with its trigger and it
 ### 5.4 Notes and limitations
 
 * **The bench loader is broken at this commit** (`ggufone bench` → `E_INTERNAL AttributeError:
-  'Placement' object has no attribute 'kv_type'` from `degrade_ladder` in `session.py:250`; tracked
-  as card `t_31b3943a`). E2.5's live numbers are therefore measured **through the serving path**
-  (`open_model` + `ModelSession` — exactly what `run`/`ask` use) instead of the bench harness, which
-  is also the more faithful distribution to calibrate. `ggufone calibrate` does not touch the bench
-  path.
+  'Placement' object has no attribute 'kv_type'` from `degrade_ladder` in `session.py:250`; card
+  `t_31b3943a`, **fixed by a sibling while this card ran** — the branch is rebased on that fix, and
+  the 872-test suite above includes its `tests/test_bench_placement.py`). E2.5's live numbers were
+  measured **through the serving path** (`open_model` + `ModelSession` — exactly what `run`/`ask`
+  use) instead of the bench harness, which is also the more faithful distribution to calibrate;
+  `ggufone calibrate` does not touch the bench path.
 * **Absolute agreement differs between the two load paths**: the same 0.8B answers 32/60 through
   the serving path (E2.5) and 28/60 through the bench path (§4). Every §5 number is measured inside
   one path, so the §5.3 delta is apples-to-apples.

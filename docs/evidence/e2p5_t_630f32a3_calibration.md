@@ -44,7 +44,7 @@ Container: 24 CPUs seen, **2 CPU-seconds/s** cgroup quota, no GPU (`/dev/dri` ab
 
 | gate | command | result |
 |---|---|---|
-| full suite (offline) | `uv run pytest -q -p no:randomly` | **858 passed, 38 skipped** (748 before this card; +110 new cases in `tests/test_calibration.py` + `tests/test_routing.py`) |
+| full suite (offline) | `uv run pytest -q -p no:randomly` | **872 passed, 38 skipped** (748 before this card, +10 from the sibling FIX card `t_31b3943a`; +114 new cases in `tests/test_calibration.py` + `tests/test_routing.py`) |
 | lint | `uv run ruff check src tests tools` | clean |
 | runtime contract | `uv run python docs/verify_runtime_contract.py` | `failures: 0  skips: 0` |
 | coverage (new package) | `uv run pytest --cov=ggufone.calibration tests/test_calibration.py tests/test_routing.py` | **97%** (calibrate 97%, routing 98%, stats 96%) |
@@ -241,9 +241,10 @@ smallest size where an ECE difference of ~0.02 is not dominated by one flip. Unt
 verdicts are honest but noisy, and the honest answer to "is this model calibrated?" is "the
 parameters here are; the next 12 items per type would show whether it matters".
 
-### 5.2 It found a real bug in the E2 bench loader (not fixed here)
+### 5.2 It found a real bug in the E2 bench loader (fixed by a sibling card mid-flight)
 
-`ggufone bench` fails at model load on **any** box, GPU or not:
+`ggufone bench` failed at model load on **any** box, GPU or not, until card `t_31b3943a` landed
+while this card was running:
 
 ```
 E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'
@@ -251,12 +252,13 @@ E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'
   File ".../ggufone/engine/session.py", line 250, in open_model   -> fit.degrade_ladder(fit_plan, facts)
 ```
 
-`harness.LiveModel.load` passes its own `Placement(n_gpu_layers)` where `open_model` expects a
-`fit.FitPlan`, and E1c's `degrade_ladder` then reads `plan.kv_type`. The E2 tables were measured in
+`harness.LiveModel.load` passed its own `Placement(n_gpu_layers)` where `open_model` expects a
+`fit.FitPlan`, and E1c's `degrade_ladder` then read `plan.kv_type`. The E2 tables were measured in
 a tree whose `session.py` predates `degrade_ladder` (0 hits for it in that tree's session, while
 the shared tree has the call at line 250), so the two pieces were transplanted together without
-ever running together; the coordinator filed it as card **`t_31b3943a`** (different card, different
-owner — E2.5 does not fix it). Consequences here:
+ever running together. The coordinator filed it as card **`t_31b3943a`**, whose worker fixed the
+loader seam (and added `tests/test_bench_placement.py`) while E2.5 ran; this branch is rebased on
+that fix. Consequences here:
 
 * E2.5 measures through the **serving path** (`open_model` + `ModelSession`, what `run`/`ask` use)
   — no E2.5 code path touches the bench loader, so `ggufone calibrate` works today;
