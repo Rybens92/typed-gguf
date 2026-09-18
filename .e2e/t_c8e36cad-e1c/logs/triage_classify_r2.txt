@@ -1,0 +1,112 @@
+
+== src/ggufone/engine/template.py: 840 survivors in 64 functions
+     87  ExprParser.parse_comparison
+     54  ggufone.engine.template.x__scan
+     53  ggufone.engine.template.x__user_resolution
+     51  LoopState.attr
+     40  ExprParser.parse_primary
+     37  ggufone.engine.template.x_resolve
+     27  ggufone.engine.template.x__render_raw
+     26  TemplateParser.parse_for
+     23  Renderer._eval_binary
+     22  ExprParser.parse_multiplicative
+     21  ExprParser.parse_or
+     20  Renderer._make_macro
+     19  ggufone.engine.template.x__unescape
+     19  TemplateParser.parse_macro
+     17  TemplateParser.parse_block
+     16  TemplateParser.parse_tag
+     16  ggufone.engine.template.x__with_thinking
+     15  Renderer._render_for
+     14  ggufone.engine.template.x_tokenize_expression
+     14  ExprParser.parse_filter
+     14  TemplateParser.parse_if
+     14  Renderer._eval_compare
+     13  ExprParser.parse_subscript
+     12  ExprParser.parse_concat
+     12  ExprParser.parse_call_args
+     12  ggufone.engine.template.x_parse
+     12  ggufone.engine.template.x__probe_thinking
+     10  ExprParser.parse_postfix
+     10  ggufone.engine.template.x__lookup
+     10  ggufone.engine.template.x__stringify
+     10  ggufone.engine.template.x__filter_default
+      9  Renderer._eval_name
+      9  Renderer._eval_boolop
+      8  ggufone.engine.template.x__split_commas
+      6  ExprParser.expect_op
+      6  ExprParser.parse
+      6  TemplateParser.parse
+      6  ggufone.engine.template.x__unresolved_reason
+      6  ggufone.engine.template.x_render_prompt
+      5  ggufone.engine.template.x_render
+      4  ExprParser.parse_additive
+      4  Renderer._eval_sliceexpr
+      4  Renderer._eval_call
+      4  ggufone.engine.template.x__append_soft_marker
+      3  UnsupportedTemplate.__init__
+      3  ggufone.engine.template.x_policy_for
+      3  LoopState.__init__
+      3  ExprParser.parse_and
+      3  ExprParser.parse_unary
+      3  ggufone.engine.template.x_parse_expression
+      3  Renderer.eval
+      3  Renderer._eval_filter
+      3  ggufone.engine.template.x_suppress_thinking
+      2  _Undefined.__init__
+      2  ExprParser.__init__
+      2  Renderer._eval_test
+      2  Renderer._eval_ternary
+      2  Renderer._render_set
+      1  ExprParser.parse_not
+      1  ggufone.engine.template.x_supports
+      1  Renderer._eval_attr
+      1  Renderer._eval_unary
+      1  Renderer.render
+      1  ggufone.engine.template.x__apply_suppression
+
+--- ExprParser.parse_comparison: 87 survivors, digest of first 0 ---
+
+--- ggufone.engine.template.x__scan: 54 survivors, digest of first 0 ---
+
+--- ggufone.engine.template.x__user_resolution: 53 survivors, digest of first 0 ---
+
+--- LoopState.attr: 51 survivors, digest of first 0 ---
+
+--- ExprParser.parse_primary: 40 survivors, digest of first 0 ---
+
+--- ggufone.engine.template.x_resolve: 37 survivors, digest of first 0 ---
+
+== src/ggufone/runtime/fit.py: 205 survivors in 20 functions
+     42  ModelFacts.read
+     31  ggufone.runtime.fit.x_read_tensor_index
+     21  ggufone.runtime.fit.x_plan_for_model
+     20  ggufone.runtime.fit.x_estimate_plan
+     16  FitPlan.from_dict
+     12  ggufone.runtime.fit.x_store_plan
+     10  ggufone.runtime.fit.x_run_llama_fit_params
+      9  ggufone.runtime.fit.x__gpu_layers
+      8  ggufone.runtime.fit.x_plan_from_binary
+      6  ggufone.runtime.fit.x_plan_for_path
+      5  ggufone.runtime.fit.x__run
+      4  ggufone.runtime.fit.x__timestamp
+      4  ggufone.runtime.fit.x_parse_fit_table
+      4  ggufone.runtime.fit.x_measured_rss_bytes
+      3  ggufone.runtime.fit.x_size_of_tensor
+      3  ggufone.runtime.fit.x_host_facts
+      3  ggufone.runtime.fit.x_load_cached
+      2  ggufone.runtime.fit.x_rss_ratio
+      1  ggufone.runtime.fit.x__kv_int
+      1  ggufone.runtime.fit.x_fit_binary
+
+--- ModelFacts.read: 42 survivors, digest of first 0 ---
+
+--- ggufone.runtime.fit.x_read_tensor_index: 31 survivors, digest of first 0 ---
+
+--- ggufone.runtime.fit.x_plan_for_model: 21 survivors, digest of first 0 ---
+
+--- ggufone.runtime.fit.x_estimate_plan: 20 survivors, digest of first 0 ---
+
+--- FitPlan.from_dict: 16 survivors, digest of first 0 ---
+
+--- ggufone.runtime.fit.x_store_plan: 12 survivors, digest of first 0 ---

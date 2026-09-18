@@ -1,0 +1,46 @@
+
+== src/ggufone/engine/template.py: 840 survivors, class -> count (no-diff: 0)
+     227  other
+            x_policy_for__mutmut_6
+     197  arg->None/removal
+            xǁLoopStateǁattr__mutmut_56
+     143  string-XX-wrap
+            xǁUnsupportedTemplateǁ__init____mutmut_1
+      88  operator-swap
+            xǁLoopStateǁattr__mutmut_5
+      50  string-method-swap
+            xǁExprParserǁparse_comparison__mutmut_49
+      32  assign->None
+            xǁ_Undefinedǁ__init____mutmut_2
+      30  ifexp-forced
+            xǁUnsupportedTemplateǁ__init____mutmut_7
+      29  number+1
+            xǁLoopStateǁ__init____mutmut_5
+      29  bool-flip
+            xǁExprParserǁparse_comparison__mutmut_95
+      14  unary-removal
+            xǁExprParserǁparse_primary__mutmut_27
+       1  lambda-body
+            xǁLoopStateǁattr__mutmut_59
+
+== src/ggufone/runtime/fit.py: 205 survivors, class -> count (no-diff: 0)
+      89  number+1
+            xǁModelFactsǁread__mutmut_30
+      34  operator-swap
+            xǁModelFactsǁread__mutmut_57
+      31  other
+            xǁFitPlanǁfrom_dict__mutmut_64
+      14  string-XX-wrap
+            xǁModelFactsǁread__mutmut_46
+      12  bool-flip
+            x_estimate_plan__mutmut_38
+      10  ifexp-forced
+            xǁModelFactsǁread__mutmut_44
+      10  arg->None/removal
+            xǁFitPlanǁfrom_dict__mutmut_62
+       2  unary-removal
+            x_plan_for_model__mutmut_13
+       2  string-method-swap
+            x_measured_rss_bytes__mutmut_13
+       1  assign->None
+            x_estimate_plan__mutmut_37

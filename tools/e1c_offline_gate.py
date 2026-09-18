@@ -22,7 +22,8 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SUITE = ("tests/test_templates.py", "tests/test_fit.py", "tests/test_fit_live.py",
-         "tests/test_cli_e1c.py", "tests/test_engine_fork.py", "tests/test_ctypes_binding.py",
+         "tests/test_cli_e1c.py", "tests/test_e1c_mutation_pins.py",
+         "tests/test_engine_fork.py", "tests/test_ctypes_binding.py",
          "tests/test_cli.py", "tests/test_no_finetune.py")
 SUMMARY = re.compile(r"(\d+) (passed|failed|skipped|error)")
 

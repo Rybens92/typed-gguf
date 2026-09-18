@@ -278,8 +278,14 @@ def test_install_removes_the_bundle_it_rejected(monkeypatch: pytest.MonkeyPatch,
     assert record["dir"] == str(tmp_path / "home" / "runtime" / "b11026-linux-x64-vulkan")
 
 
-def test_find_runtime_prefers_the_recorded_variant(tmp_path: pathlib.Path) -> None:
-    """Two installed variants: the one runtime.json records is the active one."""
+def test_find_runtime_prefers_the_recorded_variant(tmp_path: pathlib.Path,
+                                                   monkeypatch: pytest.MonkeyPatch) -> None:
+    """Two installed variants: the one runtime.json records is the active one.
+
+    `GGUFONE_RUNTIME_DIR` is an explicit override and wins over `home=` by design, so an ambient
+    one must be cleared here or this test measures the host's bundle instead of its fixture.
+    """
+    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
     home = tmp_path / "home"
     cuda = home / "runtime" / "b11026-linux-x64-cuda-12.8"
     vulkan = home / "runtime" / "b11026-linux-x64-vulkan"
@@ -293,7 +299,8 @@ def test_find_runtime_prefers_the_recorded_variant(tmp_path: pathlib.Path) -> No
 
 
 def test_find_runtime_falls_back_to_a_scan_when_the_record_is_stale(
-        tmp_path: pathlib.Path) -> None:
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
     home = tmp_path / "home"
     vulkan = home / "runtime" / "b11026-linux-x64-vulkan"
     vulkan.mkdir(parents=True)

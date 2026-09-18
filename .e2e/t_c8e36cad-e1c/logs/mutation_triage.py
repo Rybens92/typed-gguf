@@ -290,6 +290,40 @@ def cmd_pick(repo: pathlib.Path, want: str, n: int) -> None:
             print(f"   {k}")
 
 
+def cmd_affected(repo: pathlib.Path, test_suffix: str) -> None:
+    """List the mutant keys whose recorded test selection contains a given test node id."""
+    stats = json.loads((repo / "mutants" / "mutmut-stats.json").read_text())
+    tbm = stats["tests_by_mangled_function_name"]
+    for rel in FILES:
+        meta, _spans = load(repo, rel)
+        codes = meta["exit_code_by_key"]
+        prefix = "ggufone.engine.template." if "template.py" in rel else "ggufone.runtime.fit."
+        hits = 0
+        for fn, tests in sorted(tbm.items()):
+            if not any(t.endswith(test_suffix) for t in tests):
+                continue
+            for key, code in codes.items():
+                if key.startswith(prefix + "x") and fn.endswith(key.split(".")[-1]
+                                                                .split("__mutmut_")[0]):
+                    print(f"  {STATUS[code]:10s} {key}")
+                    hits += 1
+        if hits:
+            print(f"-- {rel}: {hits} keys run the test '{test_suffix}'")
+
+
+def cmd_verdicts(repo: pathlib.Path, path: str) -> None:
+    """Print the sweep's verdict for each key listed in a file (cross-check for the replays)."""
+    wanted = [line.strip() for line in pathlib.Path(path).read_text().splitlines() if line.strip()]
+    seen: dict[str, str] = {}
+    for rel in FILES:
+        meta, _spans = load(repo, rel)
+        for key, code in meta["exit_code_by_key"].items():
+            if key in wanted:
+                seen[key] = STATUS[code]
+    for key in wanted:
+        print(f"  {seen.get(key, 'ABSENT'):10s} {key}")
+
+
 if __name__ == "__main__":
     repo = pathlib.Path(sys.argv[-1] if sys.argv[-1].startswith("/") else "/workspace/ggufone")
     mode = sys.argv[1]
@@ -309,5 +343,9 @@ if __name__ == "__main__":
         cmd_digests(repo, sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 12)
     elif mode == "source":
         cmd_source(repo, sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 0)
+    elif mode == "verdicts":
+        cmd_verdicts(repo, sys.argv[2])
+    elif mode == "affected":
+        cmd_affected(repo, sys.argv[2])
     else:
         raise SystemExit(__doc__)

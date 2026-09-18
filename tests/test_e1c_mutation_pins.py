@@ -692,7 +692,10 @@ def test_within_tolerance_is_inclusive_at_the_boundary() -> None:
 def test_measured_rss_reads_this_process_and_degrades_to_none() -> None:
     mine = fit.measured_rss_bytes()
     assert mine is not None and mine > 0
-    assert fit.measured_rss_bytes(os.getpid()) == mine
+    later = fit.measured_rss_bytes(os.getpid())
+    assert later is not None and later > 0
+    # the same process read twice: RSS moves while the suite allocates, so bound the delta
+    assert abs(later - mine) < 256 * MIB
     assert fit.measured_rss_bytes(pid=999_999_999) is None
 
 
