@@ -1,0 +1,26 @@
+load_backend: loaded RPC backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 109.1024 MiB, matches expectation of 109.1024 MiB
+~llama_context:        CPU compute buffer size is 100.2898 MiB, matches expectation of 100.2898 MiB
+~llama_context:        CPU compute buffer size is 101.8680 MiB, matches expectation of 101.8680 MiB
+~llama_context:        CPU compute buffer size is 108.5926 MiB, matches expectation of 108.5926 MiB
+~llama_context:        CPU compute buffer size is 104.4656 MiB, matches expectation of 104.4656 MiB
+~llama_context:        CPU compute buffer size is  98.2019 MiB, matches expectation of  98.2019 MiB
+~llama_context:        CPU compute buffer size is  92.4968 MiB, matches expectation of  92.4968 MiB
+~llama_context:        CPU compute buffer size is  89.3893 MiB, matches expectation of  89.3893 MiB
+~llama_context:        CPU compute buffer size is  93.5163 MiB, matches expectation of  93.5163 MiB
+~llama_context:        CPU compute buffer size is  93.5163 MiB, matches expectation of  93.5163 MiB
+~llama_context:        CPU compute buffer size is  91.4773 MiB, matches expectation of  91.4773 MiB
+~llama_context:        CPU compute buffer size is  96.1140 MiB, matches expectation of  96.1140 MiB
+~llama_context:        CPU compute buffer size is  92.4968 MiB, matches expectation of  92.4968 MiB
+~llama_context:        CPU compute buffer size is  92.4968 MiB, matches expectation of  92.4968 MiB
+~llama_context:        CPU compute buffer size is  91.9870 MiB, matches expectation of  91.9870 MiB
+~llama_context:        CPU compute buffer size is  86.2624 MiB, matches expectation of  86.2624 MiB
+~llama_context:        CPU compute buffer size is  86.2819 MiB, matches expectation of  86.2819 MiB
+~llama_context:        CPU compute buffer size is  86.7917 MiB, matches expectation of  86.7917 MiB
+~llama_context:        CPU compute buffer size is  88.8796 MiB, matches expectation of  88.8796 MiB
+~llama_context:        CPU compute buffer size is  84.1940 MiB, matches expectation of  84.1940 MiB
+primary: reusing 60 stored rows from /work/e2p5-evidence/e2p5_rows_qwen08.json
+primary /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf: 60 items, 20 low-confidence (s15, s13, s10, s14, s16, s03, s01, s04, s06, c01, s17, c21, s09, c04, c11, c17, s02, s07, s08, c20)
+wrote /work/e2p5-evidence/e2p5_escalation.json
+exit=0

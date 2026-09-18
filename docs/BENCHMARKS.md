@@ -564,7 +564,19 @@ record lands in the audit log when `--audit DIR` is set.
 
 ### 5.3 Escalation (A-E2p5-5)
 
-MEASURED_ESCALATION_TABLE
+0.8B → 4B, the 20 dev items the policy flags at `threshold=0.5` (confidence < 0.5 or
+`low_mass`), re-asked on the 4B (`--limit 20`; the shipped request default is `max_escalations=1`).
+Rows: the calibration run's own primary pass (`--rows`), so the before/after are the same path.
+
+| set | before | after | delta |
+|---|---|---|---|
+| whole dev set (60) | 32/60 = 0.5333 | 34/60 = 0.5667 | **+0.0333** (+2 items) |
+| fit split (40) | 21/40 = 0.5250 | 23/40 = 0.5750 | +0.0500 |
+| held-out split (20) | 11/20 = 0.5500 | 11/20 = 0.5500 | 0.0000 |
+
+So: escalation improved the dev-set agreement by two items, both inside the fit split, and changed
+nothing on the 20 held-out items. Every re-ask is logged with its trigger and its `was` → `now`
+(`engine.escalations`, and `--audit DIR` persists the same record).
 
 ### 5.4 Notes and limitations
 

@@ -38,7 +38,29 @@ Container: 24 CPUs seen, **2 CPU-seconds/s** cgroup quota, no GPU (`/dev/dri` ab
 | **A-E2p5-6** | same set + same model ⇒ identical params hash | two live dev-set passes in one process → identical hash (§2); the digest covers only what the fit reads (`test_the_hash_ignores_the_fields_the_fit_never_reads`); `test_a_re_run_on_the_same_rows_hashes_identically` |
 | **A-E2p5-7** | the router never routes a model to a runtime lacking its arch | `test_the_router_never_picks_a_model_no_installed_runtime_supports` (a `spark2_5` candidate with only the qwen-capable bundle is rejected, `E_MODEL_ARCH_UNSUPPORTED` when nothing survives); live: the CPU bundle claims both arches, so the live route exercises the acceptance side |
 | **A-E2p5-8** | routing/escalation decisions in the response and in the audit log with `--audit DIR` | `engine.route` (full `to_dict`: winner, reason, per-candidate verdicts, budget, capability) and `engine.escalations` in the live responses (§3/§4); `write_audit` appends the record (`test_the_audit_log_records_the_route_the_calibration_and_the_escalations`), and the live route run echoes the audit record it wrote |
-| **exit codes** | `calibrate` is no longer a stub | `test_the_engine_commands_are_no_longer_stubs[calibrate]` (moved out of the frozen list): no model → 2 `E_MODEL_NOT_FOUND`; rejected fit → 1 with "no calibration applied"; corrupt store → 2 `E_REGISTRY_CORRUPT` |
+| exit codes | `calibrate` is no longer a stub | `test_the_engine_commands_are_no_longer_stubs[calibrate]` (moved out of the frozen list): no model → 2 `E_MODEL_NOT_FOUND`; rejected fit → 1 with "no calibration applied"; corrupt store → 2 `E_REGISTRY_CORRUPT` |
+
+### 1.1 Quality gates (Tier M)
+
+| gate | command | result |
+|---|---|---|
+| full suite (offline) | `uv run pytest -q -p no:randomly` | **858 passed, 38 skipped** (748 before this card; +110 new cases in `tests/test_calibration.py` + `tests/test_routing.py`) |
+| lint | `uv run ruff check src tests tools` | clean |
+| runtime contract | `uv run python docs/verify_runtime_contract.py` | `failures: 0  skips: 0` |
+| coverage (new package) | `uv run pytest --cov=ggufone.calibration tests/test_calibration.py tests/test_routing.py` | **97%** (calibrate 97%, routing 98%, stats 96%) |
+| mutation (Tier M, soft) | `uv run --extra dev --with mutmut mutmut run` over `src/ggufone/calibration` with both gate files as selection | **2008/2728 killed = 73.6%**, 720 survivors (list: `docs/evidence/e2p5_mutation_survivors.txt`) |
+| live gates | the runs in §2–§4 | all exit 0; the 4B/0.8B runs are real model loads |
+
+The mutation sweep hit this container's pid cap on its first pass (crashed at 1726/2728 with
+`BlockingIOError`) and completed with `--max-children 2` — the number above is the completed run.
+The survivors are concentrated in code whose *own* shape is the contract rather than a computed
+value: the JSON (de)serialisers (`TypeFit.to_json`/`from_json`, `Table.to_json`/`from_json`,
+`RouteStep.to_dict`, `response_fields`, 250+ mutants), the `--dry-run` renderer, and the human
+reason strings. A mutation that renames a JSON key survives because both the writer and the reader
+in the same test move together — the round trip stays green. The behavioural clusters worth
+tightening later are `route` (114), `_plan_candidate` (37), `Table.apply` (20), `decision_of` (19),
+`escalation_candidates`/`apply_escalation` (25) and `_write_store` (14); per Tier M this card does
+not loop back on survivors — they are listed here for the reviewer's card.
 
 ## 2. The live calibration
 
@@ -168,8 +190,104 @@ survives.
 
 ## 4. Escalation on the dev set (A-E2p5-5)
 
-MEASURED_SECTION_4
+Command:
+
+```
+GGUFONE_HOME=<scratch> GGUFONE_RUNTIME_DIR=<cpu bundle> \
+  python3 tools/e2p5_reproduce.py escalate \
+    --primary ~/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf \
+    --target  ~/.hermes/models/Spark-X2.5-4B-Q8_0.gguf \
+    --rows docs/evidence/e2p5_rows_qwen08.json \      # reuse the calibration run's primary pass
+    --limit 20 --threshold 0.5 --threads 2 --out docs/evidence/e2p5_escalation.json
+```
+
+`--rows` reuses the stored primary measurement, so only the escalated items hit the 4B (695.6 s on
+the target for 20 items). The policy is the shipped one (`routing.escalation_candidates` +
+`routing.apply_escalation`) and the decision rule that scores the result is the shipped one
+(`routing.decision_of`), applied to rows that carry their own decision field.
+
+```
+escalation set   20 of 60 items (threshold 0.5, limit 20) — all s*/c* items with confidence
+                 below 0.5 or reliability low_mass
+whole dev set    32/60 (0.5333, ci [0.409, 0.654])  ->  34/60 (0.5667, ci [0.441, 0.684])
+                 delta +0.0333  (+2 items)
+fit split        21/40 (0.5250) -> 23/40 (0.5750)   delta +0.0500
+held-out split   11/20 (0.5500) -> 11/20 (0.5500)   delta  0.0000
+```
+
+Every one of the 20 re-asks is in `engine.escalations.decisions` with its trigger (`low_confidence`
+/ `low_mass`), the confidence that triggered it, `was` → `now` and `replaced: true`; nothing was
+replaced without a log line, and the request-level log is what `--audit DIR` persists.
+
+**Honest reading:** the delta is positive on the dev set but rests on **two items**, and it is
+**zero on the held-out split** — i.e. this dev set supports "escalating the low-confidence answers
+helped by 2 items here", not "escalation helps in general". `max_escalations` defaults to 1 in the
+shipped request semantics (the measurement used 20 to bound the experiment, not to claim a
+default); with the default, the same policy re-asks one item per request.
 
 ## 5. What this does not claim, and what it found
 
-MEASURED_SECTION_5
+### 5.1 It does not claim the parameters generalise
+
+The accepted `score` parameter (T=1.6475, `entropy`) rests on a **6-item held-out split**. It
+survived the gate on this dev set and is reported as such; the report says nothing about other
+prompts, other states or other languages. The two refused types are equally honest: `margin`
+*proposed* a parameter for `choice` (held-out +0.0031) and it was refused for being below the
+documented margin, not because the machinery could not see it.
+
+**The smallest useful extension of the dev set** is +12 items per type (12/24/24 → 24/36/36,
+i.e. 120 items total): that doubles the per-type held-out split to 12–16 items, which is the
+smallest size where an ECE difference of ~0.02 is not dominated by one flip. Until then the gate's
+verdicts are honest but noisy, and the honest answer to "is this model calibrated?" is "the
+parameters here are; the next 12 items per type would show whether it matters".
+
+### 5.2 It found a real bug in the E2 bench loader (not fixed here)
+
+`ggufone bench` fails at model load on **any** box, GPU or not:
+
+```
+E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'
+  File ".../ggufone/bench/harness.py", line 380, in load          -> fit_plan=Placement(n_gpu_layers)
+  File ".../ggufone/engine/session.py", line 250, in open_model   -> fit.degrade_ladder(fit_plan, facts)
+```
+
+`harness.LiveModel.load` passes its own `Placement(n_gpu_layers)` where `open_model` expects a
+`fit.FitPlan`, and E1c's `degrade_ladder` then reads `plan.kv_type`. The E2 tables were measured in
+a tree whose `session.py` predates `degrade_ladder` (0 hits for it in that tree's session, while
+the shared tree has the call at line 250), so the two pieces were transplanted together without
+ever running together; the coordinator filed it as card **`t_31b3943a`** (different card, different
+owner — E2.5 does not fix it). Consequences here:
+
+* E2.5 measures through the **serving path** (`open_model` + `ModelSession`, what `run`/`ask` use)
+  — no E2.5 code path touches the bench loader, so `ggufone calibrate` works today;
+* the same dev set gives different *absolute* agreement through the two load paths (0.8B: 32/60
+  serving vs 28/60 bench). All E2.5 deltas are measured inside one path.
+
+### 5.3 It found the parameters-hash trap
+
+Two live passes of the same model produced identical probabilities, identical confidences and
+identical decisions — and a **different digest**, because one `coverage` float and one
+`reliability` label had moved (that pass ran an older `Row` shape). The first digest hashed the
+whole row, so the parameters hash moved with data the fit never reads. Fixed: the digest covers
+`id/type/expected/correct/probabilities` only (`test_the_hash_ignores_the_fields_the_fit_never_reads`).
+Without this, "same set + same model ⇒ identical params hash" would have been false for reasons
+nobody could see.
+
+### 5.4 Scope boundaries the reviewer should know
+
+* **No GPU on the measuring box.** The router's device branch (full offload, partial offload, the
+  free-VRAM margin, the KV-floor fallback, the CPU fallback) is covered offline with injected
+  budgets, and its CPU branch live. A device-placement run on the operator's box remains open.
+* **Escalation needs an explicit target** (`--escalation-model REF`, or the next-ranked candidate
+  when `--route auto` produced a ranking). There is no automatic second-model download, and no
+  cascade: an escalated request is decided with escalation disabled.
+* **The audit log is CLI-level** (`--audit DIR`), like `--out`. The request-level options
+  (`route`, `escalate`, `max_escalations`) are part of the frozen `options` block, so a future
+  HTTP/MCP surface inherits the routing and escalation semantics but must wire its own audit sink.
+* **`confidence_mode: null` is the new wire default** (it used to be the literal
+  `"normalized_peak"`). Behaviour is unchanged without a stored calibration — the engine resolves
+  `null` to `normalized_peak` — but a caller that *echoed* the old default back is now explicitly
+  pinning the statistic, which is the intended way to opt out of a promoted mode.
+* **`--dry-run` does not write**, and a refused fit stores nothing: calibration can only be
+  applied by a table the gate accepted, and the response always says whether it was applied
+  (`calibrated`, `calibration.source`, `calibration.params_hash`).
