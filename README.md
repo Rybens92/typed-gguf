@@ -73,6 +73,13 @@ a file. Reuse a prefix across calls with `--state-id my-screen` (+ `--save-state
 call reports `prefill_reused: true` and costs no prefill (the state file lives under
 `$GGUFONE_HOME/states/`).
 
+The response says what **computed**, not what was requested: `engine.backend` is a claim whose
+provenance is published next to it (`engine.backend_source`: `request`, `bundle`, `record` or
+`default`), while `engine.devices` / `engine.device_buffers` / `engine.effective_backend` are read
+back from the engine's own log (`llama_context`/`sched_reserve` compute buffers — `null` when that
+log proves nothing: unverified, never claimed). A claim the log refutes, or cannot corroborate, is
+named in `warnings` as `W_BACKEND_MISMATCH` instead of being published silently.
+
 ## Fit: what this host can actually hold
 
 ```bash

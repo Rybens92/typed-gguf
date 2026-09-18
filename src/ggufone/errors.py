@@ -153,5 +153,8 @@ WARNING_CODES = (
     "W_ESCALATED",
     # E2 FIX (card t_603a35a0): a bench row's own engine log shows the work on a different
     # backend than the one the row claims — the row is not publishable under that label.
+    # E3 FIX (card t_80f1a4c6): the same rule for the *serving* path — `run`/`ask` label their
+    # response with a claimed backend (`engine.backend_source`) and read the device that really
+    # computed from the engine's own log (`engine.effective_backend`).
     "W_BACKEND_MISMATCH",
 )
