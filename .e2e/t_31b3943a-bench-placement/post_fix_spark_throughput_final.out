@@ -1,0 +1,142 @@
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "throughput",
+  "generated_at": "2026-09-18T12:10:03Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15",
+    "cpu_count": 24,
+    "machine": "x86_64",
+    "cgroup_cpu_max": 2.0,
+    "cgroup_memory_bytes": 8589934592
+  },
+  "config": {
+    "suite": "throughput",
+    "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "backend": "auto",
+    "runs": 1,
+    "threads": 4,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": -1,
+    "n_bins": 10,
+    "prefill_sizes": [
+      256,
+      2048,
+      8192
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "name": "Spark-X2.5-4B-Q8_0.gguf",
+    "bytes": 4375021152,
+    "arch": "spark2_5"
+  },
+  "notes": [],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite throughput --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend auto --runs 1 --threads 4 --gpu-layers -1 --json"
+  },
+  "backends": [
+    {
+      "backend": "cpu",
+      "measured": true,
+      "runtime_dir": "/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu",
+      "placement": "n_gpu_layers=-1",
+      "threads": 4,
+      "load_ms": {
+        "n": 1,
+        "min": 954.5732249971479,
+        "p50": 954.5732249971479,
+        "p95": 954.5732249971479,
+        "max": 954.5732249971479,
+        "mean": 954.5732249971479
+      },
+      "placement_used": {
+        "requested": "n_gpu_layers=-1",
+        "used": {
+          "note": "all layers requested: n_gpu_layers=-1 (kv_type=auto)",
+          "n_gpu_layers": -1,
+          "kv_type": "auto",
+          "degraded": false,
+          "attempts": [],
+          "warnings": []
+        }
+      },
+      "prefill": [
+        {
+          "tokens": 256,
+          "ms": {
+            "n": 1,
+            "min": 60401.00892999908,
+            "p50": 60401.00892999908,
+            "p95": 60401.00892999908,
+            "max": 60401.00892999908,
+            "mean": 60401.00892999908
+          },
+          "tok_per_s": {
+            "n": 1,
+            "min": 4.238339798209127,
+            "p50": 4.238339798209127,
+            "p95": 4.238339798209127,
+            "max": 4.238339798209127,
+            "mean": 4.238339798209127
+          },
+          "threads": 4,
+          "backend": "cpu"
+        }
+      ],
+      "prefill_tok_per_s": {
+        "n": 1,
+        "min": 4.238339798209127,
+        "p50": 4.238339798209127,
+        "p95": 4.238339798209127,
+        "max": 4.238339798209127,
+        "mean": 4.238339798209127
+      },
+      "decision_ms": {
+        "n": 1,
+        "min": 27557.01227299869,
+        "p50": 27557.01227299869,
+        "p95": 27557.01227299869,
+        "max": 27557.01227299869,
+        "mean": 27557.01227299869
+      },
+      "decision_tok_per_s": {
+        "n": 1,
+        "min": 0.29030723362701677,
+        "p50": 0.29030723362701677,
+        "p95": 0.29030723362701677,
+        "max": 0.29030723362701677,
+        "mean": 0.29030723362701677
+      }
+    }
+  ],
+  "ok": true
+}

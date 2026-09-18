@@ -1,0 +1,5 @@
+load_backend: loaded RPC backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 166.2610 MiB, matches expectation of 166.2610 MiB
+~llama_context:        CPU compute buffer size is 233.7908 MiB, matches expectation of 233.7908 MiB
+~llama_context:        CPU compute buffer size is 233.7908 MiB, matches expectation of 233.7908 MiB

@@ -1,0 +1,1 @@
+pre-fix CLI exit code for the published E2 latency command (see .err): E_INTERNAL -> 4

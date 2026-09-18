@@ -1,0 +1,3 @@
+load_backend: loaded RPC backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+error: E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'

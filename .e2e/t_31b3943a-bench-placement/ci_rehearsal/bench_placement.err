@@ -1,0 +1,85 @@
+load_backend: loaded RPC backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 307.2086 MiB, matches expectation of 307.2086 MiB
+~llama_context:        CPU compute buffer size is 414.7196 MiB, matches expectation of 414.7196 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 414.7196 MiB, matches expectation of 414.7196 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 422.3996 MiB, matches expectation of 422.3996 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 422.3996 MiB, matches expectation of 422.3996 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 445.5191 MiB, matches expectation of 445.5191 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 445.5191 MiB, matches expectation of 445.5191 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 417.6085 MiB, matches expectation of 417.6085 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 418.5597 MiB, matches expectation of 418.5597 MiB
+~llama_context:        CPU compute buffer size is 422.3996 MiB, matches expectation of 422.3996 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 422.3996 MiB, matches expectation of 422.3996 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 422.3996 MiB, matches expectation of 422.3996 MiB
+state_read_meta: cell_count = 360, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 422.3996 MiB, matches expectation of 422.3996 MiB

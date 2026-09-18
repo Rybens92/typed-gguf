@@ -1,0 +1,87 @@
+{
+  "model": "Qwen3.5-0.8B-UD-Q4_K_XL",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "readout": "sequence",
+    "kv_unified": true,
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 98,
+    "state_id": "sha256:9f813b76618dbe8d4fe2acb240c63edabb7ad1de4ba138e43ae70c328d8df427",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "qwen35",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "f16",
+    "n_gpu_layers": 0,
+    "placement": {
+      "note": "CPU only: the fit plan offloads nothing (kv_type=f16)",
+      "n_gpu_layers": 0,
+      "kv_type": "f16",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    },
+    "fit": {
+      "n_gpu_layers": 0,
+      "n_ctx": 4096,
+      "kv_type": "f16",
+      "n_seq_max": 8,
+      "est_weights_bytes": 458227712,
+      "est_kv_bytes": 70254592,
+      "est_total_bytes": 1043333120,
+      "backend": "cpu",
+      "source": "llama-fit-params",
+      "warnings": [],
+      "notes": [
+        "memory table from b11026-linux-x64-cpu/llama-fit-params (model 437 MiB, context 67 MiB, compute 491 MiB)"
+      ],
+      "arch": "qwen35",
+      "model_sha256": "3177ebd67afe4438374da19e690bc1b98756f7e0fea9240e1be404336156a7b5",
+      "host_fingerprint": "ae4ea45c5f28f969",
+      "budget_bytes": 32474873856,
+      "created_at": "2026-09-18T11:17:44Z",
+      "schema": "ggufone.fit/v1"
+    }
+  },
+  "answers": {
+    "area": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": {
+        "billing": 0.501025,
+        "technical": 0.498975
+      },
+      "confidence": 0.00204944,
+      "coverage": 0.0515311,
+      "reliability": "low_mass",
+      "decode_steps": 2
+    }
+  },
+  "usage": {
+    "input_tokens": 125,
+    "output_tokens": 2,
+    "questions": 1,
+    "forks": 2,
+    "prefill_tokens": 98,
+    "decode_steps": 2,
+    "waves": 1
+  },
+  "timings": {
+    "model_load_ms": 2788.72,
+    "prefill_ms": 72247.7,
+    "questions_ms": 67516.7,
+    "total_ms": 139765.0
+  },
+  "warnings": [
+    "W_LOW_MASS"
+  ]
+}

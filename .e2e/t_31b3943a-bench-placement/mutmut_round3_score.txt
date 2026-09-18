@@ -1,0 +1,33 @@
+src/ggufone/bench/__init__.py.meta               total     0  killed     0  survived     0  score     n/a  not-run     0  no-tests    0
+src/ggufone/bench/devset.py.meta                 total   234  killed   143  survived    75  score  65.6 %  not-run     0  no-tests   16
+src/ggufone/bench/harness.py.meta                total  1586  killed   782  survived   671  score  53.8 %  not-run    85  no-tests   47
+src/ggufone/bench/suites.py.meta                 total  1416  killed   948  survived   427  score  68.9 %  not-run    41  no-tests    0
+--------------------------------------------------------------------------------------------------------------
+TOTAL total 3236  {'killed': 1873, 'survived': 1173, 'no-tests': 63, 'not-checked': 126, 'timeout': 1}
+SCORE killed/scored = 61.5 %   (scored=3047, score-minus-no-tests-and-not-run)
+survivors by symbol (top 25):
+    409  ggufone.bench.harness.x_render_report
+     39  ggufone.bench.suites.x__run_quality
+     39  ggufone.bench.suites.x__determinism_request
+     37  ggufone.bench.harness.x_host_facts
+     36  ggufone.bench.devset.x_validate
+     34  ggufone.bench.suites.x__per_question_rows
+     32  ggufone.bench.suites.x__determinism_row
+     30  ggufone.bench.devset.x_load
+     30  ggufone.bench.suites.x__wave_scaling_rows
+     27  ggufone.bench.suites.x__throughput_row
+     26  ggufone.bench.suites.x__load_amortisation_row
+     24  ggufone.bench.suites.x__warm_cache_row
+     23  ggufone.bench.suites.x__devset_rows
+     22  ggufone.bench.harness.x__summary_row
+     19  ggufone.bench.suites.x__run_determinism
+     18  ggufone.bench.harness.x_reliability_bins
+     18  ggufone.bench.harness.x_resolve_model_path
+     18  ggufone.bench.harness.x_spec_for
+     18  ggufone.bench.suites.x__run_latency
+     18  ggufone.bench.suites.x__prefill_rows
+     17  ggufone.bench.harness.x_ratio_summarise
+     16  ggufone.bench.suites.x__choice_request
+     13  ggufone.bench.harness.x.LiveModel.__init__
+     12  ggufone.bench.harness.x_reproduce_command
+     12  ggufone.bench.harness.x_write_report

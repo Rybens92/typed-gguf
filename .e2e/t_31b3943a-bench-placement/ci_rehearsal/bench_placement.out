@@ -1,0 +1,527 @@
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "latency",
+  "generated_at": "2026-09-18T11:12:00Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15",
+    "cpu_count": 24,
+    "machine": "x86_64",
+    "cgroup_cpu_max": 2.0,
+    "cgroup_memory_bytes": 8589934592
+  },
+  "config": {
+    "suite": "latency",
+    "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "backend": "auto",
+    "runs": 1,
+    "threads": 2,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": 4,
+    "n_bins": 10,
+    "prefill_sizes": [
+      256
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "name": "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "bytes": 558772480,
+    "arch": "qwen35"
+  },
+  "notes": [
+    "`waves` counts the decode batches a decision takes after the prefill (here: 1 suffix decode per question group + 1 per extra candidate token); five single-token candidates in one question are 1 wave, not ceil(5 / n_seq_max): {'groups': 1, 'suffix_decodes': 1, 'step_decodes': 1, 'waves': 2}.",
+    "every measured call reports `prefill_reused: true` once the prefix state cache is warm, which is why the decision tables isolate the question phase."
+  ],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite latency --model /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf --backend auto --runs 1 --threads 2 --gpu-layers 4 --json"
+  },
+  "model_load": {
+    "n": 1,
+    "min": 1697.4528419996204,
+    "p50": 1697.4528419996204,
+    "p95": 1697.4528419996204,
+    "max": 1697.4528419996204,
+    "mean": 1697.4528419996204
+  },
+  "placement": {
+    "requested": "n_gpu_layers=4",
+    "used": {
+      "note": "fit plan: 4 layer(s) offloaded, kv_type=auto",
+      "n_gpu_layers": 4,
+      "kv_type": "auto",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    }
+  },
+  "prefill": [
+    {
+      "tokens": 256,
+      "ms": {
+        "n": 1,
+        "min": 6916.947531997721,
+        "p50": 6916.947531997721,
+        "p95": 6916.947531997721,
+        "max": 6916.947531997721,
+        "mean": 6916.947531997721
+      },
+      "tok_per_s": {
+        "n": 1,
+        "min": 37.01054530423238,
+        "p50": 37.01054530423238,
+        "p95": 37.01054530423238,
+        "max": 37.01054530423238,
+        "mean": 37.01054530423238
+      },
+      "threads": 2,
+      "backend": "cpu"
+    }
+  ],
+  "per_question": [
+    {
+      "candidates": 2,
+      "ms": {
+        "n": 1,
+        "min": 2838.7300109970965,
+        "p50": 2838.7300109970965,
+        "p95": 2838.7300109970965,
+        "max": 2838.7300109970965,
+        "mean": 2838.7300109970965
+      },
+      "total_ms": {
+        "n": 1,
+        "min": 2845.2179349988,
+        "p50": 2845.2179349988,
+        "p95": 2845.2179349988,
+        "max": 2845.2179349988,
+        "mean": 2845.2179349988
+      },
+      "waves": 2,
+      "forks": 2,
+      "decode_steps": 4,
+      "prefix_tokens": null,
+      "n_seq_max": 3,
+      "threads": 2,
+      "backend": "cpu",
+      "prefill_reused": true
+    },
+    {
+      "candidates": 4,
+      "ms": {
+        "n": 1,
+        "min": 2872.699614003068,
+        "p50": 2872.699614003068,
+        "p95": 2872.699614003068,
+        "max": 2872.699614003068,
+        "mean": 2872.699614003068
+      },
+      "total_ms": {
+        "n": 1,
+        "min": 2879.8894440005824,
+        "p50": 2879.8894440005824,
+        "p95": 2879.8894440005824,
+        "max": 2879.8894440005824,
+        "mean": 2879.8894440005824
+      },
+      "waves": 2,
+      "forks": 4,
+      "decode_steps": 8,
+      "prefix_tokens": null,
+      "n_seq_max": 5,
+      "threads": 2,
+      "backend": "cpu",
+      "prefill_reused": true
+    },
+    {
+      "candidates": 10,
+      "ms": {
+        "n": 1,
+        "min": 3444.8999829983222,
+        "p50": 3444.8999829983222,
+        "p95": 3444.8999829983222,
+        "max": 3444.8999829983222,
+        "mean": 3444.8999829983222
+      },
+      "total_ms": {
+        "n": 1,
+        "min": 3451.8586510021123,
+        "p50": 3451.8586510021123,
+        "p95": 3451.8586510021123,
+        "max": 3451.8586510021123,
+        "mean": 3451.8586510021123
+      },
+      "waves": 2,
+      "forks": 10,
+      "decode_steps": 20,
+      "prefix_tokens": null,
+      "n_seq_max": 11,
+      "threads": 2,
+      "backend": "cpu",
+      "prefill_reused": true
+    }
+  ],
+  "wave_scaling": [
+    {
+      "questions": 1,
+      "ms": {
+        "n": 1,
+        "min": 1044.783256998926,
+        "p50": 1044.783256998926,
+        "p95": 1044.783256998926,
+        "max": 1044.783256998926,
+        "mean": 1044.783256998926
+      },
+      "waves": 1,
+      "forks": 2,
+      "decode_steps": 2,
+      "ms_per_question": 1044.783256998926,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 2,
+      "ms": {
+        "n": 1,
+        "min": 2647.631013998762,
+        "p50": 2647.631013998762,
+        "p95": 2647.631013998762,
+        "max": 2647.631013998762,
+        "mean": 2647.631013998762
+      },
+      "waves": 2,
+      "forks": 4,
+      "decode_steps": 4,
+      "ms_per_question": 1323.815506999381,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 3,
+      "ms": {
+        "n": 1,
+        "min": 4153.520506002678,
+        "p50": 4153.520506002678,
+        "p95": 4153.520506002678,
+        "max": 4153.520506002678,
+        "mean": 4153.520506002678
+      },
+      "waves": 3,
+      "forks": 6,
+      "decode_steps": 6,
+      "ms_per_question": 1384.506835334226,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 4,
+      "ms": {
+        "n": 1,
+        "min": 7522.4839170005,
+        "p50": 7522.4839170005,
+        "p95": 7522.4839170005,
+        "max": 7522.4839170005,
+        "mean": 7522.4839170005
+      },
+      "waves": 4,
+      "forks": 8,
+      "decode_steps": 8,
+      "ms_per_question": 1880.620979250125,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 5,
+      "ms": {
+        "n": 1,
+        "min": 7586.746954999398,
+        "p50": 7586.746954999398,
+        "p95": 7586.746954999398,
+        "max": 7586.746954999398,
+        "mean": 7586.746954999398
+      },
+      "waves": 5,
+      "forks": 10,
+      "decode_steps": 10,
+      "ms_per_question": 1517.3493909998797,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 6,
+      "ms": {
+        "n": 1,
+        "min": 6015.315273001761,
+        "p50": 6015.315273001761,
+        "p95": 6015.315273001761,
+        "max": 6015.315273001761,
+        "mean": 6015.315273001761
+      },
+      "waves": 6,
+      "forks": 12,
+      "decode_steps": 12,
+      "ms_per_question": 1002.5525455002935,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 7,
+      "ms": {
+        "n": 1,
+        "min": 9996.694338002271,
+        "p50": 9996.694338002271,
+        "p95": 9996.694338002271,
+        "max": 9996.694338002271,
+        "mean": 9996.694338002271
+      },
+      "waves": 7,
+      "forks": 14,
+      "decode_steps": 14,
+      "ms_per_question": 1428.0991911431815,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 8,
+      "ms": {
+        "n": 1,
+        "min": 6891.0564280013205,
+        "p50": 6891.0564280013205,
+        "p95": 6891.0564280013205,
+        "max": 6891.0564280013205,
+        "mean": 6891.0564280013205
+      },
+      "waves": 8,
+      "forks": 16,
+      "decode_steps": 16,
+      "ms_per_question": 861.3820535001651,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 9,
+      "ms": {
+        "n": 1,
+        "min": 9552.798871998675,
+        "p50": 9552.798871998675,
+        "p95": 9552.798871998675,
+        "max": 9552.798871998675,
+        "mean": 9552.798871998675
+      },
+      "waves": 9,
+      "forks": 18,
+      "decode_steps": 18,
+      "ms_per_question": 1061.4220968887416,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 10,
+      "ms": {
+        "n": 1,
+        "min": 11427.999819999968,
+        "p50": 11427.999819999968,
+        "p95": 11427.999819999968,
+        "max": 11427.999819999968,
+        "mean": 11427.999819999968
+      },
+      "waves": 10,
+      "forks": 20,
+      "decode_steps": 20,
+      "ms_per_question": 1142.7999819999968,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 11,
+      "ms": {
+        "n": 1,
+        "min": 12928.078715998709,
+        "p50": 12928.078715998709,
+        "p95": 12928.078715998709,
+        "max": 12928.078715998709,
+        "mean": 12928.078715998709
+      },
+      "waves": 11,
+      "forks": 22,
+      "decode_steps": 22,
+      "ms_per_question": 1175.2798832726098,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 12,
+      "ms": {
+        "n": 1,
+        "min": 13014.7676029992,
+        "p50": 13014.7676029992,
+        "p95": 13014.7676029992,
+        "max": 13014.7676029992,
+        "mean": 13014.7676029992
+      },
+      "waves": 12,
+      "forks": 24,
+      "decode_steps": 24,
+      "ms_per_question": 1084.5639669166,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 13,
+      "ms": {
+        "n": 1,
+        "min": 8992.797637001786,
+        "p50": 8992.797637001786,
+        "p95": 8992.797637001786,
+        "max": 8992.797637001786,
+        "mean": 8992.797637001786
+      },
+      "waves": 13,
+      "forks": 26,
+      "decode_steps": 26,
+      "ms_per_question": 691.7536643847527,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 14,
+      "ms": {
+        "n": 1,
+        "min": 20252.58908700198,
+        "p50": 20252.58908700198,
+        "p95": 20252.58908700198,
+        "max": 20252.58908700198,
+        "mean": 20252.58908700198
+      },
+      "waves": 14,
+      "forks": 28,
+      "decode_steps": 28,
+      "ms_per_question": 1446.6135062144272,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 15,
+      "ms": {
+        "n": 1,
+        "min": 16409.939724999276,
+        "p50": 16409.939724999276,
+        "p95": 16409.939724999276,
+        "max": 16409.939724999276,
+        "mean": 16409.939724999276
+      },
+      "waves": 15,
+      "forks": 30,
+      "decode_steps": 30,
+      "ms_per_question": 1093.9959816666185,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    },
+    {
+      "questions": 16,
+      "ms": {
+        "n": 1,
+        "min": 67699.88491699769,
+        "p50": 67699.88491699769,
+        "p95": 67699.88491699769,
+        "max": 67699.88491699769,
+        "mean": 67699.88491699769
+      },
+      "waves": 16,
+      "forks": 32,
+      "decode_steps": 32,
+      "ms_per_question": 4231.242807312356,
+      "n_seq_max": 4,
+      "threads": 2,
+      "backend": "cpu"
+    }
+  ],
+  "warm_cache": {
+    "state_id": "bench-warm-prefix",
+    "prefill_reused": true,
+    "prefill_ms": {
+      "n": 1,
+      "min": 0.0,
+      "p50": 0.0,
+      "p95": 0.0,
+      "max": 0.0,
+      "mean": 0.0
+    },
+    "questions_ms": {
+      "n": 1,
+      "min": 9114.500832998601,
+      "p50": 9114.500832998601,
+      "p95": 9114.500832998601,
+      "max": 9114.500832998601,
+      "mean": 9114.500832998601
+    },
+    "backend": "cpu",
+    "threads": 2
+  },
+  "load_amortisation": {
+    "calls": 1,
+    "model_load_ms": 1697.4528419996204,
+    "steady_ms_per_request": {
+      "n": 1,
+      "min": 3594.1604519975954,
+      "p50": 3594.1604519975954,
+      "p95": 3594.1604519975954,
+      "max": 3594.1604519975954,
+      "mean": 3594.1604519975954
+    },
+    "serve_ms_per_request": 3594.1604519975954,
+    "one_shot_ms_per_request": 5291.613293997216,
+    "saved_ms_per_request": 1697.4528419996204,
+    "backend": "cpu",
+    "threads": 2
+  },
+  "wave_accounting": {
+    "groups": 1,
+    "suffix_decodes": 1,
+    "step_decodes": 1,
+    "waves": 2
+  }
+}

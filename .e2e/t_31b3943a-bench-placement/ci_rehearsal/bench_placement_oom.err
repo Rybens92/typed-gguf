@@ -1,0 +1,12 @@
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer

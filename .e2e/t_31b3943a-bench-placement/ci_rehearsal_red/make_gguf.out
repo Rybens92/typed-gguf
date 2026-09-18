@@ -1,0 +1,9 @@
+Using CPython 3.11.15 interpreter at: /usr/local/bin/python3
+Creating virtual environment at: .venv
+   Building ggufone @ file:///tmp/red-tree-3Irs/repo
+      Built ggufone @ file:///tmp/red-tree-3Irs/repo
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+Installed 1 package in 1ms
+wrote .e2e/t_31b3943a-bench-placement/ci_rehearsal_red/synthetic.gguf
