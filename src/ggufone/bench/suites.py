@@ -23,13 +23,23 @@ Measurement conventions, pinned so a published number can be reproduced by hand:
 * `quality` / `calibration` — one decision per dev item, agreement = the argmax candidate equals
   the gold candidate (`devset.gold_key`); the three confidence modes are recomputed from the same
   stored distributions, so no extra model run is needed.
-* `determinism` — 3 repeats per backend of the same request, compared byte-for-byte after
-  stripping `timings` (`harness.digest`), with `threads=1` unless `--threads` overrides it.
+* `determinism` — `config.determinism_repeats` repeats per backend of the same request (3 in the
+  full campaign, 2 under `--quick`), compared byte-for-byte after stripping `timings`
+  (`harness.digest`), with `threads=1` unless `--threads` overrides it.
 * `latency` / `quality` / `calibration` measure **one** backend per run: `--backend auto` resolves
   to every locally installed bundle but these suites take the first of them (`DEFAULT_BACKENDS`
   order, `cpu` first), so the report records the choice (`backend_selection`) and says which bundle
   was passed over — a GPU box asking for `auto` must not look like a box without an accelerator
   (card t_31b3943a, coordinator note). `throughput` and `determinism` measure every usable backend.
+
+Two cross-cutting rules apply to every suite:
+
+* **`--quick`** (`harness.quick_config`) only changes *scale*: the row shapes, the code paths, the
+  accounting and the renderer are the same as a full run's.
+* **`--max-seconds`** is a soft cap realized as one `harness.TimeBudget` per run: one *row* (with
+  all of its `runs` samples) is one budget unit and the cap is checked between units, so the unit
+  that started always finishes; units that never started are recorded (`_measure`) and the report
+  lists them under `"truncated": true` while the exit code stays 0.
 """
 from __future__ import annotations
 
@@ -61,24 +71,57 @@ def live_factory(spec: harness.ModelSpec) -> harness.ModelLike:
 
 
 def run_suite(config: harness.BenchConfig, *, factory: Factory | None = None) -> dict[str, Any]:
-    """Run one suite and return its report (the only entry point the CLI needs)."""
+    """Run one suite and return its report (the only entry point the CLI needs).
+
+    The soft cap (`config.max_seconds`) is realized here as one `harness.TimeBudget` per run:
+    every suite checks it *between* its measurements and records the units it never started, so
+    the report can carry `"truncated": true` plus the unmeasured rows and still exit 0.
+    """
     harness.valid_suite(config.suite)
     make = factory or live_factory
+    budget = harness.TimeBudget(config.max_seconds)
     if config.suite == "latency":
-        return _run_latency(config, make)
-    if config.suite == "throughput":
-        return _run_throughput(config, make)
-    if config.suite == "quality":
-        return _run_quality(config, make, calibration=False)
-    if config.suite == "calibration":
-        return _run_quality(config, make, calibration=True)
-    return _run_determinism(config, make)
+        report = _run_latency(config, make, budget)
+    elif config.suite == "throughput":
+        report = _run_throughput(config, make, budget)
+    elif config.suite == "quality":
+        report = _run_quality(config, make, budget, calibration=False)
+    elif config.suite == "calibration":
+        report = _run_quality(config, make, budget, calibration=True)
+    else:
+        report = _run_determinism(config, make, budget)
+    report["truncated"] = bool(budget.skipped)
+    report["skipped"] = list(budget.skipped)
+    report["wall_ms"] = round(budget.elapsed() * 1000.0, 3)
+    report["budget"] = budget.to_dict()
+    # every report carries an explicit `ok`: "what ran passed" (a suite without a gate has nothing
+    # to fail, and `truncated` — not `ok` — is what says the run is incomplete)
+    report.setdefault("ok", True)
+    return report
+
+
+def _measure(budget: harness.TimeBudget, section: str, row: str,
+             measure: Callable[[], Any]) -> Any | None:
+    """One measurement under the soft cap: the cap is checked *between* units, never inside one.
+
+    A unit that starts always finishes (the report must not carry a half-measured row); a unit
+    that never starts is recorded under its `section`/`row` label and reported as unmeasured.
+    """
+    if budget.expired():
+        budget.skip(section, row)
+        return None
+    return measure()
 
 
 # --------------------------------------------------------------------------- backend selection
 def _selected_backends(config: harness.BenchConfig, runtimes: Mapping[str, Any],
                        ) -> tuple[list[str], dict[str, str]]:
-    """`(usable, missing-with-reason)`. A forced backend that is missing is an error."""
+    """`(usable, missing-with-reason)`. A forced backend that is missing is an error.
+
+    `config.backend_limit` (the `--quick` preset's "one backend") cuts the *usable* list: the
+    missing map keeps every backend that was asked for, so the report can still name what it did
+    not measure and why.
+    """
     chosen = config.backends(available=runtimes)
     usable = [backend for backend in chosen if backend in runtimes]
     missing = {backend: harness.backend_unavailable_reason(backend) for backend in chosen
@@ -87,6 +130,8 @@ def _selected_backends(config: harness.BenchConfig, runtimes: Mapping[str, Any],
         raise harness.BenchError(
             f"none of the requested backends ({', '.join(chosen)}) has a local llama.cpp bundle; "
             + missing[chosen[0]], code="E_BENCH_BACKEND")
+    if config.backend_limit is not None:
+        usable = usable[:max(1, int(config.backend_limit))]
     return usable, missing
 
 
@@ -126,7 +171,17 @@ def _envelope(config: harness.BenchConfig) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- latency
-def _run_latency(config: harness.BenchConfig, make: Factory) -> dict[str, Any]:
+def _unit_budget() -> harness.TimeBudget:
+    """A budget that never expires: the *inner* parts of one multi-part measurement.
+
+    A throughput row (load + prefill + decisions for one backend) is one measurement unit, so the
+    run-level cap must not cut inside it — `_measure` on this budget can only ever run the unit.
+    """
+    return harness.TimeBudget(None)
+
+
+def _run_latency(config: harness.BenchConfig, make: Factory,
+                 budget: harness.TimeBudget) -> dict[str, Any]:
     runtimes = harness.backend_runtimes(home=config.home)
     usable, missing = _selected_backends(config, runtimes)
     backend = usable[0]
@@ -135,25 +190,39 @@ def _run_latency(config: harness.BenchConfig, make: Factory) -> dict[str, Any]:
     _record_backend_selection(report, config, selected=backend, usable=usable, missing=missing)
     model = make(spec)
     try:
-        loads = [float(model.load()) for _ in range(max(1, config.runs))]
+        loads: list[float] = []
+        for index in range(max(1, config.runs)):
+            load = _measure(budget, "model_load", f"load#{index + 1}",
+                            lambda: float(model.load()))
+            if load is None:
+                break
+            loads.append(float(load))
         report["model_load"] = harness.summarise(loads)
         # what the loader did with the requested placement (a degraded retry offloads less)
         report["placement"] = harness.placement_of(model, spec)
-        report["prefill"] = _prefill_rows(config, model)
-        report["per_question"] = _per_question_rows(config, model)
-        report["wave_scaling"] = _wave_scaling_rows(config, model)
-        report["warm_cache"] = _warm_cache_row(config, model)
-        report["load_amortisation"] = _load_amortisation_row(config, model, loads)
-        report["wave_accounting"] = planned_wave_breakdown(
-            model, _five_way_request(config), n_seq_max=6, readout_mode="sequence")
-        report["notes"].append(
-            "`waves` counts the decode batches a decision takes after the prefill "
-            f"(here: 1 suffix decode per question group + 1 per extra candidate token); "
-            f"five single-token candidates in one question are 1 wave, not "
-            f"ceil(5 / n_seq_max): {report['wave_accounting']}.")
-        report["notes"].append(
-            "every measured call reports `prefill_reused: true` once the prefix state cache is "
-            "warm, which is why the decision tables isolate the question phase.")
+        report["prefill"] = _prefill_rows(config, model, budget)
+        report["per_question"] = _per_question_rows(config, model, budget)
+        report["wave_scaling"] = _wave_scaling_rows(config, model, budget)
+        warm = _measure(budget, "warm_cache", "state reuse", lambda: _warm_cache_row(config, model))
+        report["warm_cache"] = warm if warm is not None else {}
+        amortised = _measure(budget, "load_amortisation", "serve vs one-shot",
+                             lambda: _load_amortisation_row(config, model, loads))
+        report["load_amortisation"] = amortised if amortised is not None else {}
+        if loads:
+            report["wave_accounting"] = planned_wave_breakdown(
+                model, _five_way_request(config), n_seq_max=6, readout_mode="sequence")
+            report["notes"].append(
+                "`waves` counts the decode batches a decision takes after the prefill "
+                f"(here: 1 suffix decode per question group + 1 per extra candidate token); "
+                f"five single-token candidates in one question are 1 wave, not "
+                f"ceil(5 / n_seq_max): {report['wave_accounting']}.")
+        else:
+            report["notes"].append(
+                "no measurement ran: the soft cap was already spent before the first model load")
+        if report["per_question"]:
+            report["notes"].append(
+                "every measured call reports `prefill_reused: true` once the prefix state cache is "
+                "warm, which is why the decision tables isolate the question phase.")
     finally:
         model.close()
     return report
@@ -168,23 +237,33 @@ def _filler_tokens(model: harness.ModelLike, size: int) -> list[int]:
     return tokens[:size]
 
 
-def _prefill_rows(config: harness.BenchConfig, model: harness.ModelLike) -> list[dict[str, Any]]:
+def _prefill_rows(config: harness.BenchConfig, model: harness.ModelLike,
+                  budget: harness.TimeBudget) -> list[dict[str, Any]]:
+    """One row per prefill size — each size is one measurement of the soft cap."""
     rows: list[dict[str, Any]] = []
     for size in config.prefill_sizes:
-        tokens = _filler_tokens(model, int(size))
-        durations: list[float] = []
-        counts: list[int] = []
-        for _ in range(max(1, config.runs)):
-            with model.session(n_ctx=int(size) + 64, n_seq_max=3, threads=config.threads) as live:
-                info = live.prefill(tokens, state_cache=False)
-            durations.append(float(info.prefill_ms) / 1000.0)
-            counts.append(int(info.prefill_tokens))
-        rows.append({"tokens": int(size),
-                     "ms": harness.summarise([value * 1000.0 for value in durations]),
-                     "tok_per_s": harness.ratio_summarise(counts, durations),
-                     "threads": config.threads or model.spec.threads,
-                     "backend": model.spec.backend})
+        row = _measure(budget, "prefill", f"tokens={int(size)}",
+                       lambda size=size: _prefill_row(config, model, int(size)))
+        if row is not None:
+            rows.append(row)
     return rows
+
+
+def _prefill_row(config: harness.BenchConfig, model: harness.ModelLike, size: int,
+                 ) -> dict[str, Any]:
+    tokens = _filler_tokens(model, size)
+    durations: list[float] = []
+    counts: list[int] = []
+    for _ in range(max(1, config.runs)):
+        with model.session(n_ctx=size + 64, n_seq_max=3, threads=config.threads) as live:
+            info = live.prefill(tokens, state_cache=False)
+        durations.append(float(info.prefill_ms) / 1000.0)
+        counts.append(int(info.prefill_tokens))
+    return {"tokens": size,
+            "ms": harness.summarise([value * 1000.0 for value in durations]),
+            "tok_per_s": harness.ratio_summarise(counts, durations),
+            "threads": config.threads or model.spec.threads,
+            "backend": model.spec.backend}
 
 
 def _choice_request(candidates: int, *, state: str = LATENCY_STATE, threads: int | None = None,
@@ -224,56 +303,73 @@ def _five_way_request(config: harness.BenchConfig) -> schema.Request:
 
 
 def _per_question_rows(config: harness.BenchConfig, model: harness.ModelLike,
-                       ) -> list[dict[str, Any]]:
+                       budget: harness.TimeBudget) -> list[dict[str, Any]]:
+    """One row per candidate count (warm-up + `runs` samples = one measurement unit)."""
     rows: list[dict[str, Any]] = []
     for count in config.candidate_counts:
-        payload = _warm_choice_request(int(count), state_id=LATENCY_STATE_ID,
-                                       threads=config.threads)
-        request = schema.parse_request(payload)
-        n_seq_max = max(config.n_seq_max or 0, 1 + int(count))
-        model.decide(request, n_seq_max=n_seq_max, threads=config.threads)      # warm-up
-        durations: list[float] = []
-        totals: list[float] = []
-        usage: dict[str, Any] = {}
-        for _ in range(max(1, config.runs)):
-            result = model.decide(request, n_seq_max=n_seq_max, threads=config.threads)
-            durations.append(float(result.timings["questions_ms"]))
-            totals.append(float(result.timings["total_ms"]))
-            usage = dict(result.usage)
-        rows.append({"candidates": int(count),
-                     "ms": harness.summarise(durations),
-                     "total_ms": harness.summarise(totals),
-                     "waves": usage.get("waves"),
-                     "forks": usage.get("forks"),
-                     "decode_steps": usage.get("decode_steps"),
-                     "prefix_tokens": usage.get("prefix_tokens"),
-                     "n_seq_max": n_seq_max,
-                     "threads": config.threads or model.spec.threads,
-                     "backend": model.spec.backend,
-                     "prefill_reused": bool(result.engine.get("prefill_reused"))})
+        row = _measure(budget, "per_question", f"candidates={int(count)}",
+                       lambda count=count: _per_question_row(config, model, int(count)))
+        if row is not None:
+            rows.append(row)
     return rows
 
 
-def _wave_scaling_rows(config: harness.BenchConfig,
-                       model: harness.ModelLike) -> list[dict[str, Any]]:
+def _per_question_row(config: harness.BenchConfig, model: harness.ModelLike, count: int,
+                      ) -> dict[str, Any]:
+    payload = _warm_choice_request(count, state_id=LATENCY_STATE_ID, threads=config.threads)
+    request = schema.parse_request(payload)
+    n_seq_max = max(config.n_seq_max or 0, 1 + count)
+    model.decide(request, n_seq_max=n_seq_max, threads=config.threads)      # warm-up
+    durations: list[float] = []
+    totals: list[float] = []
+    usage: dict[str, Any] = {}
+    for _ in range(max(1, config.runs)):
+        result = model.decide(request, n_seq_max=n_seq_max, threads=config.threads)
+        durations.append(float(result.timings["questions_ms"]))
+        totals.append(float(result.timings["total_ms"]))
+        usage = dict(result.usage)
+    return {"candidates": count,
+            "ms": harness.summarise(durations),
+            "total_ms": harness.summarise(totals),
+            "waves": usage.get("waves"),
+            "forks": usage.get("forks"),
+            "decode_steps": usage.get("decode_steps"),
+            "prefix_tokens": usage.get("prefix_tokens"),
+            "n_seq_max": n_seq_max,
+            "threads": config.threads or model.spec.threads,
+            "backend": model.spec.backend,
+            "prefill_reused": bool(result.engine.get("prefill_reused"))}
+
+
+def _wave_scaling_rows(config: harness.BenchConfig, model: harness.ModelLike,
+                       budget: harness.TimeBudget) -> list[dict[str, Any]]:
+    """One row per question count (N=1..16 in the full campaign, {1, 2} under `--quick`)."""
     rows: list[dict[str, Any]] = []
-    n_seq_max = config.n_seq_max or 4
     for count in config.wave_scaling:
-        request = schema.parse_request(_warm_noul_request(int(count), threads=config.threads))
-        model.decide(request, n_seq_max=n_seq_max, threads=config.threads)      # warm-up
-        durations: list[float] = []
-        usage: dict[str, Any] = {}
-        for _ in range(max(1, config.runs)):
-            result = model.decide(request, n_seq_max=n_seq_max, threads=config.threads)
-            durations.append(float(result.timings["questions_ms"]))
-            usage = dict(result.usage)
-        rows.append({"questions": int(count), "ms": harness.summarise(durations),
-                     "waves": usage.get("waves"), "forks": usage.get("forks"),
-                     "decode_steps": usage.get("decode_steps"),
-                     "ms_per_question": (harness.summarise(durations)["p50"] or 0.0) / count,
-                     "n_seq_max": n_seq_max, "threads": config.threads or model.spec.threads,
-                     "backend": model.spec.backend})
+        row = _measure(budget, "wave_scaling", f"questions={int(count)}",
+                       lambda count=count: _wave_scaling_row(config, model, int(count)))
+        if row is not None:
+            rows.append(row)
     return rows
+
+
+def _wave_scaling_row(config: harness.BenchConfig, model: harness.ModelLike, count: int,
+                      ) -> dict[str, Any]:
+    n_seq_max = config.n_seq_max or 4
+    request = schema.parse_request(_warm_noul_request(count, threads=config.threads))
+    model.decide(request, n_seq_max=n_seq_max, threads=config.threads)      # warm-up
+    durations: list[float] = []
+    usage: dict[str, Any] = {}
+    for _ in range(max(1, config.runs)):
+        result = model.decide(request, n_seq_max=n_seq_max, threads=config.threads)
+        durations.append(float(result.timings["questions_ms"]))
+        usage = dict(result.usage)
+    return {"questions": count, "ms": harness.summarise(durations),
+            "waves": usage.get("waves"), "forks": usage.get("forks"),
+            "decode_steps": usage.get("decode_steps"),
+            "ms_per_question": (harness.summarise(durations)["p50"] or 0.0) / count,
+            "n_seq_max": n_seq_max, "threads": config.threads or model.spec.threads,
+            "backend": model.spec.backend}
 
 
 def _noul_request(count: int, *, threads: int | None = None) -> dict[str, Any]:
@@ -365,21 +461,37 @@ def _chunks(indices: Sequence[int], size: int) -> Iterable[list[int]]:
 
 
 # --------------------------------------------------------------------------- throughput
-def _run_throughput(config: harness.BenchConfig, make: Factory) -> dict[str, Any]:
+def _run_throughput(config: harness.BenchConfig, make: Factory,
+                    budget: harness.TimeBudget) -> dict[str, Any]:
     runtimes = harness.backend_runtimes(home=config.home)
     report = _envelope(config)
+    chosen = config.backends(available=runtimes)
+    measured_backends = chosen if config.backend_limit is None else \
+        chosen[:max(1, int(config.backend_limit))]
     rows: list[dict[str, Any]] = []
-    for backend in config.backends(available=runtimes):
+    for backend in chosen:
+        if backend not in measured_backends:
+            # `--quick` resolves one backend: the rest stay in the table as *unmeasured*, with the
+            # preset named as the reason, instead of silently disappearing from it
+            rows.append({"backend": backend, "measured": False,
+                         "reason": f"not measured: the --quick preset resolves one backend "
+                                   f"({measured_backends[0] if measured_backends else 'none'})"})
+            continue
         if backend not in runtimes:
             rows.append({"backend": backend, "measured": False,
                          "reason": harness.backend_unavailable_reason(backend)})
             continue
         spec = _spec(config, backend, runtimes)
+        if budget.expired():
+            rows.append({"backend": backend, "measured": False,
+                         "reason": budget.skip("backends", backend)["reason"]})
+            continue
         rows.append(_throughput_row(config, make, spec))
     report["backends"] = rows
     measured = [row for row in rows if row.get("measured")]
-    report["ok"] = bool(measured)
-    if not measured:
+    # a row that never started because the cap was already spent is incompleteness, not a failure
+    report["ok"] = bool(measured) or bool(budget.skipped)
+    if not measured and not budget.skipped:
         report["notes"].append("no local backend bundle was available; nothing was measured")
     return report
 
@@ -403,7 +515,7 @@ def _throughput_row(config: harness.BenchConfig, make: Factory,
         row["load_ms"] = harness.summarise(loads)
         row["placement_used"] = harness.placement_of(model, spec)
         single = dataclasses.replace(config, prefill_sizes=tuple(config.prefill_sizes[:1]))
-        prefill_rows = _prefill_rows(single, model)
+        prefill_rows = _prefill_rows(single, model, _unit_budget())
         row["prefill"] = prefill_rows
         row["prefill_tok_per_s"] = prefill_rows[0]["tok_per_s"] if prefill_rows else \
             harness.summarise([])
@@ -427,13 +539,16 @@ def _throughput_row(config: harness.BenchConfig, make: Factory,
 
 # --------------------------------------------------------------------------- quality / calibration
 def _dev_items(config: harness.BenchConfig) -> list[devset_module.DevItem]:
+    """The items this run asks: stratified `--quick` selection first, then the `--items` cap."""
     items = devset_module.load(config.devset)
+    if config.items_per_type:
+        items = devset_module.stratify(items, per_type=int(config.items_per_type))
     if config.items:
         items = items[:int(config.items)]
     return items
 
 
-def _run_quality(config: harness.BenchConfig, make: Factory, *,
+def _run_quality(config: harness.BenchConfig, make: Factory, budget: harness.TimeBudget, *,
                  calibration: bool) -> dict[str, Any]:
     runtimes = harness.backend_runtimes(home=config.home)
     usable, missing = _selected_backends(config, runtimes)
@@ -447,10 +562,14 @@ def _run_quality(config: harness.BenchConfig, make: Factory, *,
                         "provenance": devset_module.PROVENANCE}
     model = make(spec)
     try:
-        model.load()
-        rows = _devset_rows(config, model, items)
+        # the load is a measurement too, but the item loop below runs regardless: when the cap is
+        # already spent, every item is recorded as unmeasured (the lambda is never called, so an
+        # unloaded model is never asked anything) and the report lists all six rows by id
+        _measure(budget, "model_load", "load#1", model.load)
+        rows = _devset_rows(config, model, items, budget)
     finally:
         model.close()
+    report["devset"]["measured"] = len(rows)
     report["items"] = rows
     report["per_type"] = agreement_by_type(rows)
     report["overall"] = agreement(rows)
@@ -463,13 +582,18 @@ def _run_quality(config: harness.BenchConfig, make: Factory, *,
         return report
     rows = [row for row in rows if row["probabilities"]]
     report["n"] = len(rows)
-    report["n_bins"] = config.n_bins
+    n_bins = int(config.n_bins)
+    if config.quick and rows:
+        # "bins as available": six samples cannot fill ten bins, and an ECE over mostly-empty bins
+        # is a number about nothing — so the quick preset reports as many bins as it has samples
+        n_bins = min(n_bins, len(rows))
+    report["n_bins"] = n_bins
     report["confidences"] = [row["confidence"] for row in rows]
     report["reliability"] = harness.reliability_bins(
         [row["confidence"] for row in rows], [row["correct"] for row in rows],
-        n_bins=config.n_bins)
+        n_bins=n_bins)
     report["ece"] = harness.ece(report["reliability"])
-    report["modes"] = _mode_rows(rows, config.n_bins)
+    report["modes"] = _mode_rows(rows, n_bins)
     report["coverage"] = harness.summarise([row["coverage"] for row in rows])
     report["confidence_coverage_correlation"] = harness.pearson(
         [row["confidence"] for row in rows], [row["coverage"] for row in rows])
@@ -480,6 +604,11 @@ def _run_quality(config: harness.BenchConfig, make: Factory, *,
         "the three confidence modes are recomputed from the same stored distributions, so the "
         "table costs no extra model runs; the correlation is undefined (null) when every "
         "confidence is identical.")
+    if config.quick:
+        report["notes"].append(
+            f"quick calibration: {report['n']} samples in {report['n_bins']} bins is a shape "
+            f"check (the presets, the modes and the bin machinery all exercised), never a "
+            f"calibration claim — the full campaign's 60 items are what an ECE is read from.")
     return report
 
 
@@ -497,30 +626,40 @@ def _mode_rows(rows: Sequence[Mapping[str, Any]], n_bins: int) -> dict[str, Any]
 
 
 def _devset_rows(config: harness.BenchConfig, model: harness.ModelLike,
-                 items: Sequence[devset_module.DevItem]) -> list[dict[str, Any]]:
+                 items: Sequence[devset_module.DevItem],
+                 budget: harness.TimeBudget) -> list[dict[str, Any]]:
+    """One row per dev item — each item is one measurement of the soft cap."""
     rows: list[dict[str, Any]] = []
     for item in items:
-        payload = devset_module.request_for(item, model="bench", threads=config.threads)
-        request = schema.parse_request(payload)
-        started = time.perf_counter()
-        result = model.decide(request, threads=config.threads)
-        answer = dict(result.answers[item.id])
-        probabilities = {key: float(value) for key, value in answer["probabilities"].items()}
-        got = readout.argmax_first(list(probabilities.values()))
-        winner = list(probabilities)[got]
-        expected = devset_module.gold_key(item)
-        coverage = float(answer.get("coverage") or 0.0)
-        rows.append({
-            "id": item.id, "type": item.type, "expected": expected, "got": winner,
-            "correct": winner == expected,
-            "confidence": float(answer.get("confidence", max(probabilities.values()))),
-            "coverage": coverage,
-            "reliability": answer.get("reliability"),
-            "probabilities": probabilities,
-            "questions_ms": float(result.timings["questions_ms"]),
-            "wall_ms": (time.perf_counter() - started) * 1000.0,
-        })
+        row = _measure(budget, "items", item.id,
+                       lambda item=item: _devset_row(config, model, item))
+        if row is not None:
+            rows.append(row)
     return rows
+
+
+def _devset_row(config: harness.BenchConfig, model: harness.ModelLike,
+                item: devset_module.DevItem) -> dict[str, Any]:
+    payload = devset_module.request_for(item, model="bench", threads=config.threads)
+    request = schema.parse_request(payload)
+    started = time.perf_counter()
+    result = model.decide(request, threads=config.threads)
+    answer = dict(result.answers[item.id])
+    probabilities = {key: float(value) for key, value in answer["probabilities"].items()}
+    got = readout.argmax_first(list(probabilities.values()))
+    winner = list(probabilities)[got]
+    expected = devset_module.gold_key(item)
+    coverage = float(answer.get("coverage") or 0.0)
+    return {
+        "id": item.id, "type": item.type, "expected": expected, "got": winner,
+        "correct": winner == expected,
+        "confidence": float(answer.get("confidence", max(probabilities.values()))),
+        "coverage": coverage,
+        "reliability": answer.get("reliability"),
+        "probabilities": probabilities,
+        "questions_ms": float(result.timings["questions_ms"]),
+        "wall_ms": (time.perf_counter() - started) * 1000.0,
+    }
 
 
 def agreement(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
@@ -537,23 +676,31 @@ def agreement_by_type(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- determinism
-def _run_determinism(config: harness.BenchConfig, make: Factory) -> dict[str, Any]:
+def _run_determinism(config: harness.BenchConfig, make: Factory,
+                     budget: harness.TimeBudget) -> dict[str, Any]:
     runtimes = harness.backend_runtimes(home=config.home)
     usable, missing = _selected_backends(config, runtimes)
     if config.backend not in ("auto", "all") and config.backend not in usable:
         raise harness.BenchError(harness.backend_unavailable_reason(config.backend),
                                  code="E_BENCH_BACKEND")
     report = _envelope(config)
-    report["repeats"] = DETERMINISM_REPEATS
+    report["repeats"] = int(config.determinism_repeats)
     report["threads"] = config.threads or 1
     report["request"] = _determinism_request(config)
     rows: list[dict[str, Any]] = []
     for backend in usable:
+        if budget.expired():
+            budget.skip("backends", backend)
+            continue
         rows.append(_determinism_row(config, make, _spec(config, backend, runtimes)))
     report["backends"] = rows
     report["skipped_backends"] = missing
-    report["ok"] = bool(rows) and all(row["ok"] for row in rows)
-    if not report["ok"]:
+    # the gate is about the repeats that *ran*: a backend the cap never reached is incompleteness
+    # (`"truncated": true` says so and the CLI still exits 0), a row that ran and differed is a
+    # failure the exit code must keep at 1
+    failed = [row for row in rows if not row["ok"]]
+    report["ok"] = not failed and (bool(rows) or bool(budget.skipped))
+    if failed:
         report["notes"].append(
             "the repeats of one backend produced different bytes after stripping `timings`; "
             "SPEC A5 pins byte identity to (runtime, backend, threads=1)")
@@ -586,7 +733,7 @@ def _determinism_row(config: harness.BenchConfig, make: Factory,
         model.load()
         request = schema.parse_request(_determinism_request(config))
         digests: list[str] = []
-        for _ in range(DETERMINISM_REPEATS):
+        for _ in range(int(config.determinism_repeats)):
             result = model.decide(request, threads=config.threads)
             body = schema.render_response(result.payload(), format="native")
             digests.append(harness.digest(body))

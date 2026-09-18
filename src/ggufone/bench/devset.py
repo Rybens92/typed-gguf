@@ -94,6 +94,23 @@ def labels_of(item: DevItem) -> tuple[str, ...]:
     return ("yes", "no")
 
 
+def stratify(items: list[DevItem], *, per_type: int) -> list[DevItem]:
+    """At most `per_type` items of every question type, in the committed `QUESTION_TYPES` order.
+
+    The committed dev set is type-blocked (24 choice / 18 score / 18 noul), so a "first N items"
+    cut measures one type and nothing else. `bench --quick` wants the opposite: a few items of
+    *each* type, so every per-type row has samples and the three confidence modes have something
+    to disagree about. A type the set does not carry — or one it is short of — contributes what it
+    has: never an error, never padding, never a re-ordering of the item itself.
+    """
+    if per_type <= 0:
+        return []
+    picked: list[DevItem] = []
+    for qtype in QUESTION_TYPES:
+        picked.extend([item for item in items if item.type == qtype][:per_type])
+    return picked
+
+
 def gold_key(item: DevItem) -> str:
     """The gold answer in the candidate domain (the key that must win the restricted softmax)."""
     if item.type == "choice":

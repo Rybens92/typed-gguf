@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import math
 import pathlib
 import sys
 import time
@@ -66,7 +67,7 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
     "bench": ("--suite latency|throughput|quality|calibration|determinism", "--model PATH.GGUF",
               "--backend auto|cpu|vulkan|cuda|all", "--runs N", "--threads N", "--devset FILE",
               "--items N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--gpu-layers N",
-              "--sizes 256,2048,8192", "--out FILE", "--json"),
+              "--sizes 256,2048,8192", "--out FILE", "--json", "--quick", "--max-seconds N"),
     "calibrate": ("--model REF", "--dry-run", "--json", "--out FILE", "--from-report FILE",
                   "--devset FILE", "--items N", "--holdout F",
                   "--mode auto|normalized_peak|entropy|margin", "--threads N",
@@ -75,11 +76,29 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
     "version": ("--json",),
 }
 
+#: the lines `ggufone <cmd> --help` prints under the usage line: the behaviour a flag name alone
+#: does not explain (the bench preset and the soft cap are behaviour, not just more flags)
+COMMAND_NOTES: dict[str, tuple[str, ...]] = {
+    "bench": (
+        "--quick runs a fixed short preset — runs=1, prefill size 256, candidates 2/4, waves 1/2, "
+        "6 dev items (2 per type), determinism 2 repeats, 1 resolved backend — and writes its own "
+        "report file (ggufone-bench-<suite>_quick.json) instead of a full campaign's JSON. It "
+        "refuses --runs/--items/--sizes/--n-seq-max (E_BENCH_QUICK): the preset fixes those, so a "
+        "quick run can never be a half-applied one.",
+        "--max-seconds N is a soft cap checked between measurements: the current measurement "
+        "finishes, the report is marked \"truncated\": true with the unmeasured rows listed, and "
+        "the exit code stays 0 — a partial-but-honest report beats a timeout.",
+        "Published tables in docs/BENCHMARKS.md are full-campaign only, never --quick.",
+    ),
+}
+
 
 def _command_usage(command: str) -> str:
     lines = [f"usage: ggufone {command} " + (" ".join(COMMAND_HELP.get(command, ()) ) or ""),
-             "", f"milestone: {MILESTONES.get(command, 'E1')}",
-             "run `ggufone --help` for the command list"]
+             "",
+             f"milestone: {MILESTONES.get(command, 'E1')}"]
+    lines.extend(COMMAND_NOTES.get(command, ()))
+    lines.append("run `ggufone --help` for the command list")
     return "\n".join(lines)
 
 
@@ -1232,8 +1251,8 @@ def _cmd_ask(args: list[str]) -> int:
 
 # --------------------------------------------------------------------- bench (E2)
 BENCH_VALUE_FLAGS = ("suite", "model", "backend", "runs", "threads", "devset", "items",
-                     "n-seq-max", "kv-type", "gpu-layers", "out", "sizes")
-BENCH_BOOL_FLAGS = ("json",)
+                     "n-seq-max", "kv-type", "gpu-layers", "out", "sizes", "max-seconds")
+BENCH_BOOL_FLAGS = ("json", "quick")
 BENCH_DEFAULTS = {"backend": "auto", "runs": harness.DEFAULT_RUNS, "kv-type": "auto"}
 
 
@@ -1255,12 +1274,51 @@ def _bench_sizes(value: str | None) -> tuple[int, ...]:
     return tuple(sizes)
 
 
+def _bench_max_seconds(value: str | None) -> float | None:
+    """`--max-seconds 120` -> the soft cap of this run (positive seconds, fractions allowed).
+
+    `0` is legal and means "stop at the first checkpoint": a truncated-but-honest report is the
+    documented outcome (`bench --help`), so the parser has no reason to invent a floor.
+    """
+    if value is None:
+        return None
+    try:
+        seconds = float(str(value))
+    except ValueError:
+        seconds = -1.0
+    if not math.isfinite(seconds) or seconds < 0:
+        raise UserError(f"--max-seconds takes a positive number of seconds (got {value!r})",
+                        code="E_BENCH_USAGE")
+    return seconds
+
+
+def _quick_conflicts(options: Mapping[str, Any]) -> list[str]:
+    """The explicitly set *scale* flags `--quick` would otherwise silently override."""
+    return [f"--{name.replace('_', '-')}" for name in harness.QUICK_CONFLICTS
+            if name in options]
+
+
+def _bench_out_path(options: Mapping[str, Any], *, suite: str, quick: bool) -> str | None:
+    """Where this run's JSON goes: an explicit `--out`, else the quick preset's own file.
+
+    A full run without `--out` writes nothing (its artifacts are named explicitly); a quick run
+    gets `harness.default_out_path(suite, quick=True)` so a fast-feedback run can never land on a
+    full-campaign JSON by accident.
+    """
+    if options.get("out"):
+        return str(options["out"])
+    return harness.default_out_path(suite, quick=True) if quick else None
+
+
 def _cmd_bench(args: list[str]) -> int:
     """`ggufone bench --suite latency|throughput|quality|calibration|determinism` (SPEC 2.8).
 
     The report goes to stdout (`--json` or the rendered tables) and, with `--out FILE`, to a JSON
-    file whose bytes are the published artifact. Exit 0 = the suite ran, 1 = a suite gate failed
-    (determinism bytes differ / nothing was measured), 2 = user error, 3 = runtime or model error.
+    file whose bytes are the published artifact. `--quick` runs the short preset
+    (`harness.quick_config`) and writes `ggufone-bench-<suite>_quick.json` unless `--out` says
+    otherwise; `--max-seconds N` stops between measurements and marks the report truncated.
+    Exit 0 = the suite ran, 1 = a suite gate failed (determinism bytes differ / nothing was
+    measured), 2 = user error, 3 = runtime or model error.
     """
     positionals, options = _parse_args(args, value_flags=BENCH_VALUE_FLAGS,
                                        bool_flags=BENCH_BOOL_FLAGS)
@@ -1271,6 +1329,13 @@ def _cmd_bench(args: list[str]) -> int:
         raise UserError("bench needs --suite latency|throughput|quality|calibration|determinism "
                         "(SPEC 2.8)", code="E_BENCH_SUITE")
     harness.valid_suite(suite)
+    quick = bool(options.get("quick"))
+    conflicts = _quick_conflicts(options) if quick else []
+    if conflicts:
+        raise UserError(
+            f"--quick runs a fixed preset and already sets {' and '.join(conflicts)}; drop "
+            f"{'those flags' if len(conflicts) > 1 else 'that flag'} or run without --quick",
+            code="E_BENCH_QUICK")
     model_path = harness.resolve_model_path(options.get("model"))
     config = harness.BenchConfig(
         suite=suite, model_path=model_path,
@@ -1282,16 +1347,21 @@ def _cmd_bench(args: list[str]) -> int:
         n_seq_max=int(options["n_seq_max"]) if "n_seq_max" in options else None,
         kv_type=options.get("kv_type", BENCH_DEFAULTS["kv-type"]),
         gpu_layers=int(options["gpu_layers"]) if "gpu_layers" in options else None,
+        max_seconds=_bench_max_seconds(options.get("max_seconds")),
         prefill_sizes=_bench_sizes(options.get("sizes")))
+    if quick:
+        config = harness.quick_config(config)
+    out_path = _bench_out_path(options, suite=suite, quick=quick)
     report = suites.run_suite(config, factory=suites.live_factory)
-    if options.get("out"):
-        harness.write_report(report, options["out"])
+    if out_path:
+        harness.write_report(report, out_path)
     if options.get("json"):
         print(json.dumps(report, indent=2, sort_keys=False))
     else:
         print(harness.render_report(report))
-        if options.get("out"):
-            print(f"report: {options['out']}")
+        if out_path:
+            print(f"report: {out_path}")
+    # a truncated report is incomplete, not failed: the suites keep `ok` about the rows that ran
     return 0 if report.get("ok", True) else 1
 
 

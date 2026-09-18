@@ -20,6 +20,7 @@ so `p50`/`p95` of a sample are reproducible by hand from the JSON report.
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import hashlib
 import json
 import math
@@ -51,12 +52,73 @@ BACKEND_LIBRARIES = {"vulkan": "libggml-vulkan.so", "cuda": "libggml-cuda.so",
                      "metal": "libggml-metal.dylib"}
 MODEL_SUFFIX = ".gguf"
 
+# ----------------------------------------------------------- the quick preset (card t_f46cec41)
+#: A short *scale* of every suite, sized for a GPU-less worker's iteration loop (`--quick`).
+#: Nothing here changes *what* is measured — only how much of it: the same code paths, the same
+#: report shape, the same rows-per-measurement conventions. Published tables (docs/BENCHMARKS.md)
+#: are full-campaign only and are never produced with `--quick`.
+QUICK_RUNS = 1
+QUICK_PREFILL_SIZES = (256,)
+QUICK_CANDIDATE_COUNTS = (2, 4)
+QUICK_WAVE_SCALING = (1, 2)
+QUICK_ITEMS = 6
+QUICK_ITEMS_PER_TYPE = 2
+QUICK_DETERMINISM_REPEATS = 2
+QUICK_BACKENDS = 1
+#: the card's target for `--quick` end to end on a CPU-only container; `tests/test_bench_live.py`
+#: asserts the measured wall time against it (the number is printed in every report)
+QUICK_TARGET_SECONDS = 180.0
+#: the *scale* knobs the preset already fixes: passing one of them next to `--quick` is a typed
+#: E_BENCH_QUICK error instead of a run that silently ignores half of what it was told
+QUICK_CONFLICTS = ("runs", "items", "sizes", "n_seq_max")
+#: where a run without `--out` writes: a quick report gets its own file, a full run writes nothing
+#: (the full campaign's artifacts are the explicitly named `docs/evidence/e2_*.json`)
+DEFAULT_OUT_NAME = "ggufone-bench-{suite}{suffix}.json"
+QUICK_OUT_SUFFIX = "_quick"
+
 
 class BenchError(UserError):
     """A benchmark problem the user can fix (exit code 2, like every other user error)."""
 
     def __init__(self, message: str, *, code: str = "E_BENCH_USAGE") -> None:
         super().__init__(message, code=code)
+
+
+# ------------------------------------------------------------------ the soft time cap
+class TimeBudget:
+    """The `--max-seconds` soft cap: checked **between** measurements, never inside one.
+
+    A measurement that started is always allowed to finish — a half-measured `p50` would be a
+    fabricated number, and the whole point of the cap is that the report stays honest. What the cap
+    buys is the tail: every measurement that never started is recorded in `skipped` so the report
+    can list the unmeasured rows under `"truncated": true` and still exit 0.
+
+    `max_seconds=None` (no flag) is a budget that never expires; `0` expires at the first
+    checkpoint, which is the degenerate case the tests use to pin the shape.
+    """
+
+    def __init__(self, max_seconds: float | None = None) -> None:
+        self.max_seconds = None if max_seconds is None else float(max_seconds)
+        self._started = time.monotonic()
+        self.skipped: list[dict[str, Any]] = []
+
+    def elapsed(self) -> float:
+        return time.monotonic() - self._started
+
+    def expired(self) -> bool:
+        return self.max_seconds is not None and self.elapsed() >= self.max_seconds
+
+    def skip(self, section: str, row: str) -> dict[str, Any]:
+        """Record a measurement that never started (the report lists it verbatim)."""
+        entry = {"section": section, "row": row,
+                 "reason": f"--max-seconds {self.max_seconds:g} reached "
+                           f"after {self.elapsed():.1f}s"}
+        self.skipped.append(entry)
+        return entry
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"max_seconds": self.max_seconds, "expired": self.expired(),
+                "skipped": len(self.skipped)}
 
 
 # ------------------------------------------------------------------ statistics
@@ -488,6 +550,16 @@ class BenchConfig:
     wave_scaling: tuple[int, ...] = WAVE_SCALING
     parts: tuple[str, ...] = ()
     home: pathlib.Path | None = None
+    #: `--quick`: this run is a short preset, never a published table (`envelope` records it)
+    quick: bool = False
+    #: take at most N dev items *per question type* (stratified) instead of the first N items
+    items_per_type: int | None = None
+    #: how many repeats the determinism suite compares (A-E2-5's "3 repeats" is the default)
+    determinism_repeats: int = 3
+    #: run at most N backends (the quick preset resolves one); the rest are reported, not measured
+    backend_limit: int | None = None
+    #: `--max-seconds`: soft cap, checked between measurements (`TimeBudget`, never mid-measurement)
+    max_seconds: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -509,34 +581,84 @@ class BenchConfig:
         return [self.backend]
 
 
+def quick_config(config: BenchConfig) -> BenchConfig:
+    """`--quick`: the same config with every *scale* knob replaced by the short preset.
+
+    Only scale changes. Model, backend, threads, placement (`--gpu-layers`), `--kv-type`, dev-set
+    source and the soft cap are measurement *conditions*, not scale, and a quick run must still be
+    comparable to the full one it previews. Passing a scale flag next to `--quick` is rejected
+    before this function is reached (`QUICK_CONFLICTS`, `cli._cmd_bench`), so a quick config can
+    never be a half-applied preset.
+    """
+    return dataclasses.replace(
+        config, quick=True, runs=QUICK_RUNS, prefill_sizes=QUICK_PREFILL_SIZES,
+        candidate_counts=QUICK_CANDIDATE_COUNTS, wave_scaling=QUICK_WAVE_SCALING,
+        items=QUICK_ITEMS, items_per_type=QUICK_ITEMS_PER_TYPE,
+        determinism_repeats=QUICK_DETERMINISM_REPEATS, backend_limit=QUICK_BACKENDS)
+
+
+def quick_note() -> str:
+    """The one note every quick report carries: what it is, and what it is not."""
+    return (f"quick preset (card t_f46cec41): runs={QUICK_RUNS}, prefill sizes "
+            f"{list(QUICK_PREFILL_SIZES)}, candidates {list(QUICK_CANDIDATE_COUNTS)}, waves "
+            f"{list(QUICK_WAVE_SCALING)}, {QUICK_ITEMS} dev items ({QUICK_ITEMS_PER_TYPE} per "
+            f"type), determinism {QUICK_DETERMINISM_REPEATS} repeats, {QUICK_BACKENDS} backend. "
+            f"This is an iteration preset, not a published table: docs/BENCHMARKS.md is "
+            f"full-campaign only and is never produced with --quick.")
+
+
+def default_out_path(suite: str, *, quick: bool) -> str:
+    """The default report path of a run without `--out` (`QUICK_OUT_SUFFIX` keeps it distinct).
+
+    The name is *derived from the preset*, so no quick run can silently land on the file a full
+    campaign wrote (`docs/evidence/e2_<suite>.json`). A full run without `--out` writes nothing —
+    the published artifacts are named explicitly — so the two modes can never share a default.
+    """
+    return DEFAULT_OUT_NAME.format(suite=suite, suffix=QUICK_OUT_SUFFIX if quick else "")
+
+
 def envelope(config: BenchConfig, *, model: Mapping[str, Any] | None = None,
              generated_at: str | None = None) -> dict[str, Any]:
     """The first keys of every report: what ran, on what box, on what model."""
-    return {
+    payload = {
         "schema": SCHEMA,
         "suite": config.suite,
+        # a quick report is never mistakable for a published one: the flag, the note and the
+        # effective config all travel with the numbers
+        "quick": bool(config.quick),
         "generated_at": generated_at or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "host": host_facts(),
         "config": config.to_dict(),
         "model": dict(model or {}),
-        "notes": [],
+        "notes": list([quick_note()]) if config.quick else [],
         "commands": {"reproduce": reproduce_command(config)},
     }
+    return payload
 
 
 def reproduce_command(config: BenchConfig) -> str:
     parts = ["uv run ggufone bench --suite", config.suite]
     if config.model_path:
         parts += ["--model", config.model_path]
-    parts += ["--backend", config.backend, "--runs", str(config.runs)]
+    parts += ["--backend", config.backend]
+    # `--quick` fixes the scale flags: re-stating them would be an E_BENCH_QUICK error, so the
+    # command a report prints must not do it (`tests/test_bench_quick.py` runs the line back)
+    if config.quick:
+        parts += ["--quick"]
+    else:
+        parts += ["--runs", str(config.runs)]
     if config.threads:
         parts += ["--threads", str(config.threads)]
-    if config.items:
+    if config.items and not config.quick:
         parts += ["--items", str(config.items)]
-    if config.n_seq_max:
+    if config.n_seq_max and not config.quick:
         parts += ["--n-seq-max", str(config.n_seq_max)]
+    if config.devset:
+        parts += ["--devset", config.devset]
     if config.gpu_layers is not None:
         parts += ["--gpu-layers", str(config.gpu_layers)]
+    if config.max_seconds is not None:
+        parts += ["--max-seconds", f"{config.max_seconds:g}"]
     parts += ["--json"]
     return " ".join(parts)
 
@@ -604,6 +726,24 @@ def render_report(report: Mapping[str, Any]) -> str:
     selection_line = ([f"- backend selection: {chosen} of the local bundles "
                        f"({', '.join(available)}) — one suite run measures one backend"]
                       if chosen and len(available) > 1 else [])
+    budget = report.get("budget") or {}
+    skipped = list(report.get("skipped") or [])
+    wall_ms = report.get("wall_ms")
+    wall_line = [] if wall_ms is None else [
+        f"- wall: {float(wall_ms) / 1000.0:.1f} s"
+        + (f" (soft cap {budget.get('max_seconds')} s)" if budget.get("max_seconds") is not None
+           else "")]
+    truncated_line = [
+        f"- TRUNCATED at --max-seconds {budget.get('max_seconds')} s: {len(skipped)} unmeasured "
+        f"row(s) — " + ", ".join(f"{entry['section']}/{entry['row']}" for entry in skipped)] \
+        if report.get("truncated") else []
+    quick_line = [
+        f"- preset: --quick (runs={config.get('runs')} sizes={config.get('prefill_sizes')} "
+        f"candidates={config.get('candidate_counts')} waves={config.get('wave_scaling')} "
+        f"items={config.get('items')} = {config.get('items_per_type')}/type, determinism "
+        f"repeats={config.get('determinism_repeats')}, backends<="
+        f"{config.get('backend_limit')}) — an iteration preset, never a published table"] \
+        if report.get("quick") else []
     lines = [f"### {report.get('suite')} — {name}",
              "",
              f"- generated: {report.get('generated_at')}",
@@ -612,6 +752,9 @@ def render_report(report: Mapping[str, Any]) -> str:
              f"- config: backend={config.get('backend')} runs={config.get('runs')} "
              f"threads={config.get('threads')}",
              f"- reproduce: `{report.get('commands', {}).get('reproduce')}`",
+             *quick_line,
+             *wall_line,
+             *truncated_line,
              # what the row really ran with (a degradation offloads less than the flags asked)
              *placement_line,
              # which local bundle `auto` picked, when there was a choice
@@ -634,17 +777,19 @@ def render_report(report: Mapping[str, Any]) -> str:
         lines += _table("wave scaling (N questions)", ["questions", "waves"] + summary_header,
                         [_summary_row(str(row["questions"]), row["ms"], [row["waves"]])
                          for row in report.get("wave_scaling", [])])
-        warm = report.get("warm_cache", {})
-        lines += _table("warm cache (state reuse)", ["row"] + summary_header,
-                        [_summary_row("prefill_ms", warm.get("prefill_ms", {})),
-                         _summary_row("questions_ms", warm.get("questions_ms", {}))])
-        amortised = report.get("load_amortisation", {})
-        lines += _table("load amortisation (serve vs one-shot)", ["path", "ms per request"],
-                        [f"| serve (model already loaded) | "
-                         f"{_number(amortised.get('serve_ms_per_request'))} |",
-                         f"| one-shot CLI (load each call) | "
-                         f"{_number(amortised.get('one_shot_ms_per_request'))} |",
-                         f"| model_load_ms | {_number(amortised.get('model_load_ms'))} |"])
+        warm = report.get("warm_cache") or {}
+        if warm:
+            lines += _table("warm cache (state reuse)", ["row"] + summary_header,
+                            [_summary_row("prefill_ms", warm.get("prefill_ms", {})),
+                             _summary_row("questions_ms", warm.get("questions_ms", {}))])
+        amortised = report.get("load_amortisation") or {}
+        if amortised:
+            lines += _table("load amortisation (serve vs one-shot)", ["path", "ms per request"],
+                            [f"| serve (model already loaded) | "
+                             f"{_number(amortised.get('serve_ms_per_request'))} |",
+                             f"| one-shot CLI (load each call) | "
+                             f"{_number(amortised.get('one_shot_ms_per_request'))} |",
+                             f"| model_load_ms | {_number(amortised.get('model_load_ms'))} |"])
     elif report.get("suite") == "throughput":
         rows = []
         for row in report.get("backends", []):

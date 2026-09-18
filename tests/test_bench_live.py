@@ -8,6 +8,12 @@ assets on disk" (SPEC A7).
 
 The published numbers live in `docs/BENCHMARKS.md`; these tests only prove the *path* works on a
 real GGUF and that the dev-set budget holds on a real vocabulary.
+
+Card t_f46cec41 adds two `--quick` gates: the wall-clock budget of the whole preset on a CPU-only
+box (`harness.QUICK_TARGET_SECONDS`, printed per suite) and the same preset on a *bigger* local
+model — the operator named Occamy 1.0 / Tiel-Coder-35B-A3B, both 35B-A3B MoE files. A worker
+container that cannot see the file, or whose memory cgroup cannot hold it, skips with that reason
+instead of quietly dropping the gate.
 """
 from __future__ import annotations
 
@@ -22,6 +28,10 @@ from ggufone.runtime import finder
 
 SPARK = pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf"
 QWEN = pathlib.Path.home() / ".cache" / "llama.cpp" / "Qwen3.5-0.8B-UD-Q4_K_XL.gguf"
+#: the operator's "bigger model" for quick evidence (2026-09-18): local, never downloaded
+OCCAMY = pathlib.Path.home() / ".hermes" / "models" / "Accio-Lab_occamy-1.0-Q4_K_L.gguf"
+TIEL = pathlib.Path.home() / ".hermes" / "models" / "Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf"
+BIG_MODELS = (OCCAMY, TIEL)
 MAX_ITEM_TOKENS = 200
 
 
@@ -49,6 +59,31 @@ def _model() -> pathlib.Path:
             return candidate
     pytest.skip(f"no benchmarkable GGUF on this box ({QWEN} / {SPARK}); "
                 f"set GGUFONE_BENCH_MODEL")
+
+
+def _big_model() -> pathlib.Path:
+    """A local model *bigger* than the CI smoke one, for the quick preset's real-weight shape.
+
+    Occamy 1.0 (23 GiB, `qwen35moe`) and Tiel-Coder-35B-A3B (21 GiB) are the operator's local
+    files; `GGUFONE_BENCH_MODEL_BIG` points at any other. The skip names which of the two reasons
+    it was — absent, or larger than this box's memory cgroup — so a missing measurement is never
+    a silent one (the host run measures the big model; see
+    `docs/evidence/e2_t_f46cec41_bench_quick.md`).
+    """
+    explicit = os.environ.get("GGUFONE_BENCH_MODEL_BIG")
+    candidates = ([pathlib.Path(explicit)] if explicit else []) + list(BIG_MODELS)
+    for candidate in candidates:
+        if not candidate.is_file():
+            continue
+        ceiling = harness.host_facts().get("cgroup_memory_bytes")
+        size = candidate.stat().st_size
+        if ceiling is not None and size > ceiling:
+            pytest.skip(f"{candidate} is {size / 1024 ** 3:.1f} GiB and this box's memory cgroup "
+                        f"caps it at {ceiling / 1024 ** 3:.1f} GiB — measure it on the host")
+        return candidate
+    pytest.skip("no bigger local GGUF on this box ("
+                + ", ".join(str(path) for path in BIG_MODELS)
+                + "); set GGUFONE_BENCH_MODEL_BIG")
 
 
 @pytest.mark.model
@@ -107,3 +142,62 @@ def test_the_quality_suite_answers_a_few_real_dev_items():
     for row in report["items"]:
         assert row["got"] in row["probabilities"]
         assert abs(sum(row["probabilities"].values()) - 1.0) < 1e-6
+
+
+# --------------------------------------------------------- the quick preset (card t_f46cec41)
+def quick_report(suite: str, model: pathlib.Path, **kwargs) -> dict:
+    config = harness.quick_config(harness.BenchConfig(
+        suite=suite, model_path=str(model), backend=harness.CPU_BACKEND, threads=2, **kwargs))
+    return suites.run_suite(config, factory=suites.live_factory)
+
+
+@pytest.mark.model
+def test_the_quick_preset_finishes_inside_its_wall_clock_budget(capsys):
+    """The card's target: `--quick` end to end ≤ ~3 min on this CPU-only container.
+
+    Every suite runs through the same code path the CLI uses, on the same local model;
+    `report["wall_ms"]` is the clock the renderer prints, and the printed per-suite numbers are
+    what `docs/evidence/e2_t_f46cec41_bench_quick.md` quotes. The assertion is the card's own
+    budget (`harness.QUICK_TARGET_SECONDS`), not a number this file gets to lower.
+    """
+    model = _model()
+    total_ms = 0.0
+    walls: list[tuple[str, float]] = []
+    for suite in harness.SUITES:
+        report = quick_report(suite, model)
+        assert report["quick"] is True
+        assert report["truncated"] is False
+        assert report["wall_ms"] > 0
+        total_ms += float(report["wall_ms"])
+        walls.append((suite, float(report["wall_ms"])))
+    print(f"\nquick preset on {model.name} "
+          f"(cgroup cpu.max {harness.host_facts().get('cgroup_cpu_max')}):")
+    for suite, wall_ms in walls:
+        print(f"  {suite:<11s} {wall_ms / 1000.0:7.1f} s")
+    print(f"  {'total':<11s} {total_ms / 1000.0:7.1f} s "
+          f"(target {harness.QUICK_TARGET_SECONDS:.0f} s)")
+    assert total_ms <= harness.QUICK_TARGET_SECONDS * 1000.0, (
+        f"--quick took {total_ms / 1000.0:.1f} s on {model.name}; the preset targets "
+        f"{harness.QUICK_TARGET_SECONDS:.0f} s")
+
+
+@pytest.mark.model
+def test_the_quick_preset_measures_a_bigger_local_model_too():
+    """`--quick` on the operator's bigger MoE: shape and completion, not the 3-minute budget.
+
+    A 35B-A3B (Occamy 1.0 / Tiel-Coder) on two CPU-seconds per second is a minutes-scale *load*,
+    so this gate asserts the preset's row shapes and prints the wall time for the evidence doc
+    instead of pretending the container budget applies to a model the preset cannot fit.
+    """
+    model = _big_model()
+    report = quick_report("latency", model)
+    assert report["quick"] is True
+    assert report["truncated"] is False
+    assert [row["tokens"] for row in report["prefill"]] == list(harness.QUICK_PREFILL_SIZES)
+    assert [row["candidates"] for row in report["per_question"]] == \
+        list(harness.QUICK_CANDIDATE_COUNTS)
+    assert report["model_load"]["n"] == 1
+    assert report["model"]["arch"], report["model"]
+    print(f"\nquick latency on {model.name} ({report['model'].get('arch')}, "
+          f"{report['model'].get('bytes', 0) / 1024 ** 3:.1f} GiB): "
+          f"{report['wall_ms'] / 1000.0:.1f} s")
