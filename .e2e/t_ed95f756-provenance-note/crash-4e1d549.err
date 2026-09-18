@@ -1,0 +1,10 @@
+Using CPython 3.11.15 interpreter at: /usr/local/bin/python3
+Creating virtual environment at: .venv
+   Building ggufone @ file:///work/e2prov-4e1d549
+      Built ggufone @ file:///work/e2prov-4e1d549
+Installed 1 package in 47ms
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+ggml_vulkan: No devices found.
+load_backend: loaded Vulkan backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-vulkan.so
+load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+error: E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'

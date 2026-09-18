@@ -1,5 +1,13 @@
 # BENCHMARKS — measured tables for E2 (latency, throughput, quality, calibration, determinism)
 
+> **Provenance (audit `t_78f5ea7a`, 2026-09-18).** The `reproduce:` lines printed in these tables
+> **fail on the commits that shipped them** (`fff127e`, `4e1d549`): `E_INTERNAL: AttributeError:
+> 'Placement' object has no attribute 'kv_type'`, exit 4 — they work from `8d4fc9f` (`fit.coerce_plan`)
+> onward. The values themselves are **genuine**: bounded re-runs reproduce the per-item
+> quality/calibration payloads to float precision and 163 internal-consistency checks find no defect.
+> Details: `docs/evidence/e2_provenance_note.md`; source of record: auditor scorecard
+> `state/fights/e2-provenance/scorecard.md`.
+
 Every table below is produced by one command, on the box described in §0, and stored as JSON in
 `docs/evidence/e2_*.json`. Tags follow SPEC.md: **[executed]** = measured by this repository,
 right now; **[recon]** = quoted from the coordinator's reconnaissance notes and *not* re-run by
@@ -422,7 +430,10 @@ unless told otherwise, and the placement is printed in the row.
 
 Three repeats per backend of one request (choice + score + noul), `threads=1`, compared
 byte-for-byte after stripping `timings` (A5). A backend whose repeats differ would make the suite
-exit non-zero.
+exit non-zero. The `digest` column is a **within-tree witness**: it is `sha256` over the whole
+timings-stripped response body, so it moves when the response envelope changes — it did after
+`8d4fc9f` (`engine.placement`/`engine.fit` grew; the request bytes and the decode are unchanged).
+Compare digests only within one tree state (`docs/evidence/e2_provenance_note.md` §4).
 
 | model | backend | threads | repeats | identical | digest |
 |---|---|---|---|---|---|
