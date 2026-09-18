@@ -44,7 +44,7 @@ from ggufone.bench import devset as devset_module  # noqa: E402
 from ggufone.bench import harness, suites  # noqa: E402
 from ggufone.calibration import calibrate, routing  # noqa: E402
 from ggufone.registry import store  # noqa: E402
-from ggufone.runtime import finder  # noqa: E402
+from ggufone.runtime import finder, fit  # noqa: E402
 
 SCHEMA = "ggufone.evidence.e2p5/v1"
 DEFAULT_THRESHOLD = routing.DEFAULT_ESCALATION_THRESHOLD
@@ -130,7 +130,35 @@ def _table_payload(args: argparse.Namespace, stored: Any) -> dict[str, Any]:
 
 
 # ------------------------------------------------------------------------- route
+def ensure_registry(entries: list[str], current: str | None = None) -> None:
+    """Register local GGUF files as aliases (`--register alias=path`) so routing has a choice.
+
+    A registry is the router's input (SPEC 2.10: "picks ... from the registry"), and `models
+    pull` is the only other way to fill it — which would download models this box already has.
+    """
+    registry, _warnings = store.load_registry(store.registry_path())
+    for spec in entries:
+        alias, _, path = spec.partition("=")
+        if not alias or not path:
+            raise SystemExit(f"--register needs alias=path (got {spec!r})")
+        if alias in registry.aliases:
+            continue
+        size = pathlib.Path(path).stat().st_size
+        try:
+            facts = fit.ModelFacts.read(path, want_sha256=False)
+            arch, quant = facts.arch, None
+        except Exception:                              # noqa: BLE001 - a header we cannot read
+            arch, quant = None, None
+        store.add_entry(registry, store.Entry(alias=alias, path=path, arch=arch, quant=quant,
+                                              size=size))
+        print(f"registered {alias} -> {path} ({size / (1024 ** 3):.2f} GiB, arch={arch})")
+    if current:
+        registry.current = current
+    store.save_registry(registry, store.registry_path())
+
+
 def cmd_route(args: argparse.Namespace) -> int:
+    ensure_registry(args.register or [], current=args.current)
     questions = {
         "owner": {"type": "choice", "instructions": "Which team owns this incident?",
                   "criteria": {"billing": "payments, invoices and refunds",
@@ -167,10 +195,17 @@ def cmd_route(args: argparse.Namespace) -> int:
         raise SystemExit(f"`ggufone run --route auto` exited {code}")
     response = json.loads(text)
     engine = response.get("engine", {})
+    audit_records = []
+    if args.audit:
+        audit_path = pathlib.Path(args.audit) / "audit.jsonl"
+        if audit_path.exists():
+            audit_records = [json.loads(line) for line in
+                             audit_path.read_text(encoding="utf-8").splitlines()]
     report = {
         "schema": SCHEMA,
         "command": " ".join(argv),
         "model_request": args.model,
+        "registry": _registry_snapshot(),
         "runtime": _runtime(),
         "route": engine.get("route"),
         "calibration": response.get("calibration"),
@@ -181,9 +216,18 @@ def cmd_route(args: argparse.Namespace) -> int:
         "warnings": response.get("warnings"),
         "usage": response.get("usage"),
         "timings": response.get("timings"),
+        "audit": audit_records[-1] if audit_records else None,
     }
     _write(report, args.out)
     return 0
+
+
+def _registry_snapshot() -> dict[str, Any]:
+    registry, _warnings = store.load_registry(store.registry_path())
+    return {"current": registry.current,
+            "aliases": {name: {"path": entry.path, "quant": entry.quant, "arch": entry.arch,
+                               "size": entry.size}
+                        for name, entry in sorted(registry.aliases.items())}}
 
 
 # --------------------------------------------------------------------- escalate
@@ -334,6 +378,9 @@ def build_parser() -> argparse.ArgumentParser:
     route.add_argument("--audit", help="write the decision record into this directory too")
     route.add_argument("--escalate-model", help="also run the escalation path on this model")
     route.add_argument("--max-escalations", type=int, default=1)
+    route.add_argument("--register", action="append",
+                       help="alias=path to register in the store before routing (repeatable)")
+    route.add_argument("--current", help="the registry's current alias")
     route.add_argument("--out")
     route.set_defaults(func=cmd_route)
 

@@ -1118,7 +1118,7 @@ def _cmd_run(args: list[str]) -> int:
                                      engine_options=_engine_options(options))
     response = decide_payload(payload, **_fit_arguments(options))
     response = escalate_if_requested(payload, response,
-                                     target=_escalation_target(payload, response, options),
+                                     target=_escalation_target(response, options),
                                      decide_fn=(lambda sub, **kwargs: decide_payload(
                                          sub, **_fit_arguments(options))),
                                      home=None)
@@ -1132,7 +1132,7 @@ def _cmd_run(args: list[str]) -> int:
     return 0
 
 
-def _escalation_target(payload: dict[str, Any], response: dict[str, Any],
+def _escalation_target(response: dict[str, Any],
                        options: dict[str, Any]) -> dict[str, Any] | None:
     """Where a second opinion runs: `--escalation-model`, else the route's runner-up.
 
@@ -1215,7 +1215,7 @@ def _cmd_ask(args: list[str]) -> int:
                                      engine_options=_engine_options(options))
     response = decide_payload(payload, **_fit_arguments(options))
     response = escalate_if_requested(payload, response,
-                                     target=_escalation_target(payload, response, options),
+                                     target=_escalation_target(response, options),
                                      decide_fn=(lambda sub, **kwargs: decide_payload(
                                          sub, **_fit_arguments(options))),
                                      home=None)
