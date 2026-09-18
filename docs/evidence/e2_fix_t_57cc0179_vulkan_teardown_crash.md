@@ -82,22 +82,46 @@ this card's retry.** The evidence:
   says so with the window trace attached, and the sibling card's backtrace stands as the C-frame
   evidence).
 
-**The minimal repro recipe** (`.e2e/t_57cc0179-vulkan-teardown/repro/`, self-contained):
+**The minimal repro recipes** (`.e2e/t_57cc0179-vulkan-teardown/repro/`, self-contained). The box
+turned out to need *two* of them, because the defect lives in a narrow band and each recipe
+documents one side of it:
 
 1. `cc -O2 -o vram_hog vram_hog.c -lvulkan` — a dummy allocator: it takes `N MiB` of
    `DEVICE_LOCAL` memory on the discrete device and sleeps (no llama.cpp involved, so the pressure
-   cannot come from the process under test);
-2. `sh starve_and_run.sh <tree> <tag> auto 3272 off <wait_minutes>` — waits for the ambient memory
-   to leave room, brings the device to **~3272 MiB free** (the reading of the failing run), then
-   runs `bench --suite throughput --model Qwen3.5-4B-Q4_0.gguf --backend vulkan --runs 1 --threads 4
-   --sizes 64 --json` with `VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json`;
-3. pass `off`/`gdb` as the 5th argument to add the C backtrace; the script records nvidia-smi
-   before/during/after, the hog's log, the child's stdout/stderr and its exit code.
+   cannot come from the process under test).
+2. **Starve before the child** — `sh starve_and_run.sh <tree> <tag> auto <keep_free> off <wait_min>`
+   waits for the ambient window, brings the device to `keep_free` MiB, then runs
+   `bench --suite throughput --model Qwen3.5-4B-Q4_0.gguf --backend vulkan --runs 1 --threads 4
+   --sizes 64 --json` with `VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json`.
+3. **Hold VRAM while the child exits** — `sh starve_at_teardown.sh <tree> <tag> <load_free> <leave_free>`
+   waits for a *load* window, starts the one child, waits until its own stderr proves the context
+   exists **and** goes quiet (the engine's Vulkan log stops once the allocation phase is over), and
+   only *then* starts the dummy allocator with everything above `leave_free` MiB — so the child's
+   placement succeeds and the device is tight at the exit.
+4. `sh batch_teardown.sh <tree> <prefix> <runs> …` repeats (3) until a signal appears.
+5. `sh measure_footprint.sh <tree> <tag> [model]` measures what one child really takes
+   (nvidia-smi `used` before / peak / after, sampled while it runs).
 
-Expected outcome, per the tree: the pre-fix tree reproduces the defect (complete report + signal);
-the tree of this card either **recovers** the row (one degraded retry, `ok: true`,
-`process.attempts` in the raw) or **withholds it with the named warning** when even the degraded
-rung dies.
+**What the recipes measured here (operator box, box shared with the E3 campaign):**
+
+| raw | device at start | outcome |
+|---|---|---|
+| `logs/pre_starved.raw` | 185–298 MiB free | the child's **own fit ladder** walked `n_gpu_layers=-1 -> 16 -> 0` and every rung OOM'd: a **typed** `E_BACKEND_OOM` report (`ok: false`), exit 1 — *no* crash. This is the "device too full to load" side. |
+| `logs/pre_small.raw` | 746 MiB free, 0.8B model | row measured, `Vulkan0` compute buffers, exit **0** — pressure alone is not the defect. |
+| `logs/pre_teardown4b` (`pre_teardown_run*`) | 5.3–5.6 GiB free, 4B model, hog started after the context marker | the placement loaded (`loaded=1`); the hold then starved the child's **own remaining** allocation (`E_BACKEND_OOM` for a 0.45 GiB graph buffer), exit 1 — again typed, again no crash. The hold has to land *after* the child's last allocation, which is what (3) refines. |
+| `logs/pre_foot_footprint.txt` | baseline 3236 MiB used | the child's own device footprint measured at **~2.78 GiB** (weights 2.45 + Vulkan0 context + graph) before the run was cut short by the box's pid cgroup (`python -m ggufone.runtime.probe_child` could not fork: `EAGAIN` → the CLI's typed exit 2). |
+
+**Honest status of my own live runs.** I did **not** land the SIGSEGV inside my own windows: the
+E3 campaign holds 7+ GiB of the 8 GiB board for long stretches, the pid cgroup sat at 245–255 of
+256 for much of the run (my first attempt died with `Cannot fork`, the last one with the probe
+child's `EAGAIN`), and the band that both lets the 4B placement through *and* leaves the device
+tight at the exit is narrow. What is *not* missing is the crash itself: it is recorded twice on this
+box — the `t_dd62ec29` raw above (one complete report, then `exit -11`, no glibc line) and the
+sibling card `t_97f1bc93`'s rate run (**2 of 5 identical single-bundle runs** exiting 139 after a
+complete `ok: true` report, with its own gdb/`LD_PRELOAD` backtrace harness). Closing paragraph of
+the verdict therefore: **upstream and contained**; the vehicle that turns my recipe into a local
+crash capture is a run of (3) on a box where the campaign leaves ≥5.4 GiB free for a minute — the
+script waits for that window and reports the trace either way (`logs/*_window.txt`).
 
 ## 4 — a published table can never silently lose a row
 

@@ -1,0 +1,176 @@
+........................................................................ [  6%]
+.............................sssssss.................................... [ 13%]
+........................................................................ [ 20%]
+........................................................................ [ 27%]
+.................................s...................................... [ 34%]
+....................................................ss.................. [ 41%]
+........................................................................ [ 48%]
+.............sssssss.................................F................ss [ 54%]
+sssss.ss..........................................ss.................... [ 61%]
+...ssss................................................................. [ 68%]
+........................................................................ [ 75%]
+....................................................................F... [ 82%]
+s....................................sssss.............................. [ 89%]
+........................................................................ [ 96%]
+.....................ssss................                                [100%]
+=================================== FAILURES ===================================
+___________ test_the_driver_query_carries_both_total_and_free_memory ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fea965d1b90>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3101/test_the_driver_query_carries_0')
+
+    def test_the_driver_query_carries_both_total_and_free_memory(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        shim = fake_driver(tmp_path)
+        monkeypatch.setenv("PATH", str(shim))
+    
+        memory = recommend.device_memory()
+    
+>       assert memory.total_bytes == NVIDIA_TOTAL_MIB * MIB
+E       AssertionError: assert 0 == (8192 * 1048576)
+E        +  where 0 = DeviceMemory(total_bytes=0, free_bytes=0, source='unknown').total_bytes
+
+tests/test_fit_free_vram.py:61: AssertionError
+_______________ test_oracle_live_section_is_green_without_skips ________________
+
+    def test_oracle_live_section_is_green_without_skips() -> None:
+        runtime = _installed_runtime()
+        if runtime is None:
+            pytest.skip("no runtime installed (run `ggufone init` or set GGUFONE_RUNTIME_DIR)")
+        import os
+        env = {**os.environ, "GGUFONE_RUNTIME_DIR": str(runtime)}
+>       result = run_oracle(env=env)
+                 ^^^^^^^^^^^^^^^^^^^
+
+tests/test_runtime_contract.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_runtime_contract.py:23: in run_oracle
+    return subprocess.run([sys.executable, str(ORACLE)], capture_output=True, text=True,  # noqa: S603
+/usr/local/lib/python3.11/subprocess.py:548: in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/subprocess.py:1026: in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Popen: returncode: None args: ['/work/t57cc-ggufone/.venv/bin/python', '/wo...>
+args = ['/work/t57cc-ggufone/.venv/bin/python', '/work/t57cc-ggufone/docs/verify_runtime_contract.py']
+executable = b'/work/t57cc-ggufone/.venv/bin/python', preexec_fn = None
+close_fds = True, pass_fds = (), cwd = '/work/t57cc-ggufone'
+env = {'UV_CACHE_DIR': '/work/.uv-cache', 'PYTHON_SHA256': '272179ddd9a2e41a0fc8e42e33dfbdca0b3711aa5abf372d3f2d51543d09b625', 'AI_AGENT': 'hermes-agent', 'PYTHON_VERSION': '3.11.15', ...}
+startupinfo = None, creationflags = 0, shell = False, p2cread = -1
+p2cwrite = -1, c2pread = 11, c2pwrite = 12, errread = 13, errwrite = 14
+restore_signals = True, gid = None, gids = None, uid = None, umask = -1
+start_new_session = False, process_group = -1
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals,
+                       gid, gids, uid, umask,
+                       start_new_session, process_group):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        elif isinstance(args, os.PathLike):
+            if shell:
+                raise TypeError('path-like args is not allowed when '
+                                'shell is true')
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            # On Android the default shell is at '/system/bin/sh'.
+            unix_shell = ('/system/bin/sh' if
+                      hasattr(sys, 'getandroidapilevel') else '/bin/sh')
+            args = [unix_shell, "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+    
+        sys.audit("subprocess.Popen", executable, args, cwd, env)
+    
+        if (_USE_POSIX_SPAWN
+                and os.path.dirname(executable)
+                and preexec_fn is None
+                and not close_fds
+                and not pass_fds
+                and cwd is None
+                and (p2cread == -1 or p2cread > 2)
+                and (c2pwrite == -1 or c2pwrite > 2)
+                and (errwrite == -1 or errwrite > 2)
+                and not start_new_session
+                and process_group == -1
+                and gid is None
+                and gids is None
+                and uid is None
+                and umask < 0):
+            self._posix_spawn(args, executable, env, restore_signals,
+                              p2cread, p2cwrite,
+                              c2pread, c2pwrite,
+                              errread, errwrite)
+            return
+    
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+>               self.pid = _fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+                        restore_signals, start_new_session,
+                        process_group, gid, gids, uid, umask,
+                        preexec_fn, _USE_VFORK)
+E                       BlockingIOError: [Errno 11] Resource temporarily unavailable
+
+/usr/local/lib/python3.11/subprocess.py:1885: BlockingIOError
+=========================== short test summary info ============================
+FAILED tests/test_fit_free_vram.py::test_the_driver_query_carries_both_total_and_free_memory
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+2 failed, 1005 passed, 42 skipped in 146.19s (0:02:26)

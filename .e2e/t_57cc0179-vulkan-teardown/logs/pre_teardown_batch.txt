@@ -1,0 +1,18 @@
+tag=pre_teardown_run1 tree=/work/t57cc-red model=/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf loaded=1 hold=2308MiB leave_free=500MiB
+exit=1  vram at window: 8192 MiB, 5297 MiB, 2594 MiB
+vram starved: 8192 MiB, 2798 MiB, 5094 MiB
+vram after:   8192 MiB, 2846 MiB, 5046 MiB
+hog: hog: device 0 = NVIDIA GeForce RTX 3060 Ti (type 2) 
+--- stderr tail ---
+of   2.5877 MiB
+ggml_vulkan: Device memory allocation of size 446520832 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+ggml_vulkan: Device memory allocation of size 446799360 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+ggml_vulkan: Device memory allocation of size 446799360 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+RUN 1 exit=1 free_when_starved=2798MiB typed_failure=E_BACKEND_OOM
+RUN 2 exit=missing free_when_starved=?MiB typed_failure=none
+/work/t57cc-ggufone/.e2e/t_57cc0179-vulkan-teardown/repro/starve_at_teardown.sh: 25: Cannot fork
+/work/t57cc-ggufone/.e2e/t_57cc0179-vulkan-teardown/repro/starve_at_teardown.sh: 41: Cannot fork
+/work/t57cc-ggufone/.e2e/t_57cc0179-vulkan-teardown/repro/starve_at_teardown.sh: 44: Cannot fork

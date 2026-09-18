@@ -24,10 +24,14 @@ The two trees:
 | file | what it is |
 |---|---|
 | `repro/vram_hog.c` | the dummy allocator: holds N MiB of `DEVICE_LOCAL` memory on the discrete device and sleeps — the pressure comes from *outside* the process under test |
-| `repro/starve_and_run.sh` | the minimal repro recipe: waits for the ambient memory window, brings the device to ~N MiB free with the hog, runs one Vulkan bench child, records nvidia-smi before/during/after + stdout/stderr/exit code (5th arg `gdb` adds a C backtrace) |
-| `mutmut_sweep.sh` | the Tier-M sweep driver: re-runs `mutmut run` until the meta has no pending mutants (the box's pid cap kills a run at `os.fork` with `EAGAIN`) |
+| `repro/starve_and_run.sh` | recipe A: starve the device **before** the child (the "too full to load" side: the loader's own fit ladder refuses with a typed `E_BACKEND_OOM`) |
+| `repro/starve_at_teardown.sh` | recipe B: let the placement load, then **hold VRAM while the child exits** — the card's own suggestion; the 5th arg `gdb` adds a C backtrace |
+| `repro/batch_teardown.sh` | repeats recipe B until a *signal* appears (the crash shape), stopping at the first one |
+| `repro/measure_footprint.sh` | what one child really takes on the device (nvidia-smi `used` before / peak / after) |
+| `mutmut_sweep.sh` | the Tier-M sweep driver: `--max-children 2` (the pyproject key is inert in mutmut 3.8), a pid-cgroup guard, and re-runs until the meta has no pending mutants |
 | `logs/red_pretest.txt` | the new gate file against the **parent tree**: 40 failed, 0 passed |
-| `logs/` (`pre_*`) | the live runs of the repro recipe: exit codes, the child's stdout/stderr, the hog's control trace, the VRAM snapshots |
+| `logs/full_suite.txt` | `pytest -q` on this tree (the two host-reading gates that failed there pass in isolation — see the QA note) |
+| `logs/` (`pre_*`) | the live runs of the recipes: exit codes, the child's stdout/stderr, the hog's control trace, the VRAM snapshots, the window traces |
 | `logs/mutmut.out` | the Tier-M sweep's raw output (attempts, per-attempt census, survivor list) |
 
 Card-side helpers used while producing these numbers live in `/work/t57cc-scratch/` (`census.py`

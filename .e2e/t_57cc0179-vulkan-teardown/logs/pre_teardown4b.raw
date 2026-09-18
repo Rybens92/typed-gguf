@@ -1,0 +1,147 @@
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "throughput",
+  "quick": false,
+  "generated_at": "2026-09-18T16:11:20Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15",
+    "cpu_count": 24,
+    "machine": "x86_64",
+    "cgroup_cpu_max": 2.0,
+    "cgroup_memory_bytes": 8589934592
+  },
+  "config": {
+    "suite": "throughput",
+    "model_path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "backend": "vulkan",
+    "runs": 1,
+    "threads": 4,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      64
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null,
+    "quick": false,
+    "items_per_type": null,
+    "determinism_repeats": 3,
+    "backend_limit": null,
+    "max_seconds": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "name": "Qwen3.5-4B-Q4_0.gguf",
+    "bytes": 2583221408,
+    "arch": "qwen35"
+  },
+  "notes": [
+    "no local backend bundle was available; nothing was measured"
+  ],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite throughput --model /var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf --backend vulkan --runs 1 --threads 4 --json"
+  },
+  "backends": [
+    {
+      "backend": "vulkan",
+      "measured": false,
+      "runtime_dir": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+      "placement": "n_gpu_layers=-1",
+      "threads": 4,
+      "load_ms": {
+        "n": 1,
+        "min": 1275.7377269954304,
+        "p50": 1275.7377269954304,
+        "p95": 1275.7377269954304,
+        "max": 1275.7377269954304,
+        "mean": 1275.7377269954304
+      },
+      "placement_used": {
+        "requested": "n_gpu_layers=-1",
+        "used": {
+          "note": "degraded after a backend allocation failure: 0 layer(s) offloaded, kv_type=f16",
+          "n_gpu_layers": 0,
+          "kv_type": "f16",
+          "degraded": true,
+          "attempts": [
+            "n_gpu_layers=-1 -> oom",
+            "n_gpu_layers=16 -> oom"
+          ],
+          "warnings": [
+            "W_BACKEND_OOM",
+            "W_FIT_DOWNGRADE"
+          ]
+        }
+      },
+      "prefill": [
+        {
+          "tokens": 64,
+          "ms": {
+            "n": 1,
+            "min": 34520.21913900535,
+            "p50": 34520.21913900535,
+            "p95": 34520.21913900535,
+            "max": 34520.21913900535,
+            "mean": 34520.21913900535
+          },
+          "tok_per_s": {
+            "n": 1,
+            "min": 1.8539859130756395,
+            "p50": 1.8539859130756395,
+            "p95": 1.8539859130756395,
+            "max": 1.8539859130756395,
+            "mean": 1.8539859130756395
+          },
+          "threads": 4,
+          "backend": "vulkan"
+        }
+      ],
+      "prefill_tok_per_s": {
+        "n": 1,
+        "min": 1.8539859130756395,
+        "p50": 1.8539859130756395,
+        "p95": 1.8539859130756395,
+        "max": 1.8539859130756395,
+        "mean": 1.8539859130756395
+      },
+      "reason": "BackendOomError: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=0, kv_type=f16, needed ~952 MiB); the driver reports unknown free; tried 3 placement(s) down to CPU-only, none fit: ctx kv_type=f16 -> oom; ctx kv_type=q8_0 -> oom; ctx kv_type=q4_0 -> oom; the backend asked for a 952 MiB allocation; backend log: 'ggml_gallocr_reserve_n_impl: failed to allocate Vulkan0 buffer of size 998410240'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant"
+    }
+  ],
+  "ok": false,
+  "truncated": false,
+  "skipped": [],
+  "wall_ms": 53312.593,
+  "budget": {
+    "max_seconds": null,
+    "expired": false,
+    "skipped": 0
+  }
+}

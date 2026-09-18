@@ -1,0 +1,9 @@
+baseline_used=3236MiB model=/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf
+16:23:44 used=3236MiB
+16:23:46 used=3236MiB
+16:23:48 used=3236MiB
+16:23:50 used=MiB
+16:23:52 used=MiB
+16:23:54 used=MiB
+16:23:57 used=3266MiB
+16:23:59 used=6013MiB
