@@ -1,0 +1,3 @@
+pass=1 hold=2197 free=3496 delta=2796
+pass=2 hold=4993 free=3475 delta=2775
+pass=3 hold=7768 free=747 delta=47
