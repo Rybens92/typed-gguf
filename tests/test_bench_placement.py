@@ -7,7 +7,8 @@ its first load attempt. On the parent tree that combination died with
     AttributeError: 'Placement' object has no attribute 'kv_type'      ->  E_INTERNAL, exit 4
 
 on a Vulkan host and on the pinned CPU bundle alike (the ladder is built before any device is
-touched, so no GPU is needed to reach it — see ``docs/evidence/e2_fix_t_31b3943a_bench_placement.md``).
+touched, so no GPU is needed to reach it — see
+``docs/evidence/e2_fix_t_31b3943a_bench_placement.md``).
 
 What this file pins:
 
@@ -207,6 +208,24 @@ def test_the_rendered_table_prints_the_placement_the_row_used(tmp_path: pathlib.
     degraded = rendered(FakeBackend(n_layer=LAYERS))          # fails while anything is offloaded
     assert "- placement: requested " \
            f"n_gpu_layers={LAYERS}, used n_gpu_layers=0 kv_type=f16 (degraded)" in degraded
+
+
+def test_a_negative_placement_says_it_asked_for_every_layer(tmp_path: pathlib.Path) -> None:
+    """`-1` is "every layer", not "nothing offloaded": the note the operator reads must say so."""
+    backend = FakeBackend(n_layer=LAYERS, fail=lambda ngl, call: False)
+    model_path = model_file(tmp_path)
+
+    with fake_runtime(tmp_path, backend):
+        model = harness.LiveModel(bench_spec(model_path, backend, layers=-1))
+        try:
+            model.load()
+            handle = model.handle
+            assert backend.load_calls == [-1]                  # passed to llama.cpp unchanged
+            assert handle.n_gpu_layers == -1
+            assert handle.placement.note == "all layers requested: n_gpu_layers=-1 (kv_type=auto)"
+            assert handle.placement.degraded is False
+        finally:
+            model.close()
 
 
 def test_a_placement_that_fits_nowhere_is_a_typed_oom_error(tmp_path: pathlib.Path) -> None:

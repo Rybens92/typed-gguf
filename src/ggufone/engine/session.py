@@ -184,7 +184,13 @@ def _placement_note(plan: Any | None, degraded: bool, fit_disabled: bool) -> str
     if degraded:
         return (f"degraded after a backend allocation failure: {plan.n_gpu_layers} layer(s) "
                 f"offloaded, kv_type={plan.kv_type}")
-    if plan.n_gpu_layers <= 0:
+    if plan.n_gpu_layers < 0:
+        # `-1` (llama.cpp's "every layer", what the benchmark's GPU default passes) is not "nothing
+        # offloaded": report the request, not a CPU outcome this function cannot know (a CPU-only
+        # bundle and a fully offloaded Vulkan load both land here).
+        return (f"all layers requested: n_gpu_layers={plan.n_gpu_layers} "
+                f"(kv_type={plan.kv_type})")
+    if plan.n_gpu_layers == 0:
         return f"CPU only: the fit plan offloads nothing (kv_type={plan.kv_type})"
     return f"fit plan: {plan.n_gpu_layers} layer(s) offloaded, kv_type={plan.kv_type}"
 
