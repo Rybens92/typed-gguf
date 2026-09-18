@@ -76,3 +76,45 @@ jobs:
           mkdir -p /tmp/ggufone-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/ggufone-rt
       - name: Doctor smoke (E1a)
         run: uv run ggufone doctor --help
+
+  # A-E2-8: one NON-LINUX job that runs the *engine*, not just the oracle. It downloads the
+  # pinned Metal bundle and a 0.5B GGUF, then drives `ggufone bench` end to end (model load ->
+  # prefill -> fork readout -> report), including the determinism gate (3 repeats, timings
+  # stripped) on this platform. The benchmark itself never downloads anything: the model is a
+  # local path and the dev set ships inside the package.
+  macos-engine-smoke:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --extra dev
+      - name: Download the pinned Metal bundle
+        run: |
+          set -euo pipefail
+          curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-macos-arm64.tar.gz"
+          mkdir -p /tmp/ggufone-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/ggufone-rt
+      - name: Small GGUF for the smoke decision (host-side download, not the benchmark's)
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/smoke.gguf \
+            "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+          ls -l /tmp/smoke.gguf
+      - name: Engine smoke — latency (model load, prefill, decisions)
+        run: |
+          set -euo pipefail
+          GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite latency \
+            --model /tmp/smoke.gguf --backend auto --runs 1 --sizes 256 --threads 2 \
+            --out /tmp/e2_latency.json --json > /dev/null
+          python3 -c "import json;r=json.load(open('/tmp/e2_latency.json'));assert r['suite']=='latency';assert r['model_load']['n']==1;assert r['per_question'],'no decision rows'"
+      - name: Engine smoke — results are stable bytes on this platform (A5/A-E2-5)
+        run: |
+          set -euo pipefail
+          GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite determinism \
+            --model /tmp/smoke.gguf --backend auto --threads 1 --json > /tmp/e2_determinism.json
+          python3 -c "import json;r=json.load(open('/tmp/e2_determinism.json'));row=r['backends'][0];assert r['ok'], r;assert len(set(row['digests']))==1, row['digests']"
+      - name: Engine smoke — the dev set answers end to end (A-E2-3 path on macOS)
+        run: |
+          set -euo pipefail
+          GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite quality \
+            --model /tmp/smoke.gguf --backend auto --threads 2 --items 6 --json > /tmp/e2_quality.json
+          python3 -c "import json;r=json.load(open('/tmp/e2_quality.json'));assert r['overall']['n']==6;assert 0.0<=r['overall']['agreement']<=1.0"

@@ -74,15 +74,19 @@ quote-style = "double"
 # package still imports while only those files carry mutants. Swap the pair for a wider sweep —
 # e.g. source_paths = ["src/ggufone"] with also_copy = ["tests", ...] — when a milestone wants
 # the whole package (E1a/E1b did: readout + schema).
-source_paths = ["src/ggufone/runtime/fit.py"]
+# Card t_8cb0a05e (E1c FIX) swept `source_paths = ["src/ggufone/runtime/fit.py"]` with
+# [tests/test_fit.py, tests/test_fit_free_vram.py, tests/test_fit_oom_recovery.py] and
+# max_children = 2 (the fast set, so a sweep finishes inside the shared pid cap).
+# Card t_858c54d1 (E2) retargets the pair below at the bench package with the bench gates; this
+# pair is the most recent sweep. Restore a fit/resolver sweep by swapping both lines back.
+source_paths = ["src/ggufone/bench"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
-# E1c FIX (card t_8cb0a05e): the gates for the file above (the `model`-marked cases stay skipped
-# without --run-network, which is what a mutation run wants: the offline gates only). The
-# selection is deliberately the FAST set, so a sweep can finish inside this container's shared
-# pid cap.
-pytest_add_cli_args_test_selection = ["tests/test_fit.py",
-                                      "tests/test_fit_free_vram.py",
-                                      "tests/test_fit_oom_recovery.py"]
+# E1c FIX (card t_8cb0a05e) used [tests/test_fit.py, tests/test_fit_free_vram.py,
+# tests/test_fit_oom_recovery.py] with max_children = 2 (the fast set, so a sweep can finish
+# inside this container's shared pid cap). E2 (card t_858c54d1) uses the bench gates below.
+pytest_add_cli_args_test_selection = ["tests/test_bench.py",
+                                      "tests/test_cli_e1a.py",
+                                      "tests/test_cli.py"]
 max_children = 2

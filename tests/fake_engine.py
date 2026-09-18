@@ -13,8 +13,9 @@ that differ only in punctuation/case collapse onto the same candidate sequence.
 """
 from __future__ import annotations
 
+import contextlib
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -59,6 +60,12 @@ class FakeSession:
     prefill_ms: float = 0.5
     step_ms: float = 0.05
     row_fn: RowFn | None = None
+    # bench seam (E2): a shared vocabulary + a shared state cache make several sessions look
+    # like one model with a file-backed prefix cache, and a per-token prefill cost makes the
+    # latency numbers proportional to the work the suite asked for.
+    words: dict[str, int] | None = None
+    loaded_state_ids: set[str] | None = None
+    prefill_ms_per_token: float = 0.0
     # bookkeeping the tests assert on
     batches: list[Batch] = field(default_factory=list)
     forks: list[tuple[int, int, int]] = field(default_factory=list)
@@ -68,9 +75,10 @@ class FakeSession:
     loaded_states: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
-        self._words: dict[str, int] = {}
+        self._words: dict[str, int] = self.words if self.words is not None else {}
         self._seq_tokens: dict[int, list[int]] = {}
-        self._loaded: set[str] = set()
+        self._loaded: set[str] = (self.loaded_state_ids if self.loaded_state_ids is not None
+                                  else set())
 
     # ---- tokenizer
     def token_id(self, word: str) -> int:
@@ -104,8 +112,10 @@ class FakeSession:
         else:
             self.loaded_states.append(state_id)
             self._seq_tokens.setdefault(0, list(tokens))
+        cost = self.prefill_ms if self.prefill_ms_per_token == 0.0 \
+            else len(tokens) * self.prefill_ms_per_token
         return PrefillInfo(prefill_tokens=0 if reused else len(tokens),
-                           prefill_ms=0.0 if reused else self.prefill_ms,
+                           prefill_ms=0.0 if reused else cost,
                            prefill_reused=reused, state_id=state_id,
                            state_path=f"/states/{state_id}.bin" if state_id else None)
 
@@ -141,3 +151,104 @@ class FakeSession:
 
     def close(self) -> None:  # pragma: no cover - nothing to release in the fake
         pass
+
+
+class BenchModel:
+    """The bench seam (`bench.harness.ModelLike`) without a runtime, a GGUF or a GPU.
+
+    The suites only ever see this surface::
+
+        spec, load_ms, load(), tokenize(), session(n_ctx=…, n_seq_max=…, threads=…),
+        decide(request), close()
+
+    `script` maps a request's state text to the candidate *label* this model "prefers"; the row
+    at the decision position is biased (+30) on that label's first token, so the real
+    `DecisionEngine` readout picks it. Everything else — waves, forks, decode steps, coverage,
+    warnings, timings — is produced by production code over the word-level `FakeSession`, which
+    is what makes the suite tests meaningful without a model.
+    """
+
+    def __init__(self, spec: object, *, script: dict[str, str] | None = None, n_vocab: int = 8192,
+                 load_ms: float = 12.5, prefill_ms: float = 0.5, prefill_ms_per_token: float = 0.0,
+                 threads: int = 1, nondeterministic: bool = False, step: float = 30.0) -> None:
+        self.spec = spec
+        self.script = dict(script or {})
+        self.n_vocab = n_vocab
+        self.load_ms = float(load_ms)
+        self.prefill_ms = float(prefill_ms)
+        self.prefill_ms_per_token = float(prefill_ms_per_token)
+        self.threads = int(threads)
+        self.nondeterministic = bool(nondeterministic)
+        self.step = float(step)
+        self.loads = 0
+        self.sessions = 0
+        self._words: dict[str, int] = {}
+        self._states: set[str] = set()
+        self._tick = 0
+
+    # ---- the seam
+    def load(self) -> float:
+        self.loads += 1
+        return self.load_ms
+
+    def tokenize(self, text: str) -> list[int]:
+        session = self._session(n_ctx=1, n_seq_max=1, threads=self.threads)
+        return session.tokenize(text)
+
+    @contextlib.contextmanager
+    def session(self, *, n_ctx: int, n_seq_max: int, threads: int | None = None,
+                row_fn: object = None) -> Iterator[FakeSession]:
+        self.sessions += 1
+        yield self._session(n_ctx=n_ctx, n_seq_max=n_seq_max,
+                            threads=self.threads if threads is None else threads, row_fn=row_fn)
+
+    def decide(self, request: object, *, n_ctx: int | None = None,
+               n_seq_max: int | None = None, threads: int | None = None) -> object:
+        from ggufone.engine import decide as decide_module
+
+        label = self.script.get(_state_text(request.state))
+        session = self._session(n_ctx=n_ctx or 65536,
+                                n_seq_max=n_seq_max or max(3, 1 + _max_candidates(request)),
+                                threads=self.threads if threads is None else threads)
+        if label:
+            token = session.tokenize(label)[0]
+            boost = self.step
+            if self.nondeterministic:
+                self._tick += 1
+                boost += float(self._tick)
+            row = biased_row(self.n_vocab, {token: boost})
+
+            def _biased(_context: object, row: list[float] = row) -> list[float]:
+                return list(row)
+
+            session.row_fn = _biased
+        plan = decide_module.plan_context(request, session, resolve=False)
+        return decide_module.DecisionEngine(session).decide(
+            request, plan=plan, model_alias=f"bench-{getattr(self.spec, 'backend', 'cpu')}")
+
+    def close(self) -> None:
+        pass
+
+    # ---- internals
+    def _session(self, *, n_ctx: int, n_seq_max: int, threads: int,
+                 row_fn: object = None) -> FakeSession:
+        return FakeSession(n_ctx=int(n_ctx), n_seq_max=int(n_seq_max), threads=int(threads),
+                           n_vocab=self.n_vocab, model_path=getattr(self.spec, "path", "fake.gguf"),
+                           model_alias=f"bench-{getattr(self.spec, 'backend', 'cpu')}",
+                           load_ms=self.load_ms, prefill_ms=self.prefill_ms,
+                           prefill_ms_per_token=self.prefill_ms_per_token,
+                           words=self._words, loaded_state_ids=self._states,
+                           row_fn=row_fn if row_fn is not None else None)
+
+
+def make_bench_model(spec: object, *, script: dict[str, str] | None = None, **kwargs: object):
+    """`factory(spec)` for the tests (a live run passes `bench.suites.live_factory`)."""
+    return BenchModel(spec, script=script, **kwargs)
+
+
+def _state_text(state: object) -> str:
+    return state if isinstance(state, str) else repr(state)
+
+
+def _max_candidates(request: object) -> int:
+    return max((len(question.options) for question in request.questions), default=1)

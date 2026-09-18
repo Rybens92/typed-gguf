@@ -17,6 +17,8 @@ import time
 from typing import Any
 
 from ggufone import __version__, schema
+from ggufone.bench import harness
+from ggufone.bench import suites
 from ggufone.engine import decide
 from ggufone.engine import session as session_module
 from ggufone.errors import GgufoneError, ModelNotFoundError, Sha256MismatchError, UserError
@@ -56,8 +58,10 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
             "--n-ctx N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--timeout S"),
     "serve": ("--host IP", "--port N", "--format native|typesafe"),
     "mcp": (),
-    "bench": ("--suite latency|throughput|quality|calibration|determinism", "--model REF",
-              "--json"),
+    "bench": ("--suite latency|throughput|quality|calibration|determinism", "--model PATH.GGUF",
+              "--backend auto|cpu|vulkan|cuda|all", "--runs N", "--threads N", "--devset FILE",
+              "--items N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--gpu-layers N",
+              "--sizes 256,2048,8192", "--out FILE", "--json"),
     "calibrate": ("--model REF", "--dry-run"),
     "version": ("--json",),
 }
@@ -1017,6 +1021,71 @@ def _cmd_ask(args: list[str]) -> int:
     return 0
 
 
+# --------------------------------------------------------------------- bench (E2)
+BENCH_VALUE_FLAGS = ("suite", "model", "backend", "runs", "threads", "devset", "items",
+                     "n-seq-max", "kv-type", "gpu-layers", "out", "sizes")
+BENCH_BOOL_FLAGS = ("json",)
+BENCH_DEFAULTS = {"backend": "auto", "runs": harness.DEFAULT_RUNS, "kv-type": "auto"}
+
+
+def _bench_sizes(value: str | None) -> tuple[int, ...]:
+    """`--sizes 256,2048` -> the prefill sizes of this run (default: the three pinned ones)."""
+    if not value:
+        return harness.PREFILL_SIZES
+    sizes: list[int] = []
+    for part in str(value).split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if not part.isdigit() or int(part) <= 0:
+            raise UserError(f"--sizes takes positive token counts (got {part!r})",
+                            code="E_BENCH_USAGE")
+        sizes.append(int(part))
+    if not sizes:
+        raise UserError("--sizes needs at least one token count", code="E_BENCH_USAGE")
+    return tuple(sizes)
+
+
+def _cmd_bench(args: list[str]) -> int:
+    """`ggufone bench --suite latency|throughput|quality|calibration|determinism` (SPEC 2.8).
+
+    The report goes to stdout (`--json` or the rendered tables) and, with `--out FILE`, to a JSON
+    file whose bytes are the published artifact. Exit 0 = the suite ran, 1 = a suite gate failed
+    (determinism bytes differ / nothing was measured), 2 = user error, 3 = runtime or model error.
+    """
+    positionals, options = _parse_args(args, value_flags=BENCH_VALUE_FLAGS,
+                                       bool_flags=BENCH_BOOL_FLAGS)
+    if positionals:
+        raise UserError(f"unexpected argument {positionals[0]!r}", code="E_UNKNOWN_KEY")
+    suite = options.get("suite")
+    if not suite:
+        raise UserError("bench needs --suite latency|throughput|quality|calibration|determinism "
+                        "(SPEC 2.8)", code="E_BENCH_SUITE")
+    harness.valid_suite(suite)
+    model_path = harness.resolve_model_path(options.get("model"))
+    config = harness.BenchConfig(
+        suite=suite, model_path=model_path,
+        backend=options.get("backend", BENCH_DEFAULTS["backend"]),
+        runs=int(options.get("runs", BENCH_DEFAULTS["runs"])),
+        threads=int(options["threads"]) if "threads" in options else None,
+        devset=options.get("devset"),
+        items=int(options["items"]) if "items" in options else None,
+        n_seq_max=int(options["n_seq_max"]) if "n_seq_max" in options else None,
+        kv_type=options.get("kv_type", BENCH_DEFAULTS["kv-type"]),
+        gpu_layers=int(options["gpu_layers"]) if "gpu_layers" in options else None,
+        prefill_sizes=_bench_sizes(options.get("sizes")))
+    report = suites.run_suite(config, factory=suites.live_factory)
+    if options.get("out"):
+        harness.write_report(report, options["out"])
+    if options.get("json"):
+        print(json.dumps(report, indent=2, sort_keys=False))
+    else:
+        print(harness.render_report(report))
+        if options.get("out"):
+            print(f"report: {options['out']}")
+    return 0 if report.get("ok", True) else 1
+
+
 # --------------------------------------------------------------------- fit (E1c)
 def _cmd_fit(args: list[str]) -> int:
     """`ggufone fit [<model>] [--print] [--no-cache]` (SPEC 2.8/2.10, A-E1c-4)."""
@@ -1113,6 +1182,8 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_run(rest)
         if cmd == "ask":
             return _cmd_ask(rest)
+        if cmd == "bench":
+            return _cmd_bench(rest)
         if cmd == "fit":
             return _cmd_fit(rest)
     except GgufoneError as exc:
