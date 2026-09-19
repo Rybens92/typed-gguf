@@ -50,7 +50,25 @@ BACKENDS = ("auto", "cpu", "vulkan", "cuda", "metal")
 #: * `json_field` — the shipped cue line plus a per-type JSON opener, read at the field row. The
 #:   agreement winner of the 60-item run and *not* the default: the opener is part of the prompt,
 #:   so the at-the-cue refusal verdict is gone.
-CUE_SHAPES = ("shipped", "two_step", "json_field")
+#: * `json_instructed` — E3e (card t_4c48f40a): the cue line becomes the **JSON contract** the
+#:   instruction names (`Answer with JSON: {"choice": "<one candidate name>"}`), the assistant turn
+#:   is prefilled with the opened field, and the readout sits at the **value row**. The refusal
+#:   verdict survives (the value row is the row that can be refused) and the row is classified
+#:   into named verdicts — `refused` / `empty_value` / `wrong_field` / `answered` — instead of
+#:   reading as anonymous `low_mass` (`engine/cue.py`).
+CUE_SHAPES = ("shipped", "two_step", "json_field", "json_instructed")
+#: E3e (card t_4c48f40a, `options.chat_format`): where the question block lives.
+#:
+#: * `answer_sheet` — the frozen default: the question (instructions, candidates, ask) is
+#:   prefilled **inside the assistant turn**, right after the template's generation prompt.
+#: * `role_split` — the question is rendered as its own **user** message through the model's own
+#:   chat template, and the assistant turn carries only what the readout measures (nothing for
+#:   `shipped`/`two_step`, the opened field for `json_instructed`). A family whose template cannot
+#:   render a second user turn is `E_ROLE_SPLIT_UNSUPPORTED`, never a silent fallback.
+CHAT_FORMATS = ("answer_sheet", "role_split")
+#: the documented default of `options.chat_format` — the shape every published table measured
+ANSWER_SHEET = "answer_sheet"
+ROLE_SPLIT = "role_split"
 #: E2.5 (SPEC 2.10): `route: "auto"` lets the registry pick the model and its sizing
 ROUTE_MODES = ("off", "auto")
 NOUL_KEYS = ("true", "false")
@@ -62,6 +80,9 @@ OPTION_DEFAULTS: dict[str, Any] = {
     "readout": "sequence",
     #: E3d: where the label is read relative to the cue (`CUE_SHAPES` above; default = shipped)
     "cue": "shipped",
+    #: E3e (card t_4c48f40a): where the question block lives (`CHAT_FORMATS` above; the default is
+    #: the answer-sheet shape every published table measured)
+    "chat_format": ANSWER_SHEET,
     "confidence_mode": None,       # None = the documented default, or the calibrated statistic
     "n_ctx": None,
     "n_seq_max": None,
@@ -116,6 +137,10 @@ class Options:
     #: E3d: where the label is read relative to the cue — `CUE_SHAPES` above. The default is the
     #: shape every published table measured, so a request that never sets it cannot move.
     cue: str = "shipped"
+    #: E3e (card t_4c48f40a): where the question block lives — `CHAT_FORMATS` above. The default is
+    #: the answer-sheet shape every published table measured; `role_split` renders the question as
+    #: its own user turn through the model's chat template.
+    chat_format: str = ANSWER_SHEET
     #: None = "whatever the stored calibration says for this question type, else
     #: normalized_peak" (E2.5 / A-E2p5-3: a promoted mode is only visible if the readout reports
     #: it). An explicit mode always wins over the table.
@@ -298,6 +323,7 @@ def _parse_options(raw: Any) -> tuple[Options, list[str]]:
         length_norm=_number("length_norm", values["length_norm"], low=0.0, inclusive=True),
         readout=_choice("readout", values["readout"], ("sequence", "single_token")),
         cue=_choice("cue", values["cue"], CUE_SHAPES),
+        chat_format=_choice("chat_format", values["chat_format"], CHAT_FORMATS),
         confidence_mode=_optional_choice("confidence_mode", values["confidence_mode"],
                                          tuple(CONFIDENCE_MODES)),
         n_ctx=_optional_int("n_ctx", values["n_ctx"], low=1),

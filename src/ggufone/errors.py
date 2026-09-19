@@ -142,6 +142,11 @@ ERROR_CODES = (
     # E1c FIX addition (card t_8cb0a05e: an allocation failure is not an arch failure, and the
     # operator's box reported the OOM as `E_MODEL_ARCH_UNSUPPORTED`):
     "E_BACKEND_OOM",
+    # E3e (card t_4c48f40a): the request asked for `chat_format=role_split` and the resolved
+    # template cannot render the question as its own user turn after the state turn (a merge, a
+    # drop, or a prompt left inside a thinking block). The message names the fallback; the engine
+    # never silently re-renders the other shape.
+    "E_ROLE_SPLIT_UNSUPPORTED",
 )
 WARNING_CODES = (
     "W_LOW_MASS", "W_LOW_CONFIDENCE", "W_UNKNOWN_OPTION", "W_TRUNCATED_STATE",
@@ -162,4 +167,10 @@ WARNING_CODES = (
     # payload, so the answer's `cue` block names the closer, its mass and the doc pointer
     # (`engine/cue.py`); this code is what a caller greps for.
     "W_CUE_REFUSED",
+    # E3e (card t_4c48f40a): the two `json_instructed` verdicts that are neither a label nor a
+    # refusal — the model closed the opened field with an EMPTY value (`{"<key>": ""}`), or it
+    # closed that field and went on to fill a DIFFERENT key. Both are named verdicts on the
+    # answer's `cue` block (`verdict`), because "low mass" cannot tell them apart from a label the
+    # model simply did not choose — and the fix a reader needs is not the same.
+    "W_JSON_EMPTY_VALUE", "W_JSON_WRONG_FIELD",
 )

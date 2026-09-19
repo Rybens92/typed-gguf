@@ -45,6 +45,11 @@ SUITES = ("latency", "throughput", "quality", "calibration", "determinism")
 DEFAULT_BACKENDS = ("cpu", "vulkan", "cuda")
 CPU_BACKEND = "cpu"
 DEFAULT_RUNS = 5
+#: E3d/E3e: the shipped cue shape and question placement — the values every published table used.
+#: Kept as literals so `bench/harness.py` never imports `ggufone.schema` (the CLI validates the
+#: flags against `schema.CUE_SHAPES`/`schema.CHAT_FORMATS`); `tests/test_bench.py` pins them equal.
+DEFAULT_CUE = "shipped"
+DEFAULT_CHAT_FORMAT = "answer_sheet"
 PREFILL_SIZES = (256, 2048, 8192)
 CANDIDATE_COUNTS = (2, 4, 10)
 WAVE_SCALING = tuple(range(1, 17))
@@ -662,6 +667,10 @@ class BenchConfig:
     #: E3d (card t_d90404ac): which cue shape the quality rows are measured with. The default is
     #: the shape every published row used, so an unset `--cue` cannot move a table.
     cue: str = "shipped"
+    #: E3e (card t_4c48f40a): where the question block lives — `answer_sheet` (the shape every
+    #: published row used) or `role_split` (the question as its own user turn). Same rule as `cue`:
+    #: the default is what the published tables measured, so an unset flag cannot move one.
+    chat_format: str = DEFAULT_CHAT_FORMAT
     gpu_layers: int | None = None
     n_bins: int = N_BINS
     prefill_sizes: tuple[int, ...] = PREFILL_SIZES
@@ -774,6 +783,13 @@ def reproduce_command(config: BenchConfig) -> str:
         parts += ["--n-seq-max", str(config.n_seq_max)]
     if config.devset:
         parts += ["--devset", config.devset]
+    # E3d/E3e: a report whose rows were measured under a non-default cue shape or prompt placement
+    # prints the flags back — the line has to reproduce the *measurement condition*, not just the
+    # scale. Both defaults are silent, so every published line stays byte-identical.
+    if config.cue and config.cue != DEFAULT_CUE:
+        parts += ["--cue", config.cue]
+    if config.chat_format and config.chat_format != DEFAULT_CHAT_FORMAT:
+        parts += ["--chat-format", config.chat_format]
     if config.gpu_layers is not None:
         parts += ["--gpu-layers", str(config.gpu_layers)]
     if config.max_seconds is not None:
@@ -833,6 +849,10 @@ def cue_verdict_rows(report: Mapping[str, Any]) -> list[str]:
     position, and `W_CUE_REFUSED` when that is a turn-closer (`<|im_end|>`, `</s>`, …) — the model
     closes the assistant turn instead of answering, which is *why* a `low_mass` row is low. Reports
     written before E3c carry no such block and render exactly as they did.
+
+    E3e (card t_4c48f40a): a `json_instructed` row's block also carries the value row's `verdict`,
+    and it is shown — an `empty_value`/`wrong_field` row that printed `ok` here would read as an
+    ordinary answer, which is the one thing the card says it must not.
     """
     rows: list[str] = []
     for row in report.get("items", []):
@@ -840,7 +860,11 @@ def cue_verdict_rows(report: Mapping[str, Any]) -> list[str]:
         if not isinstance(cue, Mapping):
             continue
         token = cue.get("closer") or f"token {cue.get('token')}"
-        verdict = "W_CUE_REFUSED" if cue.get("refused") else "ok"
+        if cue.get("refused"):
+            verdict = "W_CUE_REFUSED"
+        else:
+            named = cue.get("verdict")
+            verdict = "ok" if named in (None, "answered") else f"W_JSON_{str(named).upper()}"
         rows.append(f"| {row.get('id')} | {row.get('type')} | `{token}` | "
                     f"{_number(cue.get('mass'))} | {verdict} |")
     return rows
@@ -897,6 +921,16 @@ def render_report(report: Mapping[str, Any]) -> str:
                         else "")
                      + (f" · prefix tokens: {framed_prefixes}" if framed_prefixes else "")]
                     if framing_labels else [])
+    # card t_d90404ac / t_4c48f40a: the *policy* these rows were measured under — where the label is
+    # read (the cue shape) and where the question block lives (the chat format). Printed only when
+    # it is not the shipped shape, so every published line keeps its bytes, and a table whose rows
+    # answered a different question than the default one always says so.
+    policy_bits = []
+    if config.get("cue") and config.get("cue") != DEFAULT_CUE:
+        policy_bits.append(f"cue={config['cue']}")
+    if config.get("chat_format") and config.get("chat_format") != DEFAULT_CHAT_FORMAT:
+        policy_bits.append(f"chat_format={config['chat_format']} (the question is its own user turn)")
+    policy_line = [f"- prompt policy: {' · '.join(policy_bits)}"] if policy_bits else []
     lines = [f"### {report.get('suite')} — {name}",
              "",
              f"- generated: {report.get('generated_at')}",
@@ -916,6 +950,8 @@ def render_report(report: Mapping[str, Any]) -> str:
              *evidence_line,
              # which prompt these rows were measured with (card t_6de5fc53)
              *framing_line,
+             # which measurement policy (cue shape / question placement) these rows used
+             *policy_line,
              ""]
     summary_header = ["n", "p50", "p95", "min", "max"]
     if report.get("suite") == "latency":

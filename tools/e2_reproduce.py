@@ -33,6 +33,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from ggufone import schema  # noqa: E402
 from ggufone.bench import harness, suites  # noqa: E402
 
 
@@ -54,8 +55,14 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--n-seq-max", dest="n_seq_max", type=int, default=None)
     parser.add_argument("--kv-type", dest="kv_type", default="auto")
     parser.add_argument("--cue", default="shipped",
-                        help="shipped | two_step | json_field — the cue shape the rows are read "
-                             "at (E3d, card t_d90404ac; default = the published shape)")
+                        help="shipped | two_step | json_field | json_instructed — the cue shape the "
+                             "rows are read at (E3d card t_d90404ac, E3e card t_4c48f40a; "
+                             "default = the published shape)")
+    parser.add_argument("--chat-format", dest="chat_format", default=schema.ANSWER_SHEET,
+                        choices=list(schema.CHAT_FORMATS),
+                        help="answer_sheet | role_split — where the question block lives (E3e card "
+                             "t_4c48f40a; default = the published shape, the question prefilled "
+                             "into the assistant turn)")
     parser.add_argument("--gpu-layers", dest="gpu_layers", type=int, default=None)
     parser.add_argument("--n-bins", dest="n_bins", type=int, default=harness.N_BINS)
     parser.add_argument("--sizes", default=None,
@@ -96,6 +103,7 @@ def build_config(args: argparse.Namespace, suite: str) -> harness.BenchConfig:
         n_seq_max=args.n_seq_max,
         kv_type=args.kv_type,
         cue=args.cue,
+        chat_format=args.chat_format,
         gpu_layers=args.gpu_layers,
         n_bins=args.n_bins,
         max_seconds=args.max_seconds,

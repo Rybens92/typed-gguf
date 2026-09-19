@@ -133,14 +133,16 @@ def closer_map(session: Any) -> dict[int, str]:
 
 
 def cue_verdict(row: Sequence[float], scale: float, closers: Mapping[int, str], *,
-                floor: float = REFUSAL_FLOOR) -> dict[str, Any]:
+                floor: float = REFUSAL_FLOOR, hint: str = CUE_REFUSED_HINT) -> dict[str, Any]:
     """The verdict for one decision row — pure arithmetic over the row and the closer map.
 
     `row` is the full-vocabulary logit row at the cue and `scale` its logsumexp (the engine holds
     both); `closers` comes from `closer_map()` for the session's own vocabulary and `floor` is the
     effective coverage floor of the request (`REFUSAL_FLOOR` when the caller has none). The argmax
     tie-break is `readout.argmax_first` — the frozen lowest-index rule, so this verdict can never
-    disagree with `choice`/`score`/`noul` about which token the row put first.
+    disagree with `choice`/`score`/`noul` about which token the row put first. `hint` is what a
+    refusal points the reader at, because the fix depends on *where* the row sits (E3e's value row
+    is a different place from E3c's cue row).
     """
     top = readout.argmax_first(row)
     mass = readout.coverage_from_scale(row, (top,), scale)
@@ -153,5 +155,82 @@ def cue_verdict(row: Sequence[float], scale: float, closers: Mapping[int, str], 
         "mass": mass,
     }
     if refused:
-        verdict["hint"] = CUE_REFUSED_HINT
+        verdict["hint"] = hint
     return verdict
+
+
+# ----------------------------------------------------------- the value row (E3e, card t_4c48f40a)
+#: The JSON punctuation a *value row* is classified with: the marker that closes the value and the
+#: marker that closes the object. Matched the same way `TURN_CLOSERS` is: only when the session's
+#: own tokenizer encodes the marker as **one** token (`value_markers`), so a vocabulary that
+#: splits `"` or `}` can never fire on them and the row reads as an ordinary answer.
+VALUE_MARKERS: tuple[tuple[str, str], ...] = (("quote", "\""), ("close", "}"), ("comma", ","),
+                                             ("brace", "{"))
+
+#: The four named outcomes of a `json_instructed` value row. `answered` is the shape the card
+#: asks for (a candidate label starts the value); the other three must never read as anonymous
+#: `low_mass` — each names *why* no label is there and points at a different fix.
+JSON_VERDICTS: tuple[str, ...] = ("answered", "refused", "empty_value", "wrong_field")
+
+#: What a refusal *at the value row* means: the readout sits inside the opened JSON field, so the
+#: turn the model closes is the object's own — the label mass at that row cannot reach the floor
+#: for exactly the E3c reason, one shape further in.
+VALUE_REFUSED_HINT = (
+    "docs/TEMPLATES.md §4 (the label policy, measured) and §5 (the cue shapes) — this prompt "
+    "shape ends *inside* the opened JSON field (`{\"<key>\": \"`), so the model can close the "
+    "value or the assistant turn instead of naming a candidate, and the label mass at the value "
+    "row cannot reach the floor. The row is classified: `refused` here, `empty_value` when the "
+    "value opens and closes empty, `wrong_field` when the model closes this key and fills another "
+    "(`--cue shipped|two_step` reads a bare-label ask instead)"
+)
+
+
+def value_markers(tokenize: Callable[[str], list[int]]) -> dict[int, str]:
+    """`{token id: marker}` for the JSON punctuation this vocabulary encodes as ONE token.
+
+    Same rule as `single_token_closers`: the vocabulary decides. A marker the tokenizer splits
+    into several tokens is not in the map, and the value row it belongs to is classified
+    `answered` rather than guessed at.
+    """
+    mapping: dict[int, str] = {}
+    for name, text in VALUE_MARKERS:
+        tokens = tokenize(text)
+        if len(tokens) == 1:
+            mapping.setdefault(int(tokens[0]), name)
+    return mapping
+
+
+def value_verdict(row: Sequence[float], scale: float, closers: Mapping[int, str],
+                  markers: Mapping[int, str], *, next_row: Sequence[float] | None = None,
+                  next_scale: float | None = None,
+                  floor: float = REFUSAL_FLOOR) -> dict[str, Any]:
+    """The verdict for one **value row** — the row right after the opened JSON field.
+
+    Pure arithmetic over three inputs the engine already holds: the value row and its scale, the
+    session's closer map, and the session's marker map (`value_markers`). `next_row` is the row
+    *after* the value row, and it is only read when the value row closed the value (its winner is
+    the `quote` marker): that one extra row is what separates
+
+    * `empty_value` — the model closed the value and the object with it (`{"<key>": ""}`), the
+      shape a model picks when it has no answer it wants to name, and
+    * `wrong_field` — the model closed this key and went on to fill another one
+      (`{"<key>": "", "answer": "yes"}`), i.e. it answered a *different* question than the one the
+      contract named.
+
+    A caller that passes no `next_row` gets `empty_value`, which is what the object holds up to the
+    closing quote. The refusal rule is E3c's, unchanged (`cue_verdict`), with the value row's own
+    hint — a refused value row is reported as `refused`, never as one of the two above.
+    """
+    base = cue_verdict(row, scale, closers, floor=floor, hint=VALUE_REFUSED_HINT)
+    verdict = "refused" if base["refused"] else "answered"
+    entry: dict[str, Any] | None = None
+    if not base["refused"] and markers.get(base["token"]) == "quote":
+        if next_row is not None:
+            top = readout.argmax_first(next_row)
+            mass = readout.coverage_from_scale(next_row, (top,), next_scale)
+            marker = markers.get(top)
+            entry = {"token": int(top), "marker": marker, "mass": mass}
+            verdict = "empty_value" if marker == "close" else "wrong_field"
+        else:
+            verdict = "empty_value"
+    return {**base, "verdict": verdict, "next": entry}

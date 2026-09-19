@@ -135,6 +135,12 @@ class ContextPlan:
     # E1c: the template that produced `prefix_tokens` (None = the plain E1b framing)
     template: template_module.Resolution | None = None
     enable_thinking: bool = False
+    #: E3e (card t_4c48f40a): where the question block lives, and — for `role_split` — the render
+    #: that produced the prefix and the per-question tails. Carried on the plan (not recomputed)
+    #: so the executed context and the executed questions can never be rendered from two
+    #: different assemblies (the seam card t_6de5fc53 closed for the template chain).
+    chat_format: str = schema.ANSWER_SHEET
+    role: prompt.RoleSplitRender | None = None
 
     @property
     def n_prefix(self) -> int:
@@ -180,13 +186,24 @@ class DecideResult:
 
 # ----------------------------------------------------------------------- planning
 def question_requirements(request: schema.Request, tokenizer: Tokenizer,
+                          *, resolution: template_module.Resolution | None = None,
+                          role: prompt.RoleSplitRender | None = None,
                           ) -> list[tuple[schema.Question, prompt.RenderedQuestion,
                                           list[int], list[list[int]]]]:
-    """Render + tokenize every question: the one place that decides what a candidate costs."""
+    """Render + tokenize every question: the one place that decides what a candidate costs.
+
+    `resolution`/`role` are the plan's own template and role-split render (E3e): a request whose
+    question block lives in a user turn must be rendered from the *same* assembly the executed
+    prefix was built from, or the two halves would describe different conversations.
+    """
+    options = request.options
+    if role is None and options.chat_format == schema.ROLE_SPLIT:
+        role = prompt.role_split_render(request.state, request.questions, resolution=resolution,
+                                        enable_thinking=options.thinking, cue=options.cue)
     rendered: list[tuple[schema.Question, prompt.RenderedQuestion, list[int], list[list[int]]]] = []
-    for question in request.questions:
-        view = prompt.build_question(question, readout=request.options.readout,
-                                     cue=request.options.cue)
+    for index, question in enumerate(request.questions):
+        view = prompt.build_question(question, readout=options.readout, cue=options.cue,
+                                     chat_format=options.chat_format, role=role, index=index)
         suffix_tokens = tokenizer.tokenize(view.suffix)
         candidates = [tokenizer.tokenize(text) for text in view.texts]
         for text, tokens in zip(view.texts, candidates, strict=True):
@@ -217,7 +234,9 @@ def resolve_template(request: schema.Request, tokenizer: Any) -> template_module
     options = request.options
     user_template = options.template if options.template not in (None, "auto") else None
     return template_module.resolve_for_handle(
-        tokenizer, messages=prompt.chat_messages(request.state), user_template=user_template,
+        tokenizer, messages=prompt.chat_messages(
+            request.state, framing=prompt.framing_for(options.cue)),
+        user_template=user_template,
         explicit_user=user_template is not None,
         think_mode="on" if options.thinking else "auto")
 
@@ -235,9 +254,11 @@ def plan_context(request: schema.Request, tokenizer: Tokenizer, *,
     resolution = template
     if resolution is None and resolve:
         resolution = resolve_template(request, tokenizer)
+    role = prompt.role_split_context(request, resolution=resolution)
     prefix_tokens = tokenizer.tokenize(prompt.build_prefix(
-        request.state, resolution=resolution, enable_thinking=options.thinking))
-    requirements = question_requirements(request, tokenizer)
+        request.state, resolution=resolution, enable_thinking=options.thinking,
+        chat_format=options.chat_format, cue=options.cue, role=role))
+    requirements = question_requirements(request, tokenizer, resolution=resolution, role=role)
     per_question = [len(suffix) + max(len(tokens) for tokens in candidates)
                     for _, _, suffix, candidates in requirements]
     max_question = max(per_question, default=0)
@@ -252,7 +273,8 @@ def plan_context(request: schema.Request, tokenizer: Tokenizer, *,
     return ContextPlan(prefix_tokens=tuple(prefix_tokens), n_ctx=int(n_ctx),
                        n_seq_max=int(n_seq_max), threads=int(threads),
                        kv_type=options.kv_type, max_question_tokens=max_question,
-                       template=resolution, enable_thinking=options.thinking)
+                       template=resolution, enable_thinking=options.thinking,
+                       chat_format=options.chat_format, role=role)
 
 
 def _default_threads() -> int:
@@ -292,6 +314,9 @@ class DecisionEngine:
         #: (`engine/cue.py`). Card t_635124bf widened it to every CONTROL / USER_DEFINED token the
         #: vocabulary carries. `None` = not resolved yet.
         self._closers: dict[int, str] | None = None
+        #: E3e (card t_4c48f40a): `{token id: marker}` for the JSON punctuation this vocabulary
+        #: encodes as one token (`engine/cue.py:value_markers`), resolved once per session.
+        self._value_marker_map: dict[int, str] | None = None
 
     # ---- decode seam (everything the engine decodes goes through here)
     def _decode(self, batch: Batch) -> list[list[float]]:
@@ -325,7 +350,8 @@ class DecisionEngine:
         # published next to the label — `meta.backend` is a *claim*, this is the measurement.
         evidence = device_evidence(session, meta.backend)
         plan = plan or plan_context(request, session)
-        requirements = question_requirements(request, session)
+        requirements = question_requirements(request, session, resolution=plan.template,
+                                             role=plan.role)
         self._guard_context(request, plan, meta, requirements)
         options = request.options
         coverage_floor = options.coverage_floor if self.coverage_floor is None \
@@ -377,6 +403,9 @@ class DecisionEngine:
                 "effective_backend": evidence["effective_backend"],
                 "readout": options.readout,
                 "cue": options.cue,
+                # E3e (card t_4c48f40a): where the question block lives — a knob that does not
+                # appear in the response is a silent knob (`engine.cue`, E3d).
+                "chat_format": self._chat_format_surface(plan, options),
                 "kv_unified": bool(meta.kv_unified),
                 "n_ctx": meta.n_ctx,
                 "n_seq_max": meta.n_seq_max,
@@ -460,6 +489,26 @@ class DecisionEngine:
                     "family": None, "thinking": "n/a"}
         return plan.template.to_dict()
 
+    @staticmethod
+    def _chat_format_surface(plan: ContextPlan, options: schema.Options) -> dict[str, Any]:
+        """`engine.chat_format` — where the question block lives, with the render's own receipts.
+
+        E3e (card t_4c48f40a): `question_turn` names the role the question block is prefilled into
+        (`assistant` = the answer-sheet shape, `user` = the role split). A role split publishes the
+        bytes the state-only render carries that the shared prefix cannot (`dropped` — Spark's
+        template ends a render with a newline, which cannot sit in the middle of one), so the
+        acceptance the tool measured per family is visible on every response.
+        """
+        role = plan.role
+        surface: dict[str, Any] = {
+            "kind": options.chat_format,
+            "question_turn": "user" if role is not None else "assistant",
+        }
+        if role is not None:
+            surface["prefix_chars"] = len(role.prefix)
+            surface["dropped"] = role.dropped
+        return surface
+
     def _guard_context(self, request: schema.Request, plan: ContextPlan, meta: SessionMeta,
                        requirements: Sequence[tuple[schema.Question, prompt.RenderedQuestion,
                                                      list[int], list[list[int]]]]) -> None:
@@ -507,13 +556,17 @@ class DecisionEngine:
             rows = self._score_group(plan, suffix_tokens,
                                      [candidates[index] for index in group],
                                      [scored[index] for index in group],
-                                     options.cue)
+                                     options.cue, floor=coverage_floor)
             for offset, index in enumerate(group):
                 logprobs[index] = rows["logprobs"][offset]
             coverage += readout.coverage_from_scale(rows["decision_row"], rows["coverage_ids"],
                                                     rows["decision_scale"])
-            cue_verdict = cue_module.cue_verdict(rows["decision_row"], rows["decision_scale"],
-                                                 self._closer_map(), floor=coverage_floor)
+            # E3e: `json_instructed` reads the label *at the opened field*, so its decision row is
+            # a value row and its verdict is the value block (`answered`/`refused`/`empty_value`/
+            # `wrong_field`). Every other shape keeps E3d's row verdict, byte-identical.
+            cue_verdict = rows["value"] or cue_module.cue_verdict(
+                rows["decision_row"], rows["decision_scale"], self._closer_map(),
+                floor=coverage_floor)
             # E3d: the row the *refusal* lives on is the cue row — for `shipped` that is the
             # decision row, for `two_step` it is the row the readout moved past.
             cue_row_verdict = cue_module.cue_verdict(rows["cue_row"],
@@ -542,6 +595,14 @@ class DecisionEngine:
             # E3d: the verdict is read on the *cue* row, so a `two_step` request that never
             # advanced (a refusal) is reported exactly like the shipped shape it fell back to.
             _add_warning(warnings, "W_CUE_REFUSED")
+        # E3e (card t_4c48f40a): the two `json_instructed` verdicts that are neither a label nor a
+        # refusal. `low_mass` is true for both — the row really is low on label mass — but it is
+        # also true of a model that simply did not choose a candidate, and the reader's fix is not
+        # the same, so each gets its own named code next to it.
+        if cue_verdict.get("verdict") == "empty_value":
+            _add_warning(warnings, "W_JSON_EMPTY_VALUE")
+        elif cue_verdict.get("verdict") == "wrong_field":
+            _add_warning(warnings, "W_JSON_WRONG_FIELD")
 
         keys = list(question.options)
         probability_map = {key: probability for key, probability in zip(keys, probabilities,
@@ -594,7 +655,8 @@ class DecisionEngine:
     # ---- one wave group: fork the suffix once, then score every candidate in it
     def _score_group(self, plan: ContextPlan, suffix_tokens: list[int],
                      candidates: list[list[int]], scored: list[tuple[int, ...]],
-                     cue: str = schema.CUE_SHAPES[0],
+                     cue: str = schema.CUE_SHAPES[0], *,
+                     floor: float = cue_module.REFUSAL_FLOOR,
                      ) -> dict[str, Any]:
         head_seq = 1
         n_prefix = plan.n_prefix
@@ -654,7 +716,39 @@ class DecisionEngine:
             self.session.release(head_seq + offset)
         return {"decision_row": decision_row, "decision_scale": decision_scale,
                 "coverage_ids": coverage_ids, "logprobs": logprobs,
-                "cue_row": cue_row, "advance": advance}
+                "cue_row": cue_row, "advance": advance,
+                "value": self._value_row_verdict(cue, head_seq, base, decision_row,
+                                                 decision_scale, floor)}
+
+    def _value_row_verdict(self, cue: str, head_seq: int, base: int,
+                           decision_row: Sequence[float], decision_scale: float,
+                           floor: float) -> dict[str, Any] | None:
+        """`json_instructed` only: classify the opened field's value row (E3e, card t_4c48f40a).
+
+        Runs *after* the candidate sequences forked off the head at `base`, so the one token it
+        decodes when the model closes the value cannot leak into what the candidates score: the
+        head is read one step further, exactly as the model itself would continue. One `_decode`
+        call at most, and only when the value row's argmax is the vocabulary's single-token `"`
+        (`value_markers`) — otherwise the row is a plain answer and nothing extra is decoded.
+        """
+        if cue != "json_instructed":
+            return None
+        markers = self._value_markers()
+        winner = int(readout.argmax_first(decision_row))
+        next_row = None
+        next_scale = None
+        if markers.get(winner) == "quote":
+            next_row = self._decode(Batch(tokens=(winner,), seq_ids=(head_seq,),
+                                          positions=(base,), logits=(True,)))[-1]
+            next_scale = readout.logsumexp(next_row)
+        return cue_module.value_verdict(decision_row, decision_scale, self._closer_map(), markers,
+                                        next_row=next_row, next_scale=next_scale, floor=floor)
+
+    def _value_markers(self) -> dict[int, str]:
+        """The session's own single-token JSON punctuation (E3e) — a vocabulary fact, not a guess."""
+        if self._value_marker_map is None:
+            self._value_marker_map = cue_module.value_markers(self.session.tokenize)
+        return self._value_marker_map
 
     def _advance_token(self, row: Sequence[float], cue: str) -> int | None:
         """The one token `two_step` decodes before it reads — `None` when the cue refuses.

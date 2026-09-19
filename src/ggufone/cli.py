@@ -53,7 +53,9 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
             "--format native|typesafe", "--out FILE", "--template auto|plain|NAME|PATH",
             "--thinking", "--no-fit", "--fit-target MIB", "--fit-ctx N", "--no-fit-cache",
             "--threads N", "--n-ctx N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0",
-            "--readout sequence|single_token", "--cue shipped|two_step|json_field",
+            "--readout sequence|single_token",
+            "--cue shipped|two_step|json_field|json_instructed",
+            "--chat-format answer_sheet|role_split",
             "--confidence-mode MODE", "--temperature F",
             "--length-norm F", "--coverage-floor F", "--state-id ID", "--save-state",
             "--no-state-cache", "--strict", "--max-waves N",
@@ -68,7 +70,8 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
     "bench": ("--suite latency|throughput|quality|calibration|determinism", "--model PATH.GGUF",
               "--backend auto|cpu|vulkan|cuda|all", "--runs N", "--threads N", "--devset FILE",
               "--items N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0",
-              "--cue shipped|two_step|json_field", "--gpu-layers N",
+              "--cue shipped|two_step|json_field|json_instructed",
+              "--chat-format answer_sheet|role_split", "--gpu-layers N",
               "--sizes 256,2048,8192", "--out FILE", "--json", "--quick", "--max-seconds N"),
     "calibrate": ("--model REF", "--dry-run", "--json", "--out FILE", "--from-report FILE",
                   "--devset FILE", "--items N", "--holdout F",
@@ -769,10 +772,10 @@ def _models_recommend_quant(args: list[str]) -> int:
 
 # --------------------------------------------------------------------- run / ask
 ENGINE_VALUE_FLAGS = ("model", "format", "state-id", "temperature", "length-norm", "readout",
-                      "cue", "confidence-mode", "coverage-floor", "n-ctx", "n-seq-max", "kv-type",
-                      "threads", "backend", "seed", "max-waves", "out", "questions", "state",
-                      "state-json", "template", "route", "max-escalations", "escalation-model",
-                      "audit")
+                      "cue", "chat-format", "confidence-mode", "coverage-floor", "n-ctx",
+                      "n-seq-max", "kv-type", "threads", "backend", "seed", "max-waves", "out",
+                      "questions", "state", "state-json", "template", "route", "max-escalations",
+                      "escalation-model", "audit")
 ENGINE_BOOL_FLAGS = ("strict", "save-state", "no-state-cache", "thinking", "no-fit",
                      "no-fit-cache", "escalate")
 FIT_VALUE_FLAGS = ("fit-target", "fit-ctx")
@@ -784,7 +787,7 @@ def _engine_options(options: dict[str, Any]) -> dict[str, Any]:
         "temperature": float, "length_norm": float, "coverage_floor": float,
         "n_ctx": int, "n_seq_max": int, "threads": int, "seed": int, "max_waves": int,
         "readout": str, "confidence_mode": str, "kv_type": str, "backend": str,
-        "cue": str,
+        "cue": str, "chat_format": str,
         "state_id": str, "strict": bool, "save_state": bool, "template": str,
         "thinking": bool, "route": str, "escalate": bool, "max_escalations": int,
     }
@@ -1264,10 +1267,11 @@ def _cmd_ask(args: list[str]) -> int:
 
 # --------------------------------------------------------------------- bench (E2)
 BENCH_VALUE_FLAGS = ("suite", "model", "backend", "runs", "threads", "devset", "items",
-                     "n-seq-max", "kv-type", "cue", "gpu-layers", "out", "sizes", "max-seconds")
+                     "n-seq-max", "kv-type", "cue", "chat-format", "gpu-layers", "out", "sizes",
+                     "max-seconds")
 BENCH_BOOL_FLAGS = ("json", "quick")
 BENCH_DEFAULTS = {"backend": "auto", "runs": harness.DEFAULT_RUNS, "kv-type": "auto",
-                  "cue": "shipped"}
+                  "cue": "shipped", "chat-format": schema.ANSWER_SHEET}
 
 
 def _bench_sizes(value: str | None) -> tuple[int, ...]:
@@ -1299,6 +1303,21 @@ def _bench_cue(value: str | None) -> str:
         return str(BENCH_DEFAULTS["cue"])
     if value not in schema.CUE_SHAPES:
         raise UserError(f"--cue takes {'|'.join(schema.CUE_SHAPES)} (got {value!r})",
+                        code="E_BENCH_USAGE")
+    return str(value)
+
+
+def _bench_chat_format(value: str | None) -> str:
+    """`--chat-format answer_sheet|role_split` -> where the question block lives (E3e).
+
+    Same reasoning as `--cue`: the placement is a *measurement condition* — a `role_split` row and
+    an `answer_sheet` row are the same instrument on two different prompt shapes, so the value is
+    checked here (the CLI's exit code 2) instead of surfacing as a schema error mid-run.
+    """
+    if value is None:
+        return str(BENCH_DEFAULTS["chat-format"])
+    if value not in schema.CHAT_FORMATS:
+        raise UserError(f"--chat-format takes {'|'.join(schema.CHAT_FORMATS)} (got {value!r})",
                         code="E_BENCH_USAGE")
     return str(value)
 
@@ -1376,6 +1395,7 @@ def _cmd_bench(args: list[str]) -> int:
         n_seq_max=int(options["n_seq_max"]) if "n_seq_max" in options else None,
         kv_type=options.get("kv_type", BENCH_DEFAULTS["kv-type"]),
         cue=_bench_cue(options.get("cue")),
+        chat_format=_bench_chat_format(options.get("chat_format")),
         gpu_layers=int(options["gpu_layers"]) if "gpu_layers" in options else None,
         max_seconds=_bench_max_seconds(options.get("max_seconds")),
         prefill_sizes=_bench_sizes(options.get("sizes")))

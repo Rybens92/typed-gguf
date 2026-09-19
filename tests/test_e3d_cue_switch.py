@@ -106,7 +106,10 @@ def scripted(request: schema.Request, *, cue: str, cue_text: str | None = "unrel
 def test_the_default_cue_is_the_shipped_one() -> None:
     assert schema.OPTION_DEFAULTS["cue"] == "shipped"
     assert schema.Options().cue == "shipped"
-    assert schema.CUE_SHAPES == ("shipped", "two_step", "json_field")
+    # E3e (card t_4c48f40a) grew the enumeration by one: `json_instructed` says the answer is a
+    # JSON object instead of a bare label, which needed the question *and* the assistant turn to
+    # change (see tests/test_e3e_roles.py). The default is the part that must never move.
+    assert schema.CUE_SHAPES == ("shipped", "two_step", "json_field", "json_instructed")
 
 
 def test_an_unknown_cue_is_a_named_option_error() -> None:
