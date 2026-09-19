@@ -157,6 +157,25 @@ def test_the_explicit_cue_of_a_score_question_names_the_level_numbers():
     assert "0, 1, 2" in explicit
 
 
+def test_the_explicit_cue_line_is_exactly_the_documented_sentence():
+    """The card's own instruction variant: one sentence, the list joined by `, `, one newline.
+
+    Pinned as an exact string (not a substring) — this line *is* the variant the card measured, so
+    a separator, noun or newline mutant of it must fail a gate rather than pass as "contains the
+    labels somewhere".
+    """
+    cases = [(CHOICE, "candidate names", "billing, technical, support"),
+             (SCORE, "level numbers", "0, 1, 2"),
+             (NOUL, "words", "yes, no")]
+    for questions, noun, listing in cases:
+        question, view = rendered(questions)
+        expected = f"Answer with exactly one of these {noun}: {listing}\n"
+        assert labels.cue_line(question.type, question.options, "explicit") == expected.rstrip("\n")
+        explicit = labels.suffix_with_cue(view.suffix, question.type, question.options, "explicit")
+        shipped_cue = prompt.CANDIDATE_CUE[question.type] + "\n"
+        assert explicit == view.suffix[: -len(shipped_cue)] + expected
+
+
 def test_a_suffix_that_does_not_end_at_the_cue_is_rejected():
     question, _ = rendered(CHOICE)
     with pytest.raises(labels.LabelsError) as info:
@@ -194,6 +213,27 @@ def test_label_coverage_is_the_engine_coverage_math():
     assert 0.0 < got < 1.0
 
 
+def test_label_coverage_only_ever_reads_a_labels_first_token():
+    """The engine's rule, pinned: `candidate_sequence_score` takes over later, the cue row reads
+    the first token — a multi-token label must not contribute the mass of its tail tokens."""
+    tokenizer = FakeTokenizer({"billing": [5, 6, 7]})
+    row = [0.0] * 10
+    row[5], row[6], row[7] = 0.0, 50.0, 50.0
+    scale = readout.logsumexp(row)
+    first_only = readout.coverage_from_scale(row, [5], scale)
+    assert labels.label_coverage(("billing",), tokenizer.tokenize, row, scale) == first_only
+    assert first_only < 1e-10, "the tail tokens' mass is not part of the coverage"
+
+
+def test_a_label_that_tokenizes_to_nothing_is_an_error_not_a_zero():
+    """The engine raises for a candidate with no first token; the probe must not read mass 0."""
+    tokenizer = FakeTokenizer({"billing": [7], "": []})
+    row, scale = [0.0] * 8, 1.0
+    with pytest.raises(labels.LabelsError) as info:
+        labels.label_coverage(("billing", ""), tokenizer.tokenize, row, scale)
+    assert "E_LABEL_EMPTY" in str(info.value)
+
+
 def test_label_coverage_counts_a_shared_first_token_once_per_candidate():
     """Exactly like the engine: the sum is over candidates, and it is capped at 1.0."""
     tokenizer = FakeTokenizer({"\nyes": [4], "\nno": [4]})
@@ -216,6 +256,31 @@ def test_the_dev_set_labels_are_what_the_card_measured():
         ("billing", "technical")
     assert labels.label_texts("score", ("0", "1"), ("cosmetic", "annoying"), "bare") == ("0", "1")
     assert labels.label_texts("noul", ("yes", "no"), ("y", "n"), "bare") == ("yes", "no")
+
+
+def test_every_renderings_exact_strings_are_pinned():
+    """The variant table, as strings: the probe publishes these, so they cannot drift silently."""
+    options = ("billing", "technical")
+    descriptions = ("payments, invoices and refunds", None)
+    assert labels.label_texts("choice", options, descriptions, "space") == \
+        (" billing", " technical")
+    assert labels.label_texts("choice", options, descriptions, "caps") == ("Billing", "Technical")
+    assert labels.label_texts("choice", options, descriptions, "newline") == \
+        ("\nbilling", "\ntechnical")
+    assert labels.label_texts("choice", options, descriptions, "long") == \
+        ("billing: payments, invoices and refunds", "technical")
+    # score/noul `long` is the criteria text itself (no `name: ` prefix — there is no name)
+    assert labels.label_texts("score", ("0", "1"), ("cosmetic", "annoying"), "long") == \
+        ("cosmetic", "annoying")
+    assert labels.label_texts("noul", ("yes", "no"), ("page now", "wait"), "long") == \
+        ("page now", "wait")
+
+
+def test_a_short_description_list_is_padded_with_the_bare_label():
+    """A question whose description list is missing entries still renders one label per candidate."""
+    assert labels.label_texts("choice", ("a", "b", "c"), ("only-a",), "long") == \
+        ("a: only-a", "b", "c")
+    assert labels.label_texts("choice", ("a", "b"), (), "bare") == ("a", "b")
 
 
 # ------------------------------------------------------------------ the report's number format
@@ -268,6 +333,36 @@ def test_the_tables_stay_fixed_point_when_the_floor_is_readable():
     row = next(line for line in lines if line.startswith("| `shipped` | `bare` |"))
     assert "0.2500*" in row
     assert "e-0" not in row
+
+
+def test_value_format_switches_exactly_when_fixed_point_would_print_zeros():
+    """The rule itself: the smallest value decides, zeros don't count, negatives count by size."""
+    probe = load_probe()
+    assert probe.value_format([1e-08]) == ".3e"
+    assert probe.value_format([4.9e-05]) == ".3e"
+    assert probe.value_format([5e-05]) == ".4f"
+    assert probe.value_format([0.0, 0.25]) == ".4f", "zeros are not data"
+    assert probe.value_format([]) == ".4f"
+    assert probe.value_format([-1e-07, 0.5]) == ".3e", "a negative mass is still a mass"
+
+
+def test_a_table_with_any_sub_5e_05_value_prints_in_scientific_notation():
+    """Mixed scales: one unreadable cell is enough for the whole row to switch form."""
+    probe = load_probe()
+    lines = probe.coverage_table(report_record(coverage=1.0))
+    row = next(line for line in lines if line.startswith("| `shipped` | `bare` |"))
+    assert "1.0000" in row, "a row whose numbers fixed-point can express keeps that form"
+
+    record = report_record(coverage=1.0)
+    record["items"][0]["prefixes"]["shipped"]["cues"]["shipped"]["labels"]["bare"]["coverage"] = \
+        8.0684e-08
+    second = report_record(coverage=1.0)["items"][0]
+    second["id"] = "c02"
+    record["items"].append(second)
+    switched = next(line for line in probe.coverage_table(record)
+                    if line.startswith("| `shipped` | `bare` |"))
+    assert "8.068e-08*" in switched and "1.000e+00" in switched  # one format per row
+    assert "0.0000" not in switched
 
 
 # ------------------------------------------------------------------ the ranked readout's trie
