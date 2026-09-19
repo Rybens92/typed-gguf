@@ -1,6 +1,7 @@
 # E3c — Tiel-Coder (Ornith-1.5-35B, 35B-A3B, 21 GB local) measured like Occamy 1.0
 
-Card `t_a58f8b67` (main-coder) · host run · 2026-09-19 · artifacts committed in `2408fad`, QA in §11.
+Card `t_a58f8b67` (main-coder) · host run · 2026-09-19 · artifacts and docs committed on this branch
+(first commit `2408fad`: the raw reports, the merge, the tools; docs follow it), QA in §11.
 
 Tiel is the third model in the `qwen35moe` comparison: the E2 baseline (`4B default`, CPU, 60
 items), E3's `Occamy 1.0` (24.1 GB, chunks, vulkan) and now Tiel-Coder (20.8 GB, chunks, vulkan) —
