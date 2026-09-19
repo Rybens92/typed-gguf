@@ -1,0 +1,41 @@
+== card t_7c926398 gates 2026-09-19T23:04:55+02:00
+== tree: 78252a4 (t7c926398-tiel-corrected)
+== scope: cgroup=/user.slice/user-1000.slice/user@1000.service/app.slice/t7c9-gates-landed.service memory.max=max
+
+== gate 1: oracle docs/verify_runtime_contract.py
+   exit=0 (full output: .t7c9/oracle.txt)
+
+failures: 0  skips: 0
+
+== gate 2: ruff (the paths this card touches)
+All checks passed!
+
+== gate 3: the test suite
+SKIPPED [1] tests/test_fit_live.py:102: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:118: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:133: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:150: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:178: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:195: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:232: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:252: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:219: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:235: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:33: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:40: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:51: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:80: live test: pass --run-network to run
+SKIPPED [1] tests/test_probe_pressure.py:312: no readable pid cgroup (not a container): the fork gates cannot be gated here
+SKIPPED [1] tests/test_runtime_live.py:42: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:50: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:59: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:83: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:90: live test: pass --run-network to run
+SKIPPED [1] tests/test_serving_attribution.py:546: live test: pass --run-network to run
+SKIPPED [2] tests/test_templates.py:423: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:442: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:478: live test: pass --run-network to run
+1303 passed, 48 skipped in 36.10s
+   suite exit=0
+
+== gates done 2026-09-19T23:05:36+02:00
