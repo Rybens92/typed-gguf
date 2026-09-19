@@ -80,6 +80,13 @@ back from the engine's own log (`llama_context`/`sched_reserve` compute buffers 
 log proves nothing: unverified, never claimed). A claim the log refutes, or cannot corroborate, is
 named in `warnings` as `W_BACKEND_MISMATCH` instead of being published silently.
 
+The same rule covers *why* an answer is unsure. `answers.<id>.reliability` is `ok`,
+`low_confidence` or `low_mass`, and when the row the coverage was read from is a turn-closer the
+response is named in `warnings` as `W_CUE_REFUSED` and carries the payload a flat list cannot —
+the closer and its mass under `answers.<id>.cue`. "Not enough candidate mass" and "this family
+closes the turn instead of answering" are different verdicts, and only one of them is a prompt
+shape you can change (`docs/TEMPLATES.md` §4).
+
 ## Fit: what this host can actually hold
 
 ```bash
