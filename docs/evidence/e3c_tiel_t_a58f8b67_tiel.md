@@ -273,11 +273,14 @@ hermes-worker-kanban-t_a58f8b67-run-169.scope   memory.max = 4 294 967 296 (4 Gi
 ```
 
 A 21 GB model in a 4 GiB cgroup cannot keep its mmap resident: every forward re-reads weights
-from disk. Measured: **608 s for one 10-item chunk** (vs 137–205 s in an unlimited scope),
-`read_bytes` **68 GB in 12 minutes** on the next chunk, and the process parked in
-`folio_wait_bit_common` (page-fault wait). Two chunks were produced under that cap and are kept as
-a labelled artifact **outside** the published evidence: `.e3c_tiel/flawed_capped/`. They are a
-clean measurement of *what the cap does*, and an unclean basis for model comparison.
+from disk. Measured: **608 s for one 10-item chunk** (vs 137–205 s in an unlimited scope) — the
+run's own record is `.e3c_tiel/flawed_capped/placement_001.json` (`wall_s` 608.0, `load_wall_s`
+62.7, `degraded: true`), the chunk that was kept — plus a `read_bytes` figure of **68 GB in 12
+minutes** on the next chunk and the process parked in `folio_wait_bit_common` (page-fault wait);
+those two are quoted from the run record in this card's comment thread, not from a committed file.
+The second capped chunk is `.e3c_tiel/flawed_capped/report_001.json`; both are kept as a labelled
+artifact **outside** the published evidence. They are a clean measurement of *what the cap does*,
+and an unclean basis for model comparison.
 
 The card's `[host]` instruction is therefore not just "not the container": it is **not the worker's
 scope either**. E3's own host run escaped the cap implicitly (it ran from a session outside this
@@ -292,10 +295,12 @@ systemd-run --user --unit=e3c-tiel-campaign --collect \
 The run's own log prints `cgroup=… memory.max=max` as its provenance.
 
 Second contention event, visible in the numbers: chunk 004 took **957.7 s** while a neighbouring
-worker ran its own 21 GB `qwen35moe` probe on the same box (`.e3c/gufone…/tools/e3c_cue_shapes.py`,
-`occamy_n01.log`) — two 21 GB models on a 32 GB host. Its per-item wall is therefore not
-comparable to the other five chunks; the *agreement* is unaffected (the decode is deterministic
-given the same items), but no latency claim should be read from chunk 004.
+worker ran its own 21 GB `qwen35moe` probe on the same box — two 21 GB models on a 32 GB host. The
+contention receipt is the sibling's own log timestamps, which bracket chunk 004's window
+(18:14–18:30): `.e3c/logs/occamy_s01.log` 18:13, `occamy_s02.log` 18:19, `occamy_items.log` 18:29.
+Chunk 004's per-item wall is therefore not comparable to the other five chunks; the *agreement* is
+unaffected (the decode is deterministic given the same items, and its 5/10 matches the rest), but
+no latency claim should be read from chunk 004.
 
 ## 10. What is not claimed
 

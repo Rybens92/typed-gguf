@@ -823,7 +823,9 @@ weights resident (the operator host's own 31 GiB) turns the same command into a 
 
 **The scope is a measurement condition, not a detail.** Run inside the kanban worker's own scope
 (`memory.max = 4 GiB`) a 21 GB model re-reads its weights from disk on every forward: **608 s for
-one 10-item chunk**, `read_bytes` 68 GB in 12 minutes, `wchan = folio_wait_bit_common`. In the
+one 10-item chunk** (run record `.e3c_tiel/flawed_capped/placement_001.json`: `wall_s` 608.0,
+`load_wall_s` 62.7, `degraded: true`; a `read_bytes` figure of 68 GB in 12 minutes is quoted from
+the run record in the card's comment thread, not from a committed file). In the
 unlimited scope the same chunk costs 141–205 s and the load 9–29 s. The two capped chunks are kept
 as `.e3c_tiel/flawed_capped/` and are **not** model rows — they measure the cap. E3's `[host]` rows
 (§6.2) are on the same box for the same reason.
