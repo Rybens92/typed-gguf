@@ -1,0 +1,347 @@
+{
+  "schema": "ggufone.e3d.cue-decision/v1",
+  "run": ".e3d/full.json",
+  "policies": [
+    "shipped=bare",
+    "two_step_shipped=bare",
+    "json_field=bare"
+  ],
+  "mass_floor": 0.1,
+  "shapes": {
+    "shipped=bare": {
+      "shape": "shipped",
+      "readout_row": "cue",
+      "n": 60,
+      "correct": 42,
+      "agreement": 0.7,
+      "wilson": [
+        0.5749105303360957,
+        0.801019897472731
+      ],
+      "low_mass": 44,
+      "refused": 0,
+      "closers": [],
+      "coverage": {
+        "n": 60,
+        "min": 1.1466223059988915e-07,
+        "q1": 0.014280591520622271,
+        "median": 0.04378787482227723,
+        "q3": 0.10085436554922592,
+        "max": 0.7142949935354891,
+        "mean": 0.08833688777584976,
+        "above_floor": 16,
+        "share_above_floor": 0.26666666666666666,
+        "floor": 0.1
+      },
+      "per_type": {
+        "choice": {
+          "n": 24,
+          "correct": 20,
+          "low_mass": 20,
+          "refused": 0,
+          "agreement": 0.8333333333333334,
+          "coverage": {
+            "n": 24,
+            "min": 1.1466223059988915e-07,
+            "q1": 0.003952279115594784,
+            "median": 0.017112027291324293,
+            "q3": 0.07521730104733294,
+            "max": 0.4967288947753557,
+            "mean": 0.07058248830288963,
+            "above_floor": 4,
+            "share_above_floor": 0.16666666666666666,
+            "floor": 0.1
+          }
+        },
+        "noul": {
+          "n": 18,
+          "correct": 16,
+          "low_mass": 12,
+          "refused": 0,
+          "agreement": 0.8888888888888888,
+          "coverage": {
+            "n": 18,
+            "min": 0.0012037166307345372,
+            "q1": 0.021226327110959533,
+            "median": 0.030130919888616145,
+            "q3": 0.14181287450210434,
+            "max": 0.29489542412190284,
+            "mean": 0.09000288451336413,
+            "above_floor": 6,
+            "share_above_floor": 0.3333333333333333,
+            "floor": 0.1
+          }
+        },
+        "score": {
+          "n": 18,
+          "correct": 6,
+          "low_mass": 12,
+          "refused": 0,
+          "agreement": 0.3333333333333333,
+          "coverage": {
+            "n": 18,
+            "min": 0.011777667551541438,
+            "q1": 0.03637836140238232,
+            "median": 0.06763509528193654,
+            "q3": 0.10184197180651688,
+            "max": 0.7142949935354891,
+            "mean": 0.11034342366894896,
+            "above_floor": 6,
+            "share_above_floor": 0.3333333333333333,
+            "floor": 0.1
+          }
+        }
+      }
+    },
+    "two_step_shipped=bare": {
+      "shape": "two_step_shipped",
+      "readout_row": "advanced",
+      "n": 60,
+      "correct": 46,
+      "agreement": 0.7666666666666667,
+      "wilson": [
+        0.6456348865960799,
+        0.8556056838156894
+      ],
+      "low_mass": 2,
+      "refused": 0,
+      "closers": [],
+      "coverage": {
+        "n": 60,
+        "min": 4.267672285065543e-08,
+        "q1": 0.9206679164823092,
+        "median": 0.972721129642828,
+        "q3": 0.9897352366734627,
+        "max": 0.9987665820200747,
+        "mean": 0.9031220458161828,
+        "above_floor": 58,
+        "share_above_floor": 0.9666666666666667,
+        "floor": 0.1
+      },
+      "per_type": {
+        "choice": {
+          "n": 24,
+          "correct": 21,
+          "low_mass": 1,
+          "refused": 0,
+          "agreement": 0.875,
+          "coverage": {
+            "n": 24,
+            "min": 4.267672285065543e-08,
+            "q1": 0.9484144153471634,
+            "median": 0.9844311190349205,
+            "q3": 0.9941288890330557,
+            "max": 0.9987665820200747,
+            "mean": 0.9216443167411627,
+            "above_floor": 23,
+            "share_above_floor": 0.9583333333333334,
+            "floor": 0.1
+          }
+        },
+        "noul": {
+          "n": 18,
+          "correct": 14,
+          "low_mass": 0,
+          "refused": 0,
+          "agreement": 0.7777777777777778,
+          "coverage": {
+            "n": 18,
+            "min": 0.5352803578584605,
+            "q1": 0.9660175297084141,
+            "median": 0.9794521200742464,
+            "q3": 0.9899821242488701,
+            "max": 0.9936900483061972,
+            "mean": 0.9452793327603738,
+            "above_floor": 18,
+            "share_above_floor": 1.0,
+            "floor": 0.1
+          }
+        },
+        "score": {
+          "n": 18,
+          "correct": 11,
+          "low_mass": 1,
+          "refused": 0,
+          "agreement": 0.6111111111111112,
+          "coverage": {
+            "n": 18,
+            "min": 4.298213771785567e-07,
+            "q1": 0.7871406827123406,
+            "median": 0.9229318693083479,
+            "q3": 0.9703790797698849,
+            "max": 0.989862535085865,
+            "mean": 0.8362683976386851,
+            "above_floor": 17,
+            "share_above_floor": 0.9444444444444444,
+            "floor": 0.1
+          }
+        }
+      }
+    },
+    "json_field=bare": {
+      "shape": "json_field",
+      "readout_row": "cue",
+      "n": 60,
+      "correct": 51,
+      "agreement": 0.85,
+      "wilson": [
+        0.7388517410884038,
+        0.9190265075770431
+      ],
+      "low_mass": 0,
+      "refused": 0,
+      "closers": [],
+      "coverage": {
+        "n": 60,
+        "min": 0.6508099601452286,
+        "q1": 0.9943563932580455,
+        "median": 0.9996764103810878,
+        "q3": 0.9999049163967026,
+        "max": 0.9999827582471155,
+        "mean": 0.9788452496479096,
+        "above_floor": 60,
+        "share_above_floor": 1.0,
+        "floor": 0.1
+      },
+      "per_type": {
+        "choice": {
+          "n": 24,
+          "correct": 23,
+          "low_mass": 0,
+          "refused": 0,
+          "agreement": 0.9583333333333334,
+          "coverage": {
+            "n": 24,
+            "min": 0.9953337664307887,
+            "q1": 0.999353171228843,
+            "median": 0.9996924378101739,
+            "q3": 0.9999235093610528,
+            "max": 0.9999655242962288,
+            "mean": 0.9992887342113849,
+            "above_floor": 24,
+            "share_above_floor": 1.0,
+            "floor": 0.1
+          }
+        },
+        "noul": {
+          "n": 18,
+          "correct": 17,
+          "low_mass": 0,
+          "refused": 0,
+          "agreement": 0.9444444444444444,
+          "coverage": {
+            "n": 18,
+            "min": 0.9995541920443929,
+            "q1": 0.9998150677154036,
+            "median": 0.9998987340741642,
+            "q3": 0.9999373034489916,
+            "max": 0.9999827582471155,
+            "mean": 0.9998735500274957,
+            "above_floor": 18,
+            "share_above_floor": 1.0,
+            "floor": 0.1
+          }
+        },
+        "score": {
+          "n": 18,
+          "correct": 11,
+          "low_mass": 0,
+          "refused": 0,
+          "agreement": 0.6111111111111112,
+          "coverage": {
+            "n": 18,
+            "min": 0.6508099601452286,
+            "q1": 0.9095320779544322,
+            "median": 0.9783503122704519,
+            "q3": 0.990672827768857,
+            "max": 0.998864276904102,
+            "mean": 0.9305589698503562,
+            "above_floor": 18,
+            "share_above_floor": 1.0,
+            "floor": 0.1
+          }
+        }
+      }
+    }
+  },
+  "decisions": [
+    {
+      "baseline": "shipped=bare",
+      "challenger": "two_step_shipped=bare",
+      "verdict": "keep",
+      "challenger_wins": false,
+      "loser_wins": false,
+      "paired": {
+        "n": 60,
+        "difference": 0.06666666666666676,
+        "low": -0.03333333333333333,
+        "high": 0.16666666666666666,
+        "discordant": {
+          "a_win": 3,
+          "b_win": 7
+        },
+        "mcnemar_p": 0.34375,
+        "bootstrapped": true,
+        "iters": 10000,
+        "seed": 20260919
+      },
+      "marginal_overlap": true,
+      "marginal": {
+        "baseline": [
+          0.5749105303360957,
+          0.801019897472731
+        ],
+        "challenger": [
+          0.6456348865960799,
+          0.8556056838156894
+        ]
+      },
+      "note": "paired reading: the 60 items both policies measured, 3 won by shipped=bare only and 7 by two_step_shipped=bare only (exact McNemar p = 0.3438); risk difference +0.067 (95 % CI -0.033\u2026+0.167). The marginal Wilson intervals overlap, which is why they are not the test.",
+      "floor_effect": {
+        "baseline_share": 0.26666666666666666,
+        "challenger_share": 0.9666666666666667,
+        "baseline_low_mass": 44,
+        "challenger_low_mass": 2
+      }
+    },
+    {
+      "baseline": "shipped=bare",
+      "challenger": "json_field=bare",
+      "verdict": "promote",
+      "challenger_wins": true,
+      "loser_wins": false,
+      "paired": {
+        "n": 60,
+        "difference": 0.15000000000000002,
+        "low": 0.03333333333333333,
+        "high": 0.26666666666666666,
+        "discordant": {
+          "a_win": 3,
+          "b_win": 12
+        },
+        "mcnemar_p": 0.03515625,
+        "bootstrapped": true,
+        "iters": 10000,
+        "seed": 20260919
+      },
+      "marginal_overlap": true,
+      "marginal": {
+        "baseline": [
+          0.5749105303360957,
+          0.801019897472731
+        ],
+        "challenger": [
+          0.7388517410884038,
+          0.9190265075770431
+        ]
+      },
+      "note": "paired reading: the 60 items both policies measured, 3 won by shipped=bare only and 12 by json_field=bare only (exact McNemar p = 0.03516); risk difference +0.150 (95 % CI +0.033\u2026+0.267). The marginal Wilson intervals overlap, which is why they are not the test.",
+      "floor_effect": {
+        "baseline_share": 0.26666666666666666,
+        "challenger_share": 1.0,
+        "baseline_low_mass": 44,
+        "challenger_low_mass": 0
+      }
+    }
+  ]
+}

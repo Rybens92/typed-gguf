@@ -235,6 +235,50 @@ the row after it is a newline at p = 0.54…1.00 — 0/6 items above the floor. 
 sweep cleared the floor (`wybieram_pl`, 1/6) and its row was refused too. Tables:
 `docs/evidence/e3c_cue_shapes_occamy.md`; both runs' raw records are kept next to it.
 
+### The cue shapes, decided on the full dev set (E3d)
+
+The 6-item E3c signal above was re-run on the **full 60-item dev set** (E3d, card `t_d90404ac`;
+probe `tools/e3c_cue_shapes.py`, decision `tools/e3d_cue_decision.py`, both offline from the
+stored record). Every shape measures the *same* 60 items, so the comparison is paired — the
+statistic is the discordant pairs (exact McNemar) plus a seeded paired bootstrap, never the two
+marginal Wilson intervals, which overlap on every pair here:
+
+| shape | the readout sits | agreement | paired risk difference vs `shipped` | coverage / `low_mass` |
+|---|---|---|---|---|
+| `shipped` (the control) | at the cue | 42/60 = 0.700 | — | 0.267 above the floor / 44 |
+| `two_step` | after the model's own first **content** token | 46/60 = 0.767 | −0.033…**+0.167** (includes 0, p = 0.344) | **0.967 / 2** |
+| `json_field` | inside the opened per-type field (`{"choice": "`) | **51/60 = 0.850** | **+0.033**…+0.267 (excludes 0, p = 0.035) | **1.000 / 0** |
+
+Per type (`shipped` → `two_step` → `json_field`): `choice` 20/24 → 21/24 → 23/24, `noul`
+16/18 → 14/18 → 17/18, `score` 6/18 → **11/18** → **11/18**. The two candidates are not the same
+kind of change, and the difference decides the default:
+
+* **`--cue two_step` is the shippable one.** The prompt bytes are **identical** to the shipped
+  shape (measured byte-for-byte in `tests/test_e3d_cue_switch.py`; the readout moves one token in,
+  the prompt does not), and it is *conditional*: the engine decodes the cue row's argmax only when
+  that token is not a turn-closer — a refused cue never advances, so `W_CUE_REFUSED` and the
+  `low_mass` it explains stay exactly as published for the families above. On the 4B every advance
+  token *is* the cue row's own argmax (the cue row prefers a newline, never a closer), which is why
+  the engine row reproduces the probe's row **cell for cell on the decisions** — the winning label
+  and the `low_mass`/`ok` word (`tools/e3d_engine_check.py`); the coverage *values* are not equal
+  (item c01: 0.01144 through the probe, 0.00696 through the serving path — the probe decodes an
+  item's three shapes in one batch, the serving path one request), so the tool prints both and
+  asserts only the decisions. Its agreement gain is **not** significant — this is a
+  readout-position fix (the row the engine's own `coverage`/`reliability` word is read from), not an
+  accuracy claim.
+* **`--cue json_field` is the agreement winner and stays a switch, not the default.** The opener is
+  part of the prompt, so the model never gets a row where it can refuse the cue: Occamy's verdict
+  (30/30 above) would read as an answered row with a tiny mass, and every prompt-level table in
+  this section — the E1c label policy, E3b's 15 cue × label cells, E3c's seven shapes — would need
+  a re-run, because the bytes changed. It is measured, documented and available for models that
+  answer.
+
+`options.cue` / `--cue shipped|two_step|json_field` (the bench takes the same flag) ships the
+mechanism with **`shipped` still the frozen default**, so no published row moves by itself; the
+engine publishes `engine.cue` and, on a shape that advanced, the answer's `advance` block (`token`,
+`rule`, and the cue row's verdict). The card's numbers, the CI readings and the explicit
+invalidation list are in `docs/evidence/e3d_cue_decision_4b.md` §5.
+
 ---
 
 ## 5. The fit plan in one paragraph (A-E1c-4/5/6)

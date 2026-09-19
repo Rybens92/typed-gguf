@@ -957,3 +957,51 @@ between the two batches; no claim about the token id `248069` beyond what it is 
 (`.e3c_tiel/flawed_capped/`).
 <!-- @@E3C_TIEL_BENCH_7_END@@ -->
 
+## 8. E3d — the cue switch, measured through the bench (card `t_d90404ac`)
+
+E3d asked whether a different cue shape beats the shipped one, decided it on the full dev set
+(`docs/evidence/e3d_cue_decision_4b.md`: `--cue two_step` moves the readout for 44 of 60 rows off a
+row the engine itself calls `low_mass`, and `--cue json_field` is the only shape that clears the
+paired CI on agreement) and shipped the mechanism as `--cue shipped|two_step|json_field` with
+**`shipped` still the default**. This section is the same switch through the *bench* — the engine's
+own quality path, the instrument every other table in this document comes from — and it is the
+reason the default did not move.
+
+Same box, same model (`Spark-X2.5-4B-Q8_0.gguf`), same 60 committed dev items, same context, same
+placement (the Vulkan bundle, the device visible — the rows carry `effective_backend: vulkan` and
+`W_BACKEND_MISMATCH`, because the request's *claim* is `cpu` while Vulkan0 computed, see §7.1 and
+E3c). Only `--cue` moves:
+
+| `--cue` | agreement | Wilson 95 % | `low_mass` | refused at the cue | coverage median | above the 0.10 floor |
+|---|---|---|---|---|---|---|
+| `shipped` (the default) | 36/60 = 0.600 | 0.474–0.714 | 13/60 | 0/60 | 0.2711 | 47/60 |
+| `two_step` | 27/60 = 0.450 | 0.331–0.575 | 29/60 | 8/60 | 0.1103 | 31/60 |
+
+Per type (`shipped` → `two_step`): `choice` 16/24 → 15/24, `noul` 16/18 → 7/18, `score` 4/18 → 5/18.
+Reproduce: `bash .e3d/run_bench_arms.sh` (arms kept as `.e3d/bench_shipped.json`,
+`.e3d/bench_two_step.json`; the flag is `tools/e2_reproduce.py --cue <shape>`).
+
+**The arms point the other way from the probe's table, and that is a finding about the instruments,
+not about the cue.** The bench and the serving path do not send the same prompt:
+
+* `bench/harness.py` (`LiveModel.decide`) plans the context **twice** — once from the model handle
+  to size the session, then again from the live session — and the second plan is the one that runs.
+  `decide.resolve_template(request, session)` returns `None` for a `ModelSession` (it carries no
+  `.model`/`.runtime`), so that plan is built with `prompt.build_prefix(state, resolution=None)`:
+  the **plain E1b framing**, which `prompt.py` documents as the escape hatch for a session with no
+  model handle, not as a silent default for a real one.
+* the serving path (`cli.py` `ask`/`run`) and every probe (`tools/e3b_*`, `tools/e3c_cue_shapes.py`)
+  plan from the **handle** — the model's chat template. On dev item `c01` that is 102 vs 119 prefix
+  tokens, and the cue row's label mass is 0.03677 (bench) against 0.00696 (serving path), with the
+  same winner and the same `low_mass`/`ok` word.
+
+So the cue's measured effect is **framing-dependent**: the two-step readout rescues the readout
+position exactly where the chat template parks the cue on a bare newline (probe: 44/60 → 2/60
+`low_mass`) and it hurts where the plain framing already put the answer at the cue (this table).
+The shipped arm here lands two items off E2's published row (36/60 vs 38/60) — the arm computed its
+own fit plan from today's box, the same `fit.host_facts` drift §7 records — and the comparison this
+section makes is between its *own* two arms, which ran under one plan. Fixing the bench's planning
+seam is its own card; the cue default should not move until it lands, so that the table used to
+validate the switch is the table the product's prompt produces.
+
+
