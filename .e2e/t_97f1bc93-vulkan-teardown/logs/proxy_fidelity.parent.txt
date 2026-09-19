@@ -1,0 +1,22 @@
+2026-09-19T14:03:21Z
+cmd: (in /work/t97-red @ f738315) .venv/bin/python .e2e/…/proxy_fidelity.py
+MAIN-RETURNED-0
+ggufone 0.1.0
+usage: ggufone <command> [options]
+
+commands:
+  init         (implemented in E1a)
+  doctor       (implemented in E1a)
+  models       (implemented in E1a)
+  run          (implemented in E1b)
+  ask          (implemented in E1b)
+  serve        (implemented in E1b)
+  mcp          (implemented in E1b)
+  bench        (implemented in E2)
+  fit          (implemented in E1c)
+  calibrate    (implemented in E2.5)
+  version      (implemented in E0)
+
+models: search, pull, use, ls, rm, verify, recommend-quant
+THIRD-PARTY-TEARDOWN-RAN
+EXIT=139
