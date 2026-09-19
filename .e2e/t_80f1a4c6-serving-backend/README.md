@@ -6,14 +6,16 @@ computed*. Published document: `docs/evidence/e3_fix_t_80f1a4c6_serving_backend.
 Everything here was produced on the operator host's container (GPU passed through; every GPU run
 needs `VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json`, and `GGUFONE_RUNTIME_DIR` points at
 `/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan` unless the entry says
-otherwise). The work happened in the card's private clone `/work/t80serve` (shared tree at
-`/var/home/rybens/workspace/ggufone`), rebased onto the shared `main` at `a475090`; the box was
-busy with sibling cards throughout (§7 of the document).
+otherwise). The work happened in the card's private clone `/work/t80serve` (scratch; the shared tree
+is `/var/home/rybens/workspace/ggufone`), rebased twice onto the shared `main` and then landed there
+as a fast-forward from `f9d9a08` to `f1b9272` (see the document's commit table); the box was busy
+with sibling cards throughout (§7 of the document).
 
 ## Gates and tables (rebased tree — what the document quotes)
 
 | file | what it is |
 |---|---|
+| `red_gates_landed.txt` | the same RED check on the **landed** parent tree (`f9d9a08`, the shared `main` the card fast-forwarded onto): **20 failed**, 1 skipped |
 | `red_gates_rebased.txt` | `pytest -q tests/test_serving_attribution.py` in a detached worktree at the **parent** commit `a475090` with this card's gate file copied in: **20 failed**, 1 skipped |
 | `green_gates_rebased.txt` | the same file on this card's tree: **20 passed**, 1 skipped (the live gate is `model`-marked) |
 | `baseline_full_suite.txt` | the offline suite *before* this card's change (measured for the E3 card at `15e89a9`): 993 passed, 41 skipped |

@@ -14,17 +14,20 @@ run sets `VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json` (without it llama
 (`Accio-Lab_occamy-1.0-Q4_K_L.gguf`, 23 GB, the card's model) and the smallest local GGUF
 (`Qwen3.5-4B-Q4_0.gguf`, 2.5 GB) for the cheap rows.
 
-Commits (this card; the private clone's `main`, rebased onto the tree's `main` at `a475090`):
+Commits (this card — the private clone was rebased twice onto the shared tree's moving `main`
+(`15e89a9` → `a475090` → `f9d9a08`) and then landed there as a fast-forward, so these hashes are the
+shared tree's):
 
 | commit | what |
 |---|---|
-| `749d983` | `test`: the RED gates (`tests/test_serving_attribution.py` — 16 offline + 1 live at that point) |
-| `57db994` | `fix`: `session.BackendClaim`/`backend_claim`/`device_log`, `decide.device_evidence`, the response fields, `finder.backend_of_bundle`, the CLI claim |
-| `f96fa8a` | `chore`: the Tier-M mutmut pair retargeted at the two engine modules (card convention) |
-| `265c617` | `docs`: README + the `W_BACKEND_MISMATCH` comment |
-| `cba3964` | `test`: the unknown-platform gate, and drop the unused `BackendClaim.to_dict` |
-| `fcac189` | `test`: two survivor pins from the first sweep pass (log-as-lines, log-less session) + the replay tools |
-| *(the commit that carries this document)* | `evidence`: this document, the raw material under `.e2e/t_80f1a4c6-serving-backend/` |
+| `8f32620` | `test`: the RED gates (`tests/test_serving_attribution.py` — 16 offline + 1 live at that point) |
+| `dfac21d` | `fix`: `session.BackendClaim`/`backend_claim`/`device_log`, `decide.device_evidence`, the response fields, `finder.backend_of_bundle`, the CLI claim |
+| `00ecc46` | `chore`: the Tier-M mutmut pair retargeted at the two engine modules (card convention) |
+| `3c9ff1a` | `docs`: README + the `W_BACKEND_MISMATCH` comment |
+| `2812f34` | `test`: the unknown-platform gate, and drop the unused `BackendClaim.to_dict` |
+| `a644ed0` | `test`: two survivor pins from the first sweep pass (log-as-lines, log-less session) + the replay tools |
+| `4f30482` | `test`: two survivor pins from the second pass (explicit-backend source, caller-owned sink) |
+| `f1b9272` | `evidence`: this document, the raw material under `.e2e/t_80f1a4c6-serving-backend/`, and the pyproject sweep-comment count |
 
 Raw material for every claim below: `.e2e/t_80f1a4c6-serving-backend/` (index in its `README.md`).
 
@@ -108,8 +111,8 @@ but the label can no longer be published silently.
 ## 3. Requirement 3 — gates
 
 `tests/test_serving_attribution.py` — 20 offline gates + 1 `model`-marked live gate, **RED first**
-(20 failed, 1 skipped on the parent tree `a475090` with the new file copied into a detached
-worktree, `.e2e/t_80f1a4c6-serving-backend/red_gates_rebased.txt`):
+(20 failed, 1 skipped on the parent tree `f9d9a08` with the new file copied into a detached
+worktree, `.e2e/t_80f1a4c6-serving-backend/red_gates_landed.txt`):
 
 | gate | pins |
 |---|---|
@@ -130,10 +133,10 @@ worktree, `.e2e/t_80f1a4c6-serving-backend/red_gates_rebased.txt`):
 | `..._live_session_names_the_bundle_it_loaded` | a session with no flag claims the bundle it loaded |
 | `..._serving_payload_hands_the_claim_and_the_log_to_the_session` | the CLI glue: `decide_payload` hands the request's claim to the session and publishes the evidence |
 | `..._live_serving_run_reports_the_bundle_backend_it_computed_on` | `model`-marked: one live row on the pinned bundle (`-k live`: 3 passed, `live_gate_rebased.txt`) |
-| `..._a_log_kept_as_lines_reads_like_the_joined_text` | a `device_log` that is a *sequence of lines* (the loader's `load_log` shape) reads like the joined text — the branch sweep mutants 16/17 sit on (added in `fcac189`) |
-| `..._a_session_without_a_log_reads_as_unverified` | a session object with no `device_log` at all is an empty log (unverified), not an `AttributeError` — sweep mutant 8 (added in `fcac189`) |
-| `..._an_explicit_backend_with_no_source_is_named_explicit` | `backend=` without `backend_source=`: the claim is not resolved even though the loaded bundle carries Vulkan — `backend_source: "explicit"` (sweep mutants 7/18/20/21, added in `a5a3992`) |
-| `..._a_caller_owned_log_sink_receives_the_context_lines` | a `log=[...]` handed to the session receives the context's compute-buffer line (sweep mutant 47, added in `a5a3992`) |
+| `..._a_log_kept_as_lines_reads_like_the_joined_text` | a `device_log` that is a *sequence of lines* (the loader's `load_log` shape) reads like the joined text — the branch sweep mutants 16/17 sit on (added in `a644ed0`) |
+| `..._a_session_without_a_log_reads_as_unverified` | a session object with no `device_log` at all is an empty log (unverified), not an `AttributeError` — sweep mutant 8 (added in `a644ed0`) |
+| `..._an_explicit_backend_with_no_source_is_named_explicit` | `backend=` without `backend_source=`: the claim is not resolved even though the loaded bundle carries Vulkan — `backend_source: "explicit"` (sweep mutants 7/18/20/21, added in `4f30482`) |
+| `..._a_caller_owned_log_sink_receives_the_context_lines` | a `log=[...]` handed to the session receives the context's compute-buffer line (sweep mutant 47, added in `4f30482`) |
 
 ## 4. Requirement 4 — Occamy 1.0, before/after
 
@@ -209,12 +212,13 @@ refutation is *named*, instead of the reader being told nothing.
 
 ## 6. Gates
 
-Measured on the **rebased** tree (private clone, `fcac189` on `a475090`), with the box shared with
-sibling cards; the raw text of each row is in `.e2e/t_80f1a4c6-serving-backend/`.
+Measured on the **rebased** tree (the private clone, `a644ed0` on `f9d9a08` — the tree that landed),
+with the box shared with sibling cards; the raw text of each row is in
+`.e2e/t_80f1a4c6-serving-backend/`.
 
 | gate | result | raw |
 |---|---|---|
-| new file, parent tree (RED, detached worktree at `a475090` + this test file) | **20 failed**, 1 skipped | `red_gates_rebased.txt` |
+| new file, parent tree (RED, detached worktree at `f9d9a08` + this test file) | **20 failed**, 1 skipped | `red_gates_landed.txt` |
 | new file, this tree (GREEN) | **20 passed**, 1 skipped | `green_gates_rebased.txt` |
 | offline suite, parent tree (baseline, measured for the E3 card) | 993 passed, 41 skipped | `baseline_full_suite.txt` |
 | `pytest -q -p no:randomly` (offline, full, clean env, rebased tree) | **1093 passed, 42 skipped** in 52.6 s | `green_full_suite_rebased.txt` |
@@ -243,7 +247,7 @@ headroom and retries.
 
 ### 6b. The Tier-M sweep and its survivors
 
-`[tool.mutmut]` (committed in `f96fa8a`) mutates the two engine modules the fix moves —
+`[tool.mutmut]` (committed in `00ecc46`) mutates the two engine modules the fix moves —
 `src/ggufone/engine/session.py` + `src/ggufone/engine/decide.py` — against
 `tests/test_serving_attribution.py`. The sweep is driven by
 `.e2e/t_80f1a4c6-serving-backend/mutmut_sweep.sh` (fresh `mutants/`, `--max-children 2`, pid-cap
@@ -254,9 +258,9 @@ The sweep ran three times against frozen trees (a score is only valid for the tr
 
 | sweep | tree | what it measured / found | raw |
 |---|---|---|---|
-| A (pre-rebase run, aborted and resumed) | the fix *before* the survivor pins | 7 `device_evidence` survivors → 3 pinned by `fcac189`, 4 classified equivalent | `replay_survivors.txt`, `mutmut.pre-rebase-1359/` |
-| B | + the two `device_evidence` pins (`fcac189`) | **41.4 %** 624/1508; its per-line analysis found 5 survivors on card lines inside `ModelSession.__init__` | `mutmut.out.round1`, `replay_session_init.txt`, `mutants.pass2-1417/` |
-| C (final) | + the two `ModelSession.__init__` pins (`a5a3992`) | **41.8 %** 631/1508 (`decide.py` 45.2 %, `session.py` 36.1 %; 488 slots have no test in the selection) | `mutation_score.txt`, `mutants/` |
+| A (pre-rebase run, aborted and resumed) | the fix *before* the survivor pins | 7 `device_evidence` survivors → 3 pinned by `a644ed0`, 4 classified equivalent | `replay_survivors.txt`, `mutmut.pre-rebase-1359/` |
+| B | + the two `device_evidence` pins (`a644ed0`) | **41.4 %** 624/1508; its per-line analysis found 5 survivors on card lines inside `ModelSession.__init__` | `mutmut.out.round1`, `replay_session_init.txt`, `mutants.pass2-1417/` |
+| C (final) | + the two `ModelSession.__init__` pins (`4f30482`) | **41.8 %** 631/1508 (`decide.py` 45.2 %, `session.py` 36.1 %; 488 slots have no test in the selection) | `mutation_score.txt`, `mutants/` |
 
 Sweep A — the seven `device_evidence` survivors, each **replayed** against the gates
 (`tools/t80_replay.py` refuses to report kills when the control row fails; the control is part of
@@ -278,12 +282,12 @@ KILLED   x_device_evidence__mutmut_8  FAILED tests/test_serving_attribution.py::
 
 The control row passes, so the kills are real (a test that fails on the unmutated tree fails for
 every mutant — §7 F5). 16/17 are the *sequence* side of the `isinstance(text, str)` normalization
-and 8 is the `getattr` with no default; the two gates added in `fcac189` pin them, which is why
+and 8 is the `getattr` with no default; the two gates added in `a644ed0` pin them, which is why
 sweep C's `device_evidence` survivors are only 5/11/12/18.
 
 Sweep B's per-line analysis — five survivors on lines this card wrote inside `ModelSession.__init__`:
 the claim/source resolution (a claim resolved even when the caller named a backend, a `None.source`
-crash, two literal-source mutants) and the caller-owned log sink. Two gates added in `a5a3992` pin
+crash, two literal-source mutants) and the caller-owned log sink. Two gates added in `4f30482` pin
 them; this replay names the failing test per mutant:
 
 ```
@@ -303,7 +307,7 @@ KILLED   xǁModelSessionǁ__init____mutmut_7  tests/test_serving_attribution.py:
 table is `replay_session_init.txt`).
 
 Sweep C is the number in §6: a **lower bound for the modules** and a **complete measurement of the
-card's new code**. The selection is the card's own gate file (`pyproject.toml`, `f96fa8a`), so
+card's new code**. The selection is the card's own gate file (`pyproject.toml`, `00ecc46`), so
 the 877 survivors sit overwhelmingly in pre-existing internals the selection does not drive
 (`open_model` 192, `_answer_question` 103, `decide` 98, `_score_group` 77 …). Two checks tie the
 survivors to the card's own lines, both in the raw material:
@@ -354,12 +358,15 @@ survivors to the card's own lines, both in the raw material:
   equivalent through `runtime/devices.py` (5/11/12 move the `getattr` default that the `or ""`
   makes unobservable; 18 changes the join separator, which the line-splitting parser cannot see).
   Any card that replays mutants should ship the control row with the table.
-* **F6 (coordination).** This card's clone was rebased from `15e89a9` onto `a475090` (five sibling
-  commits: E3b's `bench/labels.py` + tools, the E2 FIX teardown work, its `.e2e` material). The only
-  textual conflict was `pyproject.toml`'s `[tool.mutmut]` pair — every card retargets the same two
-  lines, so **that block is a permanent hotspot**: whoever lands second must resolve it by hand.
-  The shared tree's copy also carried sibling `t_6952f0dd`'s *uncommitted* retarget at landing time
-  (see the landing note in the completion handoff).
+* **F6 (coordination).** This card's clone was rebased twice (`15e89a9` → `a475090` → `f9d9a08`,
+  twelve sibling commits in between: E3b's `bench/labels.py` + tools, the E2 FIX teardown work,
+  t_97f1bc93's `cli.run` process entry point, their `.e2e` material) and landed as a fast-forward on
+  top of `f9d9a08`. The only textual conflict, both times, was `pyproject.toml`'s `[tool.mutmut]`
+  pair — every card retargets the same two lines, so **that block is a permanent hotspot**: whoever
+  lands second must resolve it by hand. At landing time the shared tree's working copy also carried
+  sibling `t_6952f0dd`'s *uncommitted* retarget (labels pair); the landing stored that file, ran the
+  fast-forward, and restored it byte-for-byte (sha256 `0ccb9bd8…`), so the sibling's WIP stayed
+  theirs — see the completion handoff.
 
 * **F7 (pre-existing, worth a card).** The repo's default `pytest -q` (pytest-randomly ordering)
   is **not reliably green in this container**: the runtime-probe files
