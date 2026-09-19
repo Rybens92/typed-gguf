@@ -399,3 +399,31 @@ def special_tokens(runtime: Runtime, vocab: C.c_void_p, n_vocab: int) -> list[tu
         if token_attr(runtime, vocab, token) & SPECIAL_TOKEN_ATTRS:
             found.append((token, token_text(runtime, vocab, token)))
     return found
+
+
+def cpu_device(runtime: Runtime) -> int | None:
+    """The bundle's CPU device handle (`ggml_backend_dev_by_name("CPU")`), or `None`.
+
+    Card t_55de5779: the **device list** is the one lever that removes a device from the *compute*
+    path. `n_gpu_layers=0` only keeps the weights on the host — llama.cpp's op offload still runs
+    the graph on a registered accelerator (measured on the operator host: a row labelled `cpu`
+    printing `Vulkan0 compute buffer size`), and `llama_context_params.op_offload = False` still
+    leaves `Vulkan_Host compute buffer size` behind (measured here: Vulkan_Host is the buffer type
+    of the same backend). A load whose `llama_model_params.devices` names the CPU device and nothing
+    else has no accelerator to compute on: the row's label is then true by construction.
+
+    `restype` is set here rather than left to ctypes' default `c_int`: a 64-bit device handle read
+    as an `int` arrives truncated and the *next* call segfaults (measured while probing the device
+    list on this box — `ggml_backend_dev_get`/`_name` through an unprototyped CDLL).
+
+    The symbol is optional on a bundle, and a `None` answer means "this bundle cannot name its CPU
+    device": callers must treat that as an unhonourable pin, never as "use every device".
+    """
+    ggml = getattr(runtime, "ggml", None)
+    fn = getattr(ggml, "ggml_backend_dev_by_name", None)
+    if fn is None:
+        return None
+    fn.argtypes = [C.c_char_p]
+    fn.restype = C.c_void_p
+    device = fn(b"CPU")
+    return int(device) if device else None

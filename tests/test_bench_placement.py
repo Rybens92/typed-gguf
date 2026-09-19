@@ -145,7 +145,10 @@ def test_the_bench_load_seam_walks_the_ladder_instead_of_raising(tmp_path: pathl
                          "degraded": True,
                          "attempts": [f"n_gpu_layers={LAYERS} -> oom",
                                       f"n_gpu_layers={LAYERS // 2} -> oom"],
-                         "warnings": ["W_BACKEND_OOM", "W_FIT_DOWNGRADE"]}}
+                         "warnings": ["W_BACKEND_OOM", "W_FIT_DOWNGRADE"],
+                         # card t_55de5779: the placement carries the CPU pin, and this spec is a
+                         # bare `ModelSpec` (nothing pinned) — `spec_for("cpu")` is what pins
+                         "cpu_only": False}}
         finally:
             model.close()
 

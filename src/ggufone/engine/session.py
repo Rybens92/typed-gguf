@@ -122,7 +122,7 @@ class ModelHandle:
                  *, arch: str | None, load_ms: float, n_gpu_layers: int = 0,
                  fit_plan: Any | None = None,
                  placement: Placement | None = None,
-                 load_log: Sequence[str] = ()) -> None:
+                 load_log: Sequence[str] = (), cpu_only: bool = False) -> None:
         self.runtime = runtime
         self.model = model
         self.path = path
@@ -130,6 +130,9 @@ class ModelHandle:
         self.load_ms = load_ms
         self.n_gpu_layers = int(n_gpu_layers)
         self.fit_plan = fit_plan
+        #: card t_55de5779: this handle was loaded with the bundle's CPU device only, so its
+        #: contexts cannot compute anywhere else (the `ModelLike.device_log` says so too).
+        self.cpu_only = bool(cpu_only)
         #: the successful load's engine lines (buffers, layer assignments)
         self.load_log: tuple[str, ...] = tuple(load_log)
         self.placement = placement or Placement(note="", n_gpu_layers=self.n_gpu_layers,
@@ -188,6 +191,10 @@ class Placement:
     `note` is the sentence a human reads; `attempts` is the raw ladder walk (one line per load
     attempt, with the classification of its failure) so an OOM report can be audited without
     re-running the box.
+
+    `cpu_only` (card t_55de5779) says the load was **pinned to the bundle's CPU device**: the
+    weights stay on the host *and* the graph cannot op-offload onto an accelerator, because none
+    was offered to the loader. It is the placement-level witness of a `cpu` row's label.
     """
 
     note: str
@@ -196,21 +203,31 @@ class Placement:
     degraded: bool = False
     attempts: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
+    cpu_only: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {"note": self.note, "n_gpu_layers": self.n_gpu_layers, "kv_type": self.kv_type,
                 "degraded": self.degraded, "attempts": list(self.attempts),
-                "warnings": list(self.warnings)}
+                "warnings": list(self.warnings), "cpu_only": self.cpu_only}
 
 
-def _placement_note(plan: Any | None, degraded: bool, fit_disabled: bool) -> str:
+def _placement_note(plan: Any | None, degraded: bool, fit_disabled: bool,
+                    cpu_only: bool = False) -> str:
     """Why the model sits where it sits — about the **weights**, never about the compute path.
 
     `n_gpu_layers=0` is not a statement that the CPU computed: llama.cpp's op offload runs the
     graph on a device backend while the weights stay on the host (measured on the operator host:
     a row labelled `cpu` with this very note prefilled at 587.9 tok/s, card t_603a35a0). The
     device the work really landed on is `runtime.devices`, read back from the engine log.
+
+    `cpu_only` is the one case where the note *is* about the compute path (card t_55de5779): the
+    load was offered the bundle's CPU device only, so there is nowhere else the graph could run.
     """
+    if cpu_only:
+        asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", 0) or 0) == 0 else (
+            f" (the requested n_gpu_layers={int(plan.n_gpu_layers)} has no device to offload to)")
+        return ("cpu compute pinned: the loader was offered the bundle's CPU device only, so no "
+                f"layer reaches an accelerator{asked}")
     if plan is None:
         return ("fit disabled: no layers offloaded (--no-fit sets n_gpu_layers=0); the weights "
                 "stay on the host" if fit_disabled else
@@ -238,17 +255,29 @@ def default_free_device_bytes() -> int | None:
     return memory.free_bytes if memory.total_bytes > 0 else None
 
 
-def _load_model(llama: Any, model_path: pathlib.Path, n_gpu_layers: int) -> Any:
-    """One load attempt with the placement's layer count (`llama_model_load_from_file`)."""
+def _load_model(llama: Any, model_path: pathlib.Path, n_gpu_layers: int,
+                *, device: int | None = None) -> Any:
+    """One load attempt with the placement's layer count (`llama_model_load_from_file`).
+
+    `device` (card t_55de5779) pins the load to a single ggml device. llama.cpp reads
+    `llama_model_params.devices` as a **NULL-terminated** list (measured: a two-entry array whose
+    second entry is NULL makes the load take exactly the named device, and the context's graph
+    scheduler is built from the model's device list — so nothing can op-offload anywhere else).
+    The list must stay alive across the call: the loader dereferences it while it builds the model.
+    """
     params = llama.llama_model_default_params()
     params.n_gpu_layers = int(n_gpu_layers)
+    devices: Any = None
+    if device is not None:
+        devices = (C.c_void_p * 2)(C.c_void_p(int(device)), None)
+        params.devices = C.cast(devices, C.c_void_p)
     return llama.llama_model_load_from_file(str(model_path).encode(), params)
 
 
 def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[str] | None = None,
                home: pathlib.Path | None = None, system: str | None = None,
                fit_plan: Any | None = None, fit_disabled: bool = False,
-               degrade: bool = True, log: list[str] | None = None,
+               cpu_only: bool = False, degrade: bool = True, log: list[str] | None = None,
                free_probe: Callable[[], int | None] | None = None) -> ModelHandle:
     """Load a GGUF model through the pinned runtime, after the arch pre-flight (SPEC 2.2/A11).
 
@@ -263,12 +292,21 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
     a minimal object (the benchmark's `Placement`, `n_gpu_layers` and nothing else) cannot reach
     the ladder as an `AttributeError` (card t_31b3943a).
 
+    `cpu_only` (card t_55de5779) asks for a **CPU-compute** load: the loader is offered the
+    bundle's CPU device and nothing else, and every attempt asks for zero offloaded layers —
+    whatever the plan requested. `n_gpu_layers=0` alone is not enough, because llama.cpp's op
+    offload still runs the graph on a registered accelerator (measured: a `Vulkan0 compute buffer`
+    under a row that asked for no layers, which the bench's attribution guard then refuses to
+    certify). A bundle that cannot name a CPU device is a typed refusal here: a pin that silently
+    degrades to "use everything" would be the same lie in a new place.
+
     **Allocation failures degrade, they do not kill the run** (card t_8cb0a05e). The backend's own
     log is captured through `llama_log_set`, classified (`fit.classify_load_failure`) and, when it
     names an allocation failure, the load is retried down `fit.downgrade_steps` — fewer layers,
     then a smaller kv_type, then CPU-only. A failure that is *not* an allocation failure gets one
     CPU-only retry (a log can be silent about the cause); if that fails too the original
-    classification is raised, with both attempts named.
+    classification is raised, with both attempts named. A `cpu_only` load has no rung to walk down
+    from (it already asks the device for nothing), so it attempts exactly once and reports.
     """
     model_path = pathlib.Path(path)
     if not model_path.exists():
@@ -290,17 +328,30 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
         capability.require_arch(rt_dir, arch, lock=None)
     runtime = ctypes_binding.load_libraries(rt_dir, system=system)
     llama = runtime.llama
+    # Card t_55de5779: a CPU-pinned load resolves the device it is allowed to use *before* the
+    # ladder, and refuses when the bundle cannot name one — never a silent unpinned load.
+    pinned_device = None
+    if cpu_only:
+        pinned_device = ctypes_binding.cpu_device(runtime)
+        if pinned_device is None:
+            named = getattr(getattr(runtime, "ggml", None), "ggml_backend_dev_by_name", None)
+            raise RuntimeMissingError(
+                f"E_RUNTIME_SYMBOLS: the bundle at {rt_dir} cannot name its CPU device "
+                f"(ggml_backend_dev_by_name('CPU') "
+                f"{'is missing' if named is None else 'returned NULL'}); a CPU-pinned load cannot "
+                f"be honoured (a `cpu` row must compute on the host)")
     plan = fit.coerce_plan(fit_plan) if fit_plan is not None else None
     facts = _model_facts_for_ladder(model_path, plan)
     queue: list[Any | None] = [plan]
     # At LOAD time only the layer count matters (the KV cache does not exist yet): walk fewer
     # layers down to CPU-only, and leave the kv_type rungs to the context init, which is where
     # a KV cache is actually allocated. A plan that pinned no rung (`auto`) starts at the top of
-    # the KV ladder, so the layer rungs are still built for it.
+    # the KV ladder, so the layer rungs are still built for it. A `cpu_only` plan has nothing to
+    # walk: every rung would be the same CPU-only load (card t_55de5779).
     walk = [step for step in fit.degrade_ladder(plan, facts)
             if plan is not None and facts is not None
             and step.kv_type == fit.kv_start(plan.kv_type)] \
-        if (degrade and plan is not None and facts is not None) else []
+        if (degrade and plan is not None and facts is not None and not cpu_only) else []
     attempts: list[str] = []
     oom_seen = False
     walk_started = False
@@ -309,10 +360,13 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
     while index < len(queue):
         candidate = queue[index]
         index += 1
-        n_gpu_layers = int(getattr(candidate, "n_gpu_layers", 0) or 0)
+        requested = int(getattr(candidate, "n_gpu_layers", 0) or 0)
+        # a cpu-pinned load asks the device for nothing: there is no accelerator in its device
+        # list to offload to, and the *executed* plan must say zero layers (card t_55de5779)
+        n_gpu_layers = 0 if cpu_only else requested
         started = time.perf_counter()
         with capture_llama_logs(runtime) as captured:
-            model = _load_model(llama, model_path, n_gpu_layers)
+            model = _load_model(llama, model_path, n_gpu_layers, device=pinned_device)
         load_ms = (time.perf_counter() - started) * 1000.0
         if model:
             degraded = index > 1
@@ -324,13 +378,15 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
             if degraded:
                 warnings.append("W_FIT_DOWNGRADE")
             placement = Placement(
-                note=_placement_note(candidate, degraded=degraded, fit_disabled=fit_disabled),
+                note=_placement_note(candidate, degraded=degraded, fit_disabled=fit_disabled,
+                                     cpu_only=cpu_only),
                 n_gpu_layers=n_gpu_layers,
                 kv_type=str(getattr(candidate, "kv_type", "auto") or "auto"),
-                degraded=degraded, attempts=tuple(attempts), warnings=tuple(warnings))
+                degraded=degraded, attempts=tuple(attempts), warnings=tuple(warnings),
+                cpu_only=cpu_only)
             return ModelHandle(runtime, model, str(model_path), arch=arch, load_ms=load_ms,
                                n_gpu_layers=n_gpu_layers, fit_plan=candidate,
-                               placement=placement, load_log=captured)
+                               placement=placement, load_log=captured, cpu_only=cpu_only)
         text = "\n".join(captured)
         kind = fit.classify_load_failure(text)
         oom_seen = oom_seen or kind == "oom"

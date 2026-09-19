@@ -292,6 +292,13 @@ class ModelSpec:
     threads: int = 1
     kv_type: str = "auto"
     n_gpu_layers: int = 0
+    #: Card t_55de5779: this row's label is a claim about the **compute path**, so the load is
+    #: pinned to the bundle's CPU device (`session.open_model(cpu_only=True)`) and the executed
+    #: plan asks for zero offloaded layers. A `cpu` row on a box whose only bundle carries an
+    #: accelerator must still compute on the host: `n_gpu_layers=0` alone leaves llama.cpp's op
+    #: offload free to run the graph on the device, which the attribution guard then (correctly)
+    #: refuses to certify.
+    cpu_only: bool = False
 
     def label(self) -> str:
         return f"{pathlib.Path(self.path).name}|{self.backend}|threads={self.threads}"
@@ -472,6 +479,7 @@ class LiveModel:
         self.placement = {}
         self.handle = session_module.open_model(self.spec.path, runtime_dir=self.spec.runtime_dir,
                                                 fit_plan=Placement(self.spec.n_gpu_layers),
+                                                cpu_only=self.spec.cpu_only,
                                                 log=self._log)
         self.placement = self.handle.placement.to_dict()
         self.load_ms = float(self.handle.load_ms)
@@ -547,11 +555,24 @@ def placement_of(model: Any, spec: ModelSpec) -> dict[str, Any]:
     went through the loader (the model-free seam) reports the request and `used: None`.
 
     This says where the *weights* went. Where the *graph* ran is `device_usage_of` below, because
-    `n_gpu_layers=0` does not stop llama.cpp's op offload from using a device backend.
+    `n_gpu_layers=0` does not stop llama.cpp's op offload from using a device backend — and a
+    `cpu` row's load is pinned to the bundle's CPU device, which `used.cpu_only` records
+    (card t_55de5779).
     """
     used = getattr(model, "placement", None)
     return {"requested": f"n_gpu_layers={int(spec.n_gpu_layers)}",
             "used": dict(used) if isinstance(used, Mapping) and used else None}
+
+
+def placement_request(spec: ModelSpec) -> str:
+    """The layer request of one row, plus the CPU pin when that row's compute path is pinned.
+
+    A pinned row's request is not executable (there is no accelerator device in its list), so the
+    string says both: the number the flags asked for and the fact that the executed plan asked for
+    zero layers on the CPU device (card t_55de5779).
+    """
+    base = f"n_gpu_layers={int(spec.n_gpu_layers)}"
+    return f"{base} (cpu compute pinned)" if spec.cpu_only else base
 
 
 def _device_module() -> Any:
@@ -643,7 +664,16 @@ def framing_summary(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 
 def spec_for(config: BenchConfig, backend: str, *, runtimes: Mapping[str, pathlib.Path] | None
              = None) -> ModelSpec:
-    """The spec for one backend, or a `RuntimeMissingError` naming the missing bundle."""
+    """The spec for one backend, or a `RuntimeMissingError` naming the missing bundle.
+
+    The `cpu` backend is also *pinned* (card t_55de5779): `n_gpu_layers=0` only keeps the weights
+    on the host, so a `cpu` row on a box whose single bundle carries an accelerator still had its
+    graph computed on the device by llama.cpp's op offload — which the bench's own attribution
+    guard refused to certify (the live determinism gate was RED with `W_BACKEND_MISMATCH`). A
+    pinned load is offered the bundle's CPU device only, so the row's label is true by
+    construction. The layer *request* is untouched: `--gpu-layers` still states what it asked for
+    and the executed plan reports zero offload layers next to it (`placement.used`).
+    """
     found = dict(runtimes) if runtimes is not None else backend_runtimes(home=config.home)
     if backend not in found:
         raise RuntimeMissingError(f"E_RUNTIME_MISSING: {backend_unavailable_reason(backend)}")
@@ -651,7 +681,8 @@ def spec_for(config: BenchConfig, backend: str, *, runtimes: Mapping[str, pathli
         0 if backend == CPU_BACKEND else -1)
     return ModelSpec(path=config.model_path or "", backend=backend,
                      runtime_dir=str(found[backend]), threads=config.threads or 1,
-                     kv_type=config.kv_type, n_gpu_layers=layers)
+                     kv_type=config.kv_type, n_gpu_layers=layers,
+                     cpu_only=backend == CPU_BACKEND)
 
 
 @dataclass(frozen=True)
@@ -890,7 +921,10 @@ def render_report(report: Mapping[str, Any]) -> str:
     used = placement.get("used") or {}
     placement_line = ([f"- placement: requested {placement.get('requested')}, used "
                        f"n_gpu_layers={used.get('n_gpu_layers')} kv_type={used.get('kv_type')}"
-                       + (" (degraded)" if used.get("degraded") else "")]
+                       + (" (degraded)" if used.get("degraded") else "")
+                       # card t_55de5779: the row's compute path was pinned to the CPU device, so
+                       # the label is true by construction — say it next to the placement
+                       + (" (cpu compute pinned)" if used.get("cpu_only") else "")]
                       if used else [])
     # `--backend auto` resolved to more than one local bundle: this suite measured one of them
     selection = report.get("backend_selection") or {}

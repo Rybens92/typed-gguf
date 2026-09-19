@@ -64,6 +64,12 @@ class FakeBackend:
         self.previous_handler: Any = None
         self._installed: Any = None
         self.directory = pathlib.Path("/fake/runtime")
+        #: The ggml half of a real bundle: a `cpu`-pinned bench load asks it for the CPU device it
+        #: may use (card t_55de5779). A runtime double without it would refuse every `cpu` row —
+        #: which is itself a pinned behaviour (`tests/test_bench_cpu_force.py`).
+        self.ggml = SimpleNamespace(
+            ggml_backend_dev_by_name=ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_char_p)(
+                lambda name: 0xB11026 if name == b"CPU" else None))
         self.llama = SimpleNamespace(
             llama_model_default_params=self._default_params,
             llama_model_load_from_file=self._load,

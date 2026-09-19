@@ -566,7 +566,7 @@ def _throughput_row(config: harness.BenchConfig, make: Factory,
     model = make(spec)
     row: dict[str, Any] = {"backend": spec.backend, "measured": True,
                            "runtime_dir": spec.runtime_dir,
-                           "placement": f"n_gpu_layers={spec.n_gpu_layers}",
+                           "placement": harness.placement_request(spec),
                            "threads": spec.threads}
     try:
         loads = [float(model.load()) for _ in range(max(1, config.runs))]
@@ -841,7 +841,7 @@ def _determinism_row(config: harness.BenchConfig, make: Factory,
                      spec: harness.ModelSpec) -> dict[str, Any]:
     row: dict[str, Any] = {"backend": spec.backend, "threads": int(config.threads or 1),
                            "runtime_dir": spec.runtime_dir,
-                           "placement": f"n_gpu_layers={spec.n_gpu_layers}"}
+                           "placement": harness.placement_request(spec)}
     model = make(spec)
     try:
         model.load()

@@ -388,7 +388,9 @@ def test_throughput_measures_each_local_backend_and_reports_the_missing_ones():
     assert row["prefill_tok_per_s"]["n"] >= 1
     assert row["decision_ms"]["p50"] > 0
     assert row["decision_tok_per_s"]["p50"] > 0
-    assert row["placement"] == "n_gpu_layers=0"                # cpu placement is explicit
+    # cpu placement is explicit — and since card t_55de5779 it is *pinned*: a `cpu` row's load is
+    # offered the bundle's CPU device only, so the label is about the compute path too
+    assert row["placement"] == "n_gpu_layers=0 (cpu compute pinned)"
     # one prefill size is enough to compare backends (the size sweep is the latency suite's job)
     assert [entry["tokens"] for entry in row["prefill"]] == [harness.PREFILL_SIZES[0]]
 
