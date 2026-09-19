@@ -1,0 +1,31 @@
+Card t_6de5fc53 — the Tier-M sweep of `src/ggufone/bench/harness.py`
+driver: bash .e3d/mutmut_sweep_framing.sh 3   (mutmut 3.8, --max-children 2)
+log:    .e3d/logs/mutmut_framing.out (full spinner output, untracked)
+attempts (from the driver log):
+   --- attempt 1 exit 1
+   --- pending after attempt 1: 1259
+   --- attempt 2 exit 1
+   --- pending after attempt 2: 1217
+   --- pending after attempt 3: 477
+   === sweep done 2026-09-19T20:32:20Z ===
+
+| block | mutants | killed | survived | not run | test-kill score |
+|---|---|---|---|---|---|
+| `x_device_cell` — the report's device cell (compute buffers per device) | 10 | 3 | 7 | 0 | 3/10 = 30.0% |
+| `x_framing_label` — the row's framing label (`plain …` / `chat-template: family / renderer`) | 24 | 11 | 13 | 0 | 11/24 = 45.8% |
+| `x_framing_line` — the report's `- framing:` line | 0 | 0 | 0 | 0 | no mutants |
+| `x_prefix_tokens_of` — the prefix token count a row carries | 17 | 15 | 2 | 0 | 15/17 = 88.2% |
+| `x_render_report` — two lines changed; the rest of the body is pre-existing | 911 | 234 | 525 | 152 | 234/759 = 30.8% |
+| `xǁLiveModelǁdecide` — the plan resolution — the fix itself | 24 | 16 | 8 | 0 | 16/24 = 66.7% |
+| **entire file** | 2045 | 681 | 887 | 477 | 681/1568 = 43.4% |
+
+Surviving mutants in the changed functions, by class:
+* `x_device_cell`: 7 survivors — _mutmut_2, _mutmut_3, _mutmut_4, _mutmut_5, _mutmut_6, _mutmut_8, …
+* `x_framing_label`: 13 survivors — _mutmut_1, _mutmut_4, _mutmut_5, _mutmut_6, _mutmut_7, _mutmut_8, …
+* `x_prefix_tokens_of`: 2 survivors — _mutmut_6, _mutmut_9
+* `x_render_report`: 525 survivors — _mutmut_2, _mutmut_3, _mutmut_5, _mutmut_6, _mutmut_7, _mutmut_9, …
+* `xǁLiveModelǁdecide`: 8 survivors — _mutmut_3, _mutmut_9, mutmut_13, mutmut_16, mutmut_18, mutmut_20, …
+
+repo tip at the sweep: 5d1f9ab evidence(t_6de5fc53): the before/after arms, the 35B probes, and the E3d re-check
+note: the sweep is time-boxed on a box shared with a sibling campaign, so the whole-file
+score is quoted with its not-run count; the changed functions above are complete.

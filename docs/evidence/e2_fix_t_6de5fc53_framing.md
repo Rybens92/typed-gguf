@@ -195,6 +195,44 @@ instruments, and `docs/BENCHMARKS.md` §8's prose is rewritten around the correc
   not a re-test of E3c's batch shape (`--suite batch`, `readout: sequence`), which this fix does not
   change and which §7.4's bench-vs-serving split lives on.
 
+## 7. The Tier-M sweep (mutation testing)
+
+`[tool.mutmut]`'s pair is retargeted at the module this fix moves
+(`src/ggufone/bench/harness.py`) with the card's parity gate plus the five `tests/test_bench.py`
+nodes that drive the changed helpers, and swept by `.e3d/mutmut_sweep_framing.sh` (mutmut 3.8,
+`--max-children 2`, resumed across attempts — the box is shared and a failed `os.fork()` takes a run
+down with `BlockingIOError`). **The sweep is time-boxed, so the whole-file score is quoted with its
+not-run count, never as a full-sweep number** (the convention of card `t_e29734e6`). Full receipt:
+`docs/evidence/framing/mutmut_framing_summary.txt`.
+
+| block | mutants | killed | survived | not run | test-kill score |
+|---|---|---|---|---|---|
+| `prefix_tokens_of` (the count a row carries) | 17 | 15 | 2 | 0 | 88.2 % |
+| `LiveModel.decide` (**the plan resolution — the fix itself**) | 24 | 16 | 8 | 0 | 66.7 % |
+| `framing_label` (the row's framing label) | 24 | 11 | 13 | 0 | 45.8 % |
+| `device_cell` (the report's compute-buffer cell) | 10 | 3 | 7 | 0 | 30.0 % |
+| `framing_line` | 0 | — | — | — | no mutants |
+| `render_report` (two lines changed, body pre-existing) | 911 | 234 | 525 | 152 | 30.8 % |
+| entire file | 2045 | 681 | 887 | 477 | 43.4 % |
+
+Three survivor classes, named rather than hidden (`mutmut show <key>` for any of them):
+
+1. **Equivalent on the gate's inputs.** `plan_context(request, handle)` → `plan_context(None,
+   handle)` and `n_seq_max or …` → `n_seq_max and …` still produce the same plan for a single
+   request with no `n_seq_max` override, so no behavioural assertion on this fixture can separate
+   them.
+2. **Plumbing only the live gate covers.** `threads=threads` → `threads=None` survives because the
+   fake session ignores the thread count and the live gate (`--run-network`) is not part of a
+   mutation run.
+3. **Presentation text.** `framing_label`'s wording and `device_cell`'s `—` sentinel: the gates pin
+   the parity claim (the executed plan, the prompt bytes) and the tables' column integrity, not the
+   label's spelling. Killing those means freezing rendered strings the card did not ask to freeze;
+   they are listed for whichever card touches the helpers next.
+
+No survivor contradicts the parity claim: class 1 is indistinguishable, class 2 is covered by the
+live gate on this same box, class 3 is text. Tier M is a soft threshold here — the score is
+reported, and the fix's claim rests on the two gates of §3, both RED before and GREEN after.
+
 ## Receipts
 
 * parity gates: `docs/evidence/framing/red_offline_parity.txt`, `red_live_parity.txt`,
@@ -205,6 +243,8 @@ instruments, and `docs/BENCHMARKS.md` §8's prose is rewritten around the correc
   `*_placement.json`
 * the E3d re-render: `docs/evidence/e3d_cue_decision_4b.md` (§6 regenerated) and
   `docs/evidence/e3d_cue_decision_4b.json`
+* the Tier-M sweep: `.e3d/mutmut_sweep_framing.sh` (driver), the retargeted `[tool.mutmut]` pair in
+  `pyproject.toml`, and `docs/evidence/framing/mutmut_framing_summary.txt` (score + survivors)
 * the code: the `fix(t_6de5fc53)` commit — `src/ggufone/bench/harness.py` (`LiveModel.decide`,
   the framing helpers), `src/ggufone/bench/suites.py` (row + report framing),
   `tests/test_bench_prompt_parity.py`, the live gate in `tests/test_bench_live.py`,

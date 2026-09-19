@@ -105,7 +105,13 @@ quote-style = "double"
 # `closer_mass`) that `decide.py` and the report both call — with the card's two gate files. The
 # doc gate in test_e3c_cue_refused.py reads the same module's closer vocabulary, so it is part of
 # the selection. Restore the bench pair above when a bench card sweeps next.
-source_paths = ["src/ggufone/engine/prompt.py"]
+# Card t_6de5fc53 (the bench/product prompt-parity fix) takes `source_paths` to the module the fix
+# moves: `src/ggufone/bench/harness.py` — `LiveModel.decide` plans once from the handle now, and
+# `framing_label` / `framing_line` / `prefix_tokens_of` / `device_cell` / `evidence_line` carry the
+# framing into every row and into the rendered report. `suites.py` is deliberately *not* added: its
+# change is three dict entries that the same gate nodes read, while mutating the whole module would
+# multiply the sweep by suite bodies the parity pair never reaches.
+source_paths = ["src/ggufone/bench/harness.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -154,8 +160,18 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # file to the selection: the map's fallbacks (`<special <id>>`, the catalogue winning a collision,
 # the session that cannot enumerate) and the dominance floor live only in
 # `tests/test_e3c_cue_specials.py`, so a two-file selection would leave those mutants alive.
-pytest_add_cli_args_test_selection = ["tests/test_e3d_cue_switch.py", "tests/test_templates.py",
-                                      "tests/test_e1c_mutation_pins.py", "tests/test_engine_fork.py"]
+# Card t_6de5fc53: the parity gate the fix exists for, plus the five `tests/test_bench.py` nodes
+# that drive the changed helpers (the quality rows, the renderer's framing line and the table
+# integrity). The other bench gates spawn real files, sessions or models and cannot run per mutant
+# on this shared box.
+pytest_add_cli_args_test_selection = [
+    "tests/test_bench_prompt_parity.py",
+    "tests/test_bench.py::test_quality_reports_exact_match_per_type_and_overall_with_wilson_cis",
+    "tests/test_bench.py::test_quality_honestly_reports_disagreement",
+    "tests/test_bench.py::test_render_report_produces_a_markdown_table_per_section",
+    "tests/test_bench.py::test_every_rendered_table_has_columns_that_line_up",
+    "tests/test_bench.py::test_render_report_covers_the_other_four_suites",
+]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
 # with `BlockingIOError: [Errno 11]`. `.e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh` does both.
