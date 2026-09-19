@@ -1,0 +1,175 @@
+FFFFFFFF.F                                                               [100%]
+=================================== FAILURES ===================================
+______ test_spec_for_pins_a_cpu_row_and_leaves_the_accelerator_rows_alone ______
+
+    def test_spec_for_pins_a_cpu_row_and_leaves_the_accelerator_rows_alone() -> None:
+        """`--backend cpu` is a statement about the compute path, not only about a bundle label."""
+        runtimes = {"cpu": "/tmp/cpu", "vulkan": "/tmp/vulkan"}
+        config = harness.BenchConfig(suite="determinism", model_path="/tmp/m.gguf", backend="cpu")
+    
+        cpu = harness.spec_for(config, "cpu", runtimes=runtimes)
+>       assert cpu.cpu_only is True
+               ^^^^^^^^^^^^
+E       AttributeError: 'ModelSpec' object has no attribute 'cpu_only'
+
+tests/test_bench_cpu_force.py:147: AttributeError
+_______ test_a_cpu_row_keeps_the_requested_layers_and_still_forces_zero ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-4503/test_a_cpu_row_keeps_the_reque0')
+
+    def test_a_cpu_row_keeps_the_requested_layers_and_still_forces_zero(tmp_path: pathlib.Path) -> None:
+        """`--gpu-layers N` stays the *request* (the report shows requested vs used); the pin makes the
+        executed plan zero-offload anyway — there is no accelerator device to offload to."""
+        runtimes = {"cpu": "/tmp/cpu"}
+        forced = harness.BenchConfig(suite="determinism", model_path="/tmp/m.gguf", gpu_layers=36)
+    
+        spec = harness.spec_for(forced, "cpu", runtimes=runtimes)
+        assert spec.n_gpu_layers == 36                     # what the flags asked for
+>       assert spec.cpu_only is True                       # what the loader is allowed to do
+               ^^^^^^^^^^^^^
+E       AttributeError: 'ModelSpec' object has no attribute 'cpu_only'
+
+tests/test_bench_cpu_force.py:163: AttributeError
+____________ test_the_bench_load_seam_passes_the_pin_to_the_loader _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-4503/test_the_bench_load_seam_passe0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f37a7cedc10>
+
+    def test_the_bench_load_seam_passes_the_pin_to_the_loader(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """`harness.LiveModel.load()` is the bench's only way to the loader, so the flag must travel."""
+        calls: list[dict[str, Any]] = []
+    
+        class Handle:
+            placement = SimpleNamespace(to_dict=lambda: {"n_gpu_layers": 0})
+            load_ms = 1.0
+    
+            def close(self) -> None: ...
+    
+        def spy(path: object, **kwargs: Any) -> Handle:
+            calls.append({"path": str(path), **kwargs})
+            return Handle()
+    
+        monkeypatch.setattr(session_module, "open_model", spy)
+>       model = harness.LiveModel(harness.ModelSpec(path="/tmp/m.gguf", backend="cpu",
+                                                    n_gpu_layers=0, cpu_only=True))
+E       TypeError: ModelSpec.__init__() got an unexpected keyword argument 'cpu_only'
+
+tests/test_bench_cpu_force.py:182: TypeError
+___________ test_a_pinned_load_offers_the_loader_the_cpu_device_only ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-4503/test_a_pinned_load_offers_the_0')
+
+    def test_a_pinned_load_offers_the_loader_the_cpu_device_only(tmp_path: pathlib.Path) -> None:
+        """The executed plan: zero offload layers, and a device list that names one CPU device."""
+        backend = PinningBackend(n_layer=4)
+        with fake_bundle(tmp_path, backend):
+>           handle = session_module.open_model(
+                model_file(tmp_path), runtime_dir=backend.directory,
+                fit_plan=harness.Placement(4),              # the flags asked for 4 layers
+                cpu_only=True)
+E           TypeError: open_model() got an unexpected keyword argument 'cpu_only'
+
+tests/test_bench_cpu_force.py:205: TypeError
+___________ test_an_unpinned_load_keeps_llama_cpp_s_own_device_list ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-4503/test_an_unpinned_load_keeps_ll0')
+
+    def test_an_unpinned_load_keeps_llama_cpp_s_own_device_list(tmp_path: pathlib.Path) -> None:
+        """Every other row is untouched: `devices = NULL` lets llama.cpp pick, layers reach the loader."""
+        backend = PinningBackend(n_layer=4)
+        with fake_bundle(tmp_path, backend):
+            handle = session_module.open_model(
+                model_file(tmp_path), runtime_dir=backend.directory,
+                fit_plan=harness.Placement(4))
+            try:
+                assert backend.params[-1].n_gpu_layers == 4
+                assert backend.devices_of() == []          # NULL: llama.cpp's own device list
+>               assert handle.cpu_only is False
+                       ^^^^^^^^^^^^^^^
+E               AttributeError: 'ModelHandle' object has no attribute 'cpu_only'
+
+tests/test_bench_cpu_force.py:234: AttributeError
+_____________ test_a_pinned_load_never_walks_a_degradation_ladder ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-4503/test_a_pinned_load_never_walks0')
+
+    def test_a_pinned_load_never_walks_a_degradation_ladder(tmp_path: pathlib.Path) -> None:
+        """A CPU-pinned plan has no device to walk down from: one attempt, the CPU-only rung."""
+        backend = PinningBackend(n_layer=4)
+        with fake_bundle(tmp_path, backend):
+>           session_module.open_model(model_file(tmp_path), runtime_dir=backend.directory,
+                                      fit_plan=harness.Placement(4), cpu_only=True).close()
+E           TypeError: open_model() got an unexpected keyword argument 'cpu_only'
+
+tests/test_bench_cpu_force.py:245: TypeError
+__ test_a_bundle_that_cannot_name_a_cpu_device_is_a_typed_refusal[None-True] ___
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-4503/test_a_bundle_that_cannot_name0')
+cpu_device = None, with_device_api = True
+
+    @pytest.mark.parametrize("cpu_device, with_device_api", [(None, True), (CPU_DEVICE, False)])
+    def test_a_bundle_that_cannot_name_a_cpu_device_is_a_typed_refusal(
+            tmp_path: pathlib.Path, cpu_device: int | None, with_device_api: bool) -> None:
+        """No CPU device to point at = no honest `cpu` row: refuse, never load unpinned."""
+        backend = PinningBackend(cpu_device=cpu_device, with_device_api=with_device_api)
+        with fake_bundle(tmp_path, backend):
+            with pytest.raises(RuntimeMissingError) as excinfo:
+>               session_module.open_model(model_file(tmp_path), runtime_dir=backend.directory,
+                                          fit_plan=harness.Placement(0), cpu_only=True)
+E               TypeError: open_model() got an unexpected keyword argument 'cpu_only'
+
+tests/test_bench_cpu_force.py:259: TypeError
+_ test_a_bundle_that_cannot_name_a_cpu_device_is_a_typed_refusal[2136333911-False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-4503/test_a_bundle_that_cannot_name1')
+cpu_device = 2136333911, with_device_api = False
+
+    @pytest.mark.parametrize("cpu_device, with_device_api", [(None, True), (CPU_DEVICE, False)])
+    def test_a_bundle_that_cannot_name_a_cpu_device_is_a_typed_refusal(
+            tmp_path: pathlib.Path, cpu_device: int | None, with_device_api: bool) -> None:
+        """No CPU device to point at = no honest `cpu` row: refuse, never load unpinned."""
+        backend = PinningBackend(cpu_device=cpu_device, with_device_api=with_device_api)
+        with fake_bundle(tmp_path, backend):
+            with pytest.raises(RuntimeMissingError) as excinfo:
+>               session_module.open_model(model_file(tmp_path), runtime_dir=backend.directory,
+                                          fit_plan=harness.Placement(0), cpu_only=True)
+E               TypeError: open_model() got an unexpected keyword argument 'cpu_only'
+
+tests/test_bench_cpu_force.py:259: TypeError
+_______________ test_the_rendered_table_marks_the_pinned_compute _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-4503/test_the_rendered_table_marks_0')
+
+    def test_the_rendered_table_marks_the_pinned_compute(tmp_path: pathlib.Path) -> None:
+        backend = PinningBackend(n_layer=4)
+        model_path = model_file(tmp_path)
+        with fake_bundle(tmp_path, backend):
+>           model = harness.LiveModel(cpu_spec(model_path, backend, layers=0))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bench_cpu_force.py:281: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/tmp/pytest-of-root/pytest-4503/test_the_rendered_table_marks_0/model.gguf')
+backend = <tests.test_bench_cpu_force.PinningBackend object at 0x7f37a7d11850>
+layers = 0
+
+    def cpu_spec(path: pathlib.Path, backend: PinningBackend, *, layers: int = 4) -> harness.ModelSpec:
+        """The spec `suites.live_factory` builds for a `--backend cpu` row."""
+>       return harness.ModelSpec(path=str(path), backend="cpu", runtime_dir=str(backend.directory),
+                                 threads=1, n_gpu_layers=layers, cpu_only=True)
+E       TypeError: ModelSpec.__init__() got an unexpected keyword argument 'cpu_only'
+
+tests/test_bench_cpu_force.py:136: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_bench_cpu_force.py::test_spec_for_pins_a_cpu_row_and_leaves_the_accelerator_rows_alone
+FAILED tests/test_bench_cpu_force.py::test_a_cpu_row_keeps_the_requested_layers_and_still_forces_zero
+FAILED tests/test_bench_cpu_force.py::test_the_bench_load_seam_passes_the_pin_to_the_loader
+FAILED tests/test_bench_cpu_force.py::test_a_pinned_load_offers_the_loader_the_cpu_device_only
+FAILED tests/test_bench_cpu_force.py::test_an_unpinned_load_keeps_llama_cpp_s_own_device_list
+FAILED tests/test_bench_cpu_force.py::test_a_pinned_load_never_walks_a_degradation_ladder
+FAILED tests/test_bench_cpu_force.py::test_a_bundle_that_cannot_name_a_cpu_device_is_a_typed_refusal[None-True]
+FAILED tests/test_bench_cpu_force.py::test_a_bundle_that_cannot_name_a_cpu_device_is_a_typed_refusal[2136333911-False]
+FAILED tests/test_bench_cpu_force.py::test_the_rendered_table_marks_the_pinned_compute
+9 failed, 1 passed in 0.20s

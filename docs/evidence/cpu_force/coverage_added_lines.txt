@@ -1,0 +1,7 @@
+file                                                 added  cov       %   whole file
+src/ggufone/bench/harness.py                             4    4  100.0%    91.9%  gaps=[]
+src/ggufone/bench/suites.py                              0    0    0.0%    96.2%  gaps=[]
+src/ggufone/engine/session.py                           20   20  100.0%    72.5%  gaps=[]
+src/ggufone/runtime/ctypes_binding.py                    9    9  100.0%    51.0%  gaps=[]
+
+added lines measured: 33/33 = 100.0%

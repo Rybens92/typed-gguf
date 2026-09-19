@@ -1,0 +1,36 @@
+{
+  "config_backend": "cpu",
+  "notes": [
+    "W_BACKEND_MISMATCH: the row claims backend `cpu` but the engine's own log shows the compute on vulkan (compute buffers: Vulkan0=3 \u00b7 Vulkan_Host=3); read this row as a vulkan measurement \u2014 re-run one backend per process (`--backend vulkan`) for a clean attribution."
+  ],
+  "ok": false,
+  "repeats": 3,
+  "row": {
+    "backend": "cpu",
+    "device_buffers": {
+      "Vulkan0": 3,
+      "Vulkan_Host": 3
+    },
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "digests": [
+      "sha256:ae9260ad57faec410b45f828b542d481b860d7fd5aa4778c45887a76d41486c7",
+      "sha256:ae9260ad57faec410b45f828b542d481b860d7fd5aa4778c45887a76d41486c7",
+      "sha256:ae9260ad57faec410b45f828b542d481b860d7fd5aa4778c45887a76d41486c7"
+    ],
+    "effective_backend": "vulkan",
+    "identical": true,
+    "ok": true,
+    "placement": "n_gpu_layers=0",
+    "reason": null,
+    "repeats": 3,
+    "warnings": [
+      "W_BACKEND_MISMATCH"
+    ]
+  },
+  "runtime_dir": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+}

@@ -1,0 +1,16 @@
+mutation                                             file                                   expect    exit  verdict
+OK drop the pin (the device lookup)                  src/ggufone/engine/session.py          killed       1  killed
+OK executed plan keeps the requested layers          src/ggufone/engine/session.py          killed       1  killed
+OK no refusal for a bundle without a CPU device      src/ggufone/engine/session.py          killed       1  killed
+OK device list never reaches the loader              src/ggufone/engine/session.py          killed       1  killed
+OK spec_for stops pinning cpu rows                   src/ggufone/bench/harness.py           killed       1  killed
+OK the row string drops the pin marker               src/ggufone/bench/harness.py           killed       1  killed
+OK control: docstring only (must survive)            src/ggufone/engine/session.py          survived     0  survived
+OK control: equivalent rewrite (must survive)        src/ggufone/runtime/ctypes_binding.py  survived     0  survived
+
+crypto: restored byte-identically
+  4dd9a5ddaeefe994  src/ggufone/bench/harness.py  (unchanged)
+  b45c53a75a181732  src/ggufone/engine/session.py  (unchanged)
+  e42f1359815aaf73  src/ggufone/runtime/ctypes_binding.py  (unchanged)
+
+hand table: all rows as expected

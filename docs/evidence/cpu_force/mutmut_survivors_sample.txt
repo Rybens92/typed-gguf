@@ -1,0 +1,102 @@
+##### ggufone.engine.session.x__placement_note__mutmut_5
+# ggufone.engine.session.x__placement_note__mutmut_5: survived
+--- src/ggufone/engine/session.py
++++ src/ggufone/engine/session.py
+@@ -11,7 +11,7 @@
+     load was offered the bundle's CPU device only, so there is nowhere else the graph could run.
+     """
+     if cpu_only:
+-        asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", 0) or 0) == 0 else (
++        asked = "XXXX" if plan is None or int(getattr(plan, "n_gpu_layers", 0) or 0) == 0 else (
+             f" (the requested n_gpu_layers={int(plan.n_gpu_layers)} has no device to offload to)")
+         return ("cpu compute pinned: the loader was offered the bundle's CPU device only, so no "
+                 f"layer reaches an accelerator{asked}")
+##### ggufone.engine.session.x__placement_note__mutmut_12
+# ggufone.engine.session.x__placement_note__mutmut_12: survived
+--- src/ggufone/engine/session.py
++++ src/ggufone/engine/session.py
+@@ -11,7 +11,7 @@
+     load was offered the bundle's CPU device only, so there is nowhere else the graph could run.
+     """
+     if cpu_only:
+-        asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", 0) or 0) == 0 else (
++        asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", None) or 0) == 0 else (
+             f" (the requested n_gpu_layers={int(plan.n_gpu_layers)} has no device to offload to)")
+         return ("cpu compute pinned: the loader was offered the bundle's CPU device only, so no "
+                 f"layer reaches an accelerator{asked}")
+##### ggufone.engine.session.x__placement_note__mutmut_15
+# ggufone.engine.session.x__placement_note__mutmut_15: survived
+--- src/ggufone/engine/session.py
++++ src/ggufone/engine/session.py
+@@ -11,7 +11,7 @@
+     load was offered the bundle's CPU device only, so there is nowhere else the graph could run.
+     """
+     if cpu_only:
+-        asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", 0) or 0) == 0 else (
++        asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", ) or 0) == 0 else (
+             f" (the requested n_gpu_layers={int(plan.n_gpu_layers)} has no device to offload to)")
+         return ("cpu compute pinned: the loader was offered the bundle's CPU device only, so no "
+                 f"layer reaches an accelerator{asked}")
+##### ggufone.engine.session.x__placement_note__mutmut_18
+# ggufone.engine.session.x__placement_note__mutmut_18: survived
+--- src/ggufone/engine/session.py
++++ src/ggufone/engine/session.py
+@@ -11,7 +11,7 @@
+     load was offered the bundle's CPU device only, so there is nowhere else the graph could run.
+     """
+     if cpu_only:
+-        asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", 0) or 0) == 0 else (
++        asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", 1) or 0) == 0 else (
+             f" (the requested n_gpu_layers={int(plan.n_gpu_layers)} has no device to offload to)")
+         return ("cpu compute pinned: the loader was offered the bundle's CPU device only, so no "
+                 f"layer reaches an accelerator{asked}")
+##### ggufone.engine.session.x__placement_note__mutmut_23
+# ggufone.engine.session.x__placement_note__mutmut_23: survived
+--- src/ggufone/engine/session.py
++++ src/ggufone/engine/session.py
+@@ -13,7 +13,7 @@
+     if cpu_only:
+         asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", 0) or 0) == 0 else (
+             f" (the requested n_gpu_layers={int(plan.n_gpu_layers)} has no device to offload to)")
+-        return ("cpu compute pinned: the loader was offered the bundle's CPU device only, so no "
++        return ("XXcpu compute pinned: the loader was offered the bundle's CPU device only, so no XX"
+                 f"layer reaches an accelerator{asked}")
+     if plan is None:
+         return ("fit disabled: no layers offloaded (--no-fit sets n_gpu_layers=0); the weights "
+##### ggufone.engine.session.x__placement_note__mutmut_24
+# ggufone.engine.session.x__placement_note__mutmut_24: survived
+--- src/ggufone/engine/session.py
++++ src/ggufone/engine/session.py
+@@ -13,7 +13,7 @@
+     if cpu_only:
+         asked = "" if plan is None or int(getattr(plan, "n_gpu_layers", 0) or 0) == 0 else (
+             f" (the requested n_gpu_layers={int(plan.n_gpu_layers)} has no device to offload to)")
+-        return ("cpu compute pinned: the loader was offered the bundle's CPU device only, so no "
++        return ("cpu compute pinned: the loader was offered the bundle's cpu device only, so no "
+                 f"layer reaches an accelerator{asked}")
+     if plan is None:
+         return ("fit disabled: no layers offloaded (--no-fit sets n_gpu_layers=0); the weights "
+##### ggufone.engine.session.xǁModelHandleǁ__init____mutmut_1
+# ggufone.engine.session.xǁModelHandleǁ__init____mutmut_1: survived
+--- src/ggufone/engine/session.py
++++ src/ggufone/engine/session.py
+@@ -1,5 +1,5 @@
+ def __init__(self, runtime: ctypes_binding.Runtime, model: C.c_void_p, path: str,
+-             *, arch: str | None, load_ms: float, n_gpu_layers: int = 0,
++             *, arch: str | None, load_ms: float, n_gpu_layers: int = 1,
+              fit_plan: Any | None = None,
+              placement: Placement | None = None,
+              load_log: Sequence[str] = (), cpu_only: bool = False) -> None:
+##### ggufone.engine.session.xǁModelHandleǁ__init____mutmut_2
+# ggufone.engine.session.xǁModelHandleǁ__init____mutmut_2: survived
+--- src/ggufone/engine/session.py
++++ src/ggufone/engine/session.py
+@@ -2,7 +2,7 @@
+              *, arch: str | None, load_ms: float, n_gpu_layers: int = 0,
+              fit_plan: Any | None = None,
+              placement: Placement | None = None,
+-             load_log: Sequence[str] = (), cpu_only: bool = False) -> None:
++             load_log: Sequence[str] = (), cpu_only: bool = True) -> None:
+     self.runtime = runtime
+     self.model = model
+     self.path = path

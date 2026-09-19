@@ -1,0 +1,83 @@
+# Tier-M sweep — card t_55de5779 (`src/ggufone/engine/session.py`, the module the fix's rule lives in)
+
+scope   `source_paths = ["src/ggufone/engine/session.py"]`
+        `pytest_add_cli_args_test_selection = [tests/test_bench_cpu_force.py,
+         tests/test_bench_placement.py, tests/test_fit_oom_recovery.py,
+         tests/test_bench_attribution.py]`
+driver  `.e2e/t_55de5779-cpu-force/mutmut_sweep_cpu_force.sh` — mutmut 3.8,
+        `uv run --frozen --extra dev --with mutmut python tools/mutmut_driver.py run --max-children 2`
+run     2026-09-19T21:06:10Z → 21:07:56Z, one attempt, `exit 0`, `pending 0` (a fresh `mutants/`:
+        the first sweep ran before the gate strengthening below and is not quoted here).
+box     shared; `pids.current` 63 at start (the driver waits while > 175), `cpu.max` 2 CPU-s/s
+
+## whole file
+
+1124 mutants → **389 killed · 290 survived · 441 no tests · 4 timeout** (34.6 % killed of the
+measured set). The 441 `no tests` are mutants in session.py's *serving* internals
+(`ModelSession._save_state` 111, `prefill` 76, `decode` 76, …) that this selection never reaches:
+mutmut 3.8 runs each mutant against the tests that cover its function, and a function no selected
+file touches comes back as "no tests collected" — the selection's boundary, not a verdict.
+
+## the changed surface (the functions the diff touches)
+
+| function | mutants | killed | survived | no tests | timeout | score |
+|---|---|---|---|---|---|---|
+| `open_model` (**the pin's rule**: device resolution, the refusal, zero layers, no walk) | 295 | 203 | 88 | 0 | 0 | 68.8 % |
+| `_load_model` (the device list handed to `llama_model_load_from_file`) | 23 | 18 | 5 | 0 | 0 | 78.3 % |
+| `_placement_note` (the sentence a reader sees) | 38 | 24 | 14 | 0 | 0 | 63.2 % |
+| `ModelHandle.__init__` (`cpu_only` carried on the handle) | 40 | 16 | 24 | 0 | 0 | 40.0 % |
+| `Placement.to_dict` (the `engine.placement` sink) | 16 | 16 | 0 | 0 | 0 | 100.0 % |
+| **changed block** | **412** | **277** | **131** | **0** | **0** | **67.2 %** |
+
+Tier M is a soft threshold: the number is reported, the fix's claim rests on the two gates (RED
+before, GREEN after) and on the hand table below.
+
+**The gate strengthening between the two sweeps is visible in the table.** The first run (before the
+two note assertions were added) scored `_placement_note` 52.6 % and left `__mutmut_3` / `__mutmut_6`
+alive — the `asked = ""` conditional collapsing into "always claim a request was overridden". After
+the assertion that a zero-layer plan's note names no request, both are killed (63.2 %).
+
+## survivor classes (`mutmut show <key>`; sample kept in `mutmut_survivors_sample.txt`)
+
+1. **Equivalent on the gate's inputs.** `getattr(plan, "n_gpu_layers", 0)` → the default replaced by
+   `None` / dropped / `1` (`_placement_note__mutmut_12/15/18`): every `fit.Plan` carries the
+   attribute, so no assertion on a real plan can separate them. Same for
+   `(C.c_void_p * 2)(C.c_void_p(device), None)` → `(C.c_void_p * 2)(C.c_void_p(device),)` and
+   `* 3` (`_load_model__mutmut_9/11`): ctypes zero-fills the tail of an array, so the list is still
+   NULL-terminated. Also `devices: Any = None` → `""` (`_load_model__mutmut_4`), a local that is
+   overwritten before use.
+2. **Defaults and plumbing no caller leaves to the default.** `fit_disabled: bool = False` → `True`
+   (`open_model__mutmut_1`), `n_gpu_layers: int = 0` → `1` and `cpu_only: bool = False` → `True` on
+   `ModelHandle.__init__` (`__mutmut_1/2`): the bench and the serving path both pass these
+   explicitly, and the signatures are pre-existing/derived.
+3. **Presentation text.** The note's wording: `""` → `"XXXX"` (`_placement_note__mutmut_5`), the
+   prefix/`XX` decorations (`__mutmut_23`), `CPU` → `cpu` (`__mutmut_24`). The gates pin that the
+   *right* sentence is produced (and that a request is named only when there was one), not its
+   spelling.
+4. **Pre-existing branches outside the pin's path.** `open_model`'s prologue (`E_MODEL_NOT_FOUND`'s
+   message, `finder.find_runtime(...)`'s arguments — `__mutmut_7/9/10/12/13/14/15`) and
+   `ModelHandle.model = model` → `None` (`__mutmut_4`): driven by the runtime/CLI gates, which are
+   not in a per-mutant selection.
+
+No survivor contradicts the card's claim — "a `cpu` row loads with the bundle's CPU device only and
+executes zero offload layers" — and none of them is on the added lines except class 3 (text).
+
+## the hand table (companion, `hand_mutations.txt`)
+
+Six mutations over the card's own lines, each applied alone and restored byte-identically
+(sha256 printed per file), plus two controls that must survive:
+
+| mutation | expected | measured |
+|---|---|---|
+| drop the device lookup (`pinned_device = None`) | killed | killed (exit 1) |
+| executed plan keeps the requested layers | killed | killed (exit 1) |
+| no refusal for a bundle without a CPU device | killed | killed (exit 1) |
+| the device list never reaches the loader (`params.devices = None`) | killed | killed (exit 1) |
+| `spec_for` stops pinning cpu rows | killed | killed (exit 1) |
+| the row string drops the pin marker | killed | killed (exit 1) |
+| control: docstring only | survived | survived (exit 0) |
+| control: equivalent rewrite (`int(d)`/`not d` swap) | survived | survived (exit 0) |
+
+This is the check that the sweep's verdicts are real on this box (a capped pid cgroup can fake a
+100 %, an env re-sync a 0 %): the six killed rows name the gate that failed, the two controls prove
+the harness does not fail everything.
