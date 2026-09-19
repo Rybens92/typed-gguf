@@ -99,7 +99,11 @@ def test_ask_builds_questions_from_flags(fake_engine, home, tmp_path, capsys) ->
     assert out["answers"]["area"]["type"] == "choice"
     assert set(out["answers"]["sev"]["probabilities"]) == {"0", "1", "2"}
     assert set(out["answers"]["page"]) == {"type", "noul", "probabilities", "coverage",
-                                          "reliability", "decode_steps"}
+                                          "reliability", "decode_steps", "cue"}
+    # card t_6c119626: every answer carries the cue verdict it was read from (the closer, its
+    # mass and the doc pointer when the row is a refusal) — a flat warnings list cannot
+    assert {"refused", "token", "closer", "mass"} <= set(out["answers"]["page"]["cue"])
+    assert out["answers"]["page"]["cue"]["refused"] is False
 
 
 def test_ask_engine_flags_reach_the_request(fake_engine, home, tmp_path, capsys) -> None:

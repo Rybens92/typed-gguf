@@ -43,7 +43,6 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
-import itertools
 import json
 import os
 import pathlib
@@ -180,12 +179,13 @@ def row_block(row: Sequence[float], scale: float, handle: Any, *, which: str, po
     }
 
 
-def measure_item(handle: session_module.ModelHandle, item: devset.DevItem, *, shapes: Sequence[Shape],
-                 variants: Sequence[str], rank: Sequence[tuple[str, str]], threads: int,
+def measure_item(handle: session_module.ModelHandle, item: devset.DevItem, *,
+                 shapes: Sequence[Shape], variants: Sequence[str],
+                 rank: Sequence[tuple[str, str]], threads: int,
                  states_home: pathlib.Path, length_norm: float, temperature: float,
                  max_sequences: int, top_tokens_count: int,
                  backend: str | None = None) -> dict[str, Any]:
-    """One dev item: prefill once, one batched decode for every shape, one step for the two-steps."""
+    """One dev item: one prefill, one batched decode for every shape, one step for the two-steps."""
     n_seq_max = max(1 + len(shapes) + 4 * len(item.criteria) + 4, 8)
     request = e3b.request_for_item(item, threads=threads, n_seq_max=n_seq_max)
     question = request.questions[0]
@@ -430,14 +430,15 @@ def render_report(record: Mapping[str, Any]) -> str:
         f" ({record.get('backend_source') or 'n/a'}) · threads {record['threads']} "
         f"· `--gpu-layers` requested {record['gpu_layers']}",
         f"- placement used: `{json.dumps(record['placement'])}`",
-        f"- engine device log (tail): `{(record['items'][0].get('device_log_tail') or 'n/a')[-200:]}`"
+        "- engine device log (tail): `"
+        + (record["items"][0].get("device_log_tail") or "n/a")[-200:] + "`",
         f"- dev items: {', '.join(item['id'] for item in record['items'])} "
         f"({', '.join(f'{key} {value}' for key, value in sorted(record['counts'].items()))}) "
         f"· label variants: {', '.join(f'`{name}`' for name in record['label_variants'])} "
         f"· generated {record['generated_at']}",
         f"- engine floor: coverage < **{record['mass_floor']:.2f}** ⇒ `low_mass` "
         f"(`OPTION_DEFAULTS['coverage_floor']`)",
-        f"- shapes: " + ", ".join(f"`{name}`" for name in record["shapes"]),
+        "- shapes: " + ", ".join(f"`{name}`" for name in record["shapes"]),
         f"- wall: {record['wall_s']:.1f} s (one model load {record['load_ms']:.0f} ms, one context "
         f"per item, all shapes of one item in one decode batch)",
         "",
