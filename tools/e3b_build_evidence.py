@@ -56,12 +56,18 @@ def prefix_pairs(record: dict) -> list[dict]:
     return [item for item in record["items"] if len(item.get("prefixes") or {}) > 1]
 
 
-def comparison_section(after: dict | None) -> list[str]:
+def comparison_section(after: dict | None, *, root: pathlib.Path) -> list[str]:
+    """The before/after block; `after` is the 20-item re-measure under the accepted policy.
+
+    Both sides are computed by `bench.compare` from stored reports — the doc never re-states a
+    number by hand. With no re-measure (`after is None`) there is nothing to compare, and the doc
+    says so instead of borrowing E3's table as if it were new.
+    """
     if after is None:
         return ["No 20-item re-measure ran: the accepted policy is the shipped one, so the "
                 "published E3 table stands unchanged (and this card changed no E3 number)."]
-    e3 = load(ROOT / "docs/evidence/e3_occamy_quality.json")
-    e2 = load(ROOT / "docs/evidence/e2_quality.json")
+    e3 = load(root / "docs/evidence/e3_occamy_quality.json")
+    e2 = load(root / "docs/evidence/e2_quality.json")
     lines: list[str] = []
     if e3 and after:
         table = compare.comparison(e3, after, labels=("Occamy shipped (E3)", "Occamy accepted"))
@@ -78,12 +84,18 @@ def comparison_section(after: dict | None) -> list[str]:
     return lines
 
 
-def build() -> str:
-    sweep = load(ROOT / ".e3b/sweep.json")
+def build(root: pathlib.Path | None = None) -> str:
+    """The document, assembled from `root`'s artifacts (default: this repo).
+
+    `root` is a parameter so the gates can drive the whole generator from a synthetic artifact
+    tree in a tmp dir; every path the builder reads or writes goes through it.
+    """
+    root = pathlib.Path(root) if root is not None else ROOT
+    sweep = load(root / ".e3b/sweep.json")
     if sweep is None:
         raise SystemExit(".e3b/sweep.json not found — run the sweep first")
-    after = load(ROOT / ".e3b/after.json")
-    calibrate = (ROOT / "docs/evidence/e3b_calibrate_accepted.txt")
+    after = load(root / ".e3b/after.json")
+    calibrate = (root / "docs/evidence/e3b_calibrate_accepted.txt")
     model = sweep.get("model") or {}
     pieces = e3b.shipped_items(sweep)
     ranking = variant_ranking(sweep)
@@ -209,7 +221,7 @@ def build() -> str:
         "",
         "## 8. Before/after on the paired item set",
         "",
-        *comparison_section(after),
+        *comparison_section(after, root=root),
         "",
         "## 9. Honest limits",
         "",
@@ -226,9 +238,9 @@ def build() -> str:
         "artifact.",
         "",
     ]
-    if (ROOT / "docs/evidence/e3b_label_policy_tables.md").exists():
+    if (root / "docs/evidence/e3b_label_policy_tables.md").exists():
         lines += ["## 10. The generated tables", "",
-                  (ROOT / "docs/evidence/e3b_label_policy_tables.md").read_text(encoding="utf-8"),
+                  (root / "docs/evidence/e3b_label_policy_tables.md").read_text(encoding="utf-8"),
                   ""]
     return "\n".join(lines) + "\n"
 
