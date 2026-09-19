@@ -98,14 +98,14 @@ quote-style = "double"
 # its gate file is fast and drives every branch of it, which is what a Tier-M sweep needs on a box
 # shared with a sibling bench. Card t_57cc0179 (E2 FIX, the teardown crash's recovery) took
 # `source_paths` to `src/ggufone/bench/isolation.py` with both of that module's gate files (see the
-# test-selection comment below). Card t_80f1a4c6 (E3 FIX, the serving path's backend label) is the
-# current sweep and mutates the two engine modules the fix moves — `engine/session.py` (the claim
-# + `device_log`) and `engine/decide.py` (`device_evidence` + the response fields) — with
-# [tests/test_serving_attribution.py], whose gates drive both. The wider engine gate file
-# (tests/test_engine_fork.py) is 2.3 s per mutant on a shared, pid-capped box, so the selection
-# stays narrow and survivors in the *pre-existing* decide.py internals are named in the card's QA
-# note rather than chased (Tier M, soft threshold).
-source_paths = ["src/ggufone/engine/session.py", "src/ggufone/engine/decide.py"]
+# test-selection comment below); card t_6952f0dd (E3b, the label policy) is the current sweep and
+# mutates `src/ggufone/bench/labels.py` — a later sweep restores the isolation pair.
+# Card t_6c119626 (E3c, the cue verdict + the shape probe) takes the pair to the module the change
+# adds: `src/ggufone/engine/cue.py` — the refusal rule (`cue_verdict`, `single_token_closers`,
+# `closer_mass`) that `decide.py` and the report both call — with the card's two gate files. The
+# doc gate in test_e3c_cue_refused.py reads the same module's closer vocabulary, so it is part of
+# the selection. Restore the bench pair above when a bench card sweeps next.
+source_paths = ["src/ggufone/engine/cue.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -122,13 +122,15 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # src/ggufone/runtime/devices.py with tests/test_bench_attribution.py. Card t_dd62ec29 (E2 FIX,
 # mixed-bundle teardown) swept that module with tests/test_bench_isolation.py. Card t_a431be85 (E3)
 # activated `["src/ggufone/bench/compare.py"]` + `["tests/test_e3.py"]` while it landed; card
-# t_57cc0179 (E2 FIX, the teardown crash's recovery) took the pair back to the module it changes —
-# `src/ggufone/bench/isolation.py` with **both** isolation gate files (test_bench_isolation.py =
-# the containment, test_bench_teardown_crash.py = the retry, the warning and the table): the retry
-# lives inside `run_backend_child`, whose mutants only the pair together kill. A bench sweep only
-# has to restore the three bench gate files above; an E3 sweep restores `compare.py` +
-# `test_e3.py`. Card t_80f1a4c6 (E3 FIX, the serving path's backend label) is the newest sweep:
-# its two engine modules are driven by tests/test_serving_attribution.py (20 offline + 1 live
-# gate). Restore the isolation pair (or the bench triple above) when a bench card sweeps next.
-pytest_add_cli_args_test_selection = ["tests/test_serving_attribution.py"]
-max_children = 2
+# t_57cc0179 (E2 FIX, the teardown crash's recovery) is the most recent sweep and puts the pair back
+# on the module it changes — `src/ggufone/bench/isolation.py` with **both** isolation gate files
+# (test_bench_isolation.py = the containment, test_bench_teardown_crash.py = the retry, the warning
+# and the table): the retry lives inside `run_backend_child`, whose mutants only the pair together
+# kill. A bench sweep only has to restore the three bench gate files above; an E3 sweep restores
+# `compare.py` + `test_e3.py`. Card t_6952f0dd (E3b, the `qwen35moe` label policy) activates
+# `["src/ggufone/bench/labels.py"]` + `["tests/test_e3b_labels.py"]`; a later sweep restores this
+# isolation pair.
+pytest_add_cli_args_test_selection = ["tests/test_e3c_cue_refused.py", "tests/test_e3c_cue_shapes.py"]
+# NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
+# this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
+# with `BlockingIOError: [Errno 11]`. `.e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh` does both.

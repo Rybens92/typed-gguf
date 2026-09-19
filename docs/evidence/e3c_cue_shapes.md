@@ -186,7 +186,21 @@ Machine-readable: `docs/evidence/e3c_cue_sha256_after.txt` and `e3c_cue_sha256_r
 `e3c_sha256_before.txt` / `e3c_sha256_after.txt` / `e3c_sha256_receipt.json` in the same directory
 belong to E3's host campaign (card `t_6d2e084d`), not to this card.
 
-## 4. Limits and what is left open
+## 5. QA note (Tier M)
+
+* **Mutation** (soft threshold): the pyproject pair targets the module this card adds —
+  `src/ggufone/engine/cue.py` — with the card's two gate files, `mutmut run --max-children 2`:
+  **36/36 mutants killed (100.0 %), 0 survived, 0 not-run** (`.e3c/logs/mutmut_cue.out`, driver
+  `.e3c/mutmut_sweep.sh`). The verdicts are cached in `mutants/`; the previous tree is kept as
+  `mutants.stale-*`.
+* **Suite**: 1187 passed, 43 skipped (`pytest -q`, `-p no:randomly` in the runs used for gates).
+* **Lint**: `ruff check` clean on every file this card touched (`engine/cue.py`, `engine/decide.py`,
+  `bench/harness.py`, `bench/suites.py`, `errors.py`, both gate files, `tools/e3c_cue_shapes.py`).
+* **Not swept**: `decide.py`'s new cue wiring and the report rows are covered by the tier-M fixtures
+  in `tests/test_e3c_cue_refused.py`, but they are not mutation-swept (the engine gate file is
+  2.3 s per mutant on this shared box — the same trade-off E3 FIX documented for `decide.py`).
+
+## 6. Limits and what is left open
 
 * **One step is not a mechanism.** `two_step_*` reads after exactly one model-chosen content token.
   On Occamy that lands on a whitespace loop; whether the answer mass appears after a *later* row
