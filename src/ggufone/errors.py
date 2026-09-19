@@ -157,4 +157,9 @@ WARNING_CODES = (
     # response with a claimed backend (`engine.backend_source`) and read the device that really
     # computed from the engine's own log (`engine.effective_backend`).
     "W_BACKEND_MISMATCH",
+    # E3c (card t_6c119626): the cue row's top token is a turn-closer (`<|im_end|>`, `</s>`, …) —
+    # the model closes the assistant turn instead of answering. The code alone cannot carry the
+    # payload, so the answer's `cue` block names the closer, its mass and the doc pointer
+    # (`engine/cue.py`); this code is what a caller greps for.
+    "W_CUE_REFUSED",
 )

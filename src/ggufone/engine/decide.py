@@ -23,6 +23,9 @@ Mechanics implemented here (SPEC 2.3 steps 1-10):
               restricted softmax over the question's candidates (SPEC 2.3.4/5)
   coverage    from the full-vocab row at the decision position, before any renormalization
               (`readout.coverage_from_row`); below the floor -> low_mass + W_LOW_MASS
+  cue         what the row's top token IS (card t_6c119626): a turn-closer (`<|im_end|>`, `</s>`,
+              …) means the cue shape — not the label rendering — is what suppressed the answer ->
+              W_CUE_REFUSED + the answer's `cue` block (`engine/cue.py`)
   no sampling no sampler, no token loop: `decode_calls == 1 + waves`, and no code path here
               can generate text (A-E1b-9)
 """
@@ -35,6 +38,7 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 from ggufone import schema
+from ggufone.engine import cue as cue_module
 from ggufone.engine import prompt, readout
 from ggufone.engine import template as template_module
 from ggufone.errors import (
@@ -282,6 +286,9 @@ class DecisionEngine:
         self.calibrated_types: dict[str, str] = {}
         self.batches: list[Batch] = []      # every decode issued for this engine (the spy)
         self.forks = 0
+        #: card t_6c119626: `{token id: closer}` for this session's vocabulary, resolved once
+        #: (`engine/cue.py`). `None` = not resolved yet.
+        self._closers: dict[int, str] | None = None
 
     # ---- decode seam (everything the engine decodes goes through here)
     def _decode(self, batch: Batch) -> list[list[float]]:
@@ -291,6 +298,18 @@ class DecisionEngine:
     def _fork(self, src: int, dst: int, upto: int) -> None:
         self.forks += 1
         self.session.fork(src, dst, upto)
+
+    def _closer_map(self) -> dict[int, str]:
+        """`{token id: closer}` for this session's vocabulary (`engine/cue.py`).
+
+        The mapping depends only on the model's tokenizer, which cannot change while the engine
+        holds the session, so it is resolved once. The vocabulary decides which catalogue entries
+        count: a closer this tokenizer splits into several tokens is not one token and is never
+        reported as a refusal.
+        """
+        if self._closers is None:
+            self._closers = cue_module.single_token_closers(self.session.tokenize)
+        return self._closers
 
     def decide(self, request: schema.Request, *, plan: ContextPlan | None = None,
                model_alias: str | None = None) -> DecideResult:
@@ -472,6 +491,10 @@ class DecisionEngine:
         per_wave = max(1, plan.n_seq_max - 1)
         logprobs: list[list[float]] = [[] for _ in candidates]
         coverage = 0.0
+        # card t_6c119626: the verdict on the row the coverage is read from. Every wave re-decodes
+        # the same suffix from the same prefix, so the row — and its verdict — is wave-independent,
+        # and the answer publishes the last wave's.
+        cue_verdict: dict[str, Any] = {}
         for group in _chunks(list(range(len(candidates))), per_wave):
             rows = self._score_group(plan, suffix_tokens,
                                      [candidates[index] for index in group],
@@ -480,6 +503,8 @@ class DecisionEngine:
                 logprobs[index] = rows["logprobs"][offset]
             coverage += readout.coverage_from_scale(rows["decision_row"], rows["coverage_ids"],
                                                     rows["decision_scale"])
+            cue_verdict = cue_module.cue_verdict(rows["decision_row"], rows["decision_scale"],
+                                                 self._closer_map())
 
         z = [readout.candidate_sequence_score(values, options.length_norm)
              for values in logprobs]
@@ -494,6 +519,10 @@ class DecisionEngine:
             _add_warning(warnings, "W_LOW_MASS")
         elif reliability == "low_confidence":
             _add_warning(warnings, "W_LOW_CONFIDENCE")
+        if cue_verdict.get("refused"):
+            # why a `low_mass` row is low: the model closes the assistant turn at the cue instead
+            # of answering. Named on its own, because the fix is the prompt shape, not the labels.
+            _add_warning(warnings, "W_CUE_REFUSED")
 
         keys = list(question.options)
         probability_map = {key: probability for key, probability in zip(keys, probabilities,
@@ -510,6 +539,7 @@ class DecisionEngine:
                 "confidence": confidence_value,
                 "coverage": coverage,
                 "reliability": reliability,
+                "cue": cue_verdict,
                 "decode_steps": decode_steps,
             }
             if legend:
@@ -523,6 +553,7 @@ class DecisionEngine:
                 "legend": legend,
                 "coverage": coverage,
                 "reliability": reliability,
+                "cue": cue_verdict,
                 "decode_steps": decode_steps,
             }
         else:
@@ -532,6 +563,7 @@ class DecisionEngine:
                 "probabilities": probability_map,
                 "coverage": coverage,
                 "reliability": reliability,
+                "cue": cue_verdict,
                 "decode_steps": decode_steps,
             }
         return answer, decode_steps

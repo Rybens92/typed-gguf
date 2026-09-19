@@ -720,6 +720,10 @@ def _devset_row(config: harness.BenchConfig, model: harness.ModelLike,
         "confidence": float(answer.get("confidence", max(probabilities.values()))),
         "coverage": coverage,
         "reliability": answer.get("reliability"),
+        # card t_6c119626: the row the coverage was read from — what the model wanted to emit at
+        # the cue (`readout.refused` is true when that is a turn-closer). Rendered by
+        # `harness.render_report` as the "cue verdicts" table.
+        "cue": answer.get("cue"),
         "probabilities": probabilities,
         "questions_ms": float(result.timings["questions_ms"]),
         "wall_ms": (time.perf_counter() - started) * 1000.0,

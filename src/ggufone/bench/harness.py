@@ -779,6 +779,26 @@ def _table(title: str, header: Sequence[str], rows: Sequence[str]) -> list[str]:
     return lines
 
 
+def cue_verdict_rows(report: Mapping[str, Any]) -> list[str]:
+    """The cue verdicts of a quality report's rows — `[]` when the report carries none.
+
+    E3c (card t_6c119626): a row's `cue` block names what the model wanted to emit at the decision
+    position, and `W_CUE_REFUSED` when that is a turn-closer (`<|im_end|>`, `</s>`, …) — the model
+    closes the assistant turn instead of answering, which is *why* a `low_mass` row is low. Reports
+    written before E3c carry no such block and render exactly as they did.
+    """
+    rows: list[str] = []
+    for row in report.get("items", []):
+        cue = row.get("cue")
+        if not isinstance(cue, Mapping):
+            continue
+        token = cue.get("closer") or f"token {cue.get('token')}"
+        verdict = "W_CUE_REFUSED" if cue.get("refused") else "ok"
+        rows.append(f"| {row.get('id')} | {row.get('type')} | `{token}` | "
+                    f"{_number(cue.get('mass'))} | {verdict} |")
+    return rows
+
+
 def render_report(report: Mapping[str, Any]) -> str:
     """The published markdown tables of one report — the same text `docs/BENCHMARKS.md` shows."""
     config = report.get("config", {})
@@ -896,6 +916,17 @@ def render_report(report: Mapping[str, Any]) -> str:
                                 f"{_number(overall.get('agreement'))} | "
                                 f"{_number((overall.get('ci') or [None, None])[0])} – "
                                 f"{_number((overall.get('ci') or [None, None])[1])} |"])
+        verdicts = cue_verdict_rows(report)
+        if verdicts:
+            lines += _table("cue verdicts", ["item", "type", "cue top token", "top-token mass",
+                                             "verdict"], verdicts)
+            if any("| W_CUE_REFUSED |" in entry for entry in verdicts):
+                lines.append(
+                    "- W_CUE_REFUSED: the cue row's top token is a turn-closer — the model closes "
+                    "the assistant turn instead of answering, so the label mass at that row cannot "
+                    "reach the floor (`readout.reliability` measures it, `docs/TEMPLATES.md` §4 "
+                    "carries the policy).")
+                lines.append("")
     if report.get("suite") == "calibration":
         lines += _table("reliability bins", ["bin", "n", "mean confidence", "accuracy", "gap"],
                         [f"| {_number(entry['lo'])}–{_number(entry['hi'])} | {entry['n']} | "
