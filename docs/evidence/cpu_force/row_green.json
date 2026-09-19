@@ -1,0 +1,30 @@
+{
+  "config_backend": "cpu",
+  "notes": [],
+  "ok": true,
+  "repeats": 3,
+  "row": {
+    "backend": "cpu",
+    "device_buffers": {
+      "CPU": 3
+    },
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "CPU_REPACK"
+    ],
+    "digests": [
+      "sha256:3ce896184d50f07b7de39622e505584c9f0b7967be72fbc4502c74e94374a4af",
+      "sha256:3ce896184d50f07b7de39622e505584c9f0b7967be72fbc4502c74e94374a4af",
+      "sha256:3ce896184d50f07b7de39622e505584c9f0b7967be72fbc4502c74e94374a4af"
+    ],
+    "effective_backend": "cpu",
+    "identical": true,
+    "ok": true,
+    "placement": "n_gpu_layers=0 (cpu compute pinned)",
+    "reason": null,
+    "repeats": 3,
+    "warnings": []
+  },
+  "runtime_dir": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+}
