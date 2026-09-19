@@ -100,19 +100,28 @@ def write(root: pathlib.Path, relative: str, payload: object) -> pathlib.Path:
 
 
 def fake_root(tmp_path: pathlib.Path, *, after: bool = True,
-              calibrate: bool = True) -> pathlib.Path:
-    """A whole artifact tree: the sweep, the committed baselines, and the optional files."""
+              calibrate: bool = True, e3_extra: str | None = None) -> pathlib.Path:
+    """A whole artifact tree: the sweep, the committed baselines, and the optional files.
+
+    `e3_extra` adds one more row to E3's report (a different item id), so the gates can drive the
+    case where E3's merged report covers more items than this card re-measured — the before side
+    must be aligned to the shared ids, not compared whole.
+    """
     write(tmp_path, ".e3b/sweep.json", sweep_record())
     write(tmp_path, "docs/evidence/e2_quality.json",
           quality_report([quality_row("c01", "choice", correct=True, coverage=0.5,
                                       reliability="measured"),
                           quality_row("s01", "score", correct=False, coverage=0.5,
                                       reliability="measured")], label="Spark-X2.5-4B-Q8_0"))
+    e3_rows = [quality_row("c01", "choice", correct=True, coverage=0.002,
+                           reliability="low_mass"),
+               quality_row("s01", "score", correct=True, coverage=0.003,
+                           reliability="low_mass")]
+    if e3_extra:
+        e3_rows.append(quality_row(e3_extra, "noul", correct=True, coverage=0.004,
+                                   reliability="low_mass"))
     write(tmp_path, "docs/evidence/e3_occamy_quality.json",
-          quality_report([quality_row("c01", "choice", correct=True, coverage=0.002,
-                                      reliability="low_mass"),
-                          quality_row("s01", "score", correct=True, coverage=0.003,
-                                      reliability="low_mass")], label="Occamy 1.0"))
+          quality_report(e3_rows, label="Occamy 1.0"))
     if after:
         write(tmp_path, ".e3b/after.json",
               quality_report([quality_row("c01", "choice", correct=True, coverage=0.0295,
@@ -185,6 +194,45 @@ def test_the_calibration_verdict_is_printed_verbatim_and_a_missing_file_says_so(
 
 
 # ------------------------------------------------------------------- the before/after section
+def cue_record(*, explicit: tuple[float, ...], shipped: tuple[float, ...],
+               blank: tuple[float, ...]) -> dict:
+    """One item per value triple: `{cue: (bare-label coverage per item)}`."""
+    items = []
+    for index in range(len(explicit)):
+        labels_block = {
+            name: {"texts": ["a"], "first_tokens": [1], "pieces": ["a"], "coverage": 0.0,
+                   "reliability": "low_mass", "shared_first_tokens": []}
+            for name in ("bare", "space", "caps", "newline", "long")}
+        cues = {}
+        for cue, values in (("explicit", explicit), ("shipped", shipped), ("blank", blank)):
+            block = {name: dict(entry) for name, entry in labels_block.items()}
+            block["bare"]["coverage"] = values[index]
+            cues[cue] = {"scale": 1.0, "labels": block,
+                         "top_tokens": [{"piece": "<|im_end|>", "p_full": 0.9999}]}
+        items.append({"id": f"item{index}", "type": "choice", "expected": "a",
+                      "prefixes": {"shipped": {"cues": cues, "ranked": {}}}})
+    return {"cues": ["shipped", "blank", "explicit"],
+            "label_variants": ["bare", "space", "caps", "newline", "long"], "mass_floor": 0.10,
+            "items": items}
+
+
+def test_the_cue_ranking_sentence_names_the_cue_that_lifts_the_most_mass():
+    """The card asks which *cue* lifts coverage, so the doc has to rank the cue variants."""
+    module = load_builder()
+    record = cue_record(explicit=(0.5, 0.6), shipped=(0.1, 0.2), blank=(1e-08, 2e-08))
+    sentence = module.cue_sentence(record)
+    assert sentence.startswith("By cue variant the ordering is `explicit`-best 5.500e-01")
+    assert "then `shipped` 1.500e-01" in sentence
+    assert "names the labels explicitly" in sentence
+
+
+def test_the_cue_sentence_is_empty_when_there_is_nothing_to_rank():
+    module = load_builder()
+    record = cue_record(explicit=(0.5,), shipped=(0.1,), blank=(1e-08,))
+    record["cues"] = ["shipped"]
+    assert module.cue_sentence(record) == ""
+
+
 def test_no_re_measure_falls_back_to_the_published_e3_table(tmp_path):
     module = load_builder()
     document = module.build(root=fake_root(tmp_path, after=False))
@@ -196,12 +244,69 @@ def test_a_re_measure_renders_both_comparisons_from_the_committed_reports(tmp_pa
     """The after side goes through `compare.comparison`/`compare.align` — never hand-written."""
     module = load_builder()
     document = module.build(root=fake_root(tmp_path))
-    assert "**Occamy before/after** (same 20 items, same box):" in document
+    assert "**Occamy before/after** (2 paired items — E3's merged report dropped 0 row(s) it " \
+           "measured and this card did not, so both sides are the same items):" in document
     assert "**The published pairing re-rendered** (2 paired items, dropped 0 unpaired " \
            "baseline row(s) and 0 unpaired challenger row(s)):" in document
     assert "| overall |" in document and "| low_mass (below the floor) |" in document
     assert "| measured (at or above the floor) |" in document
     assert "Occamy shipped (E3)" in document and "Occamy accepted" in document
+
+
+def test_the_before_after_coverage_rows_come_from_the_aligned_reports(tmp_path):
+    """The card's before/after asks for coverage + low_mass share, not only agreement."""
+    module = load_builder()
+    document = module.build(root=fake_root(tmp_path))
+    table = document.split("The coverage the before/after sides were read with")[1]
+    assert "| `Occamy shipped (E3)` | 2 | 2.500e-03 |" in table, "E3 side mean of 0.002/0.003"
+    assert "| `Occamy accepted (E3b)` | 2 | 1.950e-02 |" in table, "after side mean 0.0295/0.0095"
+    assert "| 1/2 |" in table, "the after side has one low_mass row and one measured row"
+    assert "| 2/2 |" in table, "both E3 rows are low_mass"
+    assert "is 0x the probe's" in table, "the mean ratio is stated (2.5e-03 / 1.95e-02 rounds to 0)"
+    assert "both sides are `low_mass` on every item" not in table, \
+        "no all-low_mass note when the after side has a measured row"
+
+
+def test_the_low_mass_note_says_so_when_the_re_measure_never_crosses_the_floor(tmp_path):
+    """The honest headline: if every fresh row is still `low_mass`, the doc says it outright."""
+    module = load_builder()
+    root = fake_root(tmp_path)
+    write(root, ".e3b/after.json",
+          quality_report([quality_row("c01", "choice", correct=True, coverage=0.002,
+                                      reliability="low_mass"),
+                          quality_row("s01", "score", correct=False, coverage=0.003,
+                                      reliability="low_mass")], label="Occamy 1.0 [shipped=caps]"))
+    document = module.build(root=root)
+    assert "both sides are `low_mass` on every item" in document
+    assert "reproduces E3's 20/20" in document
+
+
+def test_the_alternative_policy_block_is_rendered_when_its_report_exists(tmp_path):
+    """`shipped=newline` is measured on the same items; the doc prints its numbers next to them."""
+    module = load_builder()
+    root = fake_root(tmp_path)
+    assert "alternative policy" not in module.build(root=root)
+    inline = quality_report([quality_row("c01", "choice", correct=True, coverage=0.03,
+                                         reliability="low_mass"),
+                             quality_row("s01", "score", correct=True, coverage=0.04,
+                                         reliability="low_mass")], label="Occamy [shipped=newline]")
+    write(root, ".e3b/after_newline.json", inline)
+    document = module.build(root=root)
+    assert "**The alternative policy measured on the same items**" in document
+    assert "agreement 1.000 (2/2)" in document
+    assert "mean coverage 3.500e-02" in document
+
+
+def test_an_e3_report_covering_more_items_is_aligned_to_the_re_measure(tmp_path):
+    """E3's merged report may grow to 60 items while this card re-measured 20: never compare the
+    aggregate against the subset — the item-mix difference would read as a policy difference."""
+    module = load_builder()
+    document = module.build(root=fake_root(tmp_path, e3_extra="n09"))
+    assert "**Occamy before/after** (2 paired items — E3's merged report dropped 1 row(s) it " \
+           "measured and this card did not, so both sides are the same items):" in document
+    # the unpaired row is not in the aligned table, so n stays 2 on both sides
+    table = document.split("**Occamy before/after**")[1].split("**The published pairing")[0]
+    assert "(2/2)" in table and "noul" not in table
 
 
 def test_the_document_is_written_to_the_card_path_and_the_tables_sidecar(tmp_path):

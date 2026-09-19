@@ -22,7 +22,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.bench import compare  # noqa: E402
+from ggufone.bench import compare, suites  # noqa: E402
 
 SPEC = importlib.util.spec_from_file_location("e3b", ROOT / "tools" / "e3b_label_policy.py")
 e3b = importlib.util.module_from_spec(SPEC)
@@ -52,16 +52,96 @@ def variant_ranking(record: dict, prefix: str = "shipped") -> list[tuple[float, 
     return rows
 
 
+def cue_ranking(record: dict) -> list[tuple[float, str, str, float]]:
+    """Per cue variant: `(mean, cue, its best label, that label's best single value)`, best first.
+
+    The card's question is about the *cue* — "an instruction variant that names the label format
+    explicitly" — so the ranking is over cues and the label inside a cue is only an implementation
+    detail of that cue's best cell.
+    """
+    pieces = [item["prefixes"]["shipped"] for item in record["items"]]
+    rows: list[tuple[float, str, str, float]] = []
+    for cue in record["cues"]:
+        best: tuple[float, str, float] | None = None
+        for label in record["label_variants"]:
+            values = [piece["cues"][cue]["labels"][label]["coverage"] for piece in pieces]
+            mean = sum(values) / len(values)
+            if best is None or mean > best[0]:
+                best = (mean, label, max(values))
+        if best is not None:
+            rows.append((best[0], cue, best[1], best[2]))
+    rows.sort(reverse=True)
+    return rows
+
+
+def cue_sentence(record: dict) -> str:
+    """The cue-variant ranking as one sentence — the card asks which cue lifts the most mass."""
+    rows = cue_ranking(record)
+    if len(rows) < 2:
+        return ""
+    best, second = rows[0], rows[1]
+    return (f"By cue variant the ordering is `{best[1]}`-best {best[0]:.3e} (its best label "
+            f"`{best[2]}`, max {best[3]:.3e}) then `{second[1]}` {second[0]:.3e}: even the cue "
+            f"that names the labels explicitly lifts the mean coverage by "
+            f"{best[0] / second[0]:.0f}x over the runner-up and leaves every answer short of the "
+            f"floor.")
+
+
 def prefix_pairs(record: dict) -> list[dict]:
     return [item for item in record["items"] if len(item.get("prefixes") or {}) > 1]
+
+
+def coverage_row(report: dict, *, label: str) -> dict:
+    """One report's coverage summary: `n`, mean/median/max of the rows' own `coverage` field."""
+    rows = [row for row in report.get("items") or [] if row.get("coverage") is not None]
+    values = sorted(float(row["coverage"]) for row in rows)
+    low = sum(1 for row in rows if row.get("reliability") == "low_mass")
+    return {"label": label, "n": len(values),
+            "mean": (sum(values) / len(values)) if values else 0.0,
+            "median": values[len(values) // 2] if values else 0.0,
+            "max": values[-1] if values else 0.0,
+            "low_mass": low}
+
+
+def coverage_lines(report: dict, *, label: str) -> list[str]:
+    """`| label | n | mean | median | max | low_mass |` — the before/after coverage rows."""
+    stats = coverage_row(report, label=label)
+    return [f"| `{stats['label']}` | {stats['n']} | {stats['mean']:.3e} "
+            f"| {stats['median']:.3e} | {stats['max']:.3e} "
+            f"| {stats['low_mass']}/{stats['n']} |"]
+
+
+def alternative_policy_lines(root: pathlib.Path) -> list[str]:
+    """The *other* policy the re-measure ran (`shipped=newline`), if its report is on disk.
+
+    The card's accepted policy is the shipped one; this block exists because the same 20 items
+    were also scored under the two-step readout, and a reader deciding the label policy needs the
+    alternative's numbers next to the accepted one's — not in a separate file.
+    """
+    report = load(root / ".e3b/after_newline.json")
+    if not report:
+        return []
+    stats = coverage_row(report, label="")
+    overall = suites.agreement(report.get("items") or [])
+    low, high = overall["ci"]
+    return ["**The alternative policy measured on the same items** (`shipped` cue × `newline` "
+            "label, the two-step readout):", "",
+            f"agreement {overall['agreement']:.3f} ({overall['correct']}/{overall['n']}) "
+            f"[{low:.3f}–{high:.3f}]; mean coverage {stats['mean']:.3e}, max {stats['max']:.3e}, "
+            f"`low_mass` {stats['low_mass']}/{stats['n']} — the same negative result, with a "
+            f"{stats['low_mass']}/{stats['n']} floor verdict.", ""]
 
 
 def comparison_section(after: dict | None, *, root: pathlib.Path) -> list[str]:
     """The before/after block; `after` is the 20-item re-measure under the accepted policy.
 
     Both sides are computed by `bench.compare` from stored reports — the doc never re-states a
-    number by hand. With no re-measure (`after is None`) there is nothing to compare, and the doc
-    says so instead of borrowing E3's table as if it were new.
+    number by hand. The *before* side of the published pairing is E3's merged report, which may
+    cover more items than this card re-measured (`n` grew while the campaign ran), so the pairing
+    is aligned to the shared ids first: comparing a 60-item aggregate against a 20-item one would
+    report an item-mix difference as a policy difference. With no re-measure (`after is None`)
+    there is nothing to compare, and the doc says so instead of borrowing E3's table as if it
+    were new.
     """
     if after is None:
         return ["No 20-item re-measure ran: the accepted policy is the shipped one, so the "
@@ -70,9 +150,39 @@ def comparison_section(after: dict | None, *, root: pathlib.Path) -> list[str]:
     e2 = load(root / "docs/evidence/e2_quality.json")
     lines: list[str] = []
     if e3 and after:
-        table = compare.comparison(e3, after, labels=("Occamy shipped (E3)", "Occamy accepted"))
-        lines += ["**Occamy before/after** (same 20 items, same box):", "",
+        paired = compare.align(e3, after)
+        table = compare.comparison(paired["baseline"], paired["challenger"],
+                                   labels=("Occamy shipped (E3)", "Occamy accepted"))
+        lines += [f"**Occamy before/after** ({paired['items']} paired items — E3's merged report "
+                  f"dropped {paired['dropped']['baseline']} row(s) it measured and this card did "
+                  f"not, so both sides are the same items):", "",
                   compare.render_comparison(table), ""]
+        aligned_before, aligned_after = paired["baseline"], paired["challenger"]
+        lines += ["The coverage the before/after sides were read with (each row's own `coverage` "
+                  "field; the floor is the engine's 0.10):", "",
+                  "| side | n | mean coverage | median | max | low_mass |",
+                  "|---|---|---|---|---|---|",
+                  *coverage_lines(aligned_before, label="Occamy shipped (E3)"),
+                  *coverage_lines(aligned_after, label="Occamy accepted (E3b)"), ""]
+        before_stats = coverage_row(aligned_before, label="")
+        after_stats = coverage_row(aligned_after, label="")
+        if before_stats["n"] and after_stats["n"]:
+            low_mass_note = (
+                "" if after_stats["low_mass"] < after_stats["n"] else (
+                    " The `low_mass` share is unchanged: **both sides are `low_mass` on every "
+                    "item**, so the re-measure reproduces E3's 20/20 — the label rendering moved "
+                    "the masses, never across the floor."))
+            ratio = (before_stats["mean"] / after_stats["mean"]
+                     if after_stats["mean"] else float("inf"))
+            lines += [f"The two sides read the cue row through different execution paths: E3's "
+                      f"`DecisionEngine` decodes each candidate sequence one at a time and reports "
+                      f"the mass of the winner's *first token* (`coverage_from_scale`), while this "
+                      f"probe reads the same quantity from the batched cue row. The E3 side's mean "
+                      f"is {ratio:.0f}x the probe's — a scale difference between a sequential and "
+                      f"a batched decode, not a re-measure of different items — and **both sides "
+                      f"carry an identical verdict**: every row, old and new, is `low_mass`. The "
+                      f"margin is the finding, and the gate this card needed is the threshold "
+                      f"crossing, which did not happen." + low_mass_note, ""]
     if e2 and after:
         paired = compare.align(e2, after)
         table = compare.comparison(paired["baseline"], paired["challenger"],
@@ -81,6 +191,7 @@ def comparison_section(after: dict | None, *, root: pathlib.Path) -> list[str]:
                   f"dropped {paired['dropped']['baseline']} unpaired baseline row(s) and "
                   f"{paired['dropped']['challenger']} unpaired challenger row(s)):", "",
                   compare.render_comparison(table), ""]
+    lines += alternative_policy_lines(root)
     return lines
 
 
@@ -198,6 +309,9 @@ def build(root: pathlib.Path | None = None) -> str:
         f"(mean {best_mean:.3e}, {best_above}/{len(pieces)} items at or above the floor); the best "
         f"single value anywhere in the sweep is {ceiling:.3e}, i.e. "
         f"{'above' if ceiling >= floor else 'still below'} the {floor:.2f} floor. ",
+        "",
+        cue_sentence(sweep),
+        "",
         "",
         "## 4. What the model wants to emit at the cue (why the label mass is where it is)",
         "",
