@@ -1,0 +1,17 @@
+{
+ "model": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+ "before": {
+  "captured_at": "2026-09-19T15:55:18+0200",
+  "sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757"
+ },
+ "after": {
+  "captured_at": "2026-09-19T16:34:16+0200",
+  "sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757"
+ },
+ "e3_published_before": {
+  "captured_at": "2026-09-18T17:55:11+0200",
+  "sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757"
+ },
+ "bytes": 24113674848,
+ "identical": true
+}

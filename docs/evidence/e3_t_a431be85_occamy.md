@@ -3,6 +3,13 @@
 Card `t_a431be85` · branch `main` (this repo has no remote; the commits are local on the shared
 tree) · Tier **M** (the card declares none) · report schema `ggufone.bench/v1`
 
+**Completion (card `t_6d2e084d`, 2026-09-19).** A-E3-3 was published on purpose at 20 of 60 dev
+items; the four remaining chunks (`003`–`006`) ran on the operator host and the comparison below is
+now the paired **60-item** table. §2.3, §4 and `docs/BENCHMARKS.md` §6.2/§6.4 are **regenerated from
+the artifacts** by `tools/e3_build_evidence.py` (the same tool `--check` gates); the `[container]`
+per-item cost table stays as published, and the `[host]` rows are tagged from the reports' own cgroup
+facts, never typed.
+
 **Scope (user, 2026-09-18, binding).** E3 runs *only* on Occamy 1.0. No Qwen3.6-35B-A3B download —
 the artifact was already on disk (`t_23393cb8`, the card that would have downloaded it, is
 archived). No run in this card downloads anything, and nothing writes a `.gguf` (the file hash is
@@ -120,7 +127,8 @@ behind the per-item numbers below, and it is a property of the box, not of the f
 ### 2.3 Per-item timings (A-E3-1) and the chunked campaign
 
 The first two dev items, measured through the bench path (`harness.LiveModel` + `DecisionEngine`)
-with `--backend vulkan --gpu-layers 7 --threads 4`:
+with `--backend vulkan --gpu-layers 7 --threads 4` — **`[container]`**, the 8 GiB / 2 CPU-s/s
+worker cgroup (the `[host]` side of the same measurement is below):
 
 <!-- @@PER_ITEM_TABLE@@ -->
 
@@ -142,33 +150,79 @@ first attempt failed (`ggml_vulkan: Device memory allocation of size 949969664 f
 ErrorOutOfDeviceMemory`) and the load settled one rung lower; every chunk report records what it
 actually used (`placement.used`).
 
-Because a single 60-item pass is a multi-hour job on this box, the campaign is sliced into
-**stratified chunks of 10 items** (`devset.stratified_chunks`; every chunk — and every prefix of
-them — mixes `choice | score | noul`), each with its own JSON report, merged by
-`compare.merge_reports` into the one report the table reads:
+The chunks the card finished ran on the **operator host** (`[host]`), same protocol, same flags —
+the differences are the box and the ICD manifest, and both are part of the recipe:
+
+```bash
+# the host run (card t_6d2e084d): one chunk per process, chunks 003..006
+GGUFONE_RUNTIME_DIR=~/.local/share/ggufone/runtime/b11026-linux-x64-vulkan \
+VK_DRIVER_FILES=~/.e3c_host/nvidia_egl_icd.json \
+env -u VK_INSTANCE_LAYERS \
+  python3 tools/e3_reproduce.py --suite quality \
+    --model /var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf \
+    --backend vulkan --gpu-layers 7 --threads 4 \
+    --devset docs/evidence/e3_chunks/devset_00N.jsonl \
+    --out docs/evidence/e3_chunks/report_00N.json      # N = 003 … 006
+```
+
+`VK_DRIVER_FILES` points at the same one-line manifest §1.1 documents (`libEGL_nvidia.so.0`, which
+does not need a display — the host shell has none either), and `VK_INSTANCE_LAYERS` is dropped
+because this desktop session injects three implicit layers, one of which cannot resolve
+`vkGetInstanceProcAddr`; none of them existed in the container. Nothing is downloaded: the model and
+the pinned bundle are the ones on disk, and the artifact is re-hashed before and after —
+`docs/evidence/e3c_sha256_before.txt` (15:55:18 CEST, three seconds before the first chunk loaded),
+`e3c_sha256_after.txt` (after the campaign) and the machine-readable `e3c_sha256_receipt.json`, all
+three digests equal to E3's published `e3_sha256_before.txt` (`identical: true`, 24 113 674 848 B).
+
+<!-- @@E3_HOST_ITEMS_BEGIN@@ -->
+The card's `[host]` run (chunks `report_003`, `report_004`, `report_005`, `report_006`) uses the same flags `--backend vulkan --gpu-layers 7 --threads 4` on the operator host — no cgroup, no 8 GiB memory cap, so the weights cache after the first pass. The first two items of `report_003.json`:
+
+| item | type | questions_ms | wall_s | correct | coverage | reliability |
+|---|---|---:|---:|---|---:|---|
+| `n07` | noul | 23,408 | 46.9 | ✘ (`no`) | 0.037 | `low_mass` |
+| `c08` | choice | 28,577 | 49.1 | ✔ (`business_hours`) | 0.052 | `low_mass` |
+
+Per-item wall on the host, by chunk: `report_003` 49.2 s, `report_004` 42.7 s, `report_005` 47.0 s, `report_006` 44.6 s — against 99–113 s per item in the container, which is the point of the tag: the *protocol* is identical and the *box* is not.
+<!-- @@E3_HOST_ITEMS_END@@ -->
+
+The two container chunks settled differently, and that is the E1c degrade ladder doing its job
+(`W_BACKEND_OOM` + `W_FIT_DOWNGRADE` in `placement.used.warnings`): the desktop's VRAM was tight
+enough during the first chunk that the ladder walked all the way down to **CPU-only**, while the
+second stopped at 3 layers — which is why the published placement for this artifact has to be read
+from the report, not from the flags. The `[host]` chunks ran on the same 8 GiB device, with the
+desktop session (and at times a sibling benchmark sharing the box) on it, so whether the 7 requested
+layers fit is a per-chunk question there: the quality suite records the device attribution the
+engine's own log proves (`devices` / `device_buffers` / `effective_backend`, card `t_603a35a0`)
+rather than a ladder answer, and the chunk ledger below prints exactly what each report carries.
+
+<!-- @@E3_CHUNK_BEGIN@@ -->
+Because a single 60-item pass is a multi-hour job on the container, the campaign is sliced into **stratified chunks of 10 items** (`devset.stratified_chunks`; every chunk — and every prefix of them — mixes `choice | score | noul`), each with its own JSON report, merged by `compare.merge_reports` into the one report the table reads:
 
 ```bash
 python3 tools/e3_reproduce.py --write-chunks .e3/chunks --chunk 10
 GGUFONE_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> python3 tools/e3_reproduce.py \
     --suite quality --model ~/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf \
     --backend vulkan --gpu-layers 7 --threads 4 \
-    --devset .e3/chunks/devset_001.jsonl --out docs/evidence/e3_chunks/report_001.json
-python3 tools/e3_reproduce.py --suite merge --reports 'docs/evidence/e3_chunks/report_*.json' \
+    --devset docs/evidence/e3_chunks/devset_00N.jsonl \
+    --out docs/evidence/e3_chunks/report_00N.json     # N = 001 … 006
+python3 tools/e3_reproduce.py --suite merge \
+    --reports 'docs/evidence/e3_chunks/report_*.json' \
     --label "Occamy 1.0" --out docs/evidence/e3_occamy_quality.json
 ```
 
-<!-- @@CHUNK_TABLE@@ -->
+| chunk | box | items (choice/score/noul) | compute path the report proves | wall per item (median) | correct |
+|---|---|---|---|---:|---:|
+| `report_001` | `[container]` | 10 (4/3/3) | `n_gpu_layers 0`, `kv_type f16`, `degraded: true`, walked 7→oom, 3→oom | 113.2 s | 5/10 |
+| `report_002` | `[container]` | 10 (3/4/3) | `n_gpu_layers 3`, `kv_type f16`, `degraded: true`, walked 7→oom | 99.5 s | 4/10 |
+| `report_003` | `[host]` | 10 (3/3/4) | buffers: `Vulkan0`=10, `Vulkan_Host`=10; effective `vulkan` | 49.2 s | 4/10 |
+| `report_004` | `[host]` | 10 (4/3/3) | buffers: `Vulkan0`=10, `Vulkan_Host`=10; effective `vulkan` | 42.7 s | 4/10 |
+| `report_005` | `[host]` | 10 (3/4/3) | buffers: `Vulkan0`=10, `Vulkan_Host`=10; effective `vulkan` | 47.0 s | 8/10 |
+| `report_006` | `[host]` | 10 (7/1/2) | buffers: `Vulkan0`=10, `Vulkan_Host`=10; effective `vulkan` | 44.6 s | 6/10 |
 
-| chunk | items (choice/score/noul) | `placement.used` | wall per item (median) | correct |
-|---|---|---:|---:|---:|
-| `report_001` | 10 (4/3/3) | `n_gpu_layers 0`, `degraded: true` (`7 → oom`, `3 → oom`), `kv_type f16` | 113.2 s | 5/10 |
-| `report_002` | 10 (3/4/3) | `n_gpu_layers 3`, `degraded: true` (`7 → oom`), `kv_type f16` | 99.5 s | 4/10 |
+Merged: `docs/evidence/e3_occamy_quality.json` — 60 items, 31 correct (0.517, 95 % CI 0.393–0.638); `chunks` lists every chunk it stitched: `report_001.json`, `report_002.json`, `report_003.json`, `report_004.json`, `report_005.json`, `report_006.json`.
 
-Both chunks loaded in ~31 s and ran 10 items in ~22 min (sum of `wall_ms`: 1354 s and 1325 s). Note the
-placement: on the first chunk the desktop's VRAM was tight enough that the ladder walked all the way
-down to **CPU-only**, on the second it stopped at 3 layers. That is the E1c degrade ladder doing its
-job (`W_BACKEND_OOM` + `W_FIT_DOWNGRADE` in `placement.used.warnings`), and it is why the published
-placement for this artifact has to be read from the report, not from the flags.
+A **`[host]` run did happen**: 4 of the 6 chunks (`report_003`, `report_004`, `report_005`, `report_006`) were measured on the operator host after the card moved the campaign off the container (`[container]`: `report_001`, `report_002`). What it changed is `n` and the intervals — the published per-item *cost* table keeps its `[container]` tag, because the container is where a 23 GB model against 8 GiB of memory shows its real price; the host rows are the same protocol on a box that can cache the weights, and each row above says which box it came from.
+<!-- @@E3_CHUNK_END@@ -->
 
 ## 3. The 20-question batch (A-E3-2)
 
@@ -208,73 +262,73 @@ card `t_603a35a0` fixed there. In the *serving* path the field still comes from 
 
 ## 4. The comparison: 4B default vs Occamy 1.0 (A-E3-3)
 
-<!-- @@COMPARISON@@ -->
+<!-- @@E3_COMPARE_BEGIN@@ -->
+Paired on the dev items **both** models measured — `e2_quality.json` cut to the same ids (`tools/e3_reproduce.py --suite compare --align`):
+
 ```markdown
+Agreement on the committed dev set, 95 % Wilson intervals; the mass split uses the engine's own verdict, or `coverage < 0.10` where a report predates it.
+
 | metric | 4B default (E2, 60 items, CPU) | Occamy 1.0 (E3, chunks, vulkan) | delta |
 |---|---|---|---|
-| overall | 0.500 (10/20) [0.299–0.701] | 0.450 (9/20) [0.258–0.658] | -0.050 |
-| choice | 0.429 (3/7) [0.158–0.750] | 0.571 (4/7) [0.250–0.842] | +0.143 |
-| noul | 1.000 (6/6) [0.610–1.000] | 0.167 (1/6) [0.030–0.564] | -0.833 |
-| score | 0.143 (1/7) [0.026–0.513] | 0.571 (4/7) [0.250–0.842] | +0.429 |
-| low_mass (below the floor) | 0.333 (1/3) [0.061–0.792] | 0.450 (9/20) [0.258–0.658] | +0.117 |
-| measured (at or above the floor) | 0.529 (9/17) [0.310–0.738] | — | — |
-```
-(The published copy, with its generator line, is `docs/evidence/e3_comparison.md`; the numbers come
-from `tools/e3_reproduce.py --suite compare … --align`, never from this file by hand.)
+| overall | 0.633 (38/60) [0.507–0.744] | 0.517 (31/60) [0.393–0.638] | -0.117 |
+| choice | 0.750 (18/24) [0.551–0.880] | 0.625 (15/24) [0.427–0.788] | -0.125 |
+| noul | 0.889 (16/18) [0.672–0.969] | 0.389 (7/18) [0.203–0.614] | -0.500 |
+| score | 0.222 (4/18) [0.090–0.452] | 0.500 (9/18) [0.290–0.710] | +0.278 |
+| low_mass (below the floor) | 0.500 (6/12) [0.254–0.746] | 0.509 (29/57) [0.383–0.634] | +0.009 |
+| measured (at or above the floor) | 0.667 (32/48) [0.525–0.783] | 0.667 (2/3) [0.208–0.939] | +0.000 |
 
-The table is the file `docs/evidence/e3_comparison.md`, generated by
-
-```bash
-python3 tools/e3_reproduce.py --suite compare --a docs/evidence/e2_quality.json \
-    --b docs/evidence/e3_occamy_quality.json --align \
-    --labels "4B default (E2, 60 items, CPU)" "Occamy 1.0 (E3, chunks, vulkan)"
+`Occamy 1.0 (E3, chunks, vulkan)` is worse than `4B default (E2, 60 items, CPU)` by -0.117 overall (0.633 -> 0.517); the `measured` row is the one to read first.
 ```
 
-and it is **paired**: `--align` cuts both sides to the 20 items Occamy actually measured (the
-baseline's other 40 rows are dropped from *both* columns, so the two sides ask the same questions).
+`Occamy 1.0 (E3, chunks, vulkan)` is -0.117 against `4B default (E2, 60 items, CPU)` overall (0.633 -> 0.517); the paired comparison covers 60 dev items and drops 0 unpaired baseline row(s) and 0 unpaired challenger row(s), so both sides answer the same questions.
 
 ### 4.1 What the numbers say
 
-<!-- @@COMPARISON_TEXT@@ -->
+* **`choice`**: 0.750 (18/24) [0.551–0.880] against 0.625 (15/24) [0.427–0.788] — delta -0.125.
+* **`noul`**: 0.889 (16/18) [0.672–0.969] against 0.389 (7/18) [0.203–0.614] — delta -0.500.
+* **`score`**: 0.222 (4/18) [0.090–0.452] against 0.500 (9/18) [0.290–0.710] — delta +0.278.
+* **mass**: Occamy's answers fall below the 0.10 floor on 57 of its 60 rows (the 4B's on 12); inside the split the two are level (0.500 (6/12) [0.254–0.746] against 0.509 (29/57) [0.383–0.634]), and the row the table says to read first is `measured` — 0.667 (32/48) [0.525–0.783] against 0.667 (2/3) [0.208–0.939], which is only 0 item(s).
+* **verdict**: 7 items apart overall at n = 60 (0.633 vs 0.517); the two Wilson intervals overlap, so the headline cannot separate the models — the rows that separate them are the per-type ones and the mass split above.
 
-* **The two models are 0.05 apart overall on the 20 paired items** (4B 10/20, Occamy 9/20) — i.e.
-  one item, well inside both Wilson intervals. The 20-item paired table cannot separate them; what
-  it *can* say is where they differ, and that is not noise:
-* **Occamy's answers are low-mass on every single item** (`low_mass` 20/20, i.e. the full-vocabulary
-  mass the engine saw on the candidate tokens was under the 0.10 floor on all 20). The 4B on the
-  same items is `low_mass` on 3/20, and its `measured` row (17 items, 9 correct, 0.529) is the one
-  the table says to read first — Occamy has no `measured` row at all. The discrete decisions are
-  still 9/20 correct, but they are taken on a distribution that barely assigns mass to the labels
-  the protocol asks for.
-* **The per-type split is not noise either**: `noul` 6/6 for the 4B against 1/6 for Occamy, while
-  `score` goes the other way (1/7 vs 4/7). Five of Occamy's six noul answers are `no` with
-  confidence 0.76–0.90 (the dev set's gold is `yes` for five of them), which is a systematic
-  answer-style difference, not item-level luck.
-* **This is model behaviour, not a rendering bug** (worth saying because the first hypothesis to
-  check was a template failure): both GGUFs carry their own `tokenizer.chat_template`, both resolve
-  through the chain's step 1 (`source='gguf:tokenizer.chat_template'`, no warnings), and both
-  prompts end at their assistant header — `<|im_start|>assistant\n` for Occamy,
-  `<|Bot|></think>\n` for the 4B (`tools/`-style probe, reproduced in §4.2). The difference is what
-  the model does with that prompt, not what it was given.
+The Occamy side of this table is the merged campaign report (`[container]` ×2 + `[host]` ×4, per-chunk tags in §2.3), measured with `--backend vulkan --gpu-layers 7 --threads 4`; the baseline is E2's 4B default on the CPU. Agreement does not depend on the ladder a chunk settled on, and every chunk report carries its own compute-path evidence (table in §2.3).
+<!-- @@E3_COMPARE_END@@ -->
 
 ### 4.3 Report integrity, the way the coordinator asked for it
 
-Every Occamy row in this document comes from a run with an **explicit `--backend vulkan`** (never
-`--backend all`, which on a single-bundle host is designed to fail the `cpu` row — coordinator's
-`t_dd62ec29` note), and every report's own `ok`/row count was checked before publishing:
+<!-- @@E3_INTEGRITY_BEGIN@@ -->
+Every Occamy row in this document comes from a run with an **explicit `--backend vulkan`** (never `--backend all`, which on a single-bundle host is designed to fail the `cpu` row — coordinator's `t_dd62ec29` note), and every report's own `ok`/row count was checked before publishing:
 
-| report | `ok` | rows |
-|---|---|---|
-| `e3_chunks/report_001.json` | `true` | 10/10 items measured |
-| `e3_chunks/report_002.json` | `true` | 10/10 items measured |
-| `e3_occamy_quality.json` (merged) | `true` | 20 items, `chunks` names both |
-| `e3_batch.json` (serving path) | exit 0 | 20/20 answers, `engine` + `usage` present |
+| report | box | `ok` | rows | report shape |
+|---|---|---|---|---|
+| `report_001.json` | `[container]` | `true` | 10 items | placement block, no `devices`/`device_buffers`/`effective_backend` |
+| `report_002.json` | `[container]` | `true` | 10 items | placement block, no `devices`/`device_buffers`/`effective_backend` |
+| `report_003.json` | `[host]` | `true` | 10 items | carries the `t_603a35a0` device attribution (`devices`/`device_buffers`/`effective_backend`) |
+| `report_004.json` | `[host]` | `true` | 10 items | carries the `t_603a35a0` device attribution (`devices`/`device_buffers`/`effective_backend`) |
+| `report_005.json` | `[host]` | `true` | 10 items | carries the `t_603a35a0` device attribution (`devices`/`device_buffers`/`effective_backend`) |
+| `report_006.json` | `[host]` | `true` | 10 items | carries the `t_603a35a0` device attribution (`devices`/`device_buffers`/`effective_backend`) |
+| `e3_occamy_quality.json` (merged) | — | `true` | 60 items, `chunks` lists all 6 | top-level keys are chunk 001's (`merge_reports` copies the first report's envelope) |
+<!-- @@E3_INTEGRITY_END@@ -->
 
 The failure shape we *did* meet is the documented one for a busy GPU, and it did not cost a row:
-`ggml_vulkan: Device memory allocation of size 949969664 failed → ErrorOutOfDeviceMemory` twice,
-after which the E1c degrade ladder dropped the placement (7 → 3 → 0 layers) and the run continued
-(`degraded: true` in each chunk's `placement.used`). No `SIGSEGV`, no `ok: false`, no exit 1 in any
-E3 run.
+`ggml_vulkan: Device memory allocation of size 949969664 failed → ErrorOutOfDeviceMemory` in the
+container chunks (the ladder dropped the placement 7 → 3 → 0 layers and the run continued,
+`degraded: true` in `placement.used`), and the same `ErrorOutOfDeviceMemory` on the host, where the
+allocation that fails is the first offload attempt on a device the desktop already fills. No
+`SIGSEGV`, no `ok: false`, no exit 1 in any E3 run.
+
+### 4.4 Report provenance, and the one thing that does not line up
+
+`report_001.json` and `report_002.json` do **not** have the key shape the committed bench path
+writes: they carry a `placement` block that no revision of `suites._run_quality` in this repo writes
+(the key exists only in the latency suite's report) and lack `budget`/`wall_ms`/`truncated`/
+`skipped`/`quick` plus the `devices`/`device_buffers`/`effective_backend` attribution the same
+card's QA note says they carry (`docs/evidence/e2_quality.json`, the 4B baseline, has the same
+reduced shape — so the reduction predates this card). Their rows are the published container
+measurements and nothing in this card changed them; the four `[host]` chunks are written by
+`tools/e3_reproduce.py` from the committed tree, so the merge mixes both shapes — the merged
+report's envelope is chunk 001's, because `compare.merge_reports` copies the first report — and §4.3
+prints the per-report shape in its table rather than papering over it. The two files are left as
+published: re-generating them is a decision for the coordinator, not a completion card.
 
 ### 4.2 The prompt check (offline, no model load)
 

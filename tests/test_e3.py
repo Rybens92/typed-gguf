@@ -287,3 +287,83 @@ def test_the_chunk_writer_round_trips_through_the_devset_parser(tmp_path):
     # a chunk is a valid dev set except for the set-size floor A-E2-3 puts on the full set
     assert [problem for problem in devset.validate(devset.load(written[0]))
             if not problem.startswith("only 10 items")] == []
+
+
+# -------------------------------------- the published sections are generated, not hand-edited
+def load_builder():
+    """Import `tools/e3_build_evidence.py` (the doc generator) the way the gates import a tool."""
+    import importlib.util
+    import pathlib
+    import sys
+
+    root = pathlib.Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("e3_build_evidence",
+                                                 root / "tools" / "e3_build_evidence.py")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["e3_build_evidence"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_published_e3_sections_are_currently_generated_from_the_artifacts():
+    """Card `t_6d2e084d`: `docs/BENCHMARKS.md` §6.4 and the E3 evidence doc §2.3/§4 are generated.
+
+    The card that finishes A-E3-3 requires those sections to be *re-generated, not hand-edited*,
+    because a chunk landing moves `n`, the intervals and the mass split. This gate re-renders every
+    marked region from the committed artifacts and fails when a file differs — which is what makes
+    "regenerate, never patch a number" enforceable instead of a promise.
+    """
+    module = load_builder()
+    regions = module.region_texts()
+    assert set(regions) == set(module.REGIONS)
+    for name, body in regions.items():
+        assert body.strip(), f"{name} rendered empty"
+        path = module.REGION_FILES[name]
+        begin, end = module.REGIONS[name]
+        text = path.read_text(encoding="utf-8")
+        assert text.count(begin) == 1, f"{path.name}: {begin} appears {text.count(begin)}x"
+        assert text.count(end) == 1, f"{path.name}: {end} appears {text.count(end)}x"
+        assert module.splice(text, begin, end, body) == text, (
+            f"{path.name}:{name} is stale — run `python3 tools/e3_build_evidence.py`")
+
+
+def test_the_box_tag_is_read_from_the_report_not_the_file_name():
+    """`[container]` / `[host]` is evidence, so it is derived: the cgroup keys decide.
+
+    The worker container's reports carry `cgroup_memory_bytes` (8 GiB) and `cgroup_cpu_max`
+    (2 CPU-s/s) because `harness.host_facts` records a kernel-exposed cgroup; the host run has no
+    such keys. A tag typed into a table would be exactly the kind of claim this milestone exists to
+    stop.
+    """
+    module = load_builder()
+    assert module.report_box({"host": {"cgroup_memory_bytes": 8589934592,
+                                       "cgroup_cpu_max": 2.0}}) == "container"
+    assert module.report_box({"host": {"cgroup_memory_bytes": None, "cgroup_cpu_max": None,
+                                       "cpu_count": 24}}) == "host"
+    assert module.report_box({"host": {"cpu_count": 24}}) == "host"
+    assert module.report_box({}) == "host"
+
+
+def test_the_merged_report_covers_every_committed_chunk():
+    """Requirement 1 of the completion card, as a gate: all six chunks, all 60 rows, `ok: true`.
+
+    A chunk that died mid-run is the documented `ErrorOutOfDeviceMemory`/teardown shape, and the
+    rule is to re-run it rather than publish the gap — so the published merge has to fail here the
+    moment one of them is missing a row.
+    """
+    import json
+    import pathlib
+
+    root = pathlib.Path(__file__).resolve().parents[1]
+    paths = sorted((root / "docs/evidence/e3_chunks").glob("report_*.json"))
+    assert [path.name for path in paths] == [f"report_{number:03d}.json" for number in range(1, 7)]
+    reports = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
+    merged = json.loads((root / "docs/evidence/e3_occamy_quality.json").read_text(encoding="utf-8"))
+    assert merged["ok"] is True
+    assert len(merged["chunks"]) == len(reports) == 6
+    per_chunk = [entry["items"] for entry in merged["chunks"]]
+    assert per_chunk == [len(item["items"]) for item in reports]
+    assert merged["overall"]["n"] == sum(len(item["items"]) for item in reports) == 60
+    for path, item in zip(paths, reports, strict=True):
+        assert item["ok"] is True, path.name
+        assert len(item["items"]) == 10, path.name

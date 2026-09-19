@@ -704,6 +704,10 @@ limit, the second of which decides this section.
 
 ### 6.2 What the 23 GB model costs here (A-E3-1, A-E3-4)
 
+**`[container]`** — the per-item cost table below is the 8 GiB / 2 CPU-seconds-per-second worker
+cgroup, which is the box this section is about; the `[host]` chunks the completion card added are
+tagged in the chunk ledger at the end of the subsection.
+
 `ggufone fit --print --json` (E1c, measured against free VRAM) says **`n_gpu_layers 7/40,
 n_ctx 4096, kv_type q4_0, n_seq_max 8`** — 7 layers is all that 5685 MiB of free VRAM buys at
 ~600 MB per layer. The cost, however, is not the GPU: an mmap'd GGUF is cached by whichever cgroup
@@ -718,16 +722,24 @@ every forward pass re-reads experts from disk (~14 000 major faults/s ≈ 55 MB/
 | placement used | `{n_gpu_layers: 7, kv_type: auto, degraded: false, attempts: []}`, log line `Vulkan0 compute buffer size 362.2 MiB` |
 | degraded attempt seen later | `ErrorOutOfDeviceMemory` (~950 MB buffer) → ladder settled at 3 layers / CPU-only, per chunk |
 
-A 60-item pass is therefore ~2.5–4.5 h on this box. That is a property of `23 GB vs 8 GiB`, not a
-flag to tune, and it is why the campaign below is **chunked** (10 items per chunk, each chunk a
-complete `--suite quality` report of its own subset; `compare.merge_reports` stitches them):
+A 60-item pass is therefore ~2.5–4.5 h **in the container**. That is a property of `23 GB vs 8 GiB`,
+not a flag to tune, and it is why the campaign is **chunked** (10 items per chunk, each chunk a
+complete `--suite quality` report of its own subset; `compare.merge_reports` stitches them). Once
+the card moved the last four chunks onto the operator host, the same protocol became compute-bound
+there — the tag on every row says which box produced it:
 
-| chunk | items (choice/score/noul) | placement used | per-item wall (median) | correct |
-|---|---|---:|---:|---:|
-| `docs/evidence/e3_chunks/report_001.json` | 10 (4/3/3) | CPU-only, `degraded: true` (`7→oom`, `3→oom`) | 113.2 s | 5/10 |
-| `docs/evidence/e3_chunks/report_002.json` | 10 (3/4/3) | `n_gpu_layers 3`, `degraded: true` (`7→oom`) | 99.5 s | 4/10 |
+<!-- @@E3C_BENCH_6_2_BEGIN@@ -->
+| chunk | box | items (choice/score/noul) | compute path the report proves | wall per item (median) | correct |
+|---|---|---|---|---:|---:|
+| `docs/evidence/e3_chunks/report_001.json` | `[container]` | 10 (4/3/3) | `n_gpu_layers 0`, `kv_type f16`, `degraded: true`, walked 7→oom, 3→oom | 113.2 s | 5/10 |
+| `docs/evidence/e3_chunks/report_002.json` | `[container]` | 10 (3/4/3) | `n_gpu_layers 3`, `kv_type f16`, `degraded: true`, walked 7→oom | 99.5 s | 4/10 |
+| `docs/evidence/e3_chunks/report_003.json` | `[host]` | 10 (3/3/4) | buffers: `Vulkan0`=10, `Vulkan_Host`=10; effective `vulkan` | 49.2 s | 4/10 |
+| `docs/evidence/e3_chunks/report_004.json` | `[host]` | 10 (4/3/3) | buffers: `Vulkan0`=10, `Vulkan_Host`=10; effective `vulkan` | 42.7 s | 4/10 |
+| `docs/evidence/e3_chunks/report_005.json` | `[host]` | 10 (3/4/3) | buffers: `Vulkan0`=10, `Vulkan_Host`=10; effective `vulkan` | 47.0 s | 8/10 |
+| `docs/evidence/e3_chunks/report_006.json` | `[host]` | 10 (7/1/2) | buffers: `Vulkan0`=10, `Vulkan_Host`=10; effective `vulkan` | 44.6 s | 6/10 |
 
-Merged: `docs/evidence/e3_occamy_quality.json` — 20 items, 9 correct (0.450, 95 % CI 0.258–0.658).
+Merged: `docs/evidence/e3_occamy_quality.json` — 60 items, 31 correct (0.517, 95 % CI 0.393–0.638); the `[container]` rows are the cost measurement this section is about, the `[host]` rows are the same protocol on a box that caches the weights.
+<!-- @@E3C_BENCH_6_2_END@@ -->
 
 ### 6.3 The 20-question batch (A-E3-2)
 
@@ -747,23 +759,26 @@ mislabelling class `t_603a35a0` fixed in the bench path, still present in the se
 
 ### 6.4 Occamy vs the 4B default (A-E3-3)
 
-Paired on the 20 dev items both models measured (`e2_quality.json` cut to the same ids —
-`tools/e3_reproduce.py --suite compare --align`):
+<!-- @@E3C_BENCH_6_4_BEGIN@@ -->
+Paired on the 60 dev items both models measured (`e2_quality.json` cut to the same ids — `tools/e3_reproduce.py --suite compare --align`):
 
-| metric | 4B default (E2, CPU) | Occamy 1.0 (E3, vulkan) | delta |
+Agreement on the committed dev set, 95 % Wilson intervals; the mass split uses the engine's own verdict, or `coverage < 0.10` where a report predates it.
+
+| metric | 4B default (E2, 60 items, CPU) | Occamy 1.0 (E3, chunks, vulkan) | delta |
 |---|---|---|---|
-| overall | 0.500 (10/20) [0.299–0.701] | 0.450 (9/20) [0.258–0.658] | -0.050 |
-| choice | 0.429 (3/7) [0.158–0.750] | 0.571 (4/7) [0.250–0.842] | +0.143 |
-| noul | 1.000 (6/6) [0.610–1.000] | 0.167 (1/6) [0.030–0.564] | -0.833 |
-| score | 0.143 (1/7) [0.026–0.513] | 0.571 (4/7) [0.250–0.842] | +0.429 |
-| `low_mass` (below the 0.10 floor) | 0.333 (1/3) | 0.450 (9/20) | +0.117 |
-| `measured` (at or above it) | 0.529 (9/17) [0.310–0.738] | — (no measured row: 20/20 low-mass) | — |
+| overall | 0.633 (38/60) [0.507–0.744] | 0.517 (31/60) [0.393–0.638] | -0.117 |
+| choice | 0.750 (18/24) [0.551–0.880] | 0.625 (15/24) [0.427–0.788] | -0.125 |
+| noul | 0.889 (16/18) [0.672–0.969] | 0.389 (7/18) [0.203–0.614] | -0.500 |
+| score | 0.222 (4/18) [0.090–0.452] | 0.500 (9/18) [0.290–0.710] | +0.278 |
+| low_mass (below the floor) | 0.500 (6/12) [0.254–0.746] | 0.509 (29/57) [0.383–0.634] | +0.009 |
+| measured (at or above the floor) | 0.667 (32/48) [0.525–0.783] | 0.667 (2/3) [0.208–0.939] | +0.000 |
 
-The two models are one item apart overall; the rows that separate them are `noul` (the 4B 6/6,
-Occamy 1/6 — five of six Occamy answers are `no` at confidence 0.76–0.90) and the mass split:
-**every Occamy answer on this dev set is `low_mass`**, while the 4B's are mostly not. Both prompts
-were verified to end at their own assistant header (no template failure): the difference is the
-model's answer distribution, not the bytes it was given.
+`Occamy 1.0 (E3, chunks, vulkan)` is worse than `4B default (E2, 60 items, CPU)` by -0.117 overall (0.633 -> 0.517); the `measured` row is the one to read first.
+
+What separates the models is the **split itself**: Occamy answers below the floor on 57 of its 60 rows, the 4B on 12 — while the agreement *inside* the split is level (0.509 (29/57) [0.383–0.634] against 0.500 (6/12) [0.254–0.746]). Per type: `choice` 0.750 (18/24) [0.551–0.880] vs 0.625 (15/24) [0.427–0.788]; `noul` 0.889 (16/18) [0.672–0.969] vs 0.389 (7/18) [0.203–0.614]; `score` 0.222 (4/18) [0.090–0.452] vs 0.500 (9/18) [0.290–0.710]. Overall the two are 0.117 apart at n = 60 and their Wilson intervals overlap, so this table cannot rank them on the headline.
+
+Both prompts were verified to end at their own assistant header (no template failure): the difference is the model's answer distribution, not the bytes it was given (§4.2 of the evidence doc).
+<!-- @@E3C_BENCH_6_4_END@@ -->
 
 ### 6.5 Threads, and the routing recommendation (A-E3-4)
 
