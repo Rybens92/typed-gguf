@@ -854,9 +854,10 @@ weights resident (the operator host's own 31 GiB) turns the same command into a 
 
 ## 7. E3c — Tiel-Coder (35B-A3B, 20.8 GB) measured like Occamy, and the three-way table
 
-> **Pre-fix rows (plain framing).** Every row below was measured with the pre-fix bench (card
-> `t_6de5fc53`), i.e. the plain E1b framing, while `ggufone ask`/`run` send Tiel's chat template.
-> §7.9 carries the corrected framing's six-item probe and labels what is routed.
+> **Pre-fix rows (plain framing).** Every row below — §7.1 to §7.8 — was measured with the pre-fix
+> bench (card `t_6de5fc53`), i.e. the plain E1b framing, while `ggufone ask`/`run` send Tiel's chat
+> template. **§7.4.1 carries the same 60 items re-measured on the host with the corrected
+> instrument** (card `t_7c926398`); §7.9 labels both.
 
 <!-- @@E3C_TIEL_BENCH_7_BEGIN@@ -->
 **This section is the third column of the `qwen35moe` comparison** (card `t_a58f8b67`): E2's
@@ -928,6 +929,9 @@ Decision cost per item over the 60 rows: median 5.0 s, min 1.2 s, max 65.2 s. Th
 byte-identical copies of `docs/evidence/e3_chunks/devset_00{1..6}.jsonl` (SHA-verified), so every
 column of the three-way table is paired on the same items.
 
+**The same 60 items under the corrected instrument are §7.4.1** (card `t_7c926398`): the `31/60`
+above is the *plain* framing — a prompt no caller sends (§7.9) — and the corrected row is `22/60`.
+
 ### 7.4 The mass split — and the shape it depends on (deliverable 3, input to `t_6952f0dd`)
 
 | | 4B default (E2) | Occamy 1.0 (E3) | **Tiel-Coder (E3c)** |
@@ -954,6 +958,50 @@ label correction is still wrong); on the **serving** shape *both* 35B-A3B models
 `readout: sequence`, 4 forks/question and one process for all 20 questions; **which** of those turns
 the cue row away from the labels is not measured here — it is the cue-shape card's probe
 (`t_6c119626`, `docs/evidence/e3c_cue_shapes.md`).
+
+### 7.4.1 The same 60 items under the corrected instrument (card `t_7c926398`, [host])
+
+§7.3/§7.4 measured the **plain** E1b framing (§7.9): the instrument planned its executed context
+from the live session, which resolves no chat template, so every row above describes a prompt
+`ggufone ask`/`run` never sends. Card `t_6de5fc53` fixed that; the table below is the same 60
+committed dev items measured again on the operator host with the corrected instrument — same model
+file (SHA-256 `9286a94c…`, identical before and after), same placement ask (9 layers, `degraded:
+false`, `kv_type` auto in every chunk), same `--threads 4`, tree `00265ea`. Only the instrument
+moved, and every row names its own framing surface (`chat-template: qwen35moe / builtin`, prefix
+84–109 tokens — the runtime's built-in family renderer, because the internal one rejects this
+template; `W_TEMPLATE_FALLBACK`).
+
+| row | framing | agreement | Wilson 95 % | `low_mass` | refused at the cue | coverage median | `measured` (≥ 0.10) | choice · noul · score |
+|---|---|---|---|---|---|---|---|---|
+| §7.3, **pre-fix** | plain (prompt.py E1b framing) | 31/60 = 0.517 | 0.393–0.638 | 14/60 | 0/60 | 0.2580 | 46/60 | 16/24 · 7/18 · 8/18 |
+| **corrected** | chat-template: qwen35moe / builtin | **22/60 = 0.367** | 0.256–0.493 | **57/60** | **59/60** | **0.000583** | **3/60** | 7/24 · 7/18 · 8/18 |
+
+Paired on the same items (exact McNemar + seeded percentile bootstrap, `tools/e3d_cue_decision.py`):
+risk difference **−0.150 [−0.300…+0.000]**, p = 0.078 (discordant: 15 items plain-only correct,
+6 corrected-only). The agreement point estimate therefore sits *inside* its paired interval; what
+the framing destroys is the **readout** (46/60 usable rows → 3/60), not the argmax — 21 of the 22
+correct rows are read off a `low_mass` tail.
+
+**The corrected row says the model closes the turn where the label is read.** 59 of 60 rows put a
+turn-closer on the cue row (`</think>` 32, `<|im_end|>` 26, `<think>` 1) — the engine's own
+`W_CUE_REFUSED` — against 0/60 under the plain framing, so §7.4's "Tiel is not starved" is a
+statement about a prompt no caller sends. Parity is not assumed from the label: the repository's
+live gate was run on **this model file** for this card and passes (`item c01: serving prefix 109
+tokens, bench prefix 109 tokens`, `.t7c9/live_parity_tiel.txt`).
+
+**The cue knob does not rescue it (measured, auxiliary).** The same 60 items were re-run once at
+`--cue two_step` on the same placement: it moves **exactly one row of sixty** — where the cue
+refuses, `decide._advance_token` never advances (E3d's rule) — the agreement is unchanged (22/60),
+and refusals go 59 → 60. So "try a different cue shape" is closed by measurement for this model;
+the fix has to stop the prefill before the row Tiel closes, which is card `t_4c48f40a` (E3e)'s
+instructed-JSON + roles-split policy. **The default stays `shipped`** (E3d's decision — this card is
+the instrument, not the default).
+
+Full detail (per-chunk placement ledger, refusal breakdown, the paired item flips, the auxiliary
+arm's row diff): `docs/evidence/t7c926398_tiel_corrected.md`; raw
+`docs/evidence/tiel_corrected_quality.json` + `docs/evidence/tiel_corrected_chunks/`, auxiliary arm
+`docs/evidence/tiel_two_step_quality.json`.
+<!-- @@T7C926398_TIEL_CORRECTED_END@@ -->
 
 ### 7.5 The 20-question batch (deliverable 4)
 
@@ -1005,6 +1053,12 @@ intervals do not overlap), and the honest reading of the whole table is that the
 checkpoints are the same quality on this set while differing in *how much a reader can trust each
 number* (7.4).
 
+**Framing caveat on this table (card `t_7c926398`).** All three columns are **pre-fix (plain
+framing)** rows. The 4B has a corrected row (§2.2: `42/60`) and Tiel has one (§7.4.1: `22/60`);
+Occamy's corrected row is not measured. The table is comparable *within* the plain instrument only —
+reading Tiel's column as "the prompt the product sends" reads the wrong bytes — and a
+framing-matched three-way table needs Occamy re-run on the host.
+
 ### 7.8 What §7 does not claim
 
 No ranking (intervals overlap); no mechanism for the bench/serving split; no speed comparison
@@ -1019,9 +1073,11 @@ between the two batches; no claim about the token id `248069` beyond what it is 
 **Every row of §7 is pre-fix (plain framing).** The instrument planned the executed context from the
 live session, which resolves no chat template, so §7.3's `31/60` and §7.4's `46/60` `measured` rows
 were measured with the plain E1b framing while `ggufone ask`/`run` send Tiel's own chat template
-(`qwen35moe`). The corrected 60-item [host] re-run is **routed, not claimed here** — the card's box
-cannot hold a 21 GB model. What ran there is a placement-matched six-item probe
-(`docs/evidence/framing/`, receipts next to the reports):
+(`qwen35moe`). **The corrected 60-item [host] re-run has landed — it is §7.4.1** (card
+`t_7c926398`): the same 60 items, `22/60`, `59/60` refusals at the cue, same placement ask, tree
+`00265ea`. What a *container* could run is the placement-matched six-item probe below
+(`docs/evidence/framing/`, receipts next to the reports), and the host row confirms its direction at
+full size:
 
 | model (probe, 6 items) | framing | agreement | `low_mass` | refused at the cue | coverage median |
 |---|---|---|---|---|---|
@@ -1035,8 +1091,10 @@ pre-fix arm, asked for directly in the post-fix one — Occamy 7 layers; identic
 `n_seq_max`, `threads` and `kv_type_used`). **The direction is that the product's own prompt
 collapses both 35B-A3B models at the shipped cue — 6/6 refusals on six items**, which is the
 behaviour §7.4's bench-vs-serving split predicted for the batch shape. Six items is a probe, not a
-table: §7.3/§7.4's published numbers stand, now labelled, and the [host] re-run is where they get
-replaced. Full detail: `docs/evidence/e2_fix_t_6de5fc53_framing.md` §4.3.
+table — which is why §7.4.1 (the full 60 on the host) is where the reading is re-derived, and why
+§7.3/§7.4 keep their numbers under this marker. Full detail:
+`docs/evidence/e2_fix_t_6de5fc53_framing.md` §4.3 (the probe) and
+`docs/evidence/t7c926398_tiel_corrected.md` (the 60-item re-run).
 
 ## 8. E3d — the cue switch, measured through the bench (card `t_d90404ac`)
 
