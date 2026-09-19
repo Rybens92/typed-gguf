@@ -30,7 +30,7 @@ The trees the measurements ran against:
 | `repro/starve_and_run.sh` | recipe A: starve the device **before** the child (the "too full to load" side: the loader's own fit ladder refuses with a typed `E_BACKEND_OOM`) |
 | `repro/starve_at_teardown.sh` | recipe B: let the placement load, then **hold VRAM while the child exits**; the 5th arg `gdb` adds a C backtrace |
 | `repro/batch_teardown.sh` | repeats recipe B until a *signal* appears (the crash shape), stopping at the first one |
-| `repro/hold_and_run.sh` | recipe A with a **confirmed band**: the hold is proven with nvidia-smi (±256 MiB of the target) *before* the child starts, and the device is sampled every 2 s while it runs |
+| `repro/hold_and_run.sh` | the single-attempt form of (6): the hold is proven with nvidia-smi (±256 MiB of the target) *before* the child starts, and the device is sampled every 2 s while it runs (`crashrate.sh` loops it and adds the rate summary) |
 | `repro/crashrate.sh` | the band + repetition driver: waits for the ambient window, holds to `keep_free`, repeats the documented single-bundle child, stops at the first fatal signal. This is the recipe that fixes recipe A's failure mode |
 | `repro/mixed_retry_run.sh` | the same hold around the two-bundle `bench --backend all` command; stops when a report shows `RECOVERED_AFTER_TEARDOWN_CRASH` or `W_BACKEND_CRASHED_AT_TEARDOWN` |
 | `repro/integration_check.sh` | the two cards' intersection: the documented mixed command on the integrated tree, expected to publish every row with no withheld row and no warning |
