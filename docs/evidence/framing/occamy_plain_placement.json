@@ -1,0 +1,26 @@
+{
+ "backend": "vulkan",
+ "devset": "/work/t6de5/ggufone/docs/evidence/tiel_chunks/devset_001.jsonl",
+ "gpu_layers_requested": 7,
+ "kv_type_used": "auto",
+ "load_ms": 39645.35956599866,
+ "load_wall_s": 46.584,
+ "model": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+ "n_ctx": 165,
+ "n_prefix": 94,
+ "n_seq_max": 3,
+ "placement": {
+  "attempts": [],
+  "degraded": false,
+  "kv_type": "auto",
+  "n_gpu_layers": 7,
+  "note": "fit plan: 7 layer(s) offloaded, kv_type=auto",
+  "warnings": []
+ },
+ "placements_seen": null,
+ "schema": "ggufone.e3c_tiel.placement/v1",
+ "started": "2026-09-19T18:43:32+0000",
+ "suite": "quality",
+ "threads": 4,
+ "wall_s": 437.6
+}

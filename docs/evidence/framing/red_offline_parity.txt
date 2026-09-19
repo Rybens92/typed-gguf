@@ -1,0 +1,55 @@
+F.                                                                       [100%]
+=================================== FAILURES ===================================
+______________ test_the_executed_plan_is_resolved_from_the_handle ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f434a8e0fd0>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2942/test_the_executed_plan_is_reso0')
+
+    def test_the_executed_plan_is_resolved_from_the_handle(monkeypatch: pytest.MonkeyPatch,
+                                                           tmp_path) -> None:
+        """ONE plan: the executed plan is the handle's, and the session is never asked to plan."""
+        handle = object()
+        planned_on: list[object] = []
+    
+        def fake_plan_context(request: object, tokenizer: object, **kwargs: object
+                              ) -> decide_module.ContextPlan:
+            planned_on.append(tokenizer)
+            return _plan(HANDLE_TOKENS) if tokenizer is handle else _plan(SESSION_TOKENS)
+    
+        executed: list[object] = []
+    
+        class StubEngine:
+            def __init__(self, session: object, **kwargs: object) -> None:
+                self.session = session
+    
+            def decide(self, request: object, *, plan: object = None,
+                       model_alias: str | None = None) -> str:
+                executed.append(plan)
+                return "stub-result"
+    
+        monkeypatch.setattr(decide_module, "plan_context", fake_plan_context)
+        monkeypatch.setattr(decide_module, "DecisionEngine", StubEngine)
+        monkeypatch.setattr(session_module, "ModelSession", lambda *a, **kw: _StubSession())
+    
+        model = harness.LiveModel(harness.ModelSpec(path=str(tmp_path / "m.gguf"), backend="cpu"),
+                                  states_home=tmp_path / "states")
+        model.handle = handle                                    # bypass the real load
+        payload = devset_module.request_for(devset_module.load()[0], model="bench", threads=1)
+        model.decide(schema.parse_request(payload))
+    
+        assert executed, "the engine never ran"
+        assert executed[0] is not None, "the bench must hand the engine a plan"
+>       assert executed[0].prefix_tokens == HANDLE_TOKENS, (
+            "the executed plan is not the one resolved from the handle: the bench planned from the "
+            "session (plain framing), which is a different prompt than the serving path sends")
+E       AssertionError: the executed plan is not the one resolved from the handle: the bench planned from the session (plain framing), which is a different prompt than the serving path sends
+E       assert (1, 2) == (101, 102, 103)
+E         
+E         At index 0 diff: 1 != 101
+E         Right contains one more item: 103
+E         Use -v to get more diff
+
+tests/test_bench_prompt_parity.py:84: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_bench_prompt_parity.py::test_the_executed_plan_is_resolved_from_the_handle
+1 failed, 1 passed in 0.27s

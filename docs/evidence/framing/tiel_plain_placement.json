@@ -1,0 +1,31 @@
+{
+ "backend": "vulkan",
+ "devset": "/work/t6de5/ggufone/docs/evidence/tiel_chunks/devset_001.jsonl",
+ "gpu_layers_requested": 9,
+ "kv_type_used": "auto",
+ "load_ms": 22385.625590999553,
+ "load_wall_s": 52.002,
+ "model": "/var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+ "n_ctx": 165,
+ "n_prefix": 94,
+ "n_seq_max": 3,
+ "placement": {
+  "attempts": [
+   "n_gpu_layers=9 -> oom"
+  ],
+  "degraded": true,
+  "kv_type": "f16",
+  "n_gpu_layers": 4,
+  "note": "degraded after a backend allocation failure: 4 layer(s) offloaded, kv_type=f16",
+  "warnings": [
+   "W_BACKEND_OOM",
+   "W_FIT_DOWNGRADE"
+  ]
+ },
+ "placements_seen": null,
+ "schema": "ggufone.e3c_tiel.placement/v1",
+ "started": "2026-09-19T18:34:23+0000",
+ "suite": "quality",
+ "threads": 4,
+ "wall_s": 546.6
+}

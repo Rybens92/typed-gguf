@@ -156,6 +156,13 @@ frozen wire shape of SPEC §2.5).
 
 ## 2. Quality on our own dev set (A-E2-3) and calibration (A-E2-4)
 
+> **Pre-fix rows (plain framing).** Everything in this section — the tables, §2.1's split and
+> `docs/evidence/e2_quality.json` — was measured **before** the bench was fixed (card
+> `t_6de5fc53`): the instrument planned the executed context from the live session, which resolves
+> no chat template, so these rows are the **plain E1b framing** while `ggufone ask`/`run` sends the
+> model's chat template. **§2.2 carries the same row re-measured with the corrected instrument**;
+> the two must not be mixed.
+
 **Provenance (S-10).** The dev set is `src/ggufone/bench/devset.jsonl`: **60 items authored for
 this repository** (24 `choice`, 18 `score`, 18 `noul`), each one state of ≤ 200 tokens with a
 single defensible answer, one question per item. No vendor evaluation set, no scraped benchmark,
@@ -225,6 +232,47 @@ behaviour, and it is worth more than the headline number:
 | overall | 60 | 38 | 0.6333 | 0.5068 – 0.7438 |
 
 - agreement = the highest-probability candidate equals the gold candidate (the discrete decision), measured per question type and overall with 95% Wilson intervals; report-only in v1 (SPEC S-11).
+
+### 2.2 The same row with the corrected instrument (card `t_6de5fc53`)
+
+The bench used to plan the executed context from the live `ModelSession` — no `.model`/`.runtime`,
+so `resolve_template` returned `None` and `prompt.build_prefix(state, None)` fell back to the bare
+E1b framing — while `ggufone ask`/`run` planned from the model handle (the chat template).
+**Fixed**: one plan, resolved from the handle, and every row now carries the framing it measured
+(`framing`, `prefix_tokens`; the report prints `- framing: …`).
+
+Same box, same model, same 60 items, same command; only the tree and `--cue` move:
+
+| arm | framing | agreement | Wilson 95 % | `low_mass` | refused at the cue | coverage median | above the 0.10 floor | choice · noul · score |
+|---|---|---|---|---|---|---|---|---|
+| `--cue shipped`, **pre-fix** | plain (prompt.py E1b framing) | 36/60 = 0.600 | 0.474–0.714 | 13/60 | 0/60 | 0.2711 | 47/60 | 16/24 · 16/18 · 4/18 |
+| `--cue shipped`, **post-fix** | chat-template: spark2_5 / internal | **42/60 = 0.700** | 0.575–0.801 | **45/60** | 1/60 | 0.03847 | 15/60 | 20/24 · 16/18 · 6/18 |
+
+Raw reports: `.e3d/bench_plain_shipped.json` (pre-fix) and `.e3d/bench_templated_shipped.json`
+(post-fix); the pre-fix file reproduces the published `.e3d/bench_shipped.json` item for item
+(same agreement, same `low_mass`, same coverage list).
+
+**What moves.** The prefix itself (102 → 119 tokens on `c01`), the mass split — the chat template
+parks the cue row on a bare newline, so the label mass there is a tail (`low_mass` 13 → 45,
+coverage median 0.2711 → 0.0869, above the floor 47 → 15) — and the agreement (36 → 42).
+E2's published 38/60 is a *plain* row from an earlier campaign; the corrected row for the prompt
+the product sends is the 42/60 above (the two items between 36 and 38 are the box/fit drift §8
+already records, not the framing).
+
+Reliability split, §2.1's shape, both framings:
+
+| framing | reliability | items | correct | agreement | 95 % CI |
+|---|---|---|---|---|---|
+| plain (pre-fix) | `ok` | 47 | 31 | 0.6596 | 0.5167 – 0.7783 |
+| plain (pre-fix) | `low_mass` | 13 | 5 | 0.3846 | 0.1771 – 0.6448 |
+| chat template (post-fix) | `ok` | 15 | 11 | 0.7333 | 0.4805 – 0.8910 |
+| chat template (post-fix) | `low_mass` | 45 | 31 | 0.6889 | 0.5433 – 0.8047 |
+
+**The `low_mass` count is a statement about the *cue shape*, not about the model.** With the
+product's own prompt the shipped cue lands on a row whose mass is a tail for 45 of 60 items — which
+is the thing E3d's `--cue two_step` changes (§8, `docs/evidence/e3d_cue_decision_4b.md`), and it is
+the reason the corrected instrument's `low_mass` column and the pre-fix one are not the same
+measurement.
 
 ## 3. The measurements
 
@@ -684,6 +732,11 @@ nothing on the 20 held-out items. Every re-ask is logged with its trigger and it
   (injected VRAM numbers, the free-VRAM margin, the KV-floor fallback) and only its CPU branch live.
 ## 6. E3 — the 23 GB MoE on this box (Occamy 1.0, `qwen35moe`)
 
+> **Pre-fix rows (plain framing).** Every row below was measured with the pre-fix bench (card
+> `t_6de5fc53`), i.e. the plain E1b framing, while `ggufone ask`/`run` send Occamy's chat template
+> (`qwen35moe`). The corrected framing's six-item probe is in `docs/BENCHMARKS.md` §7.9 and
+> `docs/evidence/e2_fix_t_6de5fc53_framing.md` §4.3.
+
 **These rows are not comparable with §0–§5 without their environment**: E2 was measured in a
 container with **no GPU reachable** (`/dev/dri` absent); E3 ran in a worker container that *has*
 the GPU (an ICD manifest fix, see the evidence doc §1.1), so its rows carry a `backend: vulkan`
@@ -800,6 +853,10 @@ requests — and route the interactive work elsewhere**: 0.28 tok/s decode is th
 weights resident (the operator host's own 31 GiB) turns the same command into a compute-bound run.
 
 ## 7. E3c — Tiel-Coder (35B-A3B, 20.8 GB) measured like Occamy, and the three-way table
+
+> **Pre-fix rows (plain framing).** Every row below was measured with the pre-fix bench (card
+> `t_6de5fc53`), i.e. the plain E1b framing, while `ggufone ask`/`run` send Tiel's chat template.
+> §7.9 carries the corrected framing's six-item probe and labels what is routed.
 
 <!-- @@E3C_TIEL_BENCH_7_BEGIN@@ -->
 **This section is the third column of the `qwen35moe` comparison** (card `t_a58f8b67`): E2's
@@ -957,6 +1014,30 @@ between the two batches; no claim about the token id `248069` beyond what it is 
 (`.e3c_tiel/flawed_capped/`).
 <!-- @@E3C_TIEL_BENCH_7_END@@ -->
 
+### 7.9 The framing marker on these rows (card `t_6de5fc53`)
+
+**Every row of §7 is pre-fix (plain framing).** The instrument planned the executed context from the
+live session, which resolves no chat template, so §7.3's `31/60` and §7.4's `46/60` `measured` rows
+were measured with the plain E1b framing while `ggufone ask`/`run` send Tiel's own chat template
+(`qwen35moe`). The corrected 60-item [host] re-run is **routed, not claimed here** — the card's box
+cannot hold a 21 GB model. What ran there is a placement-matched six-item probe
+(`docs/evidence/framing/`, receipts next to the reports):
+
+| model (probe, 6 items) | framing | agreement | `low_mass` | refused at the cue | coverage median |
+|---|---|---|---|---|---|
+| Tiel-Coder 35B-A3B, pre-fix | plain (prompt.py E1b framing) | 3/6 | 3/6 | 3/6 | 0.2605 |
+| Tiel-Coder 35B-A3B, post-fix | chat-template: qwen35moe / builtin | 0/6 | 6/6 | 6/6 | 1.94e-04 |
+| Occamy 1.0, pre-fix | plain (prompt.py E1b framing) | 3/6 | 6/6 | 0/6 | 0.03233 |
+| Occamy 1.0, post-fix | chat-template: qwen35moe / internal | 1/6 | 6/6 | 6/6 | 4.02e-06 |
+
+Both arms of each pair ran the same placement (Tiel 4 layers — reached by de-escalation in the
+pre-fix arm, asked for directly in the post-fix one — Occamy 7 layers; identical `n_ctx`, `n_prefix`,
+`n_seq_max`, `threads` and `kv_type_used`). **The direction is that the product's own prompt
+collapses both 35B-A3B models at the shipped cue — 6/6 refusals on six items**, which is the
+behaviour §7.4's bench-vs-serving split predicted for the batch shape. Six items is a probe, not a
+table: §7.3/§7.4's published numbers stand, now labelled, and the [host] re-run is where they get
+replaced. Full detail: `docs/evidence/e2_fix_t_6de5fc53_framing.md` §4.3.
+
 ## 8. E3d — the cue switch, measured through the bench (card `t_d90404ac`)
 
 E3d asked whether a different cue shape beats the shipped one, decided it on the full dev set
@@ -970,38 +1051,50 @@ reason the default did not move.
 Same box, same model (`Spark-X2.5-4B-Q8_0.gguf`), same 60 committed dev items, same context, same
 placement (the Vulkan bundle, the device visible — the rows carry `effective_backend: vulkan` and
 `W_BACKEND_MISMATCH`, because the request's *claim* is `cpu` while Vulkan0 computed, see §7.1 and
-E3c). Only `--cue` moves:
+E3c). Only `--cue` moves, and every row names its framing:
 
-| `--cue` | agreement | Wilson 95 % | `low_mass` | refused at the cue | coverage median | above the 0.10 floor |
-|---|---|---|---|---|---|---|
-| `shipped` (the default) | 36/60 = 0.600 | 0.474–0.714 | 13/60 | 0/60 | 0.2711 | 47/60 |
-| `two_step` | 27/60 = 0.450 | 0.331–0.575 | 29/60 | 8/60 | 0.1103 | 31/60 |
+| `--cue` | framing | agreement | Wilson 95 % | `low_mass` | refused at the cue | coverage median | above the 0.10 floor | choice · noul · score |
+|---|---|---|---|---|---|---|---|---|
+| `shipped` (the default), **pre-fix** | plain (prompt.py E1b framing) | 36/60 = 0.600 | 0.474–0.714 | 13/60 | 0/60 | 0.2711 | 47/60 | 16/24 · 16/18 · 4/18 |
+| `two_step`, **pre-fix** | plain (prompt.py E1b framing) | 27/60 = 0.450 | 0.331–0.575 | 29/60 | 8/60 | 0.1103 | 31/60 | 15/24 · 7/18 · 5/18 |
+| `json_field`, **pre-fix** | plain (prompt.py E1b framing) | 46/60 = 0.767 | 0.646–0.856 | 0/60 | 0/60 | 0.8544 | 60/60 | 21/24 · 17/18 · 8/18 |
+| `shipped`, **post-fix** | chat-template: spark2_5 / internal | 42/60 = 0.700 | 0.575–0.801 | 45/60 | 1/60 | 0.03847 | 15/60 | 20/24 · 16/18 · 6/18 |
+| `two_step`, **post-fix** | chat-template: spark2_5 / internal | **47/60 = 0.783** | 0.664–0.869 | **3/60** | 3/60 | 0.9708 | 57/60 | 21/24 · 15/18 · 11/18 |
+| `json_field`, **post-fix** | chat-template: spark2_5 / internal | 51/60 = 0.850 | 0.739–0.919 | 0/60 | 0/60 | 0.9997 | 60/60 | 23/24 · 17/18 · 11/18 |
 
-Per type (`shipped` → `two_step`): `choice` 16/24 → 15/24, `noul` 16/18 → 7/18, `score` 4/18 → 5/18.
-Reproduce: `bash .e3d/run_bench_arms.sh` (arms kept as `.e3d/bench_shipped.json`,
-`.e3d/bench_two_step.json`; the flag is `tools/e2_reproduce.py --cue <shape>`).
+**The pre-fix rows measured the plain framing and the post-fix rows the model's chat template — the
+two halves of this table are two different prompts and must not be compared across.** Reproduce:
+`bash .e3d/run_bench_arms.sh` (post-fix arms, `.e3d/bench_templated_<cue>.json`; the pre-fix arms
+are `.e3d/bench_plain_<cue>.json`, measured on the pre-fix tree — the flag is
+`tools/e2_reproduce.py --cue <shape>`).
 
-**The arms point the other way from the probe's table, and that is a finding about the instruments,
-not about the cue.** The bench and the serving path do not send the same prompt:
+**The reversal is gone, and the bench now reproduces the probe** (card `t_6de5fc53`, fixed
+2026-09-19). The pre-fix arms of this table were the reason §8 used to read "the cue's effect is
+framing-dependent": they sent the plain prompt, where the shipped cue already sits on the answer,
+so `two_step` cost agreement and doubled `low_mass`. With the executed plan resolved from the
+handle — the source `ggufone ask`/`run` has always used — the same instrument says the opposite,
+and its numbers land on the probe's:
 
-* `bench/harness.py` (`LiveModel.decide`) plans the context **twice** — once from the model handle
-  to size the session, then again from the live session — and the second plan is the one that runs.
-  `decide.resolve_template(request, session)` returns `None` for a `ModelSession` (it carries no
-  `.model`/`.runtime`), so that plan is built with `prompt.build_prefix(state, resolution=None)`:
-  the **plain E1b framing**, which `prompt.py` documents as the escape hatch for a session with no
-  model handle, not as a silent default for a real one.
-* the serving path (`cli.py` `ask`/`run`) and every probe (`tools/e3b_*`, `tools/e3c_cue_shapes.py`)
-  plan from the **handle** — the model's chat template. On dev item `c01` that is 102 vs 119 prefix
-  tokens, and the cue row's label mass is 0.03677 (bench) against 0.00696 (serving path), with the
-  same winner and the same `low_mass`/`ok` word.
+| statistic | probe (`docs/evidence/e3d_cue_decision_4b.md` §1/§2) | bench, post-fix |
+|---|---|---|
+| `shipped` agreement | 42/60 = 0.700 | 42/60 = 0.700 |
+| `two_step` agreement | 46/60 = 0.767 | 47/60 = 0.783 |
+| `json_field` agreement | 51/60 = 0.850 | 51/60 = 0.850 |
+| paired `two_step` vs `shipped` | **KEEP**: risk difference +0.067, 95 % CI −0.033…+0.167 | +5 correct items, `low_mass` 45 → 3 |
+| coverage above the 0.10 floor | 0.267 → 0.967 (`shipped` → `two_step`) | 15/60 → 57/60 |
 
-So the cue's measured effect is **framing-dependent**: the two-step readout rescues the readout
-position exactly where the chat template parks the cue on a bare newline (probe: 44/60 → 2/60
-`low_mass`) and it hurts where the plain framing already put the answer at the cue (this table).
-The shipped arm here lands two items off E2's published row (36/60 vs 38/60) — the arm computed its
-own fit plan from today's box, the same `fit.host_facts` drift §7 records — and the comparison this
-section makes is between its *own* two arms, which ran under one plan. Fixing the bench's planning
-seam is its own card; the cue default should not move until it lands, so that the table used to
-validate the switch is the table the product's prompt produces.
+So the pre-fix `shipped` arm sits two items below E2's published plain row (36/60 vs 38/60) for the
+reason §7 records — a different fit plan from a different box reading — and that gap is a
+same-framing comparison, i.e. it says nothing about this card. The post-fix `shipped` arm (42/60)
+lands exactly on the probe's `bare` row for the same shape, and the comparison this section makes is
+between its own arms, which ran under one plan and one box.
+
+**What this changes for the cue default.** The default stays `shipped` — the E3d card's decision is
+that the *mechanism* ships and the *default* moves only with its own evidence, and this card's job
+was the instrument, not the default. What changed is the reason: the bench no longer contradicts
+the probe, so `--cue two_step`'s case is now the probe's case (a readout-position fix that takes the
+engine's own coverage verdict from 15/60 usable rows to 57/60, with the agreement difference inside
+the paired CI), and `--cue json_field`'s 51/60 is the number the *bench* now measures for it too.
+The mechanism, the flag and the frozen default are unchanged by this card.
 
 

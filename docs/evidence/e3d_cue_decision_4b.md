@@ -116,20 +116,25 @@ on the readout-availability axis instead, with the bench seam of section 6 fixed
 Byte-identity of the JSON holds under CPython 3.11; 3.12+ changes the last ulp of
 `mean` fields — diff with tolerance.
 
-## 6. The bench arms — and the instrument split they expose
+## 6. The bench arms — the switch through the instrument, before and after the fix
 
 Same box, same model, same 60 committed items, same context; only `--cue` moves.
-Both arms ran the shipped configuration (the Vulkan bundle, the device visible).
+The `framing` column is the arm's own report marker (`engine.template`, summarized over the rows — `harness.framing_label`):
 
-| arm | agreement | Wilson | `low_mass` | refused at the cue | coverage median | above floor |
-|---|---|---|---|---|---|---|
-| `--cue shipped` | 36/60 = 0.600 | 0.474–0.714 | 13/60 | 0/60 | 0.2711 | 47/60 |
-| `--cue two_step` | 27/60 = 0.450 | 0.331–0.575 | 29/60 | 8/60 | 0.1103 | 31/60 |
+| arm | framing | agreement | Wilson | `low_mass` | refused at the cue | coverage median | above floor |
+|---|---|---|---|---|---|---|---|
+| `--cue shipped` | chat-template: spark2_5 / internal | 42/60 = 0.700 | 0.575–0.801 | 45/60 | 1/60 | 0.03847 | 15/60 |
+| `--cue two_step` | chat-template: spark2_5 / internal | 47/60 = 0.783 | 0.664–0.869 | 3/60 | 3/60 | 0.9708 | 57/60 |
+| `--cue json_field` | chat-template: spark2_5 / internal | 51/60 = 0.850 | 0.739–0.919 | 0/60 | 0/60 | 0.9997 | 60/60 |
+| `--cue shipped` | plain (prompt.py E1b framing) | 36/60 = 0.600 | 0.474–0.714 | 13/60 | 0/60 | 0.2711 | 47/60 |
+| `--cue two_step` | plain (prompt.py E1b framing) | 27/60 = 0.450 | 0.331–0.575 | 29/60 | 8/60 | 0.1103 | 31/60 |
+| `--cue json_field` | plain (prompt.py E1b framing) | 46/60 = 0.767 | 0.646–0.856 | 0/60 | 0/60 | 0.8544 | 60/60 |
 
-The two arms point the *other* way from section 1: in the bench's framing the two-step readout costs agreement (36/60 -> 27/60), doubles `low_mass` (13 -> 29) and finds 8/60 refusals at the cue row that the shipped shape does not see. That is not a contradiction of section 1 — it is the framing split, measured:
+**The plain rows are the pre-fix instrument** (kept because they were published): `LiveModel.decide` planned the executed context from the live session, and a `ModelSession` carries no `.model`/`.runtime`, so `resolve_template(request, session)` returned `None` and `prompt.build_prefix(state, resolution=None)` silently fell back to the plain E1b framing — the documented escape hatch for a session with no model handle, not a default for a real one. The chat-template rows are the same command after card `t_6de5fc53` (one plan, resolved from the **handle** — the source the serving path uses); on dev item `c01` that is 102 prefix tokens against 119 and the cue row's label mass 0.03677 against 0.00696.
 
-* the bench executes the **plain** E1b framing. `LiveModel.decide` plans twice: from the handle to size the session, then again from the live session — and `resolve_template(request, session)` returns `None` because a `ModelSession` carries no `.model`/`.runtime`, so the plan that runs is the plain one (`prompt.build_prefix(state, resolution=None)`, the documented escape hatch);
-* the serving path (`cli.py` `ask`/`run`) and the probe both plan from the **handle**, i.e. the model's chat template. On item c01 the two framings are 102 vs 119 prefix tokens and their cue rows disagree on the *magnitude* of the label mass — 0.03677 against 0.00696, a factor of 5.3 — while still picking the same winner and the same `low_mass`/`ok` word.
+**`two_step` vs `shipped` on the corrected instrument** — agreement 42/60 -> 47/60, `low_mass` 45 -> 3, refusals at the cue 1 -> 3, coverage median 0.03847 -> 0.9708, above the 0.10 floor 15 -> 57.
+The corrected bench's own delta is +5 correct items — the signs agree, and the plain arm's reversal (`--cue two_step` costing agreement and doubling `low_mass`) is a property of the *pre-fix framing*, not of the cue shape. (section 2's paired verdict for `two_step` is **KEEP (paired risk difference +0.067, 95 % CI -0.033…+0.167)**, so the probe's paired reading does not put `two_step` behind `shipped` on agreement.)
 
-So the switch's measured effect is framing-dependent, so the default stays frozen here: the product runs the chat framing (section 1's numbers, reproduced through the serving path by `tools/e3d_engine_check.py`: 12/12 decision cells on six stratified items), and the bench — the instrument every published quality table comes from — cannot yet confirm it because it does not send that prompt. Fixing the bench is its own card (the `plan_context` seam), and the cue default should not move until it lands.
+**`two_step` vs `shipped` on the pre-fix instrument** — agreement 36/60 -> 27/60, `low_mass` 13 -> 29, refusals at the cue 0 -> 8, coverage median 0.2711 -> 0.1103, above the 0.10 floor 47 -> 31.
+**What this changes.** The bench now sends the prompt the product sends, so its quality tables describe the serving path; the pre-fix rows above are superseded (they measure the plain framing) and `docs/BENCHMARKS.md` §2/§7/§8 carry the corrected numbers next to them. The cue default is frozen by the E3d card and does not move here.
 

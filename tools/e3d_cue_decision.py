@@ -475,59 +475,159 @@ def _interval(ci: Any) -> str:
     return f"{ci[0]:.3f}–{ci[1]:.3f}"
 
 
-def arms_section(arms: Sequence[Mapping[str, Any]]) -> list[str]:
-    """`## 6` — the same switch through the *bench*, and the instrument split it exposes.
+#: card t_6de5fc53: the arms the fixed instrument writes (`--cue` × the model's chat template),
+#: then the same three cues measured on the pre-fix tree (plain framing), kept so the §6 table can
+#: show both instruments side by side. `.e3d/bench_shipped.json` / `.e3d/bench_two_step.json`
+#: (card t_d90404ac) carry the same plain numbers and stay untouched as the published record.
+FRAMING_ARMS = ("bench_templated_shipped.json", "bench_templated_two_step.json",
+                "bench_templated_json_field.json")
+PLAIN_ARMS = ("bench_plain_shipped.json", "bench_plain_two_step.json",
+              "bench_plain_json_field.json")
+#: the framing markers a report can carry (`harness.framing_label`): the corrected instrument
+#: resolves the model's template, the pre-fix one fell back to `prompt.py`'s plain E1b framing
+TEMPLATED_PREFIX = "chat-template"
+PLAIN_PREFIX = "plain"
+FLOOR = 0.10
 
-    Rendered only when the two arm reports are given (`--arms`), because the section's whole point
-    is that the bench and the serving path do not send the same prompt: the bench plans its context
-    from the *session* (`bench/harness.py`, `plan_context(request, live)`) and a `ModelSession`
-    exposes no `.model`, so `resolve_template` returns `None` and the executed plan is the plain
-    E1b framing — while the CLI plans from the *handle* (`cli.py`, the chat template) and the probe
-    does the same. The card's stage-3 table therefore cannot confirm the stage-1 table, and saying
-    so is the honest reading.
+
+def arm_framing(report: Mapping[str, Any]) -> str:
+    """Which prompt one arm measured — the report's own marker, `unrecorded` for older reports."""
+    framing = report.get("framing") or {}
+    labels = [str(label) for label in framing.get("labels") or []]
+    if not labels:
+        return "unrecorded (written before card t_6de5fc53)"
+    return ", ".join(labels) + (" (MIXED)" if framing.get("mixed") else "")
+
+
+def arm_stats(report: Mapping[str, Any]) -> dict[str, Any]:
+    """One arm's row, read from its own report (nothing re-derived, nothing assumed)."""
+    overall = report.get("overall") or {}
+    rows = report.get("items") or []
+    coverages = sorted(float(row.get("coverage") or 0.0) for row in rows)
+    median = coverages[len(coverages) // 2] if coverages else float("nan")
+    return {"cue": (report.get("config") or {}).get("cue"),
+            "framing": arm_framing(report),
+            "n": len(rows),
+            "correct": overall.get("correct"),
+            "agreement": overall.get("agreement"),
+            "ci": overall.get("ci"),
+            "low_mass": sum(1 for row in rows if row.get("reliability") == "low_mass"),
+            "refused": sum(1 for row in rows if (row.get("cue") or {}).get("refused")),
+            "coverage_median": median,
+            "above_floor": sum(1 for value in coverages if value >= FLOOR)}
+
+
+def _arm_row(entry: Mapping[str, Any]) -> str:
+    return (f"| `--cue {entry['cue']}` | {entry['framing']} | {entry['correct']}/{entry['n']} = "
+            f"{entry['agreement']:.3f} | {_interval(entry['ci'])} | {entry['low_mass']}/"
+            f"{entry['n']} | {entry['refused']}/{entry['n']} | {entry['coverage_median']:.4g} | "
+            f"{entry['above_floor']}/{entry['n']} |")
+
+
+def _find_arm(stats: Sequence[Mapping[str, Any]], cue: str, prefix: str
+              ) -> Mapping[str, Any] | None:
+    return next((entry for entry in stats
+                 if entry["cue"] == cue and str(entry["framing"]).startswith(prefix)), None)
+
+
+def _delta(a: Mapping[str, Any], b: Mapping[str, Any]) -> str:
+    """`shipped -> two_step` for the numbers the switch moves (agreement, mass, refusals)."""
+    return (f"agreement {a['correct']}/{a['n']} -> {b['correct']}/{b['n']}, `low_mass` "
+            f"{a['low_mass']} -> {b['low_mass']}, refusals at the cue {a['refused']} -> "
+            f"{b['refused']}, coverage median {a['coverage_median']:.4g} -> "
+            f"{b['coverage_median']:.4g}, above the {FLOOR:.2f} floor {a['above_floor']} -> "
+            f"{b['above_floor']}")
+
+
+def _probe_verdict(decisions: Sequence[Mapping[str, Any]], challenger: str) -> str:
+    """The probe's own paired verdict for one challenger policy (`## 2`), or an empty string."""
+    match = next((entry for entry in decisions
+                  if str(entry.get("challenger", "")).startswith(challenger)), None)
+    if not match:
+        return ""
+    return (f"{str(match['verdict']).upper()} (paired risk difference "
+            f"{match['paired']['difference']:+.3f}, 95 % CI {match['paired']['low']:+.3f}…"
+            f"{match['paired']['high']:+.3f})")
+
+
+def arms_section(arms: Sequence[Mapping[str, Any]],
+                 decisions: Sequence[Mapping[str, Any]] = ()) -> list[str]:
+    """`## 6` — the cue switch through the *bench*, before and after the framing fix.
+
+    Rendered when arm reports are given (`--arms`, default `default_arms()`): the post-fix arms
+    (card t_6de5fc53 — the executed plan resolves the model's chat template, exactly like the
+    serving path) and, when present, the same cues on the pre-fix tree (`.e3d/bench_plain_*.json`,
+    written before this card), whose rows measured the plain E1b framing because
+    `LiveModel.decide` re-planned the context from the live session — a `ModelSession` carries no
+    `.model`/`.runtime`, so `resolve_template` returned `None`. Every row names its framing, and
+    the prose below is derived from the reports themselves: what the plain arms said, what the
+    templated arms say, and whether that agrees in direction with the probe's paired reading.
     """
     if not arms:
         return []
-    lines = ["## 6. The bench arms — and the instrument split they expose", "",
+    stats = [arm_stats(report) for report in arms]
+    lines = ["## 6. The bench arms — the switch through the instrument, before and after the fix",
+             "",
              "Same box, same model, same 60 committed items, same context; only `--cue` moves.",
-             "Both arms ran the shipped configuration (the Vulkan bundle, the device visible).", "",
-             "| arm | agreement | Wilson | `low_mass` | refused at the cue | coverage median | "
-             "above floor |", "|---|---|---|---|---|---|---|"]
-    for report in arms:
-        overall = report.get("overall") or {}
-        rows = report.get("items") or []
-        coverages = sorted(float(row.get("coverage") or 0.0) for row in rows)
-        median = coverages[len(coverages) // 2] if coverages else float("nan")
-        above = sum(1 for value in coverages if value >= 0.10)
-        cue = (report.get("config") or {}).get("cue")
-        lines.append(
-            f"| `--cue {cue}` | {overall.get('correct')}/{overall.get('n')} = "
-            f"{overall.get('agreement'):.3f} | {_interval(overall.get('ci'))} | "
-            f"{sum(1 for row in rows if row.get('reliability') == 'low_mass')}/{len(rows)} | "
-            f"{sum(1 for row in rows if (row.get('cue') or {}).get('refused'))}/{len(rows)} | "
-            f"{median:.4g} | {above}/{len(rows)} |")
-    lines += ["",
-              "The two arms point the *other* way from section 1: in the bench's framing the "
-              "two-step readout costs agreement (36/60 -> 27/60), doubles `low_mass` (13 -> 29) "
-              "and finds 8/60 refusals at the cue row that the shipped shape does not see. That "
-              "is not a contradiction of section 1 — it is the framing split, measured:", "",
-              "* the bench executes the **plain** E1b framing. `LiveModel.decide` plans twice: "
-              "from the handle to size the session, then again from the live session — and "
-              "`resolve_template(request, session)` returns `None` because a `ModelSession` "
-              "carries no `.model`/`.runtime`, so the plan that runs is the plain one "
-              "(`prompt.build_prefix(state, resolution=None)`, the documented escape hatch);",
-              "* the serving path (`cli.py` `ask`/`run`) and the probe both plan from the "
-              "**handle**, i.e. the model's chat template. On item c01 the two framings are 102 vs "
-              "119 prefix tokens and their cue rows disagree on the *magnitude* of the label mass "
-              "— 0.03677 against 0.00696, a factor of 5.3 — while still picking the same winner "
-              "and the same `low_mass`/`ok` word.", "",
-              "So the switch's measured effect is framing-dependent, so the default stays "
-              "frozen here: the product runs the chat framing (section 1's numbers, reproduced "
-              "through the serving path by `tools/e3d_engine_check.py`: 12/12 decision cells on "
-              "six stratified items), and the bench — the instrument every published quality table "
-              "comes from — cannot yet confirm it because it does not send that prompt. Fixing "
-              "the bench is its own card (the `plan_context` "
-              "seam), and the cue default should not move until it lands.", ""]
+             "The `framing` column is the arm's own report marker (`engine.template`, summarized "
+             "over the rows — `harness.framing_label`):", "",
+             "| arm | framing | agreement | Wilson | `low_mass` | refused at the cue | coverage "
+             "median | above floor |",
+             "|---|---|---|---|---|---|---|---|"]
+    lines += [_arm_row(entry) for entry in stats]
+    lines.append("")
+    templated = [entry for entry in stats if str(entry["framing"]).startswith(TEMPLATED_PREFIX)]
+    plain = [entry for entry in stats if str(entry["framing"]).startswith(PLAIN_PREFIX)]
+    if plain and templated:
+        lines += [
+            "**The plain rows are the pre-fix instrument** (kept because they were published): "
+            "`LiveModel.decide` planned the executed context from the live session, and a "
+            "`ModelSession` carries no `.model`/`.runtime`, so `resolve_template(request, "
+            "session)` returned `None` and `prompt.build_prefix(state, resolution=None)` "
+            "silently fell back "
+            "to the plain E1b framing — the documented escape hatch for a session with no model "
+            "handle, not a default for a real one. The chat-template rows are the same command "
+            "after card `t_6de5fc53` (one plan, resolved from the **handle** — the source the "
+            "serving path uses); on dev item `c01` that is 102 prefix tokens against 119 and the "
+            "cue row's label mass 0.03677 against 0.00696.", ""]
+    for prefix, label in ((TEMPLATED_PREFIX, "the corrected instrument"),
+                          (PLAIN_PREFIX, "the pre-fix instrument")):
+        shipped = _find_arm(stats, "shipped", prefix)
+        two_step = _find_arm(stats, "two_step", prefix)
+        if not (shipped and two_step):
+            continue
+        lines += [f"**`two_step` vs `shipped` on {label}** — {_delta(shipped, two_step)}."]
+        if prefix == TEMPLATED_PREFIX:
+            verdict = _probe_verdict(decisions, "two_step")
+            bench_delta = (two_step["correct"] or 0) - (shipped["correct"] or 0)
+            if verdict:
+                probe_says = ("the probe's paired reading does not put `two_step` behind "
+                              "`shipped`"
+                              if verdict.startswith(("KEEP", "PROMOTE"))
+                              else "the probe's paired reading puts `two_step` behind `shipped`")
+                probe_says = (f"section 2's paired verdict for `two_step` is **{verdict}**, so "
+                              f"{probe_says} on agreement")
+            else:
+                probe_says = "no `--compare` pair was rendered, so section 2 carries no verdict"
+            if bench_delta >= 0:
+                lines += [
+                    f"The corrected bench's own delta is {bench_delta:+d} correct items — the "
+                    f"signs agree, and the plain arm's reversal (`--cue two_step` costing "
+                    f"agreement and doubling `low_mass`) is a property of the *pre-fix framing*, "
+                    f"not of the cue shape. ({probe_says}.)",
+                    ""]
+            else:
+                lines += [
+                    f"The corrected bench's own delta is {bench_delta:+d} correct items — the "
+                    f"reversal survives the fix for the bench on this model ({probe_says}.).",
+                    ""]
+    if templated:
+        lines += [
+            "**What this changes.** The bench now sends the prompt the product sends, so its "
+            "quality tables describe the serving path; the pre-fix rows above are superseded (they "
+            "measure the plain framing) and `docs/BENCHMARKS.md` §2/§7/§8 carry the corrected "
+            "numbers next to them. The cue default is frozen by the E3d card and does not move "
+            "here.", ""]
     return lines
 
 
@@ -583,15 +683,20 @@ def render(analysis: Mapping[str, Any], *, decisions: Sequence[Mapping[str, Any]
     lines += ["## 3. Coverage distribution per policy", "", *coverage_table(analysis), "",
               "## 4. Agreement per question type", "", *type_table(analysis), "",
               *decision_section(analysis, decisions),
-              *arms_section(arms)]
+              *arms_section(arms, decisions)]
     return "\n".join(lines) + "\n"
 
 
 def default_arms() -> list[dict[str, Any]]:
-    """The committed bench arms next to the record, if they are there (`## 6`)."""
+    """The committed bench arms next to the record, if they are there (`## 6`).
+
+    Card t_6de5fc53: the post-fix arms first (the bench plans from the handle — the model's chat
+    template), then the pre-fix ones (plain framing), so the section always shows both the
+    corrected instrument and the published record it supersedes.
+    """
     root = pathlib.Path(__file__).resolve().parents[1]
     arms = []
-    for name in ("bench_shipped.json", "bench_two_step.json"):
+    for name in (*FRAMING_ARMS, *PLAIN_ARMS):
         path = root / ".e3d" / name
         if path.is_file():
             arms.append(json.loads(path.read_text(encoding="utf-8")))
