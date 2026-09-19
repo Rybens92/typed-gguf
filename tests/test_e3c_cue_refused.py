@@ -22,6 +22,7 @@ one id); a closer the vocabulary splits (`<|eot_id|>` in a word-level fake) must
 """
 from __future__ import annotations
 
+import importlib.util
 import pathlib
 
 import pytest
@@ -241,8 +242,13 @@ def templates_text() -> str:
 
 
 def family_row(family: str) -> str:
-    """The one table row of §4 that documents `family`."""
-    rows = [line for line in templates_text().splitlines()
+    """The one row of §4's family table that documents `family`.
+
+    Scoped to §4: §3 names the same families in its `suppressed` row (a fact about thinking
+    suppression, not about the cue), so a whole-file scan would find two rows.
+    """
+    body = templates_text().partition("## 4. The family table")[2].partition("### ")[0]
+    rows = [line for line in body.splitlines()
             if line.startswith("|") and f"`{family}`" in line]
     assert len(rows) == 1, f"§4 has {len(rows)} rows for {family}"
     return rows[0]
@@ -273,6 +279,20 @@ def test_templates_records_the_measured_refusal_and_the_numbers_that_back_it():
 
 
 def test_templates_publishes_the_cue_guidance_from_the_probe():
+    """Every shape the probe measures is named in the guidance — from the probe, not re-typed."""
     body = section("### Cue shapes that put the readout mid-answer")
-    for shape in cue_module.MID_ANSWER_SHAPES:
+    for shape in probe_shape_names():
         assert f"`{shape}`" in body, shape
+
+
+def probe_shape_names() -> tuple[str, ...]:
+    """The shape catalogue of `tools/e3c_cue_shapes.py` (the doc's source of truth)."""
+    import sys
+
+    spec = importlib.util.spec_from_file_location("e3c_cue_shapes_doc_gate",
+                                                  ROOT / "tools" / "e3c_cue_shapes.py")
+    module = importlib.util.module_from_spec(spec)
+    # a `dataclass(slots=True)` needs its module registered before the class body runs
+    sys.modules["e3c_cue_shapes_doc_gate"] = module
+    spec.loader.exec_module(module)
+    return tuple(module.SHAPE_NAMES)

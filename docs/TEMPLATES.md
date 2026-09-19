@@ -1,3 +1,5 @@
+bash: fork: retry: Resource temporarily unavailable
+bash: fork: retry: Resource temporarily unavailable
 # Templates: how ggufone renders a prompt (E1c)
 
 This document is the reference for `engine/template.py` (A-E1c-1/2/3/9). It answers four
@@ -137,7 +139,7 @@ requires. "Template source" is where the string comes from, "thinking" the polic
 |---|---|---|---|---|
 | `spark2_5` | GGUF `tokenizer.chat_template` (4 556 chars, `<｜start▁of▁sentence｜>` + `<\|User\|>`/`<\|Bot\|>` roles) **[executed]** | hard: `enable_thinking=false` renders `<\|Bot\|></think>` — a *closed* block | option name / level number as plain text right after the assistant header | the special tokens are single tokens in this vocabulary; no soft marker exists (there is no `/no_think` convention here) |
 | `qwen35` | GGUF `tokenizer.chat_template` (7 816 chars, `<\|im_start\|>`/`<\|im_end\|>` + `enable_thinking`) **[executed]** | hard: `enable_thinking=false` renders `<\|im_start\|>assistant\n<think>\n\n</think>\n\n`; ggufone strips the empty block | option name / level number after the assistant header | hybrid SSM+attention: recurrent state makes `seq_cp` the interesting case (`n_rs_seq=0`, §6); the template also parses historical `</think>` spans — we never send assistant turns, so that path is inert |
-| `qwen35moe` | same Qwen3.5 template family (**[UNVERIFIED]** — no MoE GGUF on this box) | hard (inherited) | option name / level number after the assistant header | the official Qwen3.5 templates are shared across flavors and differ only in the `enable_thinking` default (`qwen3_5_think_training.jinja` for larger models, `…_nothink…` for ≤2B); the expert layout changes the **fit plan**, not the prompt |
+| `qwen35moe` | same Qwen3.5 template family, **measured here** on `Accio-Lab_occamy-1.0` (24 GB Q4_K_L, 48 experts) and `Tiel-Coder-35B-A3B` **[executed]**: chain step 1, thinking suppressed (the empty block is stripped, so the cue is `<\|im_start\|>assistant\n`) | hard (inherited) | option name / level number after the assistant header — **but the cue is refused**: `<\|im_end\|>` holds 0.99998 of the cue row's mass on the shipped prompt shape, so the label never gets a chance (`W_CUE_REFUSED`, §4.2) | the official Qwen3.5 templates are shared across flavors and differ only in the `enable_thinking` default (`qwen3_5_think_training.jinja` for larger models, `…_nothink…` for ≤2B); the expert layout changes the **fit plan**, not the prompt |
 | `k2-horizon` | Kimi-K2 lineage: `<\|im_system\|>…<\|im_middle\|>` roles, no `enable_thinking` in the template (**[recon]**, from the published `moonshotai/Kimi-K2-Thinking` `chat_template.jinja`) | soft: no template switch | option name / level number after `<\|im_assistant\|>assistant<\|im_middle\|>` | **thinking is controlled by the serving stack, not the prompt** (`thinking.type` on Moonshot's API — this was *the* design of K2-Thinking). ggufone therefore appends the documented `/no_think` soft marker *and* keeps the strip guarantee; treat the marker as advisory for this family. The llama.cpp bundle also ships a `kimi-k2` built-in, so chain step 2 covers the shape if our renderer ever rejects a variant |
 
 Notes that apply to every row:
@@ -184,6 +186,51 @@ choosing between the bare cue, the blank-line cue and a two-step readout (score 
 the model's own newline) is a *quality* decision, and E2 owns the labeled dev set that can measure
 which one agrees better with a human. `docs/evidence/e1c_t_c8e36cad_resolver_fit.md` §3 keeps the
 numbers.
+
+### Cue shapes that put the readout mid-answer
+
+That open question has since been closed on both sides — the *label* half by E3b (`t_6952f0dd`): on
+`Accio-Lab/occamy-1.0` the cue row is `<|im_end|>` at p = 0.9976…1.00000, so no rendering of the
+candidate name clears the 0.10 floor (best 4.72e-03, 0/6 items on every one of the 15 cue × label
+combinations) — and the *shape* half by E3c (card `t_6c119626`). The reason is not the label:
+**the cue row itself closes the assistant turn**, and the engine now says so instead of reporting
+`low_mass` **[executed]**:
+
+* `engine/cue.py` classifies the row the coverage is read from through the **session's own
+  tokenizer**: it is a refusal when the row's argmax is a turn-closer that this vocabulary encodes
+  as exactly **one token** (`<|im_end|>`, `</s>`, `<|endoftext|>`, `eos`). A closer the tokenizer
+  splits (`<|eot_id|>` → `eot`+`id`) is never reported as one.
+* `decide.py` raises **`W_CUE_REFUSED`** and publishes what a flat warnings list cannot carry —
+  `{"refused": true, "closer": "<|im_end|>", "mass": 0.999984, "hint": …}` under the answer's
+  `cue` key — and `harness.render_report` draws a **cue verdicts** table for the quality suites, so
+  a `low_mass` row names the closer, its mass and this section instead of standing anonymous.
+* the verdict is **diagnostic**: E3c does not re-route the readout. Picking a different cue shape is
+  a quality decision with the same owner as the label policy above (the labeled dev set).
+
+Measured per shape (probe `tools/e3c_cue_shapes.py`, the 6 dev items E3b used, all five label
+renderings read off the same rows, engine floor 0.10, `--threads 4`). The **4B control** first —
+the model E2 measured answering at the cue:
+
+| shape | the readout sits | items above floor | ranked `bare` readout |
+|---|---|---|---|
+| `shipped` (the control) | at the cue | 0/6 | 3/6 correct (0.500), 6/6 `low_mass` |
+| `answer_is` | at the cue, after `The answer is ` | 2/6 | 4/6 correct (0.667) |
+| `answer_colon` | at the cue, after `Answer: ` | 2/6 | — |
+| `wybieram_pl` | at the cue, after `Zgodnie z opisem, wybieram: ` | 2/6 | — |
+| `json_field` | at the cue, inside an opened field (`{"choice": "`) | **6/6** | — |
+| `two_step_shipped` | after the model's own first content token | **6/6** | 5/6 correct (0.833), 0/6 `low_mass` |
+| `two_step_answer_is` | after `The answer is ` + one model token | 4/6 | — |
+
+So the shape *is* the lever on a model that answers: the two-step readout (score the label after the
+model's own first token — the generalized `newline`) takes the same 6 items from 0/6 above the floor
+and 3/6 correct to 6/6 and 5/6, and opening the JSON field does it in one shot. The plain openers
+only triple the mass without clearing the floor.
+
+Occamy — the family that refuses — is a different story: at the shipped cue the row is
+`<|im_end|>` (p = 0.99998, `W_CUE_REFUSED`), its first *content* token is `</think>` (the closer
+E1c's empty-block strip removed from the prefix) and after that token the model emits a blank line,
+so a **one**-step readout lands on whitespace, not on an answer. Its 6-item shape table is
+`docs/evidence/e3c_cue_shapes_occamy.md`; both runs' raw records are kept next to it.
 
 ---
 
@@ -259,7 +306,11 @@ uv run python tools/e1c_offline_gate.py
    be passed, so suppression there relies on the strip guarantee.
 3. The `k2-horizon` marker is **advisory** — that family's thinking is controlled by the serving
    stack, and ggufone only guarantees the prompt-level predicate.
-4. `qwen35moe`'s template is **documented, not measured** here (no MoE GGUF on this box).
+4. `qwen35moe`'s **template is measured here** (Occamy 1.0, Tiel-Coder), but its **cue is refused**
+   on the shipped prompt shape: `<|im_end|>` holds 0.99998 of the cue row's mass, so every answer
+   comes back `low_mass` with `W_CUE_REFUSED` no matter how the label is rendered (§4). The cue
+   shapes that move the readout past it are measured in §4 and in
+   `docs/evidence/e3c_cue_shapes.md`.
 5. The fit plan's `est_*` numbers describe **this host at plan time**; a different container
    limit or a busy GPU invalidates them — hence the host fingerprint in the cache key.
 6. `_empty closed_ think blocks are stripped for the Qwen families by policy. If a future
