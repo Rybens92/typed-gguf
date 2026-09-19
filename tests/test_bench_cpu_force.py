@@ -34,16 +34,18 @@ What this file pins, offline and GPU-free:
 * the placement (and the rendered table) says the compute was pinned.
 
 The vehicle is a fake runtime object behind a real bundle directory (`tests/test_fit_oom_recovery`'s
-rig shape): production's own dlopen path, `llama_model_default_params` / `llama_model_load_from_file`
-call, arch pre-flight and placement code all run — only libllama is a Python object.
+rig shape): production's own dlopen path, `llama_model_default_params` /
+`llama_model_load_from_file` call, arch pre-flight and placement code all run — only libllama is a
+Python object.
 """
 from __future__ import annotations
 
 import contextlib
 import ctypes
 import pathlib
+from collections.abc import Iterator
 from types import SimpleNamespace
-from typing import Any, Iterator
+from typing import Any
 
 import pytest
 
@@ -60,7 +62,7 @@ ARCH_SYMBOL = b"llama_model_spark2_5"
 
 
 def cpu_device_fn(value: int | None = CPU_DEVICE):
-    """A real ctypes function pointer — production sets `argtypes`/`restype` on it before calling."""
+    """A real ctypes function pointer — production sets `argtypes`/`restype` before calling it."""
     return ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_char_p)(
         lambda name: value if name == b"CPU" else None)
 
@@ -114,7 +116,7 @@ class PinningBackend:
 
 @contextlib.contextmanager
 def fake_bundle(tmp_path: pathlib.Path, backend: PinningBackend) -> Iterator[PinningBackend]:
-    """Install `backend` as the runtime, behind a real bundle directory (the production dlopen path)."""
+    """Install `backend` as the runtime, behind a real bundle directory (the dlopen path)."""
     directory = tmp_path / "runtime"
     directory.mkdir(exist_ok=True)
     (directory / finder.library_names()["llama"]).write_bytes(b"\x7fELF" + ARCH_SYMBOL + b"\x00")
@@ -222,7 +224,7 @@ def test_a_pinned_load_offers_the_loader_the_cpu_device_only(tmp_path: pathlib.P
 
 
 def test_an_unpinned_load_keeps_llama_cpp_s_own_device_list(tmp_path: pathlib.Path) -> None:
-    """Every other row is untouched: `devices = NULL` lets llama.cpp pick, layers reach the loader."""
+    """Every other row is untouched: `devices = NULL` lets llama.cpp pick its own device list."""
     backend = PinningBackend(n_layer=4)
     with fake_bundle(tmp_path, backend):
         handle = session_module.open_model(
@@ -236,6 +238,32 @@ def test_an_unpinned_load_keeps_llama_cpp_s_own_device_list(tmp_path: pathlib.Pa
             assert "cpu compute pinned" not in handle.placement.note
         finally:
             handle.close()
+
+
+def test_the_note_names_a_request_only_when_there_was_one(tmp_path: pathlib.Path) -> None:
+    """The pin's sentence must not invent a request it overrode — and must survive having no plan.
+
+    The note is the one line a reader sees. Three inputs reach it: a plan that asked for layers
+    (the sentence names them), a plan that asked for zero (nothing to name), and no plan at all
+    (`open_model` allows the pin without one — the serving path does exactly that). The three must
+    not collapse into one sentence, and the no-plan input must not raise.
+    """
+    backend = PinningBackend(n_layer=4)
+    with fake_bundle(tmp_path, backend):
+        zero = session_module.open_model(model_file(tmp_path), runtime_dir=backend.directory,
+                                         fit_plan=harness.Placement(0), cpu_only=True)
+        try:
+            assert "cpu compute pinned" in zero.placement.note
+            assert "n_gpu_layers" not in zero.placement.note    # nothing was overridden
+        finally:
+            zero.close()
+        bare = session_module.open_model(model_file(tmp_path), runtime_dir=backend.directory,
+                                         cpu_only=True)
+        try:
+            assert "cpu compute pinned" in bare.placement.note  # no plan: still a pinned load
+            assert bare.n_gpu_layers == 0
+        finally:
+            bare.close()
 
 
 def test_a_pinned_load_never_walks_a_degradation_ladder(tmp_path: pathlib.Path) -> None:
@@ -254,10 +282,9 @@ def test_a_bundle_that_cannot_name_a_cpu_device_is_a_typed_refusal(
         tmp_path: pathlib.Path, cpu_device: int | None, with_device_api: bool) -> None:
     """No CPU device to point at = no honest `cpu` row: refuse, never load unpinned."""
     backend = PinningBackend(cpu_device=cpu_device, with_device_api=with_device_api)
-    with fake_bundle(tmp_path, backend):
-        with pytest.raises(RuntimeMissingError) as excinfo:
-            session_module.open_model(model_file(tmp_path), runtime_dir=backend.directory,
-                                      fit_plan=harness.Placement(0), cpu_only=True)
+    with fake_bundle(tmp_path, backend), pytest.raises(RuntimeMissingError) as excinfo:
+        session_module.open_model(model_file(tmp_path), runtime_dir=backend.directory,
+                                  fit_plan=harness.Placement(0), cpu_only=True)
     assert "E_RUNTIME_SYMBOLS" in str(excinfo.value)
     assert "CPU device" in str(excinfo.value)
     assert backend.params == [], "a refused pin must not fall back to an unpinned load"
@@ -291,3 +318,6 @@ def test_the_rendered_table_marks_the_pinned_compute(tmp_path: pathlib.Path) -> 
     assert "used n_gpu_layers=0 kv_type=auto (cpu compute pinned)" in markdown
     assert report["placement"]["used"]["cpu_only"] is True
     assert report["placement"]["requested"] == "n_gpu_layers=0"
+    # the placement string the suite rows carry (`placement_request`) names the pin too, so a
+    # throughput row cannot print a bare `n_gpu_layers=0` that reads like an ordinary CPU default
+    assert harness.placement_request(model.spec).endswith("(cpu compute pinned)")
