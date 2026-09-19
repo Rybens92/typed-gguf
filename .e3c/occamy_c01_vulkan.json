@@ -1,0 +1,1621 @@
+{
+  "schema": "ggufone.e3c.cue-shapes/v1",
+  "generated_at": "2026-09-19T16:51:41Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "name": "Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "bytes": 24113674848,
+    "arch": "qwen35moe"
+  },
+  "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 7,
+  "backend_claim": "vulkan",
+  "backend_source": "explicit",
+  "placement": {
+    "note": "fit plan: 7 layer(s) offloaded, kv_type=auto",
+    "n_gpu_layers": 7,
+    "kv_type": "auto",
+    "degraded": false,
+    "attempts": [],
+    "warnings": []
+  },
+  "load_ms": 18104.0,
+  "shapes": [
+    "shipped",
+    "answer_is",
+    "answer_colon",
+    "wybieram_pl",
+    "json_field",
+    "two_step_shipped",
+    "two_step_answer_is"
+  ],
+  "label_variants": [
+    "bare",
+    "space",
+    "caps",
+    "newline",
+    "long"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [
+    "shipped=bare",
+    "two_step_shipped=bare",
+    "answer_is=bare"
+  ],
+  "counts": {
+    "choice": 1
+  },
+  "devset": "docs/evidence/e3_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "expected": "technical",
+      "prefix_tokens": 109,
+      "n_ctx": 4291,
+      "n_seq_max": 28,
+      "prefix_tail": " the database is reachable.<|im_end|>\n<|im_start|>assistant\n",
+      "opener": {
+        "shipped": "",
+        "answer_is": "The answer is ",
+        "answer_colon": "Answer: ",
+        "wybieram_pl": "Zgodnie z opisem, wybieram: ",
+        "json_field": "{{\"{field}\": \"",
+        "two_step_shipped": "",
+        "two_step_answer_is": "The answer is "
+      },
+      "shapes": {
+        "shipped": {
+          "suffix_tokens": 53,
+          "readout": {
+            "row": "cue",
+            "position": 161,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999812569001961
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 1.3541509679616748e-05
+              },
+              {
+                "token": 71093,
+                "piece": "```",
+                "p_full": 3.277279850512363e-06
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 9.92971578811453e-07
+              },
+              {
+                "token": 8944,
+                "piece": "answer",
+                "p_full": 2.283028791784463e-07
+              },
+              {
+                "token": 97632,
+                "piece": "答案",
+                "p_full": 1.8385600236704035e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 2.3729094580052226e-13,
+              "<|endoftext|>": 3.09099309658091e-08,
+              "<|im_end|>": 0.9999812569001961
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999812569001961,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 6.50157897921627e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.1732530891840447e-08,
+                  1.299892400575717e-08,
+                  1.4695783277308313e-08,
+                  1.558855161725677e-08
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " sales",
+                  " support"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  6416,
+                  1761
+                ],
+                "coverage": 4.76518960600759e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.448401498696976e-09,
+                  3.562321558595066e-10,
+                  8.123862577256942e-10,
+                  1.4816969372541327e-10
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Sales",
+                  "Support"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  34246,
+                  7666
+                ],
+                "coverage": 5.982840879961835e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.63887128744394e-10,
+                  2.1835292340322204e-09,
+                  1.9583466795098885e-09,
+                  1.1770778376753329e-09
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 4.492622956020654e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.1231557390051635e-08,
+                  1.1231557390051635e-08,
+                  1.1231557390051635e-08,
+                  1.1231557390051635e-08
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: payments, invoices and refunds",
+                  "technical: api, infrastructure and deploys",
+                  "sales: contracts and pricing",
+                  "support: customer conversations"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 6.50157897921627e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.1732530891840447e-08,
+                  1.299892400575717e-08,
+                  1.4695783277308313e-08,
+                  1.558855161725677e-08
+                ]
+              }
+            }
+          }
+        },
+        "answer_is": {
+          "suffix_tokens": 57,
+          "readout": {
+            "row": "cue",
+            "position": 165,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.999719770475356
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.00022168245842426484
+              },
+              {
+                "token": 10597,
+                "piece": " technical",
+                "p_full": 3.1678609252388534e-05
+              },
+              {
+                "token": 69685,
+                "piece": "technical",
+                "p_full": 1.3930661171672957e-05
+              },
+              {
+                "token": 10992,
+                "piece": "？",
+                "p_full": 2.263636638604325e-06
+              },
+              {
+                "token": 96314,
+                "piece": "技术",
+                "p_full": 1.7389835522191666e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 8.979077143294815e-13,
+              "<|endoftext|>": 4.859950968526676e-07,
+              "<|im_end|>": 0.999719770475356
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.999719770475356,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 1.409904650509067e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.6740595152106223e-07,
+                  1.3930661171672957e-05,
+                  9.508730805984082e-10,
+                  2.850881605308326e-11
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " sales",
+                  " support"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  6416,
+                  1761
+                ],
+                "coverage": 3.1994262171849096e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.8997407491212145e-07,
+                  3.1678609252388534e-05,
+                  2.335870700981839e-08,
+                  2.320137538618633e-09
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Sales",
+                  "Support"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  34246,
+                  7666
+                ],
+                "coverage": 3.261851191239183e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.3218957693131237e-08,
+                  3.1248835920242917e-07,
+                  4.549235182272156e-10,
+                  2.287871013067966e-11
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.1998510482613183e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.9996276206532957e-09,
+                  2.9996276206532957e-09,
+                  2.9996276206532957e-09,
+                  2.9996276206532957e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: payments, invoices and refunds",
+                  "technical: api, infrastructure and deploys",
+                  "sales: contracts and pricing",
+                  "support: customer conversations"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 1.409904650509067e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.6740595152106223e-07,
+                  1.3930661171672957e-05,
+                  9.508730805984082e-10,
+                  2.850881605308326e-11
+                ]
+              }
+            }
+          }
+        },
+        "answer_colon": {
+          "suffix_tokens": 56,
+          "readout": {
+            "row": "cue",
+            "position": 164,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.991429259800146
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.008352023507373244
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 0.00016056396974150044
+              },
+              {
+                "token": 17,
+                "piece": "2",
+                "p_full": 1.938664337053986e-05
+              },
+              {
+                "token": 20,
+                "piece": "5",
+                "p_full": 1.8790412017357008e-05
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 3.364802812482286e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.3653783886067851e-11,
+              "<|endoftext|>": 2.5302291652506743e-07,
+              "<|im_end|>": 0.991429259800146
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.991429259800146,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 1.8692648405946153e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.1312588401247514e-09,
+                  1.847844511897344e-07,
+                  1.0559932736571844e-11,
+                  2.140968658173368e-13
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " sales",
+                  " support"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  6416,
+                  1761
+                ],
+                "coverage": 2.7943830844787775e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.4799686224039265e-09,
+                  2.749187167469308e-07,
+                  3.8940029157571736e-11,
+                  6.830493854652142e-13
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Sales",
+                  "Support"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  34246,
+                  7666
+                ],
+                "coverage": 1.292667327343185e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.0842016153920854e-09,
+                  1.2717029178465007e-07,
+                  1.2098539078417042e-11,
+                  1.4079519792978498e-13
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 2.7557087266554315e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.889271816638579e-09,
+                  6.889271816638579e-09,
+                  6.889271816638579e-09,
+                  6.889271816638579e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: payments, invoices and refunds",
+                  "technical: api, infrastructure and deploys",
+                  "sales: contracts and pricing",
+                  "support: customer conversations"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 1.8692648405946153e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.1312588401247514e-09,
+                  1.847844511897344e-07,
+                  1.0559932736571844e-11,
+                  2.140968658173368e-13
+                ]
+              }
+            }
+          }
+        },
+        "wybieram_pl": {
+          "suffix_tokens": 64,
+          "readout": {
+            "row": "cue",
+            "position": 172,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.999547920702633
+              },
+              {
+                "token": 10597,
+                "piece": " technical",
+                "p_full": 0.00017223480519060145
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 9.058297325236658e-05
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 2.8136059602283215e-05
+              },
+              {
+                "token": 69685,
+                "piece": "technical",
+                "p_full": 2.24784715940484e-05
+              },
+              {
+                "token": 17,
+                "piece": "2",
+                "p_full": 1.835607192794125e-05
+              }
+            ],
+            "closer_mass": {
+              "eos": 4.777553318322903e-12,
+              "<|endoftext|>": 1.4359402903202394e-06,
+              "<|im_end|>": 0.999547920702633
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.999547920702633,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 2.2570704822875285e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.2017467896275e-08,
+                  2.24784715940484e-05,
+                  2.1133701066662923e-10,
+                  4.423919942345668e-12
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " sales",
+                  " support"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  6416,
+                  1761
+                ],
+                "coverage": 0.00017324426179108552,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.979941981358536e-07,
+                  0.00017223480519060145,
+                  9.79390511273365e-09,
+                  1.6684972354642408e-09
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Sales",
+                  "Support"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  34246,
+                  7666
+                ],
+                "coverage": 5.072873976477939e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.881263649464551e-09,
+                  4.973440154018113e-07,
+                  5.55772828067247e-11,
+                  6.54131371127237e-12
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.696400647844262e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.241001619610655e-09,
+                  4.241001619610655e-09,
+                  4.241001619610655e-09,
+                  4.241001619610655e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: payments, invoices and refunds",
+                  "technical: api, infrastructure and deploys",
+                  "sales: contracts and pricing",
+                  "support: customer conversations"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 2.2570704822875285e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.2017467896275e-08,
+                  2.24784715940484e-05,
+                  2.1133701066662923e-10,
+                  4.423919942345668e-12
+                ]
+              }
+            }
+          }
+        },
+        "json_field": {
+          "suffix_tokens": 57,
+          "readout": {
+            "row": "cue",
+            "position": 165,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9922005152807732
+              },
+              {
+                "token": 37355,
+                "piece": "billing",
+                "p_full": 0.0049112284864135155
+              },
+              {
+                "token": 69685,
+                "piece": "technical",
+                "p_full": 0.0023377385337997594
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 5.099972721309162e-05
+              },
+              {
+                "token": 22637,
+                "piece": "support",
+                "p_full": 4.903800743177199e-05
+              },
+              {
+                "token": 28094,
+                "piece": "sales",
+                "p_full": 3.608257550479031e-05
+              }
+            ],
+            "closer_mass": {
+              "eos": 7.590936338722612e-11,
+              "<|endoftext|>": 1.8818628299151078e-05,
+              "<|im_end|>": 0.9922005152807732
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9922005152807732,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 0.007334087603149837,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.0049112284864135155,
+                  0.0023377385337997594,
+                  3.608257550479031e-05,
+                  4.903800743177199e-05
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " sales",
+                  " support"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  6416,
+                  1761
+                ],
+                "coverage": 2.0040497311936834e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.7816660399083313e-05,
+                  1.9389414272660783e-06,
+                  2.0735343815151052e-07,
+                  7.754204743593165e-08
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Sales",
+                  "Support"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  34246,
+                  7666
+                ],
+                "coverage": 9.550387807390345e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.941872738448691e-06,
+                  3.4006220936892867e-06,
+                  2.940374183842169e-07,
+                  9.138555568681496e-07
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 4.226135211746192e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.056533802936548e-05,
+                  1.056533802936548e-05,
+                  1.056533802936548e-05,
+                  1.056533802936548e-05
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: payments, invoices and refunds",
+                  "technical: api, infrastructure and deploys",
+                  "sales: contracts and pricing",
+                  "support: customer conversations"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 0.007334087603149837,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.0049112284864135155,
+                  0.0023377385337997594,
+                  3.608257550479031e-05,
+                  4.903800743177199e-05
+                ]
+              }
+            }
+          }
+        },
+        "two_step_shipped": {
+          "suffix_tokens": 53,
+          "readout": {
+            "row": "advanced",
+            "position": 162,
+            "top_tokens": [
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.9582019847921024
+              },
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.04179729614251542
+              },
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 3.458707070874381e-07
+              },
+              {
+                "token": 1358,
+                "piece": "\n\n\n",
+                "p_full": 3.279363326769946e-07
+              },
+              {
+                "token": 987,
+                "piece": "\n\n\n\n",
+                "p_full": 1.0591851641173862e-08
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 6.684071623862057e-09
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.845240559064251e-15,
+              "<|endoftext|>": 6.684071623862057e-09,
+              "<|im_end|>": 3.458707070874381e-07
+            },
+            "cue": {
+              "refused": false,
+              "token": 198,
+              "closer": null,
+              "mass": 0.9582019847921024
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 5.359139356926694e-13,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.130229842105427e-14,
+                  4.133529241703594e-13,
+                  1.0670807881902762e-14,
+                  5.058790521935293e-14
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " sales",
+                  " support"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  6416,
+                  1761
+                ],
+                "coverage": 3.992415285506737e-12,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.130406241975367e-13,
+                  1.630832606993402e-12,
+                  1.7266869940405536e-13,
+                  1.875873354911743e-12
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Sales",
+                  "Support"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  34246,
+                  7666
+                ],
+                "coverage": 1.924665073293791e-13,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.4785700423559016e-14,
+                  1.392358551938737e-13,
+                  7.84021578247818e-15,
+                  3.060473592946821e-14
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.0,
+                "reliability": "ok",
+                "first_mass": [
+                  0.9582019847921024,
+                  0.9582019847921024,
+                  0.9582019847921024,
+                  0.9582019847921024
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: payments, invoices and refunds",
+                  "technical: api, infrastructure and deploys",
+                  "sales: contracts and pricing",
+                  "support: customer conversations"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 5.359139356926694e-13,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.130229842105427e-14,
+                  4.133529241703594e-13,
+                  1.0670807881902762e-14,
+                  5.058790521935293e-14
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248069,
+            "piece": "</think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 161,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999818549816276
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 1.3701559037200481e-05
+              },
+              {
+                "token": 71093,
+                "piece": "```",
+                "p_full": 3.115823445054715e-06
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 5.95794377197404e-07
+              },
+              {
+                "token": 97632,
+                "piece": "答案",
+                "p_full": 1.3458283481552712e-07
+              },
+              {
+                "token": 8944,
+                "piece": "answer",
+                "p_full": 1.3399717652981462e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 2.0341247722656455e-13,
+              "<|endoftext|>": 3.090859349340782e-08,
+              "<|im_end|>": 0.9999818549816276
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999818549816276,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 5.032391947212114e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8073719727921894e-08,
+                  1.2092302986952705e-08,
+                  8.594621167976685e-09,
+                  1.1563275589269855e-08
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " sales",
+                  " support"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  6416,
+                  1761
+                ],
+                "coverage": 3.226898927031537e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.4781418214303815e-09,
+                  2.870185706812613e-10,
+                  3.595570945570748e-10,
+                  1.0218144036281953e-10
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Sales",
+                  "Support"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  34246,
+                  7666
+                ],
+                "coverage": 3.856138198459294e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.307305161162308e-10,
+                  1.5779542629013005e-09,
+                  1.0512794895651997e-09,
+                  6.96173929876564e-10
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 4.800259542678346e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.2000648856695866e-08,
+                  1.2000648856695866e-08,
+                  1.2000648856695866e-08,
+                  1.2000648856695866e-08
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: payments, invoices and refunds",
+                  "technical: api, infrastructure and deploys",
+                  "sales: contracts and pricing",
+                  "support: customer conversations"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 5.032391947212114e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8073719727921894e-08,
+                  1.2092302986952705e-08,
+                  8.594621167976685e-09,
+                  1.1563275589269855e-08
+                ]
+              }
+            }
+          }
+        },
+        "two_step_answer_is": {
+          "suffix_tokens": 57,
+          "readout": {
+            "row": "advanced",
+            "position": 166,
+            "top_tokens": [
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.891727851987417
+              },
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.10818154443717697
+              },
+              {
+                "token": 318,
+                "piece": " (",
+                "p_full": 1.5513470818457577e-05
+              },
+              {
+                "token": 1639,
+                "piece": "\\n",
+                "p_full": 1.551249439247451e-05
+              },
+              {
+                "token": 561,
+                "piece": " The",
+                "p_full": 1.1648965030810072e-05
+              },
+              {
+                "token": 328,
+                "piece": " \"",
+                "p_full": 5.723318380710749e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 2.252863869671273e-12,
+              "<|endoftext|>": 1.7685522723978778e-07,
+              "<|im_end|>": 2.777375134838429e-06
+            },
+            "cue": {
+              "refused": false,
+              "token": 198,
+              "closer": null,
+              "mass": 0.891727851987417
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 3.2825878425641006e-11,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.3655266540941958e-11,
+                  1.3545223065349278e-11,
+                  3.1577648703470925e-12,
+                  2.467623949002679e-12
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " sales",
+                  " support"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  6416,
+                  1761
+                ],
+                "coverage": 5.489840462595308e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.660670541536652e-11,
+                  3.1438916372579505e-10,
+                  5.822896281058443e-11,
+                  1.3975921430778482e-10
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Sales",
+                  "Support"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  34246,
+                  7666
+                ],
+                "coverage": 5.378176215860728e-11,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.308621664860255e-11,
+                  2.38669930539651e-11,
+                  4.534978483161326e-12,
+                  2.2935739728783005e-12
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.0,
+                "reliability": "ok",
+                "first_mass": [
+                  0.891727851987417,
+                  0.891727851987417,
+                  0.891727851987417,
+                  0.891727851987417
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: payments, invoices and refunds",
+                  "technical: api, infrastructure and deploys",
+                  "sales: contracts and pricing",
+                  "support: customer conversations"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 3.2825878425641006e-11,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.3655266540941958e-11,
+                  1.3545223065349278e-11,
+                  3.1577648703470925e-12,
+                  2.467623949002679e-12
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248068,
+            "piece": "<think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 165,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9997364577323303
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.00017195001848261133
+              },
+              {
+                "token": 10597,
+                "piece": " technical",
+                "p_full": 5.892872580987199e-05
+              },
+              {
+                "token": 69685,
+                "piece": "technical",
+                "p_full": 1.3477031682548576e-05
+              },
+              {
+                "token": 10992,
+                "piece": "？",
+                "p_full": 3.1976278168503493e-06
+              },
+              {
+                "token": 96314,
+                "piece": "技术",
+                "p_full": 2.1921147823811777e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 9.991963443164086e-13,
+              "<|endoftext|>": 7.952461074449956e-07,
+              "<|im_end|>": 0.9997364577323303
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9997364577323303,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 1.3645110094080617e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.666041166592116e-07,
+                  1.3477031682548576e-05,
+                  1.422907006956139e-09,
+                  5.138786587315265e-11
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " sales",
+                  " support"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  6416,
+                  1761
+                ],
+                "coverage": 5.9469567352674345e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.6933618778173786e-07,
+                  5.892872580987199e-05,
+                  6.449087620300537e-08,
+                  7.014478817607783e-09
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Sales",
+                  "Support"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  34246,
+                  7666
+                ],
+                "coverage": 3.9850100452852867e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.2408951883560338e-08,
+                  3.8537422528367365e-07,
+                  6.767276244901486e-10,
+                  4.10997368045516e-11
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.846701855618324e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.61675463904581e-09,
+                  4.61675463904581e-09,
+                  4.61675463904581e-09,
+                  4.61675463904581e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: payments, invoices and refunds",
+                  "technical: api, infrastructure and deploys",
+                  "sales: contracts and pricing",
+                  "support: customer conversations"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 1.3645110094080617e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.666041166592116e-07,
+                  1.3477031682548576e-05,
+                  1.422907006956139e-09,
+                  5.138786587315265e-11
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ranked": {
+        "shipped=bare": {
+          "probabilities": {
+            "billing": 0.33426542938743453,
+            "technical": 0.1999348780859403,
+            "sales": 0.22603406532915502,
+            "support": 0.23976562719747016
+          },
+          "sequence_scores": {
+            "[22637]": -17.9767290627945,
+            "[28094]": -18.03570523619538,
+            "[37355]": -17.644455579518134,
+            "[69685]": -18.15839925169831
+          },
+          "got": "billing",
+          "confidence": 0.11235390584991271,
+          "shape": "shipped",
+          "label": "bare",
+          "coverage": 6.50157897921627e-08,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "billing",
+          "agrees": true
+        },
+        "two_step_shipped=bare": {
+          "probabilities": {
+            "billing": 0.11438832681561265,
+            "technical": 0.7713046753227275,
+            "sales": 0.01991142079205448,
+            "support": 0.09439557706960543
+          },
+          "sequence_scores": {
+            "[22637]": -30.615063874474355,
+            "[28094]": -32.17126461719592,
+            "[37355]": -30.422959058037588,
+            "[69685]": -28.51447462891657
+          },
+          "got": "technical",
+          "confidence": 0.6950729004303033,
+          "shape": "two_step_shipped",
+          "label": "bare",
+          "coverage": 5.359139356926694e-13,
+          "reliability": "low_mass",
+          "correct": true,
+          "top_coverage": "technical",
+          "agrees": true
+        },
+        "answer_is=bare": {
+          "probabilities": {
+            "billing": 0.011873565454275072,
+            "technical": 0.9880569701392989,
+            "sales": 6.744236784062535e-05,
+            "support": 2.022038585573126e-06
+          },
+          "sequence_scores": {
+            "[22637]": -24.280807741292307,
+            "[28094]": -20.773640521176645,
+            "[37355]": -15.6028441268285,
+            "[69685]": -11.181418307431528
+          },
+          "got": "technical",
+          "confidence": 0.984075960185732,
+          "shape": "answer_is",
+          "label": "bare",
+          "coverage": 1.409904650509067e-05,
+          "reliability": "low_mass",
+          "correct": true,
+          "top_coverage": "technical",
+          "agrees": true
+        }
+      },
+      "prefill_ms": 84683.4,
+      "backend_claim": "vulkan",
+      "backend_source": "explicit",
+      "device_log_tail": "sched_reserve: Vulkan_Host compute buffer size =   120.55 MiB\nsched_reserve: graph nodes  = 3787\nsched_reserve: graph splits = 744 (with bs=512), 86 (with bs=1)\nsched_reserve: reserve took 131.16 ms, sched copies = 1",
+      "cue_decode_s": 145.7,
+      "advance_decode_s": 11.8
+    }
+  ],
+  "wall_s": 270.1,
+  "device_log_tail": ".\n.\n.\n.\n.\n"
+}

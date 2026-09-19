@@ -145,12 +145,30 @@ does not exist.
 
 ### Placement note (recorded, not hidden)
 
-E3b's Occamy numbers were taken with **7 GPU layers** offloaded. This run is **CPU**
-(`--backend cpu --gpu-layers 0`) because the GPU is held by a sibling campaign (743 MiB free, and a
-Vulkan context reserves ~1 GB of *device* memory even with zero layers offloaded — that is what
-OOMs). The label mass at a fixed row is a weight-level quantity, and the engine's own device log
-line (`CPU compute buffer size = …`) is quoted in the report header, so the reader can see which
-device computed. The cue verdict itself (`<|im_end|>` at p = 0.99998) reproduces E3b's GPU number.
+E3b's Occamy numbers were taken with **7 GPU layers** offloaded. The sweep is **CPU**
+(`--backend cpu --gpu-layers 0`) because the GPU was held by a sibling campaign (743 MiB free, and
+a Vulkan context reserves ~1 GB of *device* memory even with zero layers offloaded — that is what
+OOMs; the failed attempt is kept in `.e3c/logs/occamy_a.log`). The label mass at a fixed row is a
+weight-level quantity, and the engine's own device log line (`CPU compute buffer size = …`) is
+quoted in every report header, so the reader can see which device computed.
+
+#### Placement cross-check (the card's `--backend vulkan --gpu-layers 7`, one item)
+
+With the GPU free again, `c01` was re-measured on the device (`.e3c/occamy_c01_vulkan.json`, load
+18.1 s against 67.7 s; the log line becomes a Vulkan compute buffer). The two records agree
+everywhere the verdict lives (`.e3c_scratch/placement_crosscheck.py`):
+
+| | CPU (`--gpu-layers 0`) | device (`--gpu-layers 7`) |
+|---|---|---|
+| the five at-the-cue shapes | refused 5/5, `<\|im_end\|>` at 0.9875…0.99998 | refused 5/5, `<\|im_end\|>` at 0.9914…0.99998 |
+| `json_field` `bare` coverage | 1.16e-02 | 7.33e-03 |
+| the three ranked policies | `billing` / `technical` / `technical`, all `low_mass` | identical |
+| the two-step advance | `</think>` / `<think>`, same row index | identical |
+
+The one thing that moves is the *split* between the two whitespace tokens the two-step readout lands
+on: `\n` 0.5441 vs `\n\n` 0.4559 on the CPU, `\n` 0.9582 vs `\n\n` 0.0418 on the device. A near-tie
+between `\n` and `\n\n` is placement-sensitive, and a readout taken there is not a measurement of
+anything — the same conclusion the coverage column (1.9e-10 … 5.4e-13) states.
 
 ### SHA pins
 
