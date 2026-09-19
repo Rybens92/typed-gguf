@@ -27,7 +27,7 @@ pids_now() { cat /sys/fs/cgroup/pids.current 2>/dev/null || echo 0; }
 
 for attempt in $(seq 1 "$ATTEMPTS"); do
     waited=0
-    while [ "$(pids_now)" -gt 200 ] && [ "$waited" -lt 600 ]; do
+    while [ "$(pids_now)" -gt 150 ] && [ "$waited" -lt 900 ]; do
         echo "attempt $attempt: pid cgroup at $(pids_now)/256 — waiting" >> "$LOG/mutmut.out"
         sleep 30
         waited=$((waited + 30))

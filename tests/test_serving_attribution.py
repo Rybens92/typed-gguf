@@ -34,8 +34,10 @@ runtime (a real `llama_log_set` ABI + a real bundle directory) for the live plum
 """
 from __future__ import annotations
 
+import contextlib
 import pathlib
 import textwrap
+from collections.abc import Iterator
 from types import SimpleNamespace
 from typing import Any
 
@@ -366,6 +368,79 @@ def test_the_live_session_names_the_bundle_it_loaded(tmp_path: pathlib.Path) -> 
             live.close()
         finally:
             handle.close()
+
+
+@contextlib.contextmanager
+def live_session(tmp_path: pathlib.Path, **session_kwargs: Any) -> Iterator[Any]:
+    """A real `ModelSession` over `test_fit_oom_recovery`'s fake llama runtime.
+
+    The two gates above build this scaffold inline; the two below need the same world with
+    different constructor kwargs (an explicit backend, a caller-owned log sink), so the harness is
+    shared while the *observations* stay per-gate. The bundle on disk carries `libggml-vulkan.so`,
+    which is what makes "the claim was not resolved" observable.
+    """
+    from ggufone.engine.decide import ContextPlan
+    from ggufone.runtime import fit
+    from tests.test_fit import write_gguf
+    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+
+    model_path = write_gguf(tmp_path / "model.gguf", n_layer=4)
+    backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
+
+    def init(model: object, params: object) -> int:
+        backend._installed(4, b"sched_reserve:    Vulkan0 compute buffer size =   545.31 MiB\n",
+                           None)
+        return 7
+
+    backend.llama.llama_context_default_params = lambda: SimpleNamespace(
+        n_ctx=0, n_batch=0, n_ubatch=0, n_seq_max=0, n_threads=0, n_threads_batch=0,
+        type_k=0, type_v=0, kv_unified=False, no_perf=True, flash_attn_type=0)
+    backend.llama.llama_init_from_model = init
+    backend.llama.llama_get_memory = lambda ctx: 8
+    backend.llama.llama_free = lambda ctx: None
+    backend.llama.llama_n_ctx = lambda ctx: 512
+    backend.llama.llama_n_seq_max = lambda ctx: 3
+
+    with fake_runtime(tmp_path, backend):
+        (backend.directory / "libggml-vulkan.so").write_bytes(b"")
+        handle = session_module.open_model(model_path, runtime_dir=backend.directory,
+                                          fit_plan=fit.coerce_plan(SimpleNamespace(
+                                              n_gpu_layers=0, kv_type="auto")))
+        try:
+            live = session_module.ModelSession(
+                handle, ContextPlan(n_ctx=512, n_seq_max=3, threads=1, kv_type="auto",
+                                    prefix_tokens=(1, 2, 3)), **session_kwargs)
+            try:
+                yield live
+            finally:
+                live.close()
+        finally:
+            handle.close()
+
+
+def test_an_explicit_backend_with_no_source_is_named_explicit(tmp_path: pathlib.Path) -> None:
+    """`backend=` without `backend_source=`: the label is the caller's, so the source is `explicit`.
+
+    The loaded bundle carries Vulkan, so a session that resolved the claim anyway — instead of
+    honouring the explicit argument — would answer `vulkan`/`bundle`. The sweep's mutants 7/18/20/21
+    of `ModelSession.__init__` are exactly that path: with the caller naming a backend, the claim is
+    not resolved, and `backend_source` is the contract that says so.
+    """
+    with live_session(tmp_path, backend="cpu") as live:
+        assert live.backend == "cpu"
+        assert live.backend_source == "explicit"
+
+
+def test_a_caller_owned_log_sink_receives_the_context_lines(tmp_path: pathlib.Path) -> None:
+    """`log=` is a caller-owned sink (the bench keeps one): the context's lines must reach it.
+
+    Pins the sweep's `ModelSession.__init__` mutant 47 (`log.extend(None)`), which only a session
+    built *with* a sink can see.
+    """
+    sink: list[str] = []
+    with live_session(tmp_path, backend="vulkan", backend_source="request", log=sink) as live:
+        assert any("compute buffer size" in line for line in sink), "the sink saw no context line"
+        assert "compute buffer size" in live.device_log
 
 
 # ------------------------------------------------- the CLI glue: `decide_payload`
