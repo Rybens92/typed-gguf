@@ -22,6 +22,7 @@ import pathlib
 
 import pytest
 
+from ggufone import cli
 from ggufone.bench import devset, harness, suites
 from ggufone.engine import session as session_module
 from ggufone.runtime import finder
@@ -142,6 +143,57 @@ def test_the_quality_suite_answers_a_few_real_dev_items():
     for row in report["items"]:
         assert row["got"] in row["probabilities"]
         assert abs(sum(row["probabilities"].values()) - 1.0) < 1e-6
+
+
+# ------------------------------------------- prompt parity (card t_6de5fc53)
+@pytest.mark.model
+def test_the_bench_sends_the_same_prompt_as_the_serving_path(monkeypatch):
+    """[card t_6de5fc53] The bench executes the plan the serving path executes — byte for byte.
+
+    The instrument must run the product wiring: `cli.ask`/`run` plan the context from the **model
+    handle** (so the model's chat template resolves) and the bench used to re-plan it from the
+    live session, which resolves nothing and silently fell back to the plain E1b framing. This
+    gate captures the tokens each path really prefills, on one real model and one real dev item,
+    and asserts they are identical — on the pre-fix tree it fails with the plain prefix (102
+    tokens on Spark-X2.5-4B's `c01`) against the serving one (119).
+    """
+    path = _model()
+    item = devset.load()[0]
+    payload = devset.request_for(item, model=str(path), threads=4)
+
+    prefilled: list[list[int]] = []
+    original = session_module.ModelSession.prefill
+
+    def spy(self, tokens, **kwargs):
+        prefilled.append([int(token) for token in tokens])
+        return original(self, tokens, **kwargs)
+
+    monkeypatch.setattr(session_module.ModelSession, "prefill", spy)
+
+    # the serving path, exactly as `ggufone ask/run` reaches the engine
+    serving = cli.decide_payload(payload, home=None, fit_enabled=False)
+    serving_tokens = prefilled[-1]
+    prefilled.clear()
+
+    # the bench path, exactly as `ggufone bench --suite quality` reaches the engine
+    report = suites.run_suite(
+        harness.BenchConfig(suite="quality", model_path=str(path), items=1, threads=4,
+                            backend=harness.CPU_BACKEND),
+        factory=suites.live_factory)
+    bench_tokens = prefilled[-1]
+
+    # the load-bearing claim first: what each path really sent
+    assert bench_tokens == serving_tokens, (
+        f"the bench sends {len(bench_tokens)} prefix tokens and the serving path "
+        f"{len(serving_tokens)}: the executed plan is not the one the product resolves")
+    assert serving["engine"]["template"]["kind"] != "plain", serving["engine"]["template"]
+    assert report["framing"]["labels"] == [harness.framing_label(report["items"][0]["framing"])]
+    assert report["items"][0]["framing"]["kind"] != "plain", report["items"][0]["framing"]
+    assert len(serving_tokens) == serving["engine"]["prefix_tokens"]
+    assert len(bench_tokens) == report["items"][0]["prefix_tokens"]
+    label = harness.framing_label(report["items"][0]["framing"])
+    print(f"\nitem {item.id}: serving prefix {len(serving_tokens)} tokens, bench prefix "
+          f"{len(bench_tokens)} tokens, framing {label}")
 
 
 # --------------------------------------------------------- the quick preset (card t_f46cec41)

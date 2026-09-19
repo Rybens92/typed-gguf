@@ -635,6 +635,9 @@ def _run_quality(config: harness.BenchConfig, make: Factory, budget: harness.Tim
         model.close()
     report["devset"]["measured"] = len(rows)
     report["items"] = rows
+    # card t_6de5fc53: the framing every row of this table was measured with — a table that cannot
+    # name its prompt cannot be compared with one that used another.
+    report["framing"] = harness.framing_summary(rows)
     report["per_type"] = agreement_by_type(rows)
     report["overall"] = agreement(rows)
     report["ok"] = True
@@ -726,6 +729,12 @@ def _devset_row(config: harness.BenchConfig, model: harness.ModelLike,
         # `harness.render_report` as the "cue verdicts" table.
         "cue": answer.get("cue"),
         "probabilities": probabilities,
+        # card t_6de5fc53: which prompt this row measured — the template surface the response
+        # itself carries plus the prefix it tokenized to. Before the fix the bench planned from
+        # the session (no template resolves) while the serving path planned from the handle, so a
+        # published row could not say which prompt its number described.
+        "framing": harness.framing_of(result),
+        "prefix_tokens": harness.prefix_tokens_of(result),
         "questions_ms": float(result.timings["questions_ms"]),
         "wall_ms": (time.perf_counter() - started) * 1000.0,
     }

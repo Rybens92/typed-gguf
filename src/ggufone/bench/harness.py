@@ -490,12 +490,17 @@ class LiveModel:
                threads: int | None = None) -> Any:
         from ggufone.engine import decide as decide_module
         handle = self._require_handle()
+        # Card t_6de5fc53: ONE plan, resolved from the **handle** — the same source the serving
+        # path (`cli.ask`/`run`) plans from. Planning from the live `ModelSession` (as this used
+        # to) resolves no template at all: a session carries no `.model`/`.runtime`, so
+        # `decide.resolve_template` returns `None` and `prompt.build_prefix` silently falls back
+        # to the plain E1b framing — the bench then measured a prompt the product never sends
+        # (102 vs 119 prefix tokens on dev item `c01`, and a different cue row).
         plan = decide_module.plan_context(request, handle)
         sequences = n_seq_max or request.options.n_seq_max or _needed_sequences(request)
         with self.session(n_ctx=n_ctx or plan.n_ctx, n_seq_max=sequences,
                           threads=threads) as live:
-            live_plan = decide_module.plan_context(request, live)
-            return decide_module.DecisionEngine(live).decide(request, plan=live_plan,
+            return decide_module.DecisionEngine(live).decide(request, plan=plan,
                                                              model_alias=self.alias)
 
     def close(self) -> None:
@@ -587,6 +592,45 @@ def device_cell(row: Mapping[str, Any]) -> str:
     """`compute buffers per device` for a rendered table cell (`CPU=2`), or `—` when unknown."""
     buffers = row.get("device_buffers") or {}
     return " · ".join(f"{device}={count}" for device, count in sorted(buffers.items())) or "—"
+
+
+# ------------------------------------------------------------------- framing
+# Card t_6de5fc53: the bench used to plan the executed context from the live session, which
+# resolves no chat template — so every quality row measured the *plain* framing while the serving
+# path sent the model's template. The rows now carry the framing they measured (the response's own
+# `engine.template`) and the report summarizes it, so no table can be silent about its prompt.
+def framing_of(result: Any) -> dict[str, Any] | None:
+    """The template surface the row's own response carries (`None` when the body has none)."""
+    engine = getattr(result, "engine", None)
+    if not isinstance(engine, Mapping):
+        return None
+    surface = engine.get("template")
+    return dict(surface) if isinstance(surface, Mapping) else None
+
+
+def prefix_tokens_of(result: Any) -> int | None:
+    """The prefix token count the row's own response reported (`engine.prefix_tokens`)."""
+    engine = getattr(result, "engine", None)
+    if not isinstance(engine, Mapping) or engine.get("prefix_tokens") is None:
+        return None
+    return int(engine["prefix_tokens"])
+
+
+def framing_label(surface: Mapping[str, Any] | None) -> str:
+    """One line naming a framing: `plain (prompt.py E1b framing)` or the chat template's surface."""
+    if not isinstance(surface, Mapping) or not surface:
+        return "unrecorded"
+    if surface.get("kind") == "plain":
+        return "plain (prompt.py E1b framing)"
+    return f"chat-template: {surface.get('family') or '?'} / {surface.get('renderer') or '?'}"
+
+
+def framing_summary(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """What framings a report's rows measured — `mixed: true` when they disagree (never silent)."""
+    labels = sorted({framing_label(row.get("framing")) for row in rows})
+    prefixes = sorted({int(row["prefix_tokens"]) for row in rows
+                       if row.get("prefix_tokens") is not None})
+    return {"labels": labels, "prefix_tokens": prefixes, "mixed": len(labels) > 1}
 
 
 def spec_for(config: BenchConfig, backend: str, *, runtimes: Mapping[str, pathlib.Path] | None
@@ -843,6 +887,16 @@ def render_report(report: Mapping[str, Any]) -> str:
     evidence_line = ([f"- engine devices: {device_cell(report)} (compute buffers) · effective "
                       f"backend: {report.get('effective_backend') or 'unverified'}"]
                      if report.get("devices") else [])
+    # card t_6de5fc53: which prompt the rows of this table were measured with. Before the fix
+    # every quality row here was the plain E1b framing while the product sent the chat template.
+    framing = report.get("framing") or {}
+    framing_labels = list(framing.get("labels") or [])
+    framed_prefixes = ", ".join(str(count) for count in framing.get("prefix_tokens") or [])
+    framing_line = ([f"- framing: {', '.join(framing_labels)}"
+                     + (" (MIXED — the rows measured different prompts)" if framing.get("mixed")
+                        else "")
+                     + (f" · prefix tokens: {framed_prefixes}" if framed_prefixes else "")]
+                    if framing_labels else [])
     lines = [f"### {report.get('suite')} — {name}",
              "",
              f"- generated: {report.get('generated_at')}",
@@ -860,6 +914,8 @@ def render_report(report: Mapping[str, Any]) -> str:
              *selection_line,
              # which device the engine's own log proves computed
              *evidence_line,
+             # which prompt these rows were measured with (card t_6de5fc53)
+             *framing_line,
              ""]
     summary_header = ["n", "p50", "p95", "min", "max"]
     if report.get("suite") == "latency":

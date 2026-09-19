@@ -177,7 +177,8 @@ class BenchModel:
     def __init__(self, spec: object, *, script: dict[str, str] | None = None, n_vocab: int = 8192,
                  load_ms: float = 12.5, prefill_ms: float = 0.5, prefill_ms_per_token: float = 0.0,
                  threads: int = 1, nondeterministic: bool = False, step: float = 30.0,
-                 device_log: str = "") -> None:
+                 device_log: str = "", template: dict[str, object] | None = None,
+                 prefix_tokens: int | None = None) -> None:
         self.spec = spec
         self.script = dict(script or {})
         self.n_vocab = n_vocab
@@ -190,6 +191,12 @@ class BenchModel:
         #: the engine's own log lines (card t_603a35a0): the live seam fills this from
         #: `llama_log_set` captures, a test scripts the operator's own lines verbatim.
         self.device_log = str(device_log)
+        #: card t_6de5fc53: the template surface / prefix token count this fake's *responses*
+        #: report. A `FakeSession` carries no model handle, so the plans a fake builds are plain
+        #: by construction; these two let a test declare what the response says it measured (the
+        #: row/report plumbing reads the response, and that is what the offline gate pins).
+        self.template = dict(template) if template is not None else None
+        self.prefix_tokens = prefix_tokens
         self.loads = 0
         self.sessions = 0
         self._words: dict[str, int] = {}
@@ -233,8 +240,13 @@ class BenchModel:
 
             session.row_fn = _biased
         plan = decide_module.plan_context(request, session, resolve=False)
-        return decide_module.DecisionEngine(session).decide(
+        result = decide_module.DecisionEngine(session).decide(
             request, plan=plan, model_alias=f"bench-{getattr(self.spec, 'backend', 'cpu')}")
+        if self.template is not None:                      # card t_6de5fc53: scripted response
+            result.engine["template"] = dict(self.template)
+        if self.prefix_tokens is not None:
+            result.engine["prefix_tokens"] = int(self.prefix_tokens)
+        return result
 
     def close(self) -> None:
         pass
