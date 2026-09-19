@@ -1,0 +1,15 @@
+== before: 2026-09-19T17:20:18+02:00
+-- tiel   22360476736 1788539361
+9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c  /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf
+-- occamy 24113674848 1789723135
+633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757  /var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf
+== done: 2026-09-19T17:21:02+02:00
+
+# NOTE (documented, 2026-09-19T18:37): a stray re-run of the before-script overwrote this file's
+# first line five minutes into the after-capture (the job was killed immediately; no SHA of either
+# model was read by that aborted process). The block above is the verbatim first capture,
+# transcribed from the terminal output of that run, which the campaign's first comment quotes.
+# Independent corroboration of both before-values: the fit plan's own model sha256
+# (`9286a94c…`, `ggufone fit --json`, created 17:20:46Z) and the E3 receipt
+# (`e3c_sha256_receipt.json`, `identical: true`) for the Occamy file. The after-capture is in
+# `sha256_after.txt`.

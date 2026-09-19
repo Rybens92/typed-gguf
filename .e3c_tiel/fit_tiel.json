@@ -1,0 +1,36 @@
+{
+  "model": "Tiel-Coder-35B-A3B-UD-Q4_K_XL",
+  "path": "/var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+  "n_gpu_layers": 9,
+  "n_ctx": 4096,
+  "kv_type": "q4_0",
+  "n_seq_max": 8,
+  "est_weights_bytes": 22348300288,
+  "est_kv_bytes": 94371840,
+  "est_total_bytes": 22993174528,
+  "backend": "vulkan",
+  "source": "llama-fit-params",
+  "warnings": [
+    "W_KV_TYPE_DOWNGRADE",
+    "W_FIT_DOWNGRADE"
+  ],
+  "notes": [
+    "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 21313 MiB, context 142 MiB, compute 525 MiB)",
+    "device memory bound: offloading 9/40 layers within 5609 MiB (--fit-target 1024 MiB, 6633 MiB free of 8192 MiB)"
+  ],
+  "arch": "qwen35moe",
+  "model_sha256": "9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c",
+  "host_fingerprint": "f0ba0bf487257740",
+  "budget_bytes": 5881462784,
+  "created_at": "2026-09-19T15:20:46Z",
+  "schema": "ggufone.fit/v1",
+  "host": {
+    "backend": "vulkan",
+    "ram_bytes": 33548615680,
+    "vram_bytes": 8589934592,
+    "vram_free_bytes": 6955204608,
+    "n_cpu": 24,
+    "fingerprint": "f0ba0bf487257740"
+  },
+  "cache": "/home/rybens/.local/share/ggufone/fit/9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c.f0ba0bf487257740.json"
+}

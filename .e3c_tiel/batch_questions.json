@@ -1,0 +1,204 @@
+{
+  "questions": {
+    "c01": {
+      "type": "choice",
+      "criteria": {
+        "billing": "payments, invoices and refunds",
+        "technical": "api, infrastructure and deploys",
+        "sales": "contracts and pricing",
+        "support": "customer conversations"
+      },
+      "instructions": "Which team owns this incident?"
+    },
+    "c02": {
+      "type": "choice",
+      "criteria": {
+        "billing": "duplicate charges and refunds",
+        "technical": "product bugs",
+        "account": "plan changes and seat management",
+        "escalation": "formal complaints"
+      },
+      "instructions": "Which queue should own this ticket?"
+    },
+    "c03": {
+      "type": "choice",
+      "criteria": {
+        "mobile": "android and ios clients",
+        "backend": "api and database",
+        "design": "visual and interaction design",
+        "marketing": "campaigns and copy"
+      },
+      "instructions": "Which department should fix this?"
+    },
+    "c04": {
+      "type": "choice",
+      "criteria": {
+        "public": "safe for anyone",
+        "internal": "employees only",
+        "confidential": "restricted business data under nda",
+        "restricted": "personal or highly sensitive data with legal exposure"
+      },
+      "instructions": "How should this document be classified?"
+    },
+    "c05": {
+      "type": "choice",
+      "criteria": {
+        "security": "vulnerability response and incident command",
+        "support": "customer conversations",
+        "docs": "documentation and guides",
+        "finance": "budgets and reporting"
+      },
+      "instructions": "Who must be paged first?"
+    },
+    "c06": {
+      "type": "choice",
+      "criteria": {
+        "added": "new features",
+        "changed": "behaviour that changed",
+        "fixed": "bugs that are gone",
+        "removed": "features that were deleted"
+      },
+      "instructions": "Which changelog section does this belong to?"
+    },
+    "c07": {
+      "type": "choice",
+      "criteria": {
+        "liability": "caps on damages",
+        "termination": "exit conditions and their costs",
+        "payment": "invoicing terms",
+        "ip": "ownership of work"
+      },
+      "instructions": "Which clause carries the financial exposure?"
+    },
+    "c08": {
+      "type": "choice",
+      "criteria": {
+        "business_hours": "while the team is online",
+        "off_hours": "overnight with a rollback ready",
+        "weekend": "saturday or sunday",
+        "freeze": "not until the code freeze ends"
+      },
+      "instructions": "When should this deploy run?"
+    },
+    "c09": {
+      "type": "choice",
+      "criteria": {
+        "spam": "unsolicited promotion",
+        "harassment": "abuse aimed at a person",
+        "off_topic": "irrelevant but honest",
+        "fine": "no action needed"
+      },
+      "instructions": "What is this content?"
+    },
+    "c10": {
+      "type": "choice",
+      "criteria": {
+        "skills": "not enough technical depth",
+        "experience": "too few years",
+        "compensation": "outside the approved band",
+        "availability": "cannot start in time"
+      },
+      "instructions": "Why do we not move forward?"
+    },
+    "c11": {
+      "type": "choice",
+      "criteria": {
+        "standard": "three to five days, cheapest",
+        "expedited": "guaranteed next morning",
+        "freight": "palletised, appointment only",
+        "international": "customs required"
+      },
+      "instructions": "How should this shipment be routed?"
+    },
+    "c12": {
+      "type": "choice",
+      "criteria": {
+        "frontend": "rendering and client state",
+        "backend": "api and business logic",
+        "data": "stored records",
+        "network": "dns or transport"
+      },
+      "instructions": "Where is the bug?"
+    },
+    "c13": {
+      "type": "choice",
+      "criteria": {
+        "sales": "contracts and pricing",
+        "support": "product questions",
+        "billing": "invoices and refunds",
+        "partnerships": "partner and alliance agreements"
+      },
+      "instructions": "Which team should answer?"
+    },
+    "c14": {
+      "type": "choice",
+      "criteria": {
+        "deductible": "fully deducted this year",
+        "capital": "recorded as an asset and depreciated",
+        "expense": "consumed immediately",
+        "non_deductible": "not tax relevant"
+      },
+      "instructions": "How should the purchase be treated?"
+    },
+    "c15": {
+      "type": "choice",
+      "criteria": {
+        "cardiology": "heart and vessels",
+        "orthopedics": "bones and joints",
+        "neurology": "nerves and brain",
+        "dermatology": "skin"
+      },
+      "instructions": "Which specialty should see this patient?"
+    },
+    "c16": {
+      "type": "choice",
+      "criteria": {
+        "travel": "flights, hotels and transport",
+        "meals": "food and entertainment",
+        "software": "licences and subscriptions",
+        "hardware": "devices and peripherals"
+      },
+      "instructions": "Which expense category applies?"
+    },
+    "c17": {
+      "type": "choice",
+      "criteria": {
+        "smb": "small teams, self serve",
+        "midmarket": "hundreds of seats, invoice terms",
+        "enterprise": "thousands of seats, procurement",
+        "consumer": "single individuals"
+      },
+      "instructions": "Which segment is the 900-person retailer?"
+    },
+    "c18": {
+      "type": "choice",
+      "criteria": {
+        "standup": "daily coordination",
+        "retrospective": "reflection on the last iteration",
+        "planning": "sizing the next iteration",
+        "review": "demoing finished work"
+      },
+      "instructions": "What kind of meeting is this?"
+    },
+    "c19": {
+      "type": "choice",
+      "criteria": {
+        "configuration": "settings and environment",
+        "code": "application logic",
+        "data": "stored content",
+        "infrastructure": "hosts and network"
+      },
+      "instructions": "What is the root cause category?"
+    },
+    "c20": {
+      "type": "choice",
+      "criteria": {
+        "permissive": "no obligations beyond attribution",
+        "copyleft": "the combined binary inherits the licence",
+        "public_domain": "no restrictions at all",
+        "proprietary": "a commercial licence was bought"
+      },
+      "instructions": "Which licence situation does this create?"
+    }
+  }
+}

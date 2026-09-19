@@ -1,0 +1,637 @@
+{
+  "model": "Tiel-Coder-35B-A3B-UD-Q4_K_XL",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "vulkan",
+    "backend_source": "request",
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan",
+    "readout": "sequence",
+    "kv_unified": true,
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 109,
+    "state_id": "sha256:c206645c0f17551a425f5f4e76d4a4da745144c0119e91e2bf821e756ace0ebb",
+    "prefill_reused": false,
+    "template": {
+      "kind": "builtin",
+      "renderer": "builtin",
+      "source": "llama_chat_apply_template",
+      "family": "qwen35moe",
+      "thinking": "suppressed",
+      "warnings": [
+        "W_TEMPLATE_FALLBACK"
+      ],
+      "notes": [
+        "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+      ],
+      "explicit": false
+    },
+    "kv_type": "q4_0",
+    "n_gpu_layers": 9,
+    "placement": {
+      "note": "fit plan: 9 layer(s) offloaded, kv_type=q4_0",
+      "n_gpu_layers": 9,
+      "kv_type": "q4_0",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    },
+    "fit": {
+      "n_gpu_layers": 9,
+      "n_ctx": 4096,
+      "kv_type": "q4_0",
+      "n_seq_max": 8,
+      "est_weights_bytes": 22348300288,
+      "est_kv_bytes": 94371840,
+      "est_total_bytes": 22993174528,
+      "backend": "vulkan",
+      "source": "llama-fit-params",
+      "warnings": [
+        "W_KV_TYPE_DOWNGRADE",
+        "W_FIT_DOWNGRADE"
+      ],
+      "notes": [
+        "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 21313 MiB, context 142 MiB, compute 525 MiB)",
+        "device memory bound: offloading 9/40 layers within 5609 MiB (--fit-target 1024 MiB, 6633 MiB free of 8192 MiB)"
+      ],
+      "arch": "qwen35moe",
+      "model_sha256": "9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c",
+      "host_fingerprint": "f0ba0bf487257740",
+      "budget_bytes": 5632950272,
+      "created_at": "2026-09-19T15:20:46Z",
+      "schema": "ggufone.fit/v1"
+    },
+    "escalations": {
+      "enabled": false,
+      "limit": 0,
+      "threshold": 0.5,
+      "target": null,
+      "count": 0,
+      "decisions": [],
+      "skipped": []
+    }
+  },
+  "answers": {
+    "c01": {
+      "type": "choice",
+      "choice": "support",
+      "probabilities": {
+        "billing": 0.0719934,
+        "technical": 0.00512496,
+        "sales": 0.0109309,
+        "support": 0.911951
+      },
+      "confidence": 0.882601,
+      "coverage": 1.56977e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.991604
+      },
+      "decode_steps": 4,
+      "legend": {
+        "billing": "payments, invoices and refunds",
+        "technical": "api, infrastructure and deploys",
+        "sales": "contracts and pricing",
+        "support": "customer conversations"
+      }
+    },
+    "c02": {
+      "type": "choice",
+      "choice": "escalation",
+      "probabilities": {
+        "billing": 5.02072e-05,
+        "technical": 7.23653e-05,
+        "account": 0.000160984,
+        "escalation": 0.999716
+      },
+      "confidence": 0.999622,
+      "coverage": 1.10738e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.819552
+      },
+      "decode_steps": 5,
+      "legend": {
+        "billing": "duplicate charges and refunds",
+        "technical": "product bugs",
+        "account": "plan changes and seat management",
+        "escalation": "formal complaints"
+      }
+    },
+    "c03": {
+      "type": "choice",
+      "choice": "backend",
+      "probabilities": {
+        "mobile": 0.0086537,
+        "backend": 0.845251,
+        "design": 0.0629631,
+        "marketing": 0.0831321
+      },
+      "confidence": 0.793668,
+      "coverage": 8.13192e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.979595
+      },
+      "decode_steps": 4,
+      "legend": {
+        "mobile": "android and ios clients",
+        "backend": "api and database",
+        "design": "visual and interaction design",
+        "marketing": "campaigns and copy"
+      }
+    },
+    "c04": {
+      "type": "choice",
+      "choice": "confidential",
+      "probabilities": {
+        "public": 0.000485962,
+        "internal": 0.000440914,
+        "confidential": 0.999011,
+        "restricted": 6.22684e-05
+      },
+      "confidence": 0.998681,
+      "coverage": 1.89637e-05,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.905409
+      },
+      "decode_steps": 5,
+      "legend": {
+        "public": "safe for anyone",
+        "internal": "employees only",
+        "confidential": "restricted business data under nda",
+        "restricted": "personal or highly sensitive data with legal exposure"
+      }
+    },
+    "c05": {
+      "type": "choice",
+      "choice": "support",
+      "probabilities": {
+        "security": 0.0710683,
+        "support": 0.926915,
+        "docs": 0.000852637,
+        "finance": 0.00116449
+      },
+      "confidence": 0.902553,
+      "coverage": 1.90705e-05,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.875218
+      },
+      "decode_steps": 4,
+      "legend": {
+        "security": "vulnerability response and incident command",
+        "support": "customer conversations",
+        "docs": "documentation and guides",
+        "finance": "budgets and reporting"
+      }
+    },
+    "c06": {
+      "type": "choice",
+      "choice": "changed",
+      "probabilities": {
+        "added": 0.013512,
+        "changed": 0.666623,
+        "fixed": 0.0102931,
+        "removed": 0.309572
+      },
+      "confidence": 0.555497,
+      "coverage": 2.67522e-05,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.945718
+      },
+      "decode_steps": 4,
+      "legend": {
+        "added": "new features",
+        "changed": "behaviour that changed",
+        "fixed": "bugs that are gone",
+        "removed": "features that were deleted"
+      }
+    },
+    "c07": {
+      "type": "choice",
+      "choice": "liability",
+      "probabilities": {
+        "liability": 0.998267,
+        "termination": 0.00143365,
+        "payment": 0.000228782,
+        "ip": 7.04294e-05
+      },
+      "confidence": 0.99769,
+      "coverage": 3.44039e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.859369
+      },
+      "decode_steps": 5,
+      "legend": {
+        "liability": "caps on damages",
+        "termination": "exit conditions and their costs",
+        "payment": "invoicing terms",
+        "ip": "ownership of work"
+      }
+    },
+    "c08": {
+      "type": "choice",
+      "choice": "weekend",
+      "probabilities": {
+        "business_hours": 0.240551,
+        "off_hours": 0.0717512,
+        "weekend": 0.687591,
+        "freeze": 0.000105982
+      },
+      "confidence": 0.583455,
+      "coverage": 7.96708e-07,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.731062
+      },
+      "decode_steps": 7,
+      "legend": {
+        "business_hours": "while the team is online",
+        "off_hours": "overnight with a rollback ready",
+        "weekend": "saturday or sunday",
+        "freeze": "not until the code freeze ends"
+      }
+    },
+    "c09": {
+      "type": "choice",
+      "choice": "harassment",
+      "probabilities": {
+        "spam": 0.000159453,
+        "harassment": 0.991559,
+        "off_topic": 0.00827531,
+        "fine": 5.82403e-06
+      },
+      "confidence": 0.988746,
+      "coverage": 2.27781e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.710731
+      },
+      "decode_steps": 7,
+      "legend": {
+        "spam": "unsolicited promotion",
+        "harassment": "abuse aimed at a person",
+        "off_topic": "irrelevant but honest",
+        "fine": "no action needed"
+      }
+    },
+    "c10": {
+      "type": "choice",
+      "choice": "compensation",
+      "probabilities": {
+        "skills": 1.77914e-05,
+        "experience": 2.5509e-05,
+        "compensation": 0.999936,
+        "availability": 2.05511e-05
+      },
+      "confidence": 0.999915,
+      "coverage": 9.91723e-07,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.789392
+      },
+      "decode_steps": 5,
+      "legend": {
+        "skills": "not enough technical depth",
+        "experience": "too few years",
+        "compensation": "outside the approved band",
+        "availability": "cannot start in time"
+      }
+    },
+    "c11": {
+      "type": "choice",
+      "choice": "expedited",
+      "probabilities": {
+        "standard": 3.89971e-05,
+        "expedited": 0.960078,
+        "freight": 0.0398699,
+        "international": 1.27618e-05
+      },
+      "confidence": 0.946771,
+      "coverage": 1.75192e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": true,
+        "token": 248046,
+        "closer": "<|im_end|>",
+        "mass": 0.503728,
+        "hint": "docs/TEMPLATES.md \u00a74 (the label policy, measured) \u2014 the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+      },
+      "decode_steps": 6,
+      "legend": {
+        "standard": "three to five days, cheapest",
+        "expedited": "guaranteed next morning",
+        "freight": "palletised, appointment only",
+        "international": "customs required"
+      }
+    },
+    "c12": {
+      "type": "choice",
+      "choice": "network",
+      "probabilities": {
+        "frontend": 0.236142,
+        "backend": 0.0431488,
+        "data": 0.045717,
+        "network": 0.674992
+      },
+      "confidence": 0.566656,
+      "coverage": 7.96516e-05,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.681731
+      },
+      "decode_steps": 4,
+      "legend": {
+        "frontend": "rendering and client state",
+        "backend": "api and business logic",
+        "data": "stored records",
+        "network": "dns or transport"
+      }
+    },
+    "c13": {
+      "type": "choice",
+      "choice": "partnerships",
+      "probabilities": {
+        "sales": 0.00645615,
+        "support": 0.0671833,
+        "billing": 0.00339723,
+        "partnerships": 0.922963
+      },
+      "confidence": 0.897284,
+      "coverage": 9.55843e-05,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.936925
+      },
+      "decode_steps": 5,
+      "legend": {
+        "sales": "contracts and pricing",
+        "support": "product questions",
+        "billing": "invoices and refunds",
+        "partnerships": "partner and alliance agreements"
+      }
+    },
+    "c14": {
+      "type": "choice",
+      "choice": "non_deductible",
+      "probabilities": {
+        "deductible": 0.23312,
+        "capital": 2.66471e-08,
+        "expense": 5.25143e-07,
+        "non_deductible": 0.76688
+      },
+      "confidence": 0.689173,
+      "coverage": 4.47524e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.828903
+      },
+      "decode_steps": 9,
+      "legend": {
+        "deductible": "fully deducted this year",
+        "capital": "recorded as an asset and depreciated",
+        "expense": "consumed immediately",
+        "non_deductible": "not tax relevant"
+      }
+    },
+    "c15": {
+      "type": "choice",
+      "choice": "dermatology",
+      "probabilities": {
+        "cardiology": 0.0798939,
+        "orthopedics": 0.0587052,
+        "neurology": 0.415896,
+        "dermatology": 0.445505
+      },
+      "confidence": 0.260673,
+      "coverage": 4.70603e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.916491
+      },
+      "decode_steps": 11,
+      "legend": {
+        "cardiology": "heart and vessels",
+        "orthopedics": "bones and joints",
+        "neurology": "nerves and brain",
+        "dermatology": "skin"
+      }
+    },
+    "c16": {
+      "type": "choice",
+      "choice": "meals",
+      "probabilities": {
+        "travel": 0.00190103,
+        "meals": 0.995646,
+        "software": 0.000478127,
+        "hardware": 0.00197462
+      },
+      "confidence": 0.994195,
+      "coverage": 1.46845e-05,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.96159
+      },
+      "decode_steps": 5,
+      "legend": {
+        "travel": "flights, hotels and transport",
+        "meals": "food and entertainment",
+        "software": "licences and subscriptions",
+        "hardware": "devices and peripherals"
+      }
+    },
+    "c17": {
+      "type": "choice",
+      "choice": "midmarket",
+      "probabilities": {
+        "smb": 0.233694,
+        "midmarket": 0.765534,
+        "enterprise": 1.49768e-05,
+        "consumer": 0.000757248
+      },
+      "confidence": 0.687378,
+      "coverage": 1.04938e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.972958
+      },
+      "decode_steps": 6,
+      "legend": {
+        "smb": "small teams, self serve",
+        "midmarket": "hundreds of seats, invoice terms",
+        "enterprise": "thousands of seats, procurement",
+        "consumer": "single individuals"
+      }
+    },
+    "c18": {
+      "type": "choice",
+      "choice": "retrospective",
+      "probabilities": {
+        "standup": 0.0182795,
+        "retrospective": 0.968686,
+        "planning": 0.0130285,
+        "review": 6.35582e-06
+      },
+      "confidence": 0.958247,
+      "coverage": 0.00138989,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.897007
+      },
+      "decode_steps": 8,
+      "legend": {
+        "standup": "daily coordination",
+        "retrospective": "reflection on the last iteration",
+        "planning": "sizing the next iteration",
+        "review": "demoing finished work"
+      }
+    },
+    "c19": {
+      "type": "choice",
+      "choice": "infrastructure",
+      "probabilities": {
+        "configuration": 0.019498,
+        "code": 0.0151671,
+        "data": 8.09292e-05,
+        "infrastructure": 0.965254
+      },
+      "confidence": 0.953672,
+      "coverage": 0.000918588,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.807037
+      },
+      "decode_steps": 5,
+      "legend": {
+        "configuration": "settings and environment",
+        "code": "application logic",
+        "data": "stored content",
+        "infrastructure": "hosts and network"
+      }
+    },
+    "c20": {
+      "type": "choice",
+      "choice": "permissive",
+      "probabilities": {
+        "permissive": 0.682579,
+        "copyleft": 0.272467,
+        "public_domain": 0.0201041,
+        "proprietary": 0.0248498
+      },
+      "confidence": 0.576772,
+      "coverage": 9.57183e-05,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": false,
+        "token": 248069,
+        "closer": null,
+        "mass": 0.949315
+      },
+      "decode_steps": 8,
+      "legend": {
+        "permissive": "no obligations beyond attribution",
+        "copyleft": "the combined binary inherits the licence",
+        "public_domain": "no restrictions at all",
+        "proprietary": "a commercial licence was bought"
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 1175,
+    "output_tokens": 117,
+    "questions": 20,
+    "forks": 80,
+    "prefill_tokens": 109,
+    "decode_steps": 117,
+    "waves": 40
+  },
+  "timings": {
+    "model_load_ms": 9850.92,
+    "prefill_ms": 7878.95,
+    "questions_ms": 27715.2,
+    "total_ms": 35618.1
+  },
+  "warnings": [
+    "W_TEMPLATE_FALLBACK",
+    "W_LOW_MASS",
+    "W_CUE_REFUSED"
+  ],
+  "calibrated": false,
+  "calibration": {
+    "source": "",
+    "applied": false,
+    "model": null,
+    "params_hash": "",
+    "temperatures": {},
+    "confidence_modes": {},
+    "accepted_types": []
+  }
+}

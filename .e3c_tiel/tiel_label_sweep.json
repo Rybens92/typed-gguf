@@ -1,0 +1,3638 @@
+{
+  "schema": "ggufone.e3b.label-policy/v1",
+  "generated_at": "2026-09-19T16:42:45Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+    "name": "Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+    "bytes": 22360476736,
+    "arch": "qwen35moe"
+  },
+  "model_sha256": "9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c",
+  "runtime": "/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 9,
+  "placement": {
+    "note": "fit plan: 9 layer(s) offloaded, kv_type=auto",
+    "n_gpu_layers": 9,
+    "kv_type": "auto",
+    "degraded": false,
+    "attempts": [],
+    "warnings": []
+  },
+  "load_ms": 25879.3,
+  "cues": [
+    "shipped",
+    "blank",
+    "explicit"
+  ],
+  "label_variants": [
+    "bare",
+    "space",
+    "caps",
+    "newline",
+    "long"
+  ],
+  "prefix_variants": [
+    "shipped"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [],
+  "counts": {
+    "choice": 2,
+    "score": 2,
+    "noul": 2
+  },
+  "devset": "docs/evidence/tiel_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "expected": "technical",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 109,
+          "n_ctx": 4291,
+          "n_seq_max": 24,
+          "prefix_tail": " the database is reachable.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 53,
+            "blank": 53,
+            "explicit": 62
+          },
+          "tokenized": {
+            "bare": {
+              "billing": [
+                37355
+              ],
+              "technical": [
+                69685
+              ],
+              "sales": [
+                28094
+              ],
+              "support": [
+                22637
+              ]
+            },
+            "space": {
+              " billing": [
+                32419
+              ],
+              " technical": [
+                10597
+              ],
+              " sales": [
+                6416
+              ],
+              " support": [
+                1761
+              ]
+            },
+            "caps": {
+              "Billing": [
+                79177
+              ],
+              "Technical": [
+                60130
+              ],
+              "Sales": [
+                34246
+              ],
+              "Support": [
+                7666
+              ]
+            },
+            "newline": {
+              "\nbilling": [
+                198,
+                37355
+              ],
+              "\ntechnical": [
+                198,
+                69685
+              ],
+              "\nsales": [
+                198,
+                28094
+              ],
+              "\nsupport": [
+                198,
+                22637
+              ]
+            },
+            "long": {
+              "billing: payments, invoices and refunds": [
+                37355,
+                25,
+                13767,
+                11,
+                61893,
+                321,
+                70057
+              ],
+              "technical: api, infrastructure and deploys": [
+                69685,
+                25,
+                6131,
+                11,
+                13343,
+                321,
+                2101,
+                32195
+              ],
+              "sales: contracts and pricing": [
+                28094,
+                25,
+                16577,
+                321,
+                20568
+              ],
+              "support: customer conversations": [
+                22637,
+                25,
+                5813,
+                20319
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 12.26356566186329,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 4.087721755054714e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 6.773833452601191e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 3.142954713161051e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.1690640476603055e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 4.087721755054714e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.5145204853918816
+                },
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.4452820649985969
+                },
+                {
+                  "token": 268,
+                  "piece": "en",
+                  "p_full": 0.004166930176119555
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.0021409840016862335
+                },
+                {
+                  "token": 267,
+                  "piece": "st",
+                  "p_full": 0.0017423041572918573
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 0.0008139839919776101
+                },
+                {
+                  "token": 258,
+                  "piece": "in",
+                  "p_full": 0.0005864875224624337
+                },
+                {
+                  "token": 12237,
+                  "piece": "\"\"\"",
+                  "p_full": 0.00046626786905328834
+                }
+              ]
+            },
+            "blank": {
+              "scale": 13.84746855206074,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 1.2459980250707583e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 7.66700588841575e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 1.8205443800302703e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.9839786286855135e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 1.2459980250707583e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.6812548578065607
+                },
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.1567120720722733
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.13651265581178926
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.0034578286880334232
+                },
+                {
+                  "token": 2817,
+                  "piece": "web",
+                  "p_full": 0.0018447205095771099
+                },
+                {
+                  "token": 16451,
+                  "piece": "wen",
+                  "p_full": 0.0006710899191471208
+                },
+                {
+                  "token": 12237,
+                  "piece": "\"\"\"",
+                  "p_full": 0.0004718938781882927
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.00034331714028021045
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 12.67518537073235,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 2.4102697126221788e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 7.185637344692879e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 1.535879189606011e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.9479397452044344e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 2.4102697126221788e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.8940164083202263
+                },
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.026981255589872962
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.016638799282362095
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 0.0033946951353464945
+                },
+                {
+                  "token": 27,
+                  "piece": "<",
+                  "p_full": 0.0026197944977115143
+                },
+                {
+                  "token": 268,
+                  "piece": "en",
+                  "p_full": 0.001610996783424632
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.0015601463169625446
+                },
+                {
+                  "token": 1090,
+                  "piece": "wo",
+                  "p_full": 0.0013724306574449336
+                }
+              ]
+            }
+          },
+          "ranked": {},
+          "prefill_ms": 19982.8,
+          "cue_decode_s": 33.3
+        }
+      }
+    },
+    {
+      "id": "c02",
+      "type": "choice",
+      "expected": "billing",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 99,
+          "n_ctx": 4280,
+          "n_seq_max": 24,
+          "prefix_tail": "ttled charges for one seat.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 51,
+            "blank": 51,
+            "explicit": 60
+          },
+          "tokenized": {
+            "bare": {
+              "billing": [
+                37355
+              ],
+              "technical": [
+                69685
+              ],
+              "account": [
+                4459
+              ],
+              "escalation": [
+                78288,
+                362
+              ]
+            },
+            "space": {
+              " billing": [
+                32419
+              ],
+              " technical": [
+                10597
+              ],
+              " account": [
+                2605
+              ],
+              " escalation": [
+                67909
+              ]
+            },
+            "caps": {
+              "Billing": [
+                79177
+              ],
+              "Technical": [
+                60130
+              ],
+              "Account": [
+                7133
+              ],
+              "Escalation": [
+                34926,
+                278,
+                362
+              ]
+            },
+            "newline": {
+              "\nbilling": [
+                198,
+                37355
+              ],
+              "\ntechnical": [
+                198,
+                69685
+              ],
+              "\naccount": [
+                198,
+                4459
+              ],
+              "\nescalation": [
+                198,
+                78288,
+                362
+              ]
+            },
+            "long": {
+              "billing: duplicate charges and refunds": [
+                37355,
+                25,
+                21814,
+                9892,
+                321,
+                70057
+              ],
+              "technical: product bugs": [
+                69685,
+                25,
+                1918,
+                21851
+              ],
+              "account: plan changes and seat management": [
+                4459,
+                25,
+                3019,
+                4203,
+                321,
+                10407,
+                6044
+              ],
+              "escalation: formal complaints": [
+                78288,
+                362,
+                25,
+                15440,
+                20522
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 14.267218156718068,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.0042479299485068e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 2.858093868579048e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 2.858925305530688e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 8.95339249906779e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.0042479299485068e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.7835018296213327
+                },
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.20830004855548315
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.003461737409888163
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 0.0004259333618557807
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.00033425405038557714
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.00029520921263576614
+                },
+                {
+                  "token": 248059,
+                  "piece": "</tool_call>",
+                  "p_full": 7.823399399020492e-05
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 5.785797317054319e-05
+                }
+              ]
+            },
+            "blank": {
+              "scale": 11.296127049921054,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.1154407867205952e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 5.411691411050674e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 1.3511589922088584e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.6118495183111154e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.1154407867205952e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.5938693340656185
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.17509215996593433
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.13543551184220107
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.009752016655004404
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.005645880760516932
+                },
+                {
+                  "token": 86,
+                  "piece": "w",
+                  "p_full": 0.0014587645459633496
+                },
+                {
+                  "token": 12237,
+                  "piece": "\"\"\"",
+                  "p_full": 0.0013451648787145922
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 0.0010088274936881389
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 10.282087248351958,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 3.7827324351938077e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 4.8291809932095e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 5.662500573614358e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 3.3998405681589748e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 3.7827324351938077e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.6026583666098464
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 0.07749844373404859
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.04639968419074715
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.020083285963568
+                },
+                {
+                  "token": 13,
+                  "piece": ".",
+                  "p_full": 0.012968265101657885
+                },
+                {
+                  "token": 59,
+                  "piece": "\\",
+                  "p_full": 0.01189999150485276
+                },
+                {
+                  "token": 27,
+                  "piece": "<",
+                  "p_full": 0.009323198719968614
+                },
+                {
+                  "token": 62,
+                  "piece": "_",
+                  "p_full": 0.007762811081855674
+                }
+              ]
+            }
+          },
+          "ranked": {},
+          "prefill_ms": 16854.0,
+          "cue_decode_s": 26.3
+        }
+      }
+    },
+    {
+      "id": "s01",
+      "type": "score",
+      "expected": "3",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 87,
+          "n_ctx": 4263,
+          "n_seq_max": 28,
+          "prefix_tail": ", and no workaround exists.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 47,
+            "blank": 47,
+            "explicit": 63
+          },
+          "tokenized": {
+            "bare": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ],
+              "4": [
+                19
+              ]
+            },
+            "space": {
+              " 0": [
+                220,
+                15
+              ],
+              " 1": [
+                220,
+                16
+              ],
+              " 2": [
+                220,
+                17
+              ],
+              " 3": [
+                220,
+                18
+              ],
+              " 4": [
+                220,
+                19
+              ]
+            },
+            "caps": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ],
+              "4": [
+                19
+              ]
+            },
+            "newline": {
+              "\n0": [
+                198,
+                15
+              ],
+              "\n1": [
+                198,
+                16
+              ],
+              "\n2": [
+                198,
+                17
+              ],
+              "\n3": [
+                198,
+                18
+              ],
+              "\n4": [
+                198,
+                19
+              ]
+            },
+            "long": {
+              "cosmetic": [
+                9128,
+                17453
+              ],
+              "annoying": [
+                985,
+                2181,
+                286
+              ],
+              "degrading": [
+                442,
+                31195
+              ],
+              "critical": [
+                40167
+              ],
+              "catastrophic": [
+                216931,
+                267,
+                40332
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 13.205289809094115,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 0.0007721362069839365,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3",
+                    " 4"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 1.3317362930525626e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3",
+                      " 4"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 0.0007721362069839365,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3",
+                    "\n4"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 3.5599450165669867e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3",
+                      "\n4"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "cosmetic",
+                    "annoying",
+                    "degrading",
+                    "critical",
+                    "catastrophic"
+                  ],
+                  "first_tokens": [
+                    9128,
+                    985,
+                    442,
+                    40167,
+                    216931
+                  ],
+                  "pieces": [
+                    "cos",
+                    "ann",
+                    "de",
+                    "critical",
+                    "cata"
+                  ],
+                  "coverage": 4.087529234525775e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.8340369983413553
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.14530937385796894
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.0022321422219535015
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.0011158066446542675
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 0.0009330669671801758
+                },
+                {
+                  "token": 248059,
+                  "piece": "</tool_call>",
+                  "p_full": 0.0006387776443079084
+                },
+                {
+                  "token": 16,
+                  "piece": "1",
+                  "p_full": 0.00043860444772022677
+                },
+                {
+                  "token": 12237,
+                  "piece": "\"\"\"",
+                  "p_full": 0.0003950677036121201
+                }
+              ]
+            },
+            "blank": {
+              "scale": 13.077970671567591,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 0.00023177904618875512,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3",
+                    " 4"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 1.5643598731073922e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3",
+                      " 4"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 0.00023177904618875512,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3",
+                    "\n4"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.375867288519327e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3",
+                      "\n4"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "cosmetic",
+                    "annoying",
+                    "degrading",
+                    "critical",
+                    "catastrophic"
+                  ],
+                  "first_tokens": [
+                    9128,
+                    985,
+                    442,
+                    40167,
+                    216931
+                  ],
+                  "pieces": [
+                    "cos",
+                    "ann",
+                    "de",
+                    "critical",
+                    "cata"
+                  ],
+                  "coverage": 2.1085982875391456e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.4805603030321661
+                },
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.3762659316106489
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.1196511522903875
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.003799275805469096
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.002809902916167651
+                },
+                {
+                  "token": 12237,
+                  "piece": "\"\"\"",
+                  "p_full": 0.0008503370213832589
+                },
+                {
+                  "token": 548,
+                  "piece": "__",
+                  "p_full": 0.0004180923523358088
+                },
+                {
+                  "token": 86,
+                  "piece": "w",
+                  "p_full": 0.00040003993995544137
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 12.396574744715938,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 0.0005260198460510448,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3",
+                    " 4"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 2.8406115993299352e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3",
+                      " 4"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 0.0005260198460510448,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3",
+                    "\n4"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 6.137405395761863e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3",
+                      "\n4"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "cosmetic",
+                    "annoying",
+                    "degrading",
+                    "critical",
+                    "catastrophic"
+                  ],
+                  "first_tokens": [
+                    9128,
+                    985,
+                    442,
+                    40167,
+                    216931
+                  ],
+                  "pieces": [
+                    "cos",
+                    "ann",
+                    "de",
+                    "critical",
+                    "cata"
+                  ],
+                  "coverage": 8.393973334133084e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.5654982359570151
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.1942588209521875
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.16456371884983226
+                },
+                {
+                  "token": 32,
+                  "piece": "A",
+                  "p_full": 0.0072364923025554605
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 0.005068510606240121
+                },
+                {
+                  "token": 760,
+                  "piece": "The",
+                  "p_full": 0.003180270775926345
+                },
+                {
+                  "token": 96332,
+                  "piece": "改",
+                  "p_full": 0.002243898596417246
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.0015925658692617227
+                }
+              ]
+            }
+          },
+          "ranked": {},
+          "prefill_ms": 15170.5,
+          "cue_decode_s": 7.0
+        }
+      }
+    },
+    {
+      "id": "s02",
+      "type": "score",
+      "expected": "3",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 85,
+          "n_ctx": 4258,
+          "n_seq_max": 24,
+          "prefix_tail": "he answer takes one minute.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 44,
+            "blank": 44,
+            "explicit": 57
+          },
+          "tokenized": {
+            "bare": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ]
+            },
+            "space": {
+              " 0": [
+                220,
+                15
+              ],
+              " 1": [
+                220,
+                16
+              ],
+              " 2": [
+                220,
+                17
+              ],
+              " 3": [
+                220,
+                18
+              ]
+            },
+            "caps": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ]
+            },
+            "newline": {
+              "\n0": [
+                198,
+                15
+              ],
+              "\n1": [
+                198,
+                16
+              ],
+              "\n2": [
+                198,
+                17
+              ],
+              "\n3": [
+                198,
+                18
+              ]
+            },
+            "long": {
+              "whenever": [
+                1266,
+                29741
+              ],
+              "this week": [
+                559,
+                1936
+              ],
+              "this quarter": [
+                559,
+                8079
+              ],
+              "today": [
+                29129
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 12.421459834987925,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 0.0003426042333573485,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 4.964268502518289e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 0.0003426042333573485,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.2233905065095045e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "whenever",
+                    "this week",
+                    "this quarter",
+                    "today"
+                  ],
+                  "first_tokens": [
+                    1266,
+                    559,
+                    559,
+                    29129
+                  ],
+                  "pieces": [
+                    "wh",
+                    "this",
+                    "this",
+                    "today"
+                  ],
+                  "coverage": 6.886383795495967e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "this week",
+                      "this quarter"
+                    ]
+                  ]
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.5275403808431883
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.43509778725018905
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 0.02080465947322578
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.00309771150812935
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.0009232103829149575
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.0006686715729822693
+                },
+                {
+                  "token": 248059,
+                  "piece": "</tool_call>",
+                  "p_full": 0.0002012776864109101
+                },
+                {
+                  "token": 16,
+                  "piece": "1",
+                  "p_full": 0.0001616139855494877
+                }
+              ]
+            },
+            "blank": {
+              "scale": 13.343217331989116,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 6.542522236606606e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 2.3554587801451824e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 6.542522236606606e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.1284295914557314e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "whenever",
+                    "this week",
+                    "this quarter",
+                    "today"
+                  ],
+                  "first_tokens": [
+                    1266,
+                    559,
+                    559,
+                    29129
+                  ],
+                  "pieces": [
+                    "wh",
+                    "this",
+                    "this",
+                    "today"
+                  ],
+                  "coverage": 3.013843255273128e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "this week",
+                      "this quarter"
+                    ]
+                  ]
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.5926140618084824
+                },
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.22920110853812656
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.16863876208967638
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.0011763825093750828
+                },
+                {
+                  "token": 248059,
+                  "piece": "</tool_call>",
+                  "p_full": 0.0003678173279946153
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.000360296554097837
+                },
+                {
+                  "token": 12237,
+                  "piece": "\"\"\"",
+                  "p_full": 0.00016379942730933856
+                },
+                {
+                  "token": 43,
+                  "piece": "L",
+                  "p_full": 0.00014652293797410394
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 10.152208842419663,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 0.00230317572593005,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 0.00024427959059627666,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 0.00230317572593005,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.3142543107541544e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "whenever",
+                    "this week",
+                    "this quarter",
+                    "today"
+                  ],
+                  "first_tokens": [
+                    1266,
+                    559,
+                    559,
+                    29129
+                  ],
+                  "pieces": [
+                    "wh",
+                    "this",
+                    "this",
+                    "today"
+                  ],
+                  "coverage": 1.4265674764936773e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "this week",
+                      "this quarter"
+                    ]
+                  ]
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.32613438271463063
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.2943979947376668
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.15794112665996585
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 0.03763197974236484
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.014568386245927486
+                },
+                {
+                  "token": 62,
+                  "piece": "_",
+                  "p_full": 0.0033325684884499425
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.003010855376755447
+                },
+                {
+                  "token": 248059,
+                  "piece": "</tool_call>",
+                  "p_full": 0.00260613915003437
+                }
+              ]
+            }
+          },
+          "ranked": {},
+          "prefill_ms": 1715.8,
+          "cue_decode_s": 1.8
+        }
+      }
+    },
+    {
+      "id": "n01",
+      "type": "noul",
+      "expected": "yes",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 84,
+          "n_ctx": 4254,
+          "n_seq_max": 16,
+          "prefix_tail": "ne thousand euros a minute.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 41,
+            "blank": 41,
+            "explicit": 43
+          },
+          "tokenized": {
+            "bare": {
+              "yes": [
+                9405
+              ],
+              "no": [
+                2083
+              ]
+            },
+            "space": {
+              " yes": [
+                9542
+              ],
+              " no": [
+                874
+              ]
+            },
+            "caps": {
+              "Yes": [
+                9175
+              ],
+              "No": [
+                2665
+              ]
+            },
+            "newline": {
+              "\nyes": [
+                198,
+                9405
+              ],
+              "\nno": [
+                198,
+                2083
+              ]
+            },
+            "long": {
+              "yes, page immediately": [
+                9405,
+                11,
+                2081,
+                6849
+              ],
+              "no, handle it in business hours": [
+                2083,
+                11,
+                3579,
+                424,
+                303,
+                2478,
+                3979
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 14.997741834911146,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.0036509620540580105,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 1.5004053878340883e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 1.94218468777599e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 3.9871826926328254e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, page immediately",
+                    "no, handle it in business hours"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.0036509620540580105,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9779888724366492
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.012804361553246778
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 0.00364738824169748
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.0007871843191422881
+                },
+                {
+                  "token": 354,
+                  "piece": "un",
+                  "p_full": 0.0005778881827460998
+                },
+                {
+                  "token": 268,
+                  "piece": "en",
+                  "p_full": 0.0003966182383224442
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.00031834177472088356
+                },
+                {
+                  "token": 16,
+                  "piece": "1",
+                  "p_full": 0.0002238072851724673
+                }
+              ]
+            },
+            "blank": {
+              "scale": 14.885533679830749,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.00034565642895569774,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 3.86592252420002e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 6.11535879199399e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.093876291379141e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, page immediately",
+                    "no, handle it in business hours"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.00034565642895569774,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.7739390366074185
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.18362321077391205
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.034076317242966725
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.0024669057336298267
+                },
+                {
+                  "token": 760,
+                  "piece": "The",
+                  "p_full": 0.000753093084212851
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.00039963414950315346
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 0.00034410262336018914
+                },
+                {
+                  "token": 27,
+                  "piece": "<",
+                  "p_full": 0.0002517917955997799
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 14.448178052171356,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.0416903281559337,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 0.0003326965405148009,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 0.0014396282439478273,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 3.561156912185346e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, page immediately",
+                    "no, handle it in business hours"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.0416903281559337,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.7831408605742686
+                },
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.1340343018275989
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 0.04168583293271031
+                },
+                {
+                  "token": 32,
+                  "piece": "A",
+                  "p_full": 0.007219345843026462
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.0030081568905923647
+                },
+                {
+                  "token": 760,
+                  "piece": "The",
+                  "p_full": 0.002514025257368275
+                },
+                {
+                  "token": 2396,
+                  "piece": "Label",
+                  "p_full": 0.001956590229988893
+                },
+                {
+                  "token": 59,
+                  "piece": "\\",
+                  "p_full": 0.0016271769653602827
+                }
+              ]
+            }
+          },
+          "ranked": {},
+          "prefill_ms": 1723.5,
+          "cue_decode_s": 1.5
+        }
+      }
+    },
+    {
+      "id": "n02",
+      "type": "noul",
+      "expected": "yes",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 94,
+          "n_ctx": 4261,
+          "n_seq_max": 16,
+          "prefix_tail": "revious build is available.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 38,
+            "blank": 38,
+            "explicit": 40
+          },
+          "tokenized": {
+            "bare": {
+              "yes": [
+                9405
+              ],
+              "no": [
+                2083
+              ]
+            },
+            "space": {
+              " yes": [
+                9542
+              ],
+              " no": [
+                874
+              ]
+            },
+            "caps": {
+              "Yes": [
+                9175
+              ],
+              "No": [
+                2665
+              ]
+            },
+            "newline": {
+              "\nyes": [
+                198,
+                9405
+              ],
+              "\nno": [
+                198,
+                2083
+              ]
+            },
+            "long": {
+              "yes, restore the previous build": [
+                9405,
+                11,
+                14519,
+                279,
+                3555,
+                1870
+              ],
+              "no, keep investigating forward": [
+                2083,
+                11,
+                2426,
+                23143,
+                4487
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 12.887284741287639,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.002688626100046134,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 3.7497964216569534e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 3.944925186338951e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.3736034308235508e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, restore the previous build",
+                    "no, keep investigating forward"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.002688626100046134,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.8778747114414903
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.05365912985679639
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.03199235395680912
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.007257923216116147
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 0.0026855931233452897
+                },
+                {
+                  "token": 354,
+                  "piece": "un",
+                  "p_full": 0.0005385306476549533
+                },
+                {
+                  "token": 12237,
+                  "piece": "\"\"\"",
+                  "p_full": 0.00044557327837794477
+                },
+                {
+                  "token": 27,
+                  "piece": "<",
+                  "p_full": 0.0002917137363192366
+                }
+              ]
+            },
+            "blank": {
+              "scale": 14.271062969990398,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.0006675578591779658,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 2.6092750234050684e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 1.0470394717295008e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.6222447321503619e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, restore the previous build",
+                    "no, keep investigating forward"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.0006675578591779658,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.9129195781753445
+                },
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.03953454434301036
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.030239454872501022
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 0.006120967402167828
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 0.0006657246294911487
+                },
+                {
+                  "token": 69267,
+                  "piece": "Assistant",
+                  "p_full": 0.00041864736536685506
+                },
+                {
+                  "token": 27,
+                  "piece": "<",
+                  "p_full": 0.00022794763652046288
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 0.0001966133674808184
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 11.467263525271157,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.029912140099907294,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 0.0005386261068342303,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 0.0008665883083720187,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.1445176110653537e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, restore the previous build",
+                    "no, keep investigating forward"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.029912140099907294,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.4906379312479637
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 0.1581957695894207
+                },
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.03192704225356761
+                },
+                {
+                  "token": 1090,
+                  "piece": "wo",
+                  "p_full": 0.03116791830070936
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 0.02990816284313824
+                },
+                {
+                  "token": 27,
+                  "piece": "<",
+                  "p_full": 0.012653017912196241
+                },
+                {
+                  "token": 59,
+                  "piece": "\\",
+                  "p_full": 0.009177370132015132
+                },
+                {
+                  "token": 2396,
+                  "piece": "Label",
+                  "p_full": 0.006688373197049116
+                }
+              ]
+            }
+          },
+          "ranked": {},
+          "prefill_ms": 1708.3,
+          "cue_decode_s": 1.4
+        }
+      }
+    }
+  ],
+  "wall_s": 168.4,
+  "device_log_tail": ".\n.\n.\n.\n.\n"
+}

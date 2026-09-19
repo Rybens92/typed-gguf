@@ -1,0 +1,1 @@
+At 09:12 the checkout page started returning HTTP 500 for every customer. The error rate on /checkout is 100%, everywhere else 0%. No deploy happened in the last 24 hours and the database is reachable.
