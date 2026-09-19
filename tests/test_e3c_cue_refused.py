@@ -27,7 +27,7 @@ import pathlib
 
 import pytest
 
-from ggufone import errors, schema
+from ggufone import cli, errors, schema
 from ggufone.bench import harness, suites
 from ggufone.engine import cue as cue_module
 from ggufone.engine import decide
@@ -153,11 +153,16 @@ def test_a_closer_the_vocabulary_splits_into_several_tokens_never_fires():
 
 
 def test_the_hint_points_at_the_documented_section_and_no_imaginary_flag():
+    """The hint may only name a flag the CLI really accepts (it named none in E3c, and names
+    `--cue` since E3d shipped it — card t_d90404ac)."""
     answer = run(refusing_session({IM_END: TOP}), choice_request()).answers["area"]
     hint = answer["cue"]["hint"]
     assert hint.startswith("docs/TEMPLATES.md")
     assert "§4" in hint
-    assert "--cue" not in hint                                # the CLI has no such flag yet
+    for word in ("--cue", "--readout", "--template"):
+        if word in hint:
+            assert word[2:].replace("-", "_") in cli.ENGINE_VALUE_FLAGS, (
+                f"the hint points at {word}, which the CLI does not accept")
 
 
 def test_the_cue_block_survives_native_rendering_at_wire_precision():

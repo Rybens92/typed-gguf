@@ -615,6 +615,9 @@ class BenchConfig:
     items: int | None = None
     n_seq_max: int | None = None
     kv_type: str = "auto"
+    #: E3d (card t_d90404ac): which cue shape the quality rows are measured with. The default is
+    #: the shape every published row used, so an unset `--cue` cannot move a table.
+    cue: str = "shipped"
     gpu_layers: int | None = None
     n_bins: int = N_BINS
     prefill_sizes: tuple[int, ...] = PREFILL_SIZES

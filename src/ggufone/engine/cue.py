@@ -74,13 +74,22 @@ TURN_CLOSERS: tuple[str, ...] = (
 #: verdict and the reliability word are read off the same number (card t_635124bf).
 REFUSAL_FLOOR = float(OPTION_DEFAULTS["coverage_floor"])
 
-#: What a refused cue means and where the fix is documented. `--cue` does not exist as a CLI flag
-#: yet, so the pointer names the section instead of a flag a reader would search for in vain.
+#: What a refused cue means and where the fix is documented. Since E3d the fix has a name a
+#: reader can run: `--cue two_step` reads the label one row past the cue (see the shape catalogue
+#: below and `docs/TEMPLATES.md` §5) — and a refused cue still refuses there, which is why the
+#: pointer leads with the measured table rather than the flag.
 CUE_REFUSED_HINT = (
-    "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; "
-    "this prompt shape ends at the start of the assistant turn, so the model can close it (or emit "
-    "another turn-shaping special token) instead of answering"
+    "docs/TEMPLATES.md §4 (the label policy, measured) and §5 (the cue shapes) — the cue decides "
+    "where the readout sits; this prompt shape ends at the start of the assistant turn, so the "
+    "model can close it (or emit another turn-shaping special token) instead of answering. "
+    "`--cue two_step` moves the readout one token in without changing these bytes"
 )
+
+#: The rule that chooses the token `two_step` decodes: the row's argmax among tokens that are not
+#: turn-closers ("if the model cannot close the turn, what does it start to say?"). A row whose
+#: argmax *is* a closer is a refusal, and a refusal never advances (card t_d90404ac, `CUE_SHAPES`
+#: in `ggufone.schema`).
+ADVANCE_RULE = "content"
 
 
 def single_token_closers(tokenize: Callable[[str], list[int]],

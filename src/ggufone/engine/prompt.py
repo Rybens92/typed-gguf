@@ -23,7 +23,9 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
+from ggufone import schema
 from ggufone.engine import template as template_module
+from ggufone.errors import UserError
 from ggufone.schema import Question
 
 SYSTEM_FRAMING = (
@@ -91,8 +93,18 @@ def build_prefix(state: Any, *, resolution: template_module.Resolution | None = 
                                         enable_thinking=enable_thinking)
 
 
-def build_question(question: Question, *, readout: str = "sequence") -> RenderedQuestion:
-    """Render one question's suffix and its candidate labels (independent of `readout`)."""
+def build_question(question: Question, *, readout: str = "sequence",
+                   cue: str = schema.CUE_SHAPES[0]) -> RenderedQuestion:
+    """Render one question's suffix and its candidate labels (independent of `readout`).
+
+    `cue` names *where* the label will be read (E3d, card t_d90404ac) and nothing else: with
+    `two_step` the suffix is **byte-identical** to the shipped one — the readout moves one token
+    in, the prompt does not — and with `json_field` the shipped cue line is followed by the
+    per-type JSON opener (`{"choice": "`), so the field row is the prompt's own last row.
+    """
+    if cue not in schema.CUE_SHAPES:
+        raise UserError(f"options.cue must be one of {', '.join(schema.CUE_SHAPES)} (got {cue!r})",
+                        code="E_UNKNOWN_KEY")
     lines = [QUESTION_HEADER]
     instructions = render_instructions(question.instructions)
     if instructions:
@@ -111,8 +123,20 @@ def build_question(question: Question, *, readout: str = "sequence") -> Rendered
         lines.append(f"no: {falsity}" if falsity else "no")
     lines.append(CANDIDATE_CUE[question.type])
     suffix = "\n".join(lines) + "\n"
+    if cue == "json_field":
+        suffix += json_opener(question.type)
     return RenderedQuestion(id=question.id, type=question.type, suffix=suffix,
                             options=question.options, texts=question.options)
+
+
+#: The field name the `json_field` cue opens per question type (the E3c probe's mapping, kept
+#: verbatim so the engine can reproduce the measured row; card t_d90404ac).
+JSON_FIELDS = {"choice": "choice", "score": "severity", "noul": "answer"}
+
+
+def json_opener(question_type: str) -> str:
+    """The `json_field` opener: the shipped cue line, then an open JSON field."""
+    return '{{"{field}": "'.format(field=JSON_FIELDS.get(question_type, "answer"))
 
 
 def empty_candidate_code(question_type: str) -> str:

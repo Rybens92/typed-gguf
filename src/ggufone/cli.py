@@ -53,7 +53,8 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
             "--format native|typesafe", "--out FILE", "--template auto|plain|NAME|PATH",
             "--thinking", "--no-fit", "--fit-target MIB", "--fit-ctx N", "--no-fit-cache",
             "--threads N", "--n-ctx N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0",
-            "--readout sequence|single_token", "--confidence-mode MODE", "--temperature F",
+            "--readout sequence|single_token", "--cue shipped|two_step|json_field",
+            "--confidence-mode MODE", "--temperature F",
             "--length-norm F", "--coverage-floor F", "--state-id ID", "--save-state",
             "--no-state-cache", "--strict", "--max-waves N",
             "--route off|auto", "--escalate", "--max-escalations N",
@@ -66,7 +67,8 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
     "mcp": (),
     "bench": ("--suite latency|throughput|quality|calibration|determinism", "--model PATH.GGUF",
               "--backend auto|cpu|vulkan|cuda|all", "--runs N", "--threads N", "--devset FILE",
-              "--items N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--gpu-layers N",
+              "--items N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0",
+              "--cue shipped|two_step|json_field", "--gpu-layers N",
               "--sizes 256,2048,8192", "--out FILE", "--json", "--quick", "--max-seconds N"),
     "calibrate": ("--model REF", "--dry-run", "--json", "--out FILE", "--from-report FILE",
                   "--devset FILE", "--items N", "--holdout F",
@@ -767,7 +769,7 @@ def _models_recommend_quant(args: list[str]) -> int:
 
 # --------------------------------------------------------------------- run / ask
 ENGINE_VALUE_FLAGS = ("model", "format", "state-id", "temperature", "length-norm", "readout",
-                      "confidence-mode", "coverage-floor", "n-ctx", "n-seq-max", "kv-type",
+                      "cue", "confidence-mode", "coverage-floor", "n-ctx", "n-seq-max", "kv-type",
                       "threads", "backend", "seed", "max-waves", "out", "questions", "state",
                       "state-json", "template", "route", "max-escalations", "escalation-model",
                       "audit")
@@ -782,6 +784,7 @@ def _engine_options(options: dict[str, Any]) -> dict[str, Any]:
         "temperature": float, "length_norm": float, "coverage_floor": float,
         "n_ctx": int, "n_seq_max": int, "threads": int, "seed": int, "max_waves": int,
         "readout": str, "confidence_mode": str, "kv_type": str, "backend": str,
+        "cue": str,
         "state_id": str, "strict": bool, "save_state": bool, "template": str,
         "thinking": bool, "route": str, "escalate": bool, "max_escalations": int,
     }
@@ -1261,9 +1264,10 @@ def _cmd_ask(args: list[str]) -> int:
 
 # --------------------------------------------------------------------- bench (E2)
 BENCH_VALUE_FLAGS = ("suite", "model", "backend", "runs", "threads", "devset", "items",
-                     "n-seq-max", "kv-type", "gpu-layers", "out", "sizes", "max-seconds")
+                     "n-seq-max", "kv-type", "cue", "gpu-layers", "out", "sizes", "max-seconds")
 BENCH_BOOL_FLAGS = ("json", "quick")
-BENCH_DEFAULTS = {"backend": "auto", "runs": harness.DEFAULT_RUNS, "kv-type": "auto"}
+BENCH_DEFAULTS = {"backend": "auto", "runs": harness.DEFAULT_RUNS, "kv-type": "auto",
+                  "cue": "shipped"}
 
 
 def _bench_sizes(value: str | None) -> tuple[int, ...]:
@@ -1282,6 +1286,21 @@ def _bench_sizes(value: str | None) -> tuple[int, ...]:
     if not sizes:
         raise UserError("--sizes needs at least one token count", code="E_BENCH_USAGE")
     return tuple(sizes)
+
+
+def _bench_cue(value: str | None) -> str:
+    """`--cue shipped|two_step|json_field` -> the config's cue (E3d; a bad value is a usage error).
+
+    The shape is a *measurement condition*, not scale: a `two_step` quality row is not comparable
+    to a `shipped` one, so the value is validated here (the CLI's own exit code 2) rather than
+    reaching the engine as a schema error halfway through a run.
+    """
+    if value is None:
+        return str(BENCH_DEFAULTS["cue"])
+    if value not in schema.CUE_SHAPES:
+        raise UserError(f"--cue takes {'|'.join(schema.CUE_SHAPES)} (got {value!r})",
+                        code="E_BENCH_USAGE")
+    return str(value)
 
 
 def _bench_max_seconds(value: str | None) -> float | None:
@@ -1356,6 +1375,7 @@ def _cmd_bench(args: list[str]) -> int:
         items=int(options["items"]) if "items" in options else None,
         n_seq_max=int(options["n_seq_max"]) if "n_seq_max" in options else None,
         kv_type=options.get("kv_type", BENCH_DEFAULTS["kv-type"]),
+        cue=_bench_cue(options.get("cue")),
         gpu_layers=int(options["gpu_layers"]) if "gpu_layers" in options else None,
         max_seconds=_bench_max_seconds(options.get("max_seconds")),
         prefill_sizes=_bench_sizes(options.get("sizes")))

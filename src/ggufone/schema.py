@@ -40,6 +40,17 @@ CHOICE_LIMIT = 255
 SCORE_LEVELS = (2, 10)
 KV_TYPES = ("auto", "f16", "q8_0", "q4_0")
 BACKENDS = ("auto", "cpu", "vulkan", "cuda", "metal")
+#: E3d (card t_d90404ac, SPEC 2.5 `options.cue`): where the label is read relative to the cue.
+#:
+#: * `shipped` — the frozen default, and the shape every published table measured: the row the
+#:   suffix ends on.
+#: * `two_step` — the same prompt bytes plus one decoded token: the row's own most likely
+#:   *content* token, then the label. 44/60 `low_mass` at the cue became 2/60 on the 4B dev run;
+#:   a cue the model closes stays a refusal (`engine/cue.py`).
+#: * `json_field` — the shipped cue line plus a per-type JSON opener, read at the field row. The
+#:   agreement winner of the 60-item run and *not* the default: the opener is part of the prompt,
+#:   so the at-the-cue refusal verdict is gone.
+CUE_SHAPES = ("shipped", "two_step", "json_field")
 #: E2.5 (SPEC 2.10): `route: "auto"` lets the registry pick the model and its sizing
 ROUTE_MODES = ("off", "auto")
 NOUL_KEYS = ("true", "false")
@@ -49,6 +60,8 @@ OPTION_DEFAULTS: dict[str, Any] = {
     "temperature": 1.0,
     "length_norm": 1.0,
     "readout": "sequence",
+    #: E3d: where the label is read relative to the cue (`CUE_SHAPES` above; default = shipped)
+    "cue": "shipped",
     "confidence_mode": None,       # None = the documented default, or the calibrated statistic
     "n_ctx": None,
     "n_seq_max": None,
@@ -100,6 +113,9 @@ class Options:
     temperature: float = 1.0
     length_norm: float = 1.0
     readout: str = "sequence"
+    #: E3d: where the label is read relative to the cue — `CUE_SHAPES` above. The default is the
+    #: shape every published table measured, so a request that never sets it cannot move.
+    cue: str = "shipped"
     #: None = "whatever the stored calibration says for this question type, else
     #: normalized_peak" (E2.5 / A-E2p5-3: a promoted mode is only visible if the readout reports
     #: it). An explicit mode always wins over the table.
@@ -281,6 +297,7 @@ def _parse_options(raw: Any) -> tuple[Options, list[str]]:
         temperature=_number("temperature", values["temperature"], low=0.0, inclusive=False),
         length_norm=_number("length_norm", values["length_norm"], low=0.0, inclusive=True),
         readout=_choice("readout", values["readout"], ("sequence", "single_token")),
+        cue=_choice("cue", values["cue"], CUE_SHAPES),
         confidence_mode=_optional_choice("confidence_mode", values["confidence_mode"],
                                          tuple(CONFIDENCE_MODES)),
         n_ctx=_optional_int("n_ctx", values["n_ctx"], low=1),

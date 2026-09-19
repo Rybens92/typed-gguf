@@ -185,7 +185,8 @@ def question_requirements(request: schema.Request, tokenizer: Tokenizer,
     """Render + tokenize every question: the one place that decides what a candidate costs."""
     rendered: list[tuple[schema.Question, prompt.RenderedQuestion, list[int], list[list[int]]]] = []
     for question in request.questions:
-        view = prompt.build_question(question, readout=request.options.readout)
+        view = prompt.build_question(question, readout=request.options.readout,
+                                     cue=request.options.cue)
         suffix_tokens = tokenizer.tokenize(view.suffix)
         candidates = [tokenizer.tokenize(text) for text in view.texts]
         for text, tokens in zip(view.texts, candidates, strict=True):
@@ -375,6 +376,7 @@ class DecisionEngine:
                 "device_buffers": evidence["device_buffers"],
                 "effective_backend": evidence["effective_backend"],
                 "readout": options.readout,
+                "cue": options.cue,
                 "kv_unified": bool(meta.kv_unified),
                 "n_ctx": meta.n_ctx,
                 "n_seq_max": meta.n_seq_max,
@@ -499,16 +501,27 @@ class DecisionEngine:
         # the same suffix from the same prefix, so the row — and its verdict — is wave-independent,
         # and the answer publishes the last wave's.
         cue_verdict: dict[str, Any] = {}
+        cue_row_verdict: dict[str, Any] = {}
+        advance_record: dict[str, Any] | None = None
         for group in _chunks(list(range(len(candidates))), per_wave):
             rows = self._score_group(plan, suffix_tokens,
                                      [candidates[index] for index in group],
-                                     [scored[index] for index in group])
+                                     [scored[index] for index in group],
+                                     options.cue)
             for offset, index in enumerate(group):
                 logprobs[index] = rows["logprobs"][offset]
             coverage += readout.coverage_from_scale(rows["decision_row"], rows["coverage_ids"],
                                                     rows["decision_scale"])
             cue_verdict = cue_module.cue_verdict(rows["decision_row"], rows["decision_scale"],
                                                  self._closer_map(), floor=coverage_floor)
+            # E3d: the row the *refusal* lives on is the cue row — for `shipped` that is the
+            # decision row, for `two_step` it is the row the readout moved past.
+            cue_row_verdict = cue_module.cue_verdict(rows["cue_row"],
+                                                     readout.logsumexp(rows["cue_row"]),
+                                                     self._closer_map(), floor=coverage_floor)
+            if rows["advance"] is not None:
+                advance_record = {"token": int(rows["advance"]), "rule": cue_module.ADVANCE_RULE,
+                                  "cue": cue_row_verdict}
 
         z = [readout.candidate_sequence_score(values, options.length_norm)
              for values in logprobs]
@@ -523,9 +536,11 @@ class DecisionEngine:
             _add_warning(warnings, "W_LOW_MASS")
         elif reliability == "low_confidence":
             _add_warning(warnings, "W_LOW_CONFIDENCE")
-        if cue_verdict.get("refused"):
+        if cue_row_verdict.get("refused"):
             # why a `low_mass` row is low: the model closes the assistant turn at the cue instead
             # of answering. Named on its own, because the fix is the prompt shape, not the labels.
+            # E3d: the verdict is read on the *cue* row, so a `two_step` request that never
+            # advanced (a refusal) is reported exactly like the shipped shape it fell back to.
             _add_warning(warnings, "W_CUE_REFUSED")
 
         keys = list(question.options)
@@ -570,11 +585,16 @@ class DecisionEngine:
                 "cue": cue_verdict,
                 "decode_steps": decode_steps,
             }
+        if advance_record is not None:
+            # E3d: only a shape that moved the readout carries this — a `shipped` answer's key set
+            # is byte-frozen (every published row was measured on it).
+            answer["advance"] = advance_record
         return answer, decode_steps
 
     # ---- one wave group: fork the suffix once, then score every candidate in it
     def _score_group(self, plan: ContextPlan, suffix_tokens: list[int],
                      candidates: list[list[int]], scored: list[tuple[int, ...]],
+                     cue: str = schema.CUE_SHAPES[0],
                      ) -> dict[str, Any]:
         head_seq = 1
         n_prefix = plan.n_prefix
@@ -587,7 +607,19 @@ class DecisionEngine:
             positions=tuple(n_prefix + index for index in range(n_suffix)),
             logits=tuple(index == n_suffix - 1 for index in range(n_suffix)),
         ))
-        decision_row = rows[-1]
+        cue_row = rows[-1]
+        # E3d (card t_d90404ac): `two_step` decodes one more token on the head sequence — the
+        # model's own first *content* token — and reads the label at the row after it. A cue the
+        # model closes never advances (`_advance_token`), so the refusal verdict E3c publishes is
+        # read from a row that is byte-identical to the shipped shape's.
+        advance = self._advance_token(cue_row, cue)
+        if advance is None:
+            decision_row = cue_row
+        else:
+            decision_row = self._decode(Batch(tokens=(advance,), seq_ids=(head_seq,),
+                                              positions=(n_prefix + n_suffix,),
+                                              logits=(True,)))[-1]
+        base = n_prefix + n_suffix + (0 if advance is None else 1)
         decision_scale = readout.logsumexp(decision_row)
         logprobs = [[readout.logprob_from_scale(decision_row, tokens[0], decision_scale)]
                     for tokens in scored]
@@ -595,7 +627,7 @@ class DecisionEngine:
         for offset in range(1, len(candidates)):
             seq = head_seq + offset
             self.session.release(seq)
-            self._fork(head_seq, seq, n_prefix + n_suffix)
+            self._fork(head_seq, seq, base)
         max_length = max(len(tokens) for tokens in scored)
         for step in range(1, max_length):
             tokens: list[int] = []
@@ -607,7 +639,7 @@ class DecisionEngine:
                     continue
                 tokens.append(sequence[step - 1])
                 seqs.append(head_seq + offset)
-                positions.append(n_prefix + n_suffix + step - 1)
+                positions.append(base + step - 1)
                 targets.append(offset)
             if not tokens:
                 continue
@@ -621,7 +653,26 @@ class DecisionEngine:
         for offset in range(len(candidates)):
             self.session.release(head_seq + offset)
         return {"decision_row": decision_row, "decision_scale": decision_scale,
-                "coverage_ids": coverage_ids, "logprobs": logprobs}
+                "coverage_ids": coverage_ids, "logprobs": logprobs,
+                "cue_row": cue_row, "advance": advance}
+
+    def _advance_token(self, row: Sequence[float], cue: str) -> int | None:
+        """The one token `two_step` decodes before it reads — `None` when the cue refuses.
+
+        The rule is `cue.ADVANCE_RULE` ("content"): the row's argmax among tokens that are **not**
+        turn-closers ("if the model cannot close the turn, what does it start to say?"). The
+        engine's form is conditional on purpose: a row whose *argmax* is a turn-closer is a
+        refusal, and a refusal never advances — the label is read where the shipped shape reads
+        it, so `W_CUE_REFUSED` and the `low_mass` it explains stay exactly as published for the
+        families that refuse the cue (card t_d90404ac, constraint 4). For a row whose argmax is
+        content the rule and the argmax coincide, which is what the 60-item 4B run measured.
+        """
+        if cue != "two_step":
+            return None
+        winner = readout.argmax_first(row)
+        if winner in self._closer_map():
+            return None
+        return int(winner)
 
 
 def _chunks(indices: list[int], size: int) -> Iterable[list[int]]:

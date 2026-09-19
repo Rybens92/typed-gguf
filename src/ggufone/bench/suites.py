@@ -704,7 +704,8 @@ def _devset_rows(config: harness.BenchConfig, model: harness.ModelLike,
 
 def _devset_row(config: harness.BenchConfig, model: harness.ModelLike,
                 item: devset_module.DevItem) -> dict[str, Any]:
-    payload = devset_module.request_for(item, model="bench", threads=config.threads)
+    payload = devset_module.request_for(item, model="bench", threads=config.threads,
+                                       cue=config.cue)
     request = schema.parse_request(payload)
     started = time.perf_counter()
     result = model.decide(request, threads=config.threads)
