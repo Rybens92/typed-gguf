@@ -23,9 +23,10 @@ Mechanics implemented here (SPEC 2.3 steps 1-10):
               restricted softmax over the question's candidates (SPEC 2.3.4/5)
   coverage    from the full-vocab row at the decision position, before any renormalization
               (`readout.coverage_from_row`); below the floor -> low_mass + W_LOW_MASS
-  cue         what the row's top token IS (card t_6c119626): a turn-closer (`<|im_end|>`, `</s>`,
-              …) means the cue shape — not the label rendering — is what suppressed the answer ->
-              W_CUE_REFUSED + the answer's `cue` block (`engine/cue.py`)
+  cue         what the row's top token IS (cards t_6c119626, t_635124bf): a turn-closer
+              (`<|im_end|>`, `</s>`, …) or any other control/user-defined token the vocabulary
+              carries (`</think>`) means the cue shape — not the label rendering — is what
+              suppressed the answer -> W_CUE_REFUSED + the answer's `cue` block (`engine/cue.py`)
   no sampling no sampler, no token loop: `decode_calls == 1 + waves`, and no code path here
               can generate text (A-E1b-9)
 """
@@ -287,7 +288,8 @@ class DecisionEngine:
         self.batches: list[Batch] = []      # every decode issued for this engine (the spy)
         self.forks = 0
         #: card t_6c119626: `{token id: closer}` for this session's vocabulary, resolved once
-        #: (`engine/cue.py`). `None` = not resolved yet.
+        #: (`engine/cue.py`). Card t_635124bf widened it to every CONTROL / USER_DEFINED token the
+        #: vocabulary carries. `None` = not resolved yet.
         self._closers: dict[int, str] | None = None
 
     # ---- decode seam (everything the engine decodes goes through here)
@@ -300,15 +302,17 @@ class DecisionEngine:
         self.session.fork(src, dst, upto)
 
     def _closer_map(self) -> dict[int, str]:
-        """`{token id: closer}` for this session's vocabulary (`engine/cue.py`).
+        """`{token id: name}` for this session's vocabulary (`engine/cue.py`).
 
-        The mapping depends only on the model's tokenizer, which cannot change while the engine
-        holds the session, so it is resolved once. The vocabulary decides which catalogue entries
-        count: a closer this tokenizer splits into several tokens is not one token and is never
-        reported as a refusal.
+        The mapping depends only on the model's tokenizer and its vocabulary's own token
+        attributes, neither of which can change while the engine holds the session, so it is
+        resolved once. The vocabulary decides which catalogue entries count: a closer this
+        tokenizer splits into several tokens is not one token and is never reported as a refusal
+        — and since card t_635124bf it also contributes the tokens it marks CONTROL or
+        USER_DEFINED (`ModelHandle.special_tokens`), the class no string catalogue can name.
         """
         if self._closers is None:
-            self._closers = cue_module.single_token_closers(self.session.tokenize)
+            self._closers = cue_module.closer_map(self.session)
         return self._closers
 
     def decide(self, request: schema.Request, *, plan: ContextPlan | None = None,
@@ -504,7 +508,7 @@ class DecisionEngine:
             coverage += readout.coverage_from_scale(rows["decision_row"], rows["coverage_ids"],
                                                     rows["decision_scale"])
             cue_verdict = cue_module.cue_verdict(rows["decision_row"], rows["decision_scale"],
-                                                 self._closer_map())
+                                                 self._closer_map(), floor=coverage_floor)
 
         z = [readout.candidate_sequence_score(values, options.length_norm)
              for values in logprobs]

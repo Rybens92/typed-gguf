@@ -135,6 +135,23 @@ MANDATORY_ORDER = (
     "llama_init_from_model() with kv_unified=True",
 )
 
+# --------------------------------------------------------------------- token attributes
+# `enum llama_token_attr` (include/llama.h @ b11026) — the vocabulary's own classification of a
+# token. The bits are *measured*, not recalled: `tests/test_e3c_cue_specials.py` cross-checks
+# llama.cpp's answer against each GGUF's `tokenizer.ggml.token_type` on a real vocabulary
+# (`docs/evidence/t635124bf_cue_specials.md` §…).
+TOKEN_ATTR_UNKNOWN = 1 << 0
+TOKEN_ATTR_UNUSED = 1 << 1
+TOKEN_ATTR_NORMAL = 1 << 2
+TOKEN_ATTR_CONTROL = 1 << 3
+TOKEN_ATTR_USER_DEFINED = 1 << 4
+TOKEN_ATTR_BYTE = 1 << 5
+#: The two classes that are **not content**: a control token (`<|im_end|>`, `<|endoftext|>`, …)
+#: or a user-defined special (a chat template's `<think>`/`</think>`, `<tool_call>`). Card
+#: t_635124bf: these are what a cue row puts its mass on when the model shapes the turn instead of
+#: answering, and they are exactly the class a string catalogue in `engine/cue.py` cannot list.
+SPECIAL_TOKEN_ATTRS = TOKEN_ATTR_CONTROL | TOKEN_ATTR_USER_DEFINED
+
 _LOADED: dict[str, Runtime] = {}
 
 
@@ -298,6 +315,12 @@ def _bind_optional(runtime: Runtime) -> None:
     """
     for name, (argtypes, restype) in {
         "llama_log_set": ([LLAMA_LOG_CALLBACK, C.c_void_p], None),
+        # Card t_635124bf: the vocabulary's own token classification. llama.cpp has answered
+        # `llama_token_get_attr`/`llama_token_get_text` for years, but a bundle that lacks them
+        # still serves — it just cannot classify a token the catalogue does not name, so these are
+        # bound when present (`token_attr()` answers 0, `special_tokens()` answers `[]`).
+        "llama_token_get_attr": ([C.c_void_p, llama_token], C.c_int),
+        "llama_token_get_text": ([C.c_void_p, llama_token], C.c_char_p),
     }.items():
         fn = getattr(runtime.llama, name, None)
         if fn is None:
@@ -329,3 +352,50 @@ def tokenize(runtime: Runtime, vocab: C.c_void_p, text: str, *, add_special: boo
     if n < 0:
         raise RuntimeSymbolsError(f"E_RUNTIME_SYMBOLS: llama_tokenize returned {n}")
     return list(arr[:n])
+
+
+def token_attr(runtime: Runtime, vocab: C.c_void_p, token: int) -> int:
+    """The vocabulary's own attribute bits for `token` — `0` when the bundle cannot say.
+
+    `llama_token_get_attr` is how llama.cpp classifies a token (`CONTROL` for `<|im_end|>`,
+    `USER_DEFINED` for a chat template's `</think>`); a bundle that does not export it answers
+    `TOKEN_ATTR_UNKNOWN`-free zero, which is the pre-fix behaviour: the string catalogue stays the
+    only classifier (card t_635124bf).
+    """
+    fn = getattr(runtime.llama, "llama_token_get_attr", None)
+    if fn is None:
+        return 0
+    return int(fn(vocab, int(token)))
+
+
+def token_text(runtime: Runtime, vocab: C.c_void_p, token: int) -> str:
+    """The vocabulary's own text for `token` — `""` when the bundle cannot say.
+
+    `llama_token_get_text` is the *raw* token string (`</think>`, `<|im_end|>`), not
+    `token_piece`'s render: the caller here is naming a token the model's vocabulary defines, not
+    reconstructing text a user would read.
+    """
+    fn = getattr(runtime.llama, "llama_token_get_text", None)
+    if fn is None:
+        return ""
+    raw = fn(vocab, int(token))
+    if raw is None:
+        return ""
+    return raw.decode("utf-8", "replace") if isinstance(raw, bytes) else str(raw)
+
+
+def special_tokens(runtime: Runtime, vocab: C.c_void_p, n_vocab: int) -> list[tuple[int, str]]:
+    """`[(token id, the vocabulary's own text)]` for every CONTROL / USER_DEFINED token.
+
+    One attribute lookup per id (the cheap call), a text lookup only for the hits. The scan is the
+    vocabulary's own answer to "which of your tokens are not content" — ggufone never decides that
+    from a string (card t_635124bf; measured cost and cross-check in
+    `docs/evidence/t635124bf_cue_specials.md`). A bundle without the attribute API yields `[]`.
+    """
+    if getattr(runtime.llama, "llama_token_get_attr", None) is None:
+        return []
+    found: list[tuple[int, str]] = []
+    for token in range(int(n_vocab)):
+        if token_attr(runtime, vocab, token) & SPECIAL_TOKEN_ATTRS:
+            found.append((token, token_text(runtime, vocab, token)))
+    return found

@@ -142,6 +142,9 @@ class ModelHandle:
             raise RuntimeMissingError(
                 f"E_RUNTIME_SYMBOLS: the loaded model reports {self.n_vocab} vocabulary tokens; "
                 f"the bundle and the model do not match")
+        #: card t_635124bf: `[(token id, text)]` for CONTROL / USER_DEFINED tokens, resolved on
+        #: first use (`special_tokens()`). `None` = not resolved yet.
+        self._special_tokens: list[tuple[int, str]] | None = None
 
     @property
     def warnings(self) -> tuple[str, ...]:
@@ -149,6 +152,22 @@ class ModelHandle:
 
     def tokenize(self, text: str, *, add_special: bool = False) -> list[int]:
         return ctypes_binding.tokenize(self.runtime, self.vocab, text, add_special=add_special)
+
+    def special_tokens(self) -> list[tuple[int, str]]:
+        """Every token this vocabulary marks CONTROL or USER_DEFINED, in id order.
+
+        Card t_635124bf: the cue verdict needs the *class* of a token, not its string — a string
+        catalogue (`engine/cue.py`) cannot name a special a family added after it was written
+        (Tiel-Coder's serving shape puts 0.68…0.99 of the cue row's mass on `</think>`, token
+        248069, which is in no catalogue). The vocabulary answers that question itself
+        (`ctypes_binding.special_tokens`); ggufone only reports it. Read once and cached: the
+        table cannot change while the model is loaded. A bundle without llama.cpp's attribute API
+        returns `[]` — the pre-fix behaviour, where the catalogue is the only classifier.
+        """
+        if self._special_tokens is None:
+            self._special_tokens = ctypes_binding.special_tokens(self.runtime, self.vocab,
+                                                                 self.n_vocab)
+        return self._special_tokens
 
     def close(self) -> None:
         if self.model:
@@ -448,6 +467,17 @@ class ModelSession:
 
     def tokenize(self, text: str) -> list[int]:
         return self.handle.tokenize(text)
+
+    def special_tokens(self) -> list[tuple[int, str]]:
+        """The vocabulary's control/user-defined tokens (`ModelHandle.special_tokens`).
+
+        Card t_635124bf: `engine/cue.py` reads the cue verdict's class map off the session, so the
+        live session answers with its own vocabulary's attribute table. A handle that cannot
+        enumerate it (an older bundle, a test double) answers `[]` and the catalogue stays the
+        only classifier — the pre-fix behaviour.
+        """
+        table = getattr(self.handle, "special_tokens", None)
+        return table() if callable(table) else []
 
     def close(self) -> None:
         if self.ctx:

@@ -146,6 +146,23 @@ def advance_token(row: Sequence[float], closers: Mapping[int, str], rule: str) -
     return best
 
 
+def verdict_map(handle: Any) -> dict[int, str]:
+    """`{token id: name}` the cue verdict reads for this model (`engine/cue.py`).
+
+    The catalogue (`TURN_CLOSERS` through the model's own tokenizer) **plus** the vocabulary's own
+    CONTROL / USER_DEFINED tokens (`ModelHandle.special_tokens`, card `t_635124bf`) — the class
+    that holds Tiel's `</think>` and that no string catalogue can name, which is why the serving
+    shape's rows used to read `ok` at 1e-06 coverage.
+
+    The `advance_token` rule deliberately keeps the catalogue alone: it *defines* the shapes
+    (`content` = "the argmax that is not a catalogue turn-closer"), and widening it would silently
+    move the second decision point of an already-published table.
+    """
+    table = getattr(handle, "special_tokens", None)
+    return cue_module.single_token_closers(handle.tokenize,
+                                           special=table() if callable(table) else ())
+
+
 def closer_mass(row: Sequence[float], scale: float, closers: Mapping[int, str]) -> dict[str, float]:
     """`{closer: full-vocab mass}` at one row — the EOT side of the E3b comparison, per shape."""
     return {text: readout.coverage_from_scale(row, (token,), scale)
@@ -165,15 +182,20 @@ def label_block(texts: Sequence[str], tokenize: Any, row: Sequence[float], scale
 
 
 def row_block(row: Sequence[float], scale: float, handle: Any, *, which: str, position: int,
-              closers: Mapping[int, str], sets: Mapping[str, Sequence[str]],
+              closers: Mapping[int, str], verdicts: Mapping[int, str],
+              sets: Mapping[str, Sequence[str]],
               top_tokens_count: int) -> dict[str, Any]:
-    """Everything the probe records about ONE decision row (the cue row or the advanced one)."""
+    """Everything the probe records about ONE decision row (the cue row or the advanced one).
+
+    `closers` is the catalogue (the E3b EOT comparison, unchanged); `verdicts` is what
+    `engine/cue.py` reads — the catalogue plus the vocabulary's own specials (card t_635124bf).
+    """
     return {
         "row": which,
         "position": int(position),
         "top_tokens": e3b.top_tokens(row, scale, handle, top_tokens_count),
         "closer_mass": closer_mass(row, scale, closers),
-        "cue": cue_module.cue_verdict(row, scale, closers),
+        "cue": cue_module.cue_verdict(row, scale, verdicts),
         "labels": {variant: label_block(texts, handle.tokenize, row, scale)
                    for variant, texts in sets.items()},
     }
@@ -196,7 +218,8 @@ def measure_item(handle: session_module.ModelHandle, item: devset.DevItem, *,
     shipped = prompt.build_question(question).suffix
     tokenized = {shape.name: handle.tokenize(shape.suffix(shipped, question)) for shape in shapes}
     sets = e3b.label_sets(question, variants)
-    closers = cue_module.single_token_closers(handle.tokenize)
+    closers = cue_module.single_token_closers(handle.tokenize)   # the shapes' own definition
+    verdicts = verdict_map(handle)                               # ... + the vocab's specials
     record: dict[str, Any] = {
         "id": item.id, "type": item.type, "expected": devset.gold_key(item),
         "prefix_tokens": fixed.n_prefix, "n_ctx": fixed.n_ctx, "n_seq_max": fixed.n_seq_max,
@@ -227,7 +250,7 @@ def measure_item(handle: session_module.ModelHandle, item: devset.DevItem, *,
             entry: dict[str, Any] = {"suffix_tokens": len(tokens),
                                      "readout": row_block(row, scale, handle, which="cue",
                                                           position=ended, closers=closers,
-                                                          sets=sets,
+                                                          verdicts=verdicts, sets=sets,
                                                           top_tokens_count=top_tokens_count)}
             if shape.advance:
                 choice = advance_token(row, closers, shape.rule)
@@ -254,7 +277,8 @@ def measure_item(handle: session_module.ModelHandle, item: devset.DevItem, *,
                                         "choice": readouts[shape.name]["choice"]}
                 record["shapes"][shape.name]["readout"] = row_block(
                     row, scale, handle, which="advanced", position=readouts[shape.name]["ended"],
-                    closers=closers, sets=sets, top_tokens_count=top_tokens_count)
+                    closers=closers, verdicts=verdicts, sets=sets,
+                    top_tokens_count=top_tokens_count)
         # ---- the ranked readout for the shapes that were asked for (the engine's own arithmetic)
         cursor = 1 + len(shapes)
         for shape_name, variant in rank:
@@ -334,9 +358,12 @@ def verdict_block(record: Mapping[str, Any]) -> list[str]:
                          f"| {verdict} |")
     lines.append("")
     lines.append("`W_CUE_REFUSED` = the row's top token is a turn-closer the model's own "
-                 "tokenizer encodes as one token (`engine/cue.py`): the model closes the assistant "
-                 "turn instead of answering, so *no* label rendering can reach the floor here. "
-                 "`turn-closer mass` is the largest mass any catalogue closer holds at that row.")
+                 "tokenizer encodes as one token *or* any token the vocabulary itself marks "
+                 "CONTROL/USER_DEFINED (`engine/cue.py`, cards `t_6c119626` + `t_635124bf`) — and "
+                 "it holds at least the engine's own coverage floor of the row's mass "
+                 "(`REFUSAL_FLOOR`): the model shapes the turn instead of answering, so *no* "
+                 "label rendering can reach the floor here. `turn-closer mass` is the largest "
+                 "mass any catalogue closer holds at that row.")
     return lines
 
 
