@@ -339,6 +339,18 @@ def top_token_block(record: dict[str, Any], *, cues: Sequence[str], count: int =
     return lines
 
 
+def value_format(values: Sequence[float]) -> str:
+    """The format string that prints `values` readably — the report's own number policy.
+
+    These masses run from ~1e-8 to ~1e-6, and a fixed 4-decimal rendering turns the whole card
+    into a column of `0.0000` — precisely the numbers the reader must tell apart. So a table whose
+    smallest value fixed-point cannot express (it would print as `0.0000`) switches to 3-decimal
+    scientific notation; a table whose numbers are at a readable scale keeps the familiar form.
+    """
+    smallest = min((abs(float(value)) for value in values), default=0.0)
+    return ".3e" if 0.0 < smallest < 5e-5 else ".4f"
+
+
 def coverage_table(record: dict[str, Any]) -> list[str]:
     """One row per (cue, label) variant: per-item coverage, the floor verdict, and the aggregate."""
     pieces = shipped_items(record)
@@ -347,12 +359,14 @@ def coverage_table(record: dict[str, Any]) -> list[str]:
              "|---|---|" + "---|" * (len(pieces) + 2)]
     for cue, variant in itertools.product(record["cues"], record["label_variants"]):
         values = [piece["cues"][cue]["labels"][variant]["coverage"] for piece in pieces]
+        fmt = value_format(values)
         above = sum(1 for value in values if value >= record["mass_floor"])
         ordered = sorted(values)
         median = ordered[len(ordered) // 2] if ordered else 0.0
-        cells = [f"{value:.4f}{'' if value >= record['mass_floor'] else '*'}" for value in values]
+        cells = [f"{value:{fmt}}{'' if value >= record['mass_floor'] else '*'}"
+                 for value in values]
         lines.append(f"| `{cue}` | `{variant}` | " + " | ".join(cells)
-                     + f" | {above}/{len(values)} | {median:.4f} |")
+                     + f" | {above}/{len(values)} | {median:{fmt}} |")
     lines.append("")
     lines.append(f"`*` = below the engine's floor ({record['mass_floor']:.2f} ⇒ `low_mass`). "
                  f"Coverage is the full-vocabulary mass of the label's first token at the cue "
@@ -368,14 +382,15 @@ def variant_summary(record: dict[str, Any]) -> list[str]:
     for cue in record["cues"]:
         for variant in record["label_variants"]:
             values = [piece["cues"][cue]["labels"][variant]["coverage"] for piece in pieces]
+            fmt = value_format(values)
             above = sum(1 for value in values if value >= record["mass_floor"])
             order = sorted(range(len(values)), key=lambda index: -values[index])
             lines.append(
-                f"| `{cue}` | `{variant}` | {sum(values) / len(values):.4f} "
-                f"| {sorted(values)[len(values) // 2]:.4f} | {above}/{len(values)} "
+                f"| `{cue}` | `{variant}` | {sum(values) / len(values):{fmt}} "
+                f"| {sorted(values)[len(values) // 2]:{fmt}} | {above}/{len(values)} "
                 f"| {1 - above / len(values):.2f} "
-                f"| {record['items'][order[0]]['id']} {values[order[0]]:.4f} "
-                f"| {record['items'][order[-1]]['id']} {values[order[-1]]:.4f} |")
+                f"| {record['items'][order[0]]['id']} {values[order[0]]:{fmt}} "
+                f"| {record['items'][order[-1]]['id']} {values[order[-1]]:{fmt}} |")
     return lines
 
 

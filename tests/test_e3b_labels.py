@@ -17,6 +17,9 @@ These gates pin the variants themselves — the strings a probe can ask for — 
 """
 from __future__ import annotations
 
+import importlib.util
+import pathlib
+import sys
 from typing import Any
 
 import pytest
@@ -24,6 +27,8 @@ import pytest
 from ggufone.bench import labels
 from ggufone.engine import prompt, readout
 from ggufone.schema import parse_request
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 CHOICE = {"choice": {"type": "choice", "instructions": "Which team owns this?",
                      "criteria": {"billing": "payments, invoices and refunds",
@@ -211,6 +216,58 @@ def test_the_dev_set_labels_are_what_the_card_measured():
         ("billing", "technical")
     assert labels.label_texts("score", ("0", "1"), ("cosmetic", "annoying"), "bare") == ("0", "1")
     assert labels.label_texts("noul", ("yes", "no"), ("y", "n"), "bare") == ("yes", "no")
+
+
+# ------------------------------------------------------------------ the report's number format
+def load_probe():
+    """Import `tools/e3b_label_policy.py` — the report formatters live there, not in `labels.py`."""
+    spec = importlib.util.spec_from_file_location("e3b_label_policy_probe",
+                                                  ROOT / "tools" / "e3b_label_policy.py")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["e3b_label_policy_probe"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def report_record(*, coverage: float = 1e-08, floor: float = 0.10) -> dict:
+    """The smallest record the report formatters accept: one item, one cue, all five labels."""
+    labels_block = {
+        name: {"texts": ["a"], "first_tokens": [1], "pieces": ["a"], "coverage": coverage,
+               "reliability": "low_mass", "shared_first_tokens": []}
+        for name in labels.LABEL_VARIANTS}
+    piece = {"id": "c01", "type": "choice", "expected": "a", "cues": {
+        "shipped": {"scale": 1.0, "labels": dict(labels_block),
+                    "top_tokens": [{"piece": "<|im_end|>", "p_full": 0.9999}]}},
+        "ranked": {}}
+    return {"cues": ["shipped"], "label_variants": list(labels.LABEL_VARIANTS), "mass_floor": floor,
+            "items": [{"id": "c01", "type": "choice", "expected": "a",
+                       "prefixes": {"shipped": piece}}]}
+
+
+def test_the_coverage_tables_print_small_masses_in_scientific_notation():
+    """The whole card is about masses 1e-8 … 1e-6: a table of `0.0000` publishes nothing.
+
+    The rule is keyed off the engine's own floor: when the floor itself is smaller than 1e-3 the
+    table switches to 3-decimal scientific notation, and the star (below floor) marker is appended
+    outside the number.
+    """
+    probe = load_probe()
+    lines = probe.coverage_table(report_record(coverage=8.0684e-08))
+    row = next(line for line in lines if line.startswith("| `shipped` | `bare` |"))
+    assert "8.068e-08*" in row
+    assert "0.0000" not in row
+
+    summary = "\n".join(probe.variant_summary(report_record(coverage=4.2487e-07)))
+    assert "4.249e-07" in summary, "the mean is printed the same way as the per-item cells"
+
+
+def test_the_tables_stay_fixed_point_when_the_floor_is_readable():
+    """A floor at 1e-3 or above keeps the familiar 4-decimal form — no gratuitous notation."""
+    probe = load_probe()
+    lines = probe.coverage_table(report_record(coverage=0.25, floor=0.4))
+    row = next(line for line in lines if line.startswith("| `shipped` | `bare` |"))
+    assert "0.2500*" in row
+    assert "e-0" not in row
 
 
 # ------------------------------------------------------------------ the ranked readout's trie
