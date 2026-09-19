@@ -277,7 +277,7 @@ def test_every_renderings_exact_strings_are_pinned():
 
 
 def test_a_short_description_list_is_padded_with_the_bare_label():
-    """A question whose description list is missing entries still renders one label per candidate."""
+    """A question whose description list is missing entries still renders one label per item."""
     assert labels.label_texts("choice", ("a", "b", "c"), ("only-a",), "long") == \
         ("a: only-a", "b", "c")
     assert labels.label_texts("choice", ("a", "b"), (), "bare") == ("a", "b")
