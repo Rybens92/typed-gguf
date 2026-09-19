@@ -105,7 +105,7 @@ quote-style = "double"
 # `closer_mass`) that `decide.py` and the report both call — with the card's two gate files. The
 # doc gate in test_e3c_cue_refused.py reads the same module's closer vocabulary, so it is part of
 # the selection. Restore the bench pair above when a bench card sweeps next.
-source_paths = ["src/ggufone/engine/cue.py"]
+source_paths = ["src/ggufone/engine/prompt.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -129,13 +129,33 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # kill. A bench sweep only has to restore the three bench gate files above; an E3 sweep restores
 # `compare.py` + `test_e3.py`. Card t_6952f0dd (E3b, the `qwen35moe` label policy) activates
 # `["src/ggufone/bench/labels.py"]` + `["tests/test_e3b_labels.py"]`; a later sweep restores this
+# Card t_d90404ac (E3d, the cue shapes + the `--cue` switch) moves the pair to the module the change
+# rewrites — `src/ggufone/engine/prompt.py`: `build_question(cue=...)` renders `two_step`
+# byte-for-byte the same suffix and `json_field` as the cue line plus the per-type opener, and the
+# byte-identity is exactly the mutant only the card's own gate file kills
+# (tests/test_e3d_cue_switch.py, with the template/framing gates and the E1c pins beside it).
+#
+# The sweep: 149 mutants, **74 killed / 50 survived / 25 no-tests**, 0 timeouts. The survivors are
+# the module's pre-existing branches (the descriptions/readout paths of `build_question`) that this
+# selection does not drive, and the no-tests block is `empty_candidate_code`, whose gates live in
+# the CLI suites. Widening the selection to `tests/test_e3b_labels.py` + `tests/test_scaffold.py`
+# to reach them is *recorded as attempted and not achieved*: on mutmut 3.8 that run reported the
+# mutant phase as passing-without-failing (0 killed / 50 survived) rather than aborting, i.e. the
+# tests no longer saw the mutations at all. The trigger was an environment one, not the selection:
+# `uv run --with mutmut` re-syncs the project venv, and without `--extra dev` that drops pytest, so
+# the baseline run dies (every mutant reads "not checked"); after `uv sync --frozen --extra dev`
+# restores it, the same 149 mutants all read "survived", which is why the driver carries `--extra
+# dev` now and why the numbers above are the only ones this card stands behind. A later sweep should
+# rebuild the venv the way this run had it before widening the selection. The
+# cue-verdict pair above (cue.py + the three e3c gate files) stays valid for the module it names;
+# restore it when a cue-verdict card sweeps next.
 # isolation pair. Card t_635124bf (E3c FIX, the cue verdict classifies the vocabulary) keeps
 # `source_paths` on the same module — it is the file the fix moves — and adds the card's own gate
 # file to the selection: the map's fallbacks (`<special <id>>`, the catalogue winning a collision,
 # the session that cannot enumerate) and the dominance floor live only in
 # `tests/test_e3c_cue_specials.py`, so a two-file selection would leave those mutants alive.
-pytest_add_cli_args_test_selection = ["tests/test_e3c_cue_refused.py", "tests/test_e3c_cue_shapes.py",
-                                      "tests/test_e3c_cue_specials.py"]
+pytest_add_cli_args_test_selection = ["tests/test_e3d_cue_switch.py", "tests/test_templates.py",
+                                      "tests/test_e1c_mutation_pins.py", "tests/test_engine_fork.py"]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
 # with `BlockingIOError: [Errno 11]`. `.e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh` does both.
