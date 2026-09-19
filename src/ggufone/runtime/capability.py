@@ -24,7 +24,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from ggufone.errors import ModelArchUnsupportedError
-from ggufone.runtime import finder, isolated, pins
+from ggufone.runtime import finder, isolated, pins, pressure
 
 _BUILD_RE = re.compile(rb"build\s+b?(\d{2,7})")
 MIN_BUILD_ARCH = {"spark2_5": "spark2_5"}
@@ -48,7 +48,9 @@ def build_number(runtime_dir: str | os.PathLike[str]) -> int | None:
         env = {**os.environ,
                "LD_LIBRARY_PATH": f"{runtime_dir}:{os.environ.get('LD_LIBRARY_PATH', '')}"}
         try:
-            proc = subprocess.run([str(cli), "--version"], capture_output=True, check=False,  # noqa: S603
+            # `pressure.spawn`: the pid-cgroup EAGAIN of a shared box is retried, so a busy box
+            # cannot silently cost this bundle its build number (card t_a696ce02).
+            proc = pressure.spawn([str(cli), "--version"], capture_output=True, check=False,  # noqa: S603
                                   cwd=str(runtime_dir), env=env, timeout=60)
         except (OSError, subprocess.SubprocessError):
             proc = None
@@ -374,7 +376,7 @@ def probe_runtime(runtime_dir: str | os.PathLike[str] | None = None, *, deep: bo
             env = {**os.environ,
                    "LD_LIBRARY_PATH": f"{rt}:{os.environ.get('LD_LIBRARY_PATH', '')}"}
             try:
-                proc = subprocess.run([str(fit), "--help"], capture_output=True,  # noqa: S603
+                proc = pressure.spawn([str(fit), "--help"], capture_output=True,  # noqa: S603
                                       check=False, cwd=str(rt), env=env, timeout=60)
                 result.fit_params_help_exit = proc.returncode
             except (OSError, subprocess.SubprocessError):

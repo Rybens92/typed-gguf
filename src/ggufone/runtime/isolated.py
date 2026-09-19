@@ -24,6 +24,8 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 
+from ggufone.runtime import pressure
+
 CHILD_MODULE = "ggufone.runtime.probe_child"
 CHILD_TIMEOUT = 300.0            # seconds for one probe child
 WARMUP_TIMEOUT = 900.0
@@ -66,11 +68,17 @@ def child_env() -> dict[str, str]:
 
 
 def run_child(request: dict[str, object], *, timeout: float | None = None) -> dict[str, object]:
-    """One request in, one JSON object out. Raises `ChildFailure` for anything else."""
+    """One request in, one JSON object out. Raises `ChildFailure` for anything else.
+
+    The spawn itself goes through `pressure.spawn` (card t_a696ce02): this container's pid
+    cgroup is shared and small, so the *kernel* refusing a fork must not be reported as "the
+    backend does not load on this host" — a momentarily full pid table is retried, a sustained
+    cap is named `E_PID_PRESSURE` with the live reading.
+    """
     command = child_command()
     limit = CHILD_TIMEOUT if timeout is None else timeout
     try:
-        result = subprocess.run(                                       # noqa: S603
+        result = pressure.spawn(                                      # noqa: S603
             command, input=json.dumps(request), capture_output=True, text=True,
             errors="replace", timeout=limit, check=False, env=child_env())
     except subprocess.TimeoutExpired as exc:
