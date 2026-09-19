@@ -79,11 +79,10 @@ apply. `n_ctx` / `n_seq_max` are planned per request and recorded per chunk in t
 than the fit plan's global bound of 8).
 
 Per-item decision cost, read off the 60 rows' own `questions_ms`: **median 5.0 s, min 1.2 s, max
-65.2 s**. The max is chunk 004's: those ten items ran under a *neighbouring* 21 GB probe (a
-sibling card's `e3c_cue_shapes.py` on Occamy, `.e3c/logs/occamy_c01_vulkan.log`) — see §9 — and its
-30.7 s median is a contention artifact, not a model property. The other five chunks' medians are
-1.6–7.0 s. Load wall per chunk is in the table above (9.1–29.3 s; the first two chunks also paid
-the shader/pipeline compile).
+65.2 s**. The max is chunk 004's: those ten items ran while a sibling card's 21 GB Occamy probe was
+on the same box (§9 has the receipt) — its 30.7 s median is a contention artifact, not a model
+property. The other five chunks' medians are 1.6–7.0 s. Load wall per chunk is in the table above
+(9.1–29.3 s over the six runs; it is not monotone, and it is one number per process, not per item).
 
 ## 4. Quality on the committed 60-item dev set (deliverable 2)
 
