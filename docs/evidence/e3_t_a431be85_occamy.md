@@ -287,7 +287,7 @@ Agreement on the committed dev set, 95 % Wilson intervals; the mass split uses t
 * **`choice`**: 0.750 (18/24) [0.551–0.880] against 0.625 (15/24) [0.427–0.788] — delta -0.125.
 * **`noul`**: 0.889 (16/18) [0.672–0.969] against 0.389 (7/18) [0.203–0.614] — delta -0.500.
 * **`score`**: 0.222 (4/18) [0.090–0.452] against 0.500 (9/18) [0.290–0.710] — delta +0.278.
-* **mass**: Occamy's answers fall below the 0.10 floor on 57 of its 60 rows (the 4B's on 12); inside the split the two are level (0.500 (6/12) [0.254–0.746] against 0.509 (29/57) [0.383–0.634]), and the row the table says to read first is `measured` — 0.667 (32/48) [0.525–0.783] against 0.667 (2/3) [0.208–0.939], which is only 0 item(s).
+* **mass**: Occamy's answers fall below the 0.10 floor on 57 of its 60 rows (the 4B's on 12); inside the split the two are level (0.500 (6/12) [0.254–0.746] against 0.509 (29/57) [0.383–0.634]), and the row the table says to read first is `measured` — 0.667 (32/48) [0.525–0.783] against 0.667 (2/3) [0.208–0.939], which is only 3 item(s).
 * **verdict**: 7 items apart overall at n = 60 (0.633 vs 0.517); the two Wilson intervals overlap, so the headline cannot separate the models — the rows that separate them are the per-type ones and the mass split above.
 
 The Occamy side of this table is the merged campaign report (`[container]` ×2 + `[host]` ×4, per-chunk tags in §2.3), measured with `--backend vulkan --gpu-layers 7 --threads 4`; the baseline is E2's 4B default on the CPU. Agreement does not depend on the ladder a chunk settled on, and every chunk report carries its own compute-path evidence (table in §2.3).
@@ -319,14 +319,19 @@ allocation that fails is the first offload attempt on a device the desktop alrea
 ### 4.4 Report provenance, and the one thing that does not line up
 
 `report_001.json` and `report_002.json` do **not** have the key shape the committed bench path
-writes: they carry a `placement` block that no revision of `suites._run_quality` in this repo writes
-(the key exists only in the latency suite's report) and lack `budget`/`wall_ms`/`truncated`/
-`skipped`/`quick` plus the `devices`/`device_buffers`/`effective_backend` attribution the same
+writes: they carry a report-level `placement` block that no revision of `suites._run_quality` in this
+repo writes — a *report-level* `placement` is `_run_latency`'s block only, while `_throughput_row`
+and `_determinism_row` write a per-row `placement` *string* (`n_gpu_layers=…`, the request; this
+block is the loader's `used` object, `requested`/`used.attempts`/`warnings`) — and they lack
+`budget`/`wall_ms`/`truncated`/`skipped`/`quick` plus the
+`devices`/`device_buffers`/`effective_backend` attribution the same
 card's QA note says they carry (`docs/evidence/e2_quality.json`, the 4B baseline, has the same
 reduced shape — so the reduction predates this card). Their rows are the published container
 measurements and nothing in this card changed them; the four `[host]` chunks are written by
 `tools/e3_reproduce.py` from the committed tree, so the merge mixes both shapes — the merged
-report's envelope is chunk 001's, because `compare.merge_reports` copies the first report — and §4.3
+report's envelope is chunk 001's, because `compare.merge_reports` copies the first report: its
+top-level `placement` is therefore chunk 001's alone (container, degraded to 0 layers) even though
+the 60 rows underneath now come from both boxes — and §4.3
 prints the per-report shape in its table rather than papering over it. The two files are left as
 published: re-generating them is a decision for the coordinator, not a completion card.
 

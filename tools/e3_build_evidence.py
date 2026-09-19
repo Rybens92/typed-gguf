@@ -100,6 +100,12 @@ def report_box(report: Mapping[str, Any]) -> str:
 
     The container reports carry the cgroup the run was squeezed into; a host report has no cgroup
     keys at all, because the bench records them only when the kernel exposes one.
+
+    One-directional on purpose (review F4 of `t_6d2e084d`): the cgroup keys are positive evidence of
+    a container, their *absence* is not positive evidence of a bare host — a container run whose
+    kernel hides its cgroup would be tagged `[host]` here. So the tag is never typed into a table
+    (§4.3 prints it next to each report's own `ok`/row count, and this function is gated), and a
+    future cgroup-less container needs a report field this tool controls rather than this guess.
     """
     host = report.get("host") or {}
     memory = host.get("cgroup_memory_bytes")
@@ -132,6 +138,16 @@ def median_wall_s(rows: Sequence[Mapping[str, Any]]) -> float:
 
 def cell(block: Mapping[str, Any]) -> str:
     return compare._cell(block)
+
+
+def safe_cell(block: Mapping[str, Any] | None) -> str:
+    """`cell` for a block a side may not have at all — renders `—`, like a zero-row block.
+
+    The table has one row per question type measured by *either* report, and `compare._cell` reads
+    `block["n"]`, so an absent type must not reach it (review F2 of `t_6d2e084d`): `compare`'s own
+    renderer fills the gap with an empty agreement block, and this prints what that renders to.
+    """
+    return cell(block) if block else "—"
 
 
 def fmt_counts(counts_by_type: Mapping[str, int]) -> str:
@@ -289,7 +305,7 @@ def render_comparison(merged: Mapping[str, Any], baseline: Mapping[str, Any],
         right = second["per_type"].get(qtype) or {}
         if not left.get("n") and not right.get("n"):
             continue
-        lines.append(f"* **`{qtype}`**: {cell(left)} against {cell(right)} — delta "
+        lines.append(f"* **`{qtype}`**: {safe_cell(left)} against {safe_cell(right)} — delta "
                      f"{right.get('agreement', 0.0) - left.get('agreement', 0.0):+.3f}.")
     lines.append(f"* **mass**: Occamy's answers fall below the {table['coverage_floor']:.2f} floor "
                  f"on {second[compare.LOW_MASS]['n']} of its {second['overall']['n']} rows "
@@ -297,7 +313,7 @@ def render_comparison(merged: Mapping[str, Any], baseline: Mapping[str, Any],
                  f"level ({cell(first[compare.LOW_MASS])} against "
                  f"{cell(second[compare.LOW_MASS])}), and the row the table says to read first is "
                  f"`{compare.MEASURED}` — {cell(first[compare.MEASURED])} against "
-                 f"{cell(second[compare.MEASURED])}{_measured_note(second)}.")
+                 f"{cell(second[compare.MEASURED])}{_measured_note(second[compare.MEASURED])}.")
     delta_items = abs(round(table["delta"] * base["n"]))
     verdict = ("overlap, so the headline cannot separate the models" if
                _intervals_overlap(base, challenger) else "do not overlap")
@@ -324,8 +340,16 @@ def _intervals_overlap(left: Mapping[str, Any], right: Mapping[str, Any]) -> boo
 
 
 def _measured_note(block: Mapping[str, Any], *, small: int = 5) -> str:
-    """`, which is only N item(s)` — the note a three-row `measured` block needs to be readable."""
-    count = block.get("n") or 0
+    """`, which is only N item(s)` — the note a three-row `measured` block needs to be readable.
+
+    `block` is an **agreement block**, never the model row that carries it: a model row has no `n`,
+    and reading one through this helper published "only 0 item(s)" next to a three-row block
+    (review F1 of `t_6d2e084d`), so a missing `n` is an error here, not a zero.
+    """
+    if "n" not in block:
+        raise KeyError("_measured_note takes an agreement block (with `n`), not a model row — "
+                       f"got keys {sorted(block)}")
+    count = int(block["n"])
     return f", which is only {count} item(s)" if count < small else ""
 
 
@@ -410,8 +434,8 @@ def render_bench_comparison(merged: Mapping[str, Any], baseline: Mapping[str, An
         f"{second[compare.LOW_MASS]['n']} of its {second['overall']['n']} rows, the 4B on "
         f"{first[compare.LOW_MASS]['n']} — while the agreement *inside* the split is level "
         f"({cell(second[compare.LOW_MASS])} against {cell(first[compare.LOW_MASS])}). Per type: "
-        + "; ".join(f"`{qtype}` {cell(first['per_type'].get(qtype) or {})} vs "
-                    f"{cell(second['per_type'].get(qtype) or {})}" for qtype in table["types"])
+        + "; ".join(f"`{qtype}` {safe_cell(first['per_type'].get(qtype))} vs "
+                    f"{safe_cell(second['per_type'].get(qtype))}" for qtype in table["types"])
         + f". Overall the two are {abs(table['delta']):.3f} apart at n = {base['n']} and their "
         f"Wilson intervals "
         + ("overlap, so this table cannot rank them on the headline." if

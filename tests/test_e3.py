@@ -327,6 +327,53 @@ def test_the_published_e3_sections_are_currently_generated_from_the_artifacts():
             f"{path.name}:{name} is stale — run `python3 tools/e3_build_evidence.py`")
 
 
+def test_the_measured_note_quotes_the_measured_blocks_own_row_count():
+    """Review F1 of `t_6d2e084d`: the note read the *model row*, which has no `n`.
+
+    `_measured_note(second)` therefore printed "only 0 item(s)" into the generated §4.1 sentence
+    next to a three-row `measured` block — and the region gate above cannot see that class, because
+    it compares the generator's output with the file, and the file faithfully held the wrong
+    number. This gate pins the number in the published sentence to `models[1]["measured"]["n"]`.
+    """
+    import re
+
+    module = load_builder()
+    table = module.comparison_table(module.load(module.MERGED_REPORT),
+                                    module.load(module.BASELINE_REPORT))["table"]
+    measured = table["models"][1][compare.MEASURED]
+    assert measured["n"], "an empty `measured` block means a different sentence; re-read this gate"
+    small = module._measured_note.__kwdefaults__["small"]
+    for where, body in (("rendered", module.region_texts()["e3_comparison"]),
+                        ("published", module.EVIDENCE_DOC.read_text(encoding="utf-8"))):
+        mass = next(line for line in body.splitlines() if line.startswith("* **mass**"))
+        quoted = re.search(r"which is only (\d+) item\(s\)", mass)
+        if measured["n"] < small:
+            assert quoted, (f"{where}: the `measured` block is {measured['n']} rows, "
+                            f"so the sentence needs the note")
+            assert int(quoted.group(1)) == measured["n"], f"{where}: {mass}"
+        else:
+            assert quoted is None, f"{where}: {mass}"
+    # the shipped bug shape itself: a model row carries no `n`, and reading 0 from one must not be
+    # a silent default — it is how the false count reached a published, generated sentence
+    with pytest.raises(KeyError):
+        module._measured_note(table["models"][1])
+
+
+def test_a_question_type_only_one_side_measured_renders_as_a_dash():
+    """Review F2 of `t_6d2e084d`: `cell({})` is a `KeyError`, not a dashed cell.
+
+    `compare._cell` reads `block["n"]`, and the comparison rows cover every type in *either*
+    report, so a side that never measured a whole question type has to render like a zero-row
+    block. Not reachable with today's six chunks — which is exactly why it is a unit gate on the
+    helper both renderers now share, not a fixture.
+    """
+    module = load_builder()
+    empty = {"agreement": 0.0, "correct": 0, "n": 0, "ci": [0.0, 0.0]}
+    assert module.safe_cell(None) == module.safe_cell({}) == module.safe_cell(empty) == "—"
+    assert module.safe_cell({"agreement": 1.0, "correct": 2, "n": 2,
+                             "ci": [0.342, 1.0]}).startswith("1.000 (2/2)")
+
+
 def test_the_box_tag_is_read_from_the_report_not_the_file_name():
     """`[container]` / `[host]` is evidence, so it is derived: the cgroup keys decide.
 
