@@ -1,0 +1,37 @@
+[
+ {
+  "name": "reproduce driver exits 0",
+  "command": "bash .t7c9/run_chunks_corrected.sh (systemd unit t7c9-tiel-campaign)",
+  "result": "6/6 chunks exit=0, walls 36–60 s; raw log `.t7c9/logs/campaign.log`"
+ },
+ {
+  "name": "oracle",
+  "command": "python3 docs/verify_runtime_contract.py",
+  "result": "exit 0 — `failures: 0  skips: 0` (`.t7c9/oracle.txt`)"
+ },
+ {
+  "name": "test suite",
+  "command": "uv run --frozen --offline --extra dev pytest -q -rs",
+  "result": "1244 passed, 45 skipped, 0 failed in 35.6 s (`.t7c9/gates.txt`; the 45th skip is `test_probe_pressure.py:312`, no container pid cgroup on the host)"
+ },
+ {
+  "name": "ruff (the paths this card touches)",
+  "command": "uv run --frozen --offline --extra dev ruff check .t7c9",
+  "result": "All checks passed"
+ },
+ {
+  "name": "live prompt-parity gate on **this** model file",
+  "command": "GGUFONE_BENCH_MODEL=<tiel.gguf> uv run --frozen --offline --extra dev pytest -q --run-network -s tests/test_bench_live.py::test_the_bench_sends_the_same_prompt_as_the_serving_path",
+  "result": "1 passed in 38.80 s — `serving prefix 109 tokens, bench prefix 109 tokens` (`.t7c9/live_parity_tiel.txt`)"
+ },
+ {
+  "name": "model SHA-256 before/after",
+  "command": "sha256sum <tiel.gguf> (campaign head and tail)",
+  "result": "identical — `9286a94c…cf17c` (`.t7c9/sha_lines.txt`)"
+ },
+ {
+  "name": "dev-set slices",
+  "command": "sha256sum docs/evidence/tiel_corrected_chunks/devset_00*.jsonl",
+  "result": "byte-identical to the committed `tiel_chunks` slices (`.t7c9/devset_sha.txt`)"
+ }
+]

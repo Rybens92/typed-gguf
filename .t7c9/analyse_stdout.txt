@@ -1,0 +1,21 @@
+stats: .t7c9/tiel_corrected_stats.json
+
+## corrected instrument (chat-template framing)
+framing: ['chat-template: qwen35moe / builtin'] · mixed: False
+overall: 22/60 = 0.367 [0.256–0.493]
+  choice: 7/24 = 0.292 [0.149–0.492]
+  noul: 7/18 = 0.389 [0.203–0.614]
+  score: 8/18 = 0.444 [0.246–0.663]
+low_mass: 57/60 · measured: 3/60
+coverage median 0.0005828 · min 1.442e-07 · p25 1.741e-05 · p75 0.003086 · max 0.131 · above floor 3/60
+refused at the cue: 59/60 {'</think>': 32, '<|im_end|>': 26, '<think>': 1}
+
+## pre-fix instrument (plain framing, published row)
+overall: 31/60 = 0.517 [0.393–0.638]
+  choice: 16/24 = 0.667 [0.467–0.820]
+  noul: 7/18 = 0.389 [0.203–0.614]
+  score: 8/18 = 0.444 [0.246–0.663]
+low_mass: 14/60 · refused at the cue: 0/60
+
+## paired (same 60 items)
+risk difference -0.150 [-0.300…+0.000] · exact McNemar p = 0.07835 · discordant: pre-fix-only 15, corrected-only 6

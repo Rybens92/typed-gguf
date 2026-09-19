@@ -1,0 +1,1504 @@
+{
+ "card": "t_7c926398",
+ "chunks": [
+  {
+   "attempts": [],
+   "chunk_wall_s": 59.4,
+   "correct": 1,
+   "decision_max_s": 1.5748652020010923,
+   "decision_median_s": 1.2858148569994228,
+   "decision_min_s": 1.1995934609985852,
+   "degraded": false,
+   "framing": {
+    "labels": [
+     "chat-template: qwen35moe / builtin"
+    ],
+    "mixed": false,
+    "prefix_tokens": [
+     84,
+     85,
+     86,
+     87,
+     89,
+     93,
+     94,
+     97,
+     99,
+     109
+    ]
+   },
+   "items": 10,
+   "kv_type_used": "auto",
+   "load_wall_s": 23.761,
+   "low_mass": 10,
+   "n_ctx": 184,
+   "n_prefix": 93,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "pre_chunk_wall_s": 204.9,
+   "pre_correct": 5,
+   "pre_decision_median_s": 7.020234202499523,
+   "pre_kv_type_used": "auto",
+   "pre_ngl_used": 9,
+   "refused": 10,
+   "report": "report_001.json",
+   "types": {
+    "choice": 4,
+    "noul": 3,
+    "score": 3
+   },
+   "warnings": []
+  },
+  {
+   "attempts": [],
+   "chunk_wall_s": 42.5,
+   "correct": 2,
+   "decision_max_s": 1.4096972789993742,
+   "decision_median_s": 1.1124303144988517,
+   "decision_min_s": 1.024898015002691,
+   "degraded": false,
+   "framing": {
+    "labels": [
+     "chat-template: qwen35moe / builtin"
+    ],
+    "mixed": false,
+    "prefix_tokens": [
+     77,
+     81,
+     82,
+     85,
+     86,
+     87,
+     88,
+     90,
+     93
+    ]
+   },
+   "items": 10,
+   "kv_type_used": "auto",
+   "load_wall_s": 10.943,
+   "low_mass": 9,
+   "n_ctx": 173,
+   "n_prefix": 93,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "pre_chunk_wall_s": 141.0,
+   "pre_correct": 5,
+   "pre_decision_median_s": 2.420853471000555,
+   "pre_kv_type_used": "auto",
+   "pre_ngl_used": 9,
+   "refused": 10,
+   "report": "report_002.json",
+   "types": {
+    "choice": 3,
+    "noul": 3,
+    "score": 4
+   },
+   "warnings": []
+  },
+  {
+   "attempts": [],
+   "chunk_wall_s": 37.2,
+   "correct": 6,
+   "decision_max_s": 1.5465497080003843,
+   "decision_median_s": 1.186549604000902,
+   "decision_min_s": 1.034611049999512,
+   "degraded": false,
+   "framing": {
+    "labels": [
+     "chat-template: qwen35moe / builtin"
+    ],
+    "mixed": false,
+    "prefix_tokens": [
+     82,
+     84,
+     85,
+     86,
+     87,
+     90,
+     91,
+     96
+    ]
+   },
+   "items": 10,
+   "kv_type_used": "auto",
+   "load_wall_s": 5.232,
+   "low_mass": 8,
+   "n_ctx": 154,
+   "n_prefix": 82,
+   "n_seq_max": 3,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "pre_chunk_wall_s": 136.5,
+   "pre_correct": 6,
+   "pre_decision_median_s": 1.5992466719999356,
+   "pre_kv_type_used": "auto",
+   "pre_ngl_used": 9,
+   "refused": 9,
+   "report": "report_003.json",
+   "types": {
+    "choice": 3,
+    "noul": 4,
+    "score": 3
+   },
+   "warnings": []
+  },
+  {
+   "attempts": [],
+   "chunk_wall_s": 37.2,
+   "correct": 6,
+   "decision_max_s": 1.746316206001211,
+   "decision_median_s": 1.1123323789979622,
+   "decision_min_s": 0.9749228100008622,
+   "degraded": false,
+   "framing": {
+    "labels": [
+     "chat-template: qwen35moe / builtin"
+    ],
+    "mixed": false,
+    "prefix_tokens": [
+     82,
+     83,
+     84,
+     86,
+     89,
+     90,
+     92,
+     93,
+     94,
+     95
+    ]
+   },
+   "items": 10,
+   "kv_type_used": "auto",
+   "load_wall_s": 5.386,
+   "low_mass": 10,
+   "n_ctx": 186,
+   "n_prefix": 93,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "pre_chunk_wall_s": 957.7,
+   "pre_correct": 5,
+   "pre_decision_median_s": 30.72255274700001,
+   "pre_kv_type_used": "auto",
+   "pre_ngl_used": 9,
+   "refused": 10,
+   "report": "report_004.json",
+   "types": {
+    "choice": 4,
+    "noul": 3,
+    "score": 3
+   },
+   "warnings": []
+  },
+  {
+   "attempts": [],
+   "chunk_wall_s": 40.9,
+   "correct": 4,
+   "decision_max_s": 2.3504839290035306,
+   "decision_median_s": 1.19568962250014,
+   "decision_min_s": 0.985514364001574,
+   "degraded": false,
+   "framing": {
+    "labels": [
+     "chat-template: qwen35moe / builtin"
+    ],
+    "mixed": false,
+    "prefix_tokens": [
+     74,
+     75,
+     79,
+     80,
+     81,
+     82,
+     83,
+     88,
+     103
+    ]
+   },
+   "items": 10,
+   "kv_type_used": "auto",
+   "load_wall_s": 5.941,
+   "low_mass": 10,
+   "n_ctx": 151,
+   "n_prefix": 75,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "pre_chunk_wall_s": 178.3,
+   "pre_correct": 5,
+   "pre_decision_median_s": 2.870115353000074,
+   "pre_kv_type_used": "auto",
+   "pre_ngl_used": 9,
+   "refused": 10,
+   "report": "report_005.json",
+   "types": {
+    "choice": 3,
+    "noul": 3,
+    "score": 4
+   },
+   "warnings": []
+  },
+  {
+   "attempts": [],
+   "chunk_wall_s": 36.1,
+   "correct": 3,
+   "decision_max_s": 1.4837244570007897,
+   "decision_median_s": 1.1716187294987321,
+   "decision_min_s": 1.0131881319975946,
+   "degraded": false,
+   "framing": {
+    "labels": [
+     "chat-template: qwen35moe / builtin"
+    ],
+    "mixed": false,
+    "prefix_tokens": [
+     78,
+     80,
+     86,
+     87,
+     88,
+     90,
+     91,
+     92,
+     96
+    ]
+   },
+   "items": 10,
+   "kv_type_used": "auto",
+   "load_wall_s": 5.554,
+   "low_mass": 10,
+   "n_ctx": 177,
+   "n_prefix": 90,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "pre_chunk_wall_s": 152.6,
+   "pre_correct": 5,
+   "pre_decision_median_s": 4.395525271500446,
+   "pre_kv_type_used": "auto",
+   "pre_ngl_used": 9,
+   "refused": 10,
+   "report": "report_006.json",
+   "types": {
+    "choice": 7,
+    "noul": 2,
+    "score": 1
+   },
+   "warnings": []
+  }
+ ],
+ "corrected": {
+  "coverage": {
+   "above_floor": 3,
+   "at_or_below_floor": 57,
+   "max": 0.13100796516197669,
+   "median": 0.0005828460905406107,
+   "min": 1.4424687839916204e-07,
+   "n": 60,
+   "p25": 1.7414295745850498e-05,
+   "p75": 0.003085846421765577
+  },
+  "cue": {
+   "cue_mass_median": 0.6982114300424518,
+   "cue_tokens": {
+    "248046": 26,
+    "248068": 1,
+    "248069": 32,
+    "71093": 1
+   },
+   "refused": 59,
+   "refused_closers": {
+    "</think>": 32,
+    "<think>": 1,
+    "<|im_end|>": 26
+   },
+   "refused_ids": [
+    "c01",
+    "s01",
+    "n01",
+    "c02",
+    "s02",
+    "n02",
+    "c03",
+    "s03",
+    "n03",
+    "c04",
+    "s04",
+    "n04",
+    "c05",
+    "s05",
+    "n05",
+    "c06",
+    "s06",
+    "n06",
+    "c07",
+    "s07",
+    "n07",
+    "c08",
+    "s08",
+    "n08",
+    "c09",
+    "n09",
+    "c10",
+    "s10",
+    "n10",
+    "c11",
+    "s11",
+    "n11",
+    "c12",
+    "s12",
+    "n12",
+    "c13",
+    "s13",
+    "n13",
+    "c14",
+    "s14",
+    "n14",
+    "c15",
+    "s15",
+    "n15",
+    "c16",
+    "s16",
+    "n16",
+    "c17",
+    "s17",
+    "n17",
+    "c18",
+    "s18",
+    "n18",
+    "c19",
+    "c20",
+    "c21",
+    "c22",
+    "c23",
+    "c24"
+   ]
+  },
+  "framing_label": [
+   "chat-template: qwen35moe / builtin"
+  ],
+  "framing_mixed": false,
+  "framing_per_row": {
+   "labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "mixed": false,
+   "prefix_tokens": {
+    "count": 60,
+    "max": 109,
+    "min": 74
+   },
+   "rows": 60
+  },
+  "framing_surface": {
+   "kind": {
+    "builtin": 60
+   },
+   "notes": [
+    "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+   ],
+   "renderer": {
+    "builtin": 60
+   },
+   "source": {
+    "llama_chat_apply_template": 60
+   },
+   "thinking": {
+    "suppressed": 60
+   },
+   "warnings": {
+    "W_TEMPLATE_FALLBACK": 60
+   }
+  },
+  "mass_split": {
+   "low_mass": {
+    "agreement": 0.3684210526315789,
+    "ci": [
+     0.2552337550616508,
+     0.4982244051445238
+    ],
+    "correct": 21,
+    "ids": [
+     "c01",
+     "s01",
+     "n01",
+     "c02",
+     "s02",
+     "n02",
+     "c03",
+     "s03",
+     "n03",
+     "c04",
+     "s04",
+     "n04",
+     "c05",
+     "s05",
+     "c06",
+     "s06",
+     "n06",
+     "c07",
+     "s07",
+     "n07",
+     "c08",
+     "s08",
+     "c09",
+     "s09",
+     "n09",
+     "c10",
+     "s10",
+     "c11",
+     "s11",
+     "n11",
+     "c12",
+     "s12",
+     "n12",
+     "c13",
+     "s13",
+     "n13",
+     "c14",
+     "s14",
+     "n14",
+     "c15",
+     "s15",
+     "n15",
+     "c16",
+     "s16",
+     "n16",
+     "c17",
+     "s17",
+     "n17",
+     "c18",
+     "s18",
+     "n18",
+     "c19",
+     "c20",
+     "c21",
+     "c22",
+     "c23",
+     "c24"
+    ],
+    "items": 57
+   },
+   "measured": {
+    "agreement": 0.3333333333333333,
+    "ci": [
+     0.0614903152761605,
+     0.7923450448735121
+    ],
+    "correct": 1,
+    "ids": [
+     "n05",
+     "n08",
+     "n10"
+    ],
+    "items": 3
+   }
+  },
+  "misses": [
+   {
+    "coverage": 6.144667690643808e-06,
+    "expected": "technical",
+    "got": "support",
+    "id": "c01",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.0001940186781584614,
+    "expected": "3",
+    "got": "1",
+    "id": "s01",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 0.004469441154799772,
+    "expected": "yes",
+    "got": "no",
+    "id": "n01",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 1.7372500370526124e-06,
+    "expected": "billing",
+    "got": "escalation",
+    "id": "c02",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.00015908801050738757,
+    "expected": "3",
+    "got": "0",
+    "id": "s02",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 0.004719780930310731,
+    "expected": "yes",
+    "got": "no",
+    "id": "n02",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.0021964903084100945,
+    "expected": "4",
+    "got": "1",
+    "id": "s03",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 0.010829822938578941,
+    "expected": "yes",
+    "got": "no",
+    "id": "n03",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.001102771694362997,
+    "expected": "restricted",
+    "got": "confidential",
+    "id": "c04",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.001882459633153011,
+    "expected": "4",
+    "got": "0",
+    "id": "s04",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 0.0024196643958028464,
+    "expected": "yes",
+    "got": "no",
+    "id": "n04",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 2.995171094515986e-06,
+    "expected": "security",
+    "got": "support",
+    "id": "c05",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.013065724815548773,
+    "expected": "0",
+    "got": "1",
+    "id": "s05",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 0.13100796516197669,
+    "expected": "yes",
+    "got": "no",
+    "id": "n05",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 7.14537376091563e-05,
+    "expected": "fixed",
+    "got": "changed",
+    "id": "c06",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.00025363219111225834,
+    "expected": "3",
+    "got": "1",
+    "id": "s06",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 8.631685696330632e-07,
+    "expected": "termination",
+    "got": "liability",
+    "id": "c07",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.00018804960445327723,
+    "expected": "yes",
+    "got": "no",
+    "id": "n07",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 3.46001313063801e-07,
+    "expected": "business_hours",
+    "got": "weekend",
+    "id": "c08",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 1.193329983831148e-05,
+    "expected": "spam",
+    "got": "harassment",
+    "id": "c09",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.11280564779465221,
+    "expected": "yes",
+    "got": "no",
+    "id": "n10",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.03068917210560325,
+    "expected": "yes",
+    "got": "no",
+    "id": "n11",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 6.747884172503877e-05,
+    "expected": "3",
+    "got": "1",
+    "id": "s12",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 0.03617436676180591,
+    "expected": "yes",
+    "got": "no",
+    "id": "n13",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 6.448346529519986e-07,
+    "expected": "capital",
+    "got": "non_deductible",
+    "id": "c14",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 1.2766565082820237e-05,
+    "expected": "cardiology",
+    "got": "neurology",
+    "id": "c15",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.000678385753885392,
+    "expected": "2",
+    "got": "1",
+    "id": "s15",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 0.001972364367556408,
+    "expected": "yes",
+    "got": "no",
+    "id": "n15",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.018786736969596006,
+    "expected": "travel",
+    "got": "meals",
+    "id": "c16",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.0006088129123496612,
+    "expected": "0",
+    "got": "1",
+    "id": "s16",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 0.00019904884413748323,
+    "expected": "2",
+    "got": "1",
+    "id": "s17",
+    "reliability": "low_mass",
+    "type": "score"
+   },
+   {
+    "coverage": 1.883215245510098e-05,
+    "expected": "standup",
+    "got": "retrospective",
+    "id": "c18",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.00013337888516194848,
+    "expected": "yes",
+    "got": "no",
+    "id": "n18",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.0005568792687315601,
+    "expected": "configuration",
+    "got": "infrastructure",
+    "id": "c19",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 9.094930270414929e-05,
+    "expected": "copyleft",
+    "got": "permissive",
+    "id": "c20",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 5.371736074053099e-05,
+    "expected": "archive",
+    "got": "warm",
+    "id": "c21",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 8.55222455958081e-06,
+    "expected": "sms",
+    "got": "chat",
+    "id": "c22",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 1.4424687839916204e-07,
+    "expected": "identity",
+    "got": "search",
+    "id": "c23",
+    "reliability": "low_mass",
+    "type": "choice"
+   }
+  ],
+  "overall": {
+   "agreement": 0.36666666666666664,
+   "ci": [
+    0.2562073884620827,
+    0.4931723263320327
+   ],
+   "correct": 22,
+   "n": 60
+  },
+  "per_type": {
+   "choice": {
+    "agreement": 0.2916666666666667,
+    "ci": [
+     0.14914460334164278,
+     0.49168063658709704
+    ],
+    "correct": 7,
+    "n": 24
+   },
+   "noul": {
+    "agreement": 0.3888888888888889,
+    "ci": [
+     0.20304991926931162,
+     0.6138133141934384
+    ],
+    "correct": 7,
+    "n": 18
+   },
+   "score": {
+    "agreement": 0.4444444444444444,
+    "ci": [
+     0.24559231101389126,
+     0.6628393057174837
+    ],
+    "correct": 8,
+    "n": 18
+   }
+  },
+  "prefix_tokens": [
+   84,
+   85,
+   86,
+   87,
+   89,
+   93,
+   94,
+   97,
+   99,
+   109
+  ],
+  "warnings": []
+ },
+ "instrument": {
+  "corrected": {
+   "chunks": [
+    {
+     "items": 10,
+     "model": "Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+     "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_001.jsonl --gpu-layers 9 --json"
+    },
+    {
+     "items": 10,
+     "model": "Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+     "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_002.jsonl --gpu-layers 9 --json"
+    },
+    {
+     "items": 10,
+     "model": "Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+     "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_003.jsonl --gpu-layers 9 --json"
+    },
+    {
+     "items": 10,
+     "model": "Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+     "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_004.jsonl --gpu-layers 9 --json"
+    },
+    {
+     "items": 10,
+     "model": "Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+     "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_005.jsonl --gpu-layers 9 --json"
+    },
+    {
+     "items": 10,
+     "model": "Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+     "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_006.jsonl --gpu-layers 9 --json"
+    }
+   ],
+   "framing": {
+    "labels": [
+     "chat-template: qwen35moe / builtin"
+    ],
+    "mixed": false,
+    "prefix_tokens": [
+     84,
+     85,
+     86,
+     87,
+     89,
+     93,
+     94,
+     97,
+     99,
+     109
+    ]
+   },
+   "generated_at": "2026-09-19T20:43:23Z",
+   "model": {
+    "arch": "qwen35moe",
+    "bytes": 22360476736,
+    "name": "Tiel-Coder-35B-A3B (t_7c926398, corrected instrument)",
+    "path": "/var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf"
+   },
+   "path": "docs/evidence/tiel_corrected_quality.json"
+  },
+  "pre_fix": {
+   "framing": "plain (prompt.py E1b framing)",
+   "generated_at": "2026-09-19T16:06:23Z",
+   "model": {
+    "arch": "qwen35moe",
+    "bytes": 22360476736,
+    "name": "Tiel-Coder",
+    "path": "/var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf"
+   },
+   "path": "docs/evidence/tiel_quality.json"
+  }
+ },
+ "item_flips": {
+  "corrected_only": [
+   {
+    "expected": "expedited",
+    "id": "c11",
+    "now_got": "expedited",
+    "pre_got": "freight",
+    "type": "choice"
+   },
+   {
+    "expected": "midmarket",
+    "id": "c17",
+    "now_got": "midmarket",
+    "pre_got": "smb",
+    "type": "choice"
+   },
+   {
+    "expected": "1",
+    "id": "s08",
+    "now_got": "1",
+    "pre_got": "4",
+    "type": "score"
+   },
+   {
+    "expected": "1",
+    "id": "s10",
+    "now_got": "1",
+    "pre_got": "2",
+    "type": "score"
+   },
+   {
+    "expected": "1",
+    "id": "s14",
+    "now_got": "1",
+    "pre_got": "2",
+    "type": "score"
+   },
+   {
+    "expected": "0",
+    "id": "s18",
+    "now_got": "0",
+    "pre_got": "1",
+    "type": "score"
+   }
+  ],
+  "pre_fix_only": [
+   {
+    "expected": "billing",
+    "id": "c02",
+    "now_got": "escalation",
+    "pre_got": "billing",
+    "type": "choice"
+   },
+   {
+    "expected": "security",
+    "id": "c05",
+    "now_got": "support",
+    "pre_got": "security",
+    "type": "choice"
+   },
+   {
+    "expected": "fixed",
+    "id": "c06",
+    "now_got": "changed",
+    "pre_got": "fixed",
+    "type": "choice"
+   },
+   {
+    "expected": "termination",
+    "id": "c07",
+    "now_got": "liability",
+    "pre_got": "termination",
+    "type": "choice"
+   },
+   {
+    "expected": "business_hours",
+    "id": "c08",
+    "now_got": "weekend",
+    "pre_got": "business_hours",
+    "type": "choice"
+   },
+   {
+    "expected": "spam",
+    "id": "c09",
+    "now_got": "harassment",
+    "pre_got": "spam",
+    "type": "choice"
+   },
+   {
+    "expected": "cardiology",
+    "id": "c15",
+    "now_got": "neurology",
+    "pre_got": "cardiology",
+    "type": "choice"
+   },
+   {
+    "expected": "travel",
+    "id": "c16",
+    "now_got": "meals",
+    "pre_got": "travel",
+    "type": "choice"
+   },
+   {
+    "expected": "copyleft",
+    "id": "c20",
+    "now_got": "permissive",
+    "pre_got": "copyleft",
+    "type": "choice"
+   },
+   {
+    "expected": "sms",
+    "id": "c22",
+    "now_got": "chat",
+    "pre_got": "sms",
+    "type": "choice"
+   },
+   {
+    "expected": "identity",
+    "id": "c23",
+    "now_got": "search",
+    "pre_got": "identity",
+    "type": "choice"
+   },
+   {
+    "expected": "3",
+    "id": "s01",
+    "now_got": "1",
+    "pre_got": "3",
+    "type": "score"
+   },
+   {
+    "expected": "3",
+    "id": "s02",
+    "now_got": "0",
+    "pre_got": "3",
+    "type": "score"
+   },
+   {
+    "expected": "4",
+    "id": "s03",
+    "now_got": "1",
+    "pre_got": "4",
+    "type": "score"
+   },
+   {
+    "expected": "0",
+    "id": "s16",
+    "now_got": "1",
+    "pre_got": "0",
+    "type": "score"
+   }
+  ]
+ },
+ "n": {
+  "corrected": 60,
+  "only_corrected": [],
+  "only_pre_fix": [],
+  "paired": 60,
+  "pre_fix": 60
+ },
+ "paired": {
+  "bootstrapped": true,
+  "difference": -0.15000000000000008,
+  "discordant": {
+   "a_win": 15,
+   "b_win": 6
+  },
+  "high": 0.0,
+  "iters": 20000,
+  "low": -0.3,
+  "mcnemar_p": 0.0783538818359375,
+  "n": 60,
+  "seed": 20260919
+ },
+ "pre_fix": {
+  "coverage": {
+   "above_floor": 46,
+   "at_or_below_floor": 14,
+   "max": 0.8200910530335487,
+   "median": 0.25785795853578997,
+   "min": 0.007882819358983223,
+   "n": 60,
+   "p25": 0.10524169825260375,
+   "p75": 0.4172193706683192
+  },
+  "cue": {
+   "cue_mass_median": 0.2992922489846592,
+   "cue_tokens": {
+    "14501": 1,
+    "15": 1,
+    "15666": 1,
+    "16": 2,
+    "16539": 1,
+    "17": 1,
+    "18": 1,
+    "19": 3,
+    "2054": 1,
+    "2083": 9,
+    "21343": 1,
+    "248068": 11,
+    "248069": 2,
+    "25316": 1,
+    "271": 15,
+    "27265": 1,
+    "36479": 1,
+    "40024": 1,
+    "72967": 1,
+    "760": 4,
+    "93686": 1
+   },
+   "refused": 0,
+   "refused_closers": {},
+   "refused_ids": []
+  },
+  "mass_split": {
+   "low_mass": {
+    "agreement": 0.5714285714285714,
+    "ci": [
+     0.32590266902869364,
+     0.7861949006959947
+    ],
+    "correct": 8,
+    "ids": [
+     "c01",
+     "n01",
+     "c02",
+     "n05",
+     "c07",
+     "c10",
+     "n11",
+     "n12",
+     "s13",
+     "n14",
+     "c17",
+     "c21",
+     "c23",
+     "c24"
+    ],
+    "items": 14
+   },
+   "measured": {
+    "agreement": 0.5,
+    "ci": [
+     0.3611870167007236,
+     0.6388129832992764
+    ],
+    "correct": 23,
+    "ids": [
+     "s01",
+     "s02",
+     "n02",
+     "c03",
+     "s03",
+     "n03",
+     "c04",
+     "s04",
+     "n04",
+     "c05",
+     "s05",
+     "c06",
+     "s06",
+     "n06",
+     "s07",
+     "n07",
+     "c08",
+     "s08",
+     "n08",
+     "c09",
+     "s09",
+     "n09",
+     "s10",
+     "n10",
+     "c11",
+     "s11",
+     "c12",
+     "s12",
+     "c13",
+     "n13",
+     "c14",
+     "s14",
+     "c15",
+     "s15",
+     "n15",
+     "c16",
+     "s16",
+     "n16",
+     "s17",
+     "n17",
+     "c18",
+     "s18",
+     "n18",
+     "c19",
+     "c20",
+     "c22"
+    ],
+    "items": 46
+   }
+  },
+  "misses": [
+   {
+    "coverage": 0.035792110689775586,
+    "expected": "technical",
+    "got": "billing",
+    "id": "c01",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.08928267470515312,
+    "expected": "yes",
+    "got": "no",
+    "id": "n01",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.2834305266673224,
+    "expected": "yes",
+    "got": "no",
+    "id": "n02",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.31703596339950124,
+    "expected": "yes",
+    "got": "no",
+    "id": "n03",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.2110784086456299,
+    "expected": "restricted",
+    "got": "confidential",
+    "id": "c04",
+    "reliability": "ok",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.3727253088836904,
+    "expected": "4",
+    "got": "2",
+    "id": "s04",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.5196639520330146,
+    "expected": "yes",
+    "got": "no",
+    "id": "n04",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.39870313646267014,
+    "expected": "0",
+    "got": "4",
+    "id": "s05",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.048129916794439724,
+    "expected": "yes",
+    "got": "no",
+    "id": "n05",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.20411680229889942,
+    "expected": "3",
+    "got": "1",
+    "id": "s06",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.18437599788684142,
+    "expected": "yes",
+    "got": "no",
+    "id": "n07",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.5492460498675138,
+    "expected": "1",
+    "got": "4",
+    "id": "s08",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.20216931623403323,
+    "expected": "1",
+    "got": "2",
+    "id": "s10",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.11303693869123241,
+    "expected": "yes",
+    "got": "no",
+    "id": "n10",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.25521614112776736,
+    "expected": "expedited",
+    "got": "freight",
+    "id": "c11",
+    "reliability": "ok",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.07684978926197314,
+    "expected": "yes",
+    "got": "no",
+    "id": "n11",
+    "reliability": "low_mass",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.33482708744804845,
+    "expected": "3",
+    "got": "2",
+    "id": "s12",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.1200015283553022,
+    "expected": "yes",
+    "got": "no",
+    "id": "n13",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.14288149940725586,
+    "expected": "capital",
+    "got": "non_deductible",
+    "id": "c14",
+    "reliability": "ok",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.8200910530335487,
+    "expected": "1",
+    "got": "2",
+    "id": "s14",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.2027759157139034,
+    "expected": "2",
+    "got": "1",
+    "id": "s15",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.10613270863075538,
+    "expected": "yes",
+    "got": "no",
+    "id": "n15",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.007882819358983223,
+    "expected": "midmarket",
+    "got": "smb",
+    "id": "c17",
+    "reliability": "low_mass",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.15519174206089004,
+    "expected": "2",
+    "got": "1",
+    "id": "s17",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.4774529898667228,
+    "expected": "standup",
+    "got": "retrospective",
+    "id": "c18",
+    "reliability": "ok",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.4155520499641773,
+    "expected": "0",
+    "got": "1",
+    "id": "s18",
+    "reliability": "ok",
+    "type": "score"
+   },
+   {
+    "coverage": 0.5661783222371483,
+    "expected": "yes",
+    "got": "no",
+    "id": "n18",
+    "reliability": "ok",
+    "type": "noul"
+   },
+   {
+    "coverage": 0.10256866711814888,
+    "expected": "configuration",
+    "got": "infrastructure",
+    "id": "c19",
+    "reliability": "ok",
+    "type": "choice"
+   },
+   {
+    "coverage": 0.033127674314516485,
+    "expected": "archive",
+    "got": "warm",
+    "id": "c21",
+    "reliability": "low_mass",
+    "type": "choice"
+   }
+  ],
+  "overall": {
+   "agreement": 0.5166666666666667,
+   "ci": [
+    0.39307594850843575,
+    0.6382515871422999
+   ],
+   "correct": 31,
+   "n": 60
+  },
+  "per_type": {
+   "choice": {
+    "agreement": 0.6666666666666666,
+    "ci": [
+     0.4670595949408046,
+     0.8202802131162036
+    ],
+    "correct": 16,
+    "n": 24
+   },
+   "noul": {
+    "agreement": 0.3888888888888889,
+    "ci": [
+     0.20304991926931162,
+     0.6138133141934384
+    ],
+    "correct": 7,
+    "n": 18
+   },
+   "score": {
+    "agreement": 0.4444444444444444,
+    "ci": [
+     0.24559231101389126,
+     0.6628393057174837
+    ],
+    "correct": 8,
+    "n": 18
+   }
+  }
+ },
+ "schema": "ggufone.t7c926398.tiel_corrected/v1"
+}

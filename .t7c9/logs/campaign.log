@@ -1,0 +1,38 @@
+Running as unit: t7c9-tiel-campaign.service
+tiel corrected-instrument run start 2026-09-19T22:43:08+02:00 pid 2389735
+cgroup=/user.slice/user-1000.slice/user@1000.service/app.slice/t7c9-tiel-campaign.service memory.max=max
+GGUFONE_RUNTIME_DIR=/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+VK_DRIVER_FILES=/home/rybens/.e3c_host/nvidia_egl_icd.json
+model=/var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf ngl=9
+9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c  /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf
+=== chunk 001 start 2026-09-19T22:43:22+02:00
+    vram_used=1641 MiB memavail=24631128kB
+=== chunk 001 exit=0 wall=60s 2026-09-19T22:44:22+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 84, 85, 86, 87, 89, 93, 94, 97, 99, 109
+=== chunk 002 start 2026-09-19T22:44:22+02:00
+    vram_used=1661 MiB memavail=24326660kB
+=== chunk 002 exit=0 wall=43s 2026-09-19T22:45:05+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 77, 81, 82, 85, 86, 87, 88, 90, 93
+=== chunk 003 start 2026-09-19T22:45:05+02:00
+    vram_used=1482 MiB memavail=24520484kB
+=== chunk 003 exit=0 wall=37s 2026-09-19T22:45:42+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 82, 84, 85, 86, 87, 90, 91, 96
+=== chunk 004 start 2026-09-19T22:45:42+02:00
+    vram_used=1465 MiB memavail=24738828kB
+=== chunk 004 exit=0 wall=38s 2026-09-19T22:46:20+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 82, 83, 84, 86, 89, 90, 92, 93, 94, 95
+=== chunk 005 start 2026-09-19T22:46:20+02:00
+    vram_used=1686 MiB memavail=24070352kB
+=== chunk 005 exit=0 wall=41s 2026-09-19T22:47:01+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 74, 75, 79, 80, 81, 82, 83, 88, 103
+=== chunk 006 start 2026-09-19T22:47:01+02:00
+    vram_used=1935 MiB memavail=24821840kB
+=== chunk 006 exit=0 wall=36s 2026-09-19T22:47:37+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 78, 80, 86, 87, 88, 90, 91, 92, 96
+tiel corrected-instrument run done 2026-09-19T22:47:37+02:00
+9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c  /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf
+          Finished with result: success
+Main processes terminated with: code=exited, status=0/SUCCESS
+               Service runtime: 4min 43.001s
+             CPU time consumed: 5min 35.653s
+                   Memory peak: 15.6G (swap: 4.8M)
