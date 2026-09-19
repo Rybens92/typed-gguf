@@ -1,108 +1,93 @@
 # E3 completion review — card `t_6d2e084d` (code-reviewer)
 
-- **Verdict: REQUEST CHANGES** — one required correction (F1); everything else I checked reproduces.
-- Reviewed head: `8c9e3e9` (branch `main`, shared tree), round 1 — artifact lens (cold diff read first).
-- File note: this file previously held the E1a final review (`t_ee24bd7c`); that record stays in git at
-  `05f3ee4` and in the E1a board thread.
-- Environment: podman container (no GPU); the repo, all six chunk reports and the 24 GB model file are
-  reachable. Gates run here: `uv run --frozen --extra dev pytest -q`, `ruff` (project config),
-  `python3 tools/e3_build_evidence.py --check`, `sha256sum` on the model, and my own recomputation
-  scripts (`/tmp/e3review/verify1.py`, `verify2.py`, `provenance_ast.py`).
+- **Verdict: APPROVE** — the round-1 required fix (F1) landed, is gated, and the gate is RED on the
+  pre-fix tree; F2–F4 landed as described. Two ⚪ nits recorded below, neither blocking.
+- Reviewed head: `13535a6` (branch `main`, shared tree), round 2 — **execution lens**: every handoff
+  claim re-run or recomputed from the raw artifacts, not re-read.
+- Round 1 (REQUEST CHANGES, F1) is preserved in git at `9ec0c0e`; the E1a review it replaced at
+  `05f3ee4`.
+- Environment: podman container (no GPU, HOME=/root). The project `.venv` is a dead host symlink
+  here; I ran the suite with a scratch env (`uv run --frozen --extra dev` with
+  `UV_PROJECT_ENVIRONMENT=/tmp/e3venv`, pytest 9.1.1). Scripts:
+  `/tmp/probe_e3_round2.py`, `/tmp/inspect_shapes.py`, `/tmp/dump_devices.py`; the pre-fix scratch
+  tree is `/tmp/e3rev2.XqL50D` (`git archive 9ec0c0e`).
 
-## What I verified independently (not from the handoff)
+## F1 (required) — fixed, and the fix is gated
 
-**Requirement 1 — the merge covers every chunk that ran.**
-- `e3_occamy_quality.json`: `ok: true`, 60 rows, ids unique, `chunks` = 6 × 10; my deep compare says
-  `merged["items"] == concatenation(report_001..006["items"])` — true, element for element.
-- every report on disk `ok: true` with 10/10 rows; no gap anywhere (the OOM lines in the logs are the
-  degrade ladder, no lost row).
-- `devset_001..006.jsonl` ids equal the committed 60-item dev set exactly (0 duplicates, 0 missing),
-  and each chunk's devset ids equal its report's ids in order.
+- `tools/e3_build_evidence.py:316` now passes `second[compare.MEASURED]`; `_measured_note` raises
+  `KeyError` on a block without `n` (`:349`) instead of defaulting to 0 — the exact mechanism that
+  published the false count.
+- The published §4.1 sentence (evidence doc line 290) now reads `…0.667 (2/3) [0.208–0.939], which
+  is only 3 item(s).` I recomputed the `measured` block from the merged report with my own code:
+  Occamy measured = **2/3 (0.667)**, so 3 is the block's own row count. ✔
+- **RED reproduced independently**: on a scratch tree at `9ec0c0e` with only the new
+  `tests/test_e3.py` (30 tests) swapped in, the new gate fails exactly as claimed —
+  `assert 0 == 3` on a sentence reading `which is only 0 item(s)` (`1 failed, 29 deselected`). On
+  `13535a6` the same gate passes.
+- The new gate pins both the rendered and the *published* sentence to `models[1]["measured"]["n"]`
+  (`tests/test_e3.py:330`), so the generator↔file comparison can no longer mask this class. ✔
 
-**Requirement 2 — the sections are generated, not hand-edited.**
-- `tools/e3_build_evidence.py --check` → `current` for both files, exit 0 (I ran it myself).
-- `tests/test_e3.py` → 28 passed, including the three new gates; the new gate re-renders every marked
-  region and compares it to disk.
-- The commit touches only `docs/*`, `tools/e3_build_evidence.py`, `tests/test_e3.py` — no production
-  line. BENCHMARKS diff hunks are confined to §6.2/§6.4; the evidence-doc diff only replaces the old
-  hand-written n=20 prose with the generated n=60 prose (nothing of substance dropped).
+## F2–F4 (optional round-1 notes) — landed
 
-**Requirement 3 — the `[host]` statement and the tags.**
-- §2.3/§6.2 state the `[host]` run happened (4 of 6 chunks, `report_003..006`) and what it changed
-  (n and the intervals); the per-item *cost* table keeps its `[container]` lead-in.
-- The tags match the reports' own facts, read directly: 001/002 carry
-  `cgroup_memory_bytes=8589934592`/`cgroup_cpu_max=2.0` and a `placement` block, no `devices`;
-  003..006 carry no cgroup keys and `devices`/`device_buffers {Vulkan0: 10, Vulkan_Host: 10}`/
-  `effective_backend: vulkan`.
+- F2: `safe_cell()` (`:143`) renders `—` for an absent/zero block and is used by **both** renderers
+  (`:308` §4.1, `:437–438` BENCHMARKS §6.4); its gate passes. ✔
+- F3: §4.4 now states the placement distinction precisely, and the source agrees — report-level
+  `placement` is written only at `suites.py:235` (`_run_latency`); `_throughput_row` (`:569`) and
+  `_determinism_row` (`:829`) write a per-row `placement` *string*. The merged envelope's top-level
+  `placement` is chunk 001's alone (`used = {n_gpu_layers: 0, degraded: true, attempts: 7→oom,
+  3→oom…}`, byte-equal to `report_001.json`'s block) while its 60 rows mix boxes. ✔
+- F4: `report_box()`'s docstring documents the heuristic as one-directional. ✔
 
-**Requirement 4 — pin, no downloads, no mutation.**
-- I re-hashed `/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf` **in this container
-  today**: `633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757` — identical to
-  `e3c_sha256_receipt.json` (`identical: true`), to both receipts' before/after and to E3's pin; mtime
-  `2026-09-18 09:18` predates the run. The host log records only local paths (no download).
-- Tier M / mutation: no new production surface in this diff; the mutmut pair is owned by the sibling
-  E3b sweep — consistent with the repo's own convention (pyproject comments; E1a precedent).
+## Execution evidence (ran on `13535a6`)
 
-**Numbers — recomputed from the raw rows, not from the renderer.**
-- An independent Wilson implementation reproduces every published cell: 4B 0.633 (38/60) [0.507–0.744],
-  Occamy 0.517 (31/60) [0.393–0.638], delta −0.117, choice 0.750/0.625, noul 0.889/0.389, score
-  0.222/0.500, low_mass 0.500 (6/12)/0.509 (29/57), measured 0.667 (32/48)/0.667 (2/3); `--align`
-  drops 0/0; the intervals overlap.
-- Chunk facts: per-chunk medians 113.2/99.5/49.2/42.7/47.0/44.6 s — the published "42.7–49.2 s/item
-  against 99–113 s in the container" holds; the log's own boundaries (545/492/524/477 s, start
-  15:55:21 CEST, done 16:29:19) match `e3c_host_run.log`; `report_003`'s first two rows match the §2.3
-  table (`n07` 23,408 ms / 46.9 s / ✘(`no`) / 0.037; `c08` 28,577 ms / 49.1 s / ✔(`business_hours`) /
-  0.052); `report_002`'s placement block says exactly what §2.3 prints.
-- §4.4's core provenance claim is true: an AST walk over **all 13 revisions** of
-  `src/ggufone/bench/suites.py` shows a report-level `placement` block is never written by
-  `_run_quality` (only `_run_latency`, plus per-row fields in throughput/determinism).
+- `python3 tools/e3_build_evidence.py --check` → both files `current`, exit 0. The reviewed diff
+  equals the generator's output for every marked region (§2.3/§4.1/§4.3, BENCHMARKS §6.2/§6.4).
+- `tests/test_e3.py` → **30 passed**; `ruff check tools/e3_build_evidence.py tests/test_e3.py` and
+  `ruff check src tests tools` → `All checks passed!`.
+- Full suite → **1121 passed, 44 skipped, 0 failed** (1165 collected) in this container. The handoff's
+  host number (1122/43/0) reconciles exactly: of the 44 skips, 43 are `network`/`model`-marked (the
+  conftest turns those into skips without `--run-network` on any box, `tests/conftest.py:70–75`); the
+  one unmarked, environment-conditional skip is
+  `test_runtime_contract.py::test_oracle_live_section_is_green_without_skips` — it runs on the host
+  (installed runtime) and skips here (`_installed_runtime()` → None). Same tree, zero failures both
+  sides.
+- Fix-commit shape: 3 files, +87/−11; the evidence-doc delta is the one regenerated line plus the
+  §4.4 prose paragraph (F3); `docs/BENCHMARKS.md` is a 0-byte diff between `9ec0c0e` and `13535a6`.
+- Pin / requirement 4: re-hashed the 24 113 674 848 B model **in this container today** →
+  `633ae57f…d757` = `e3c_sha256_receipt.json` before/after = E3's pin; mtime `2026-09-18 09:18`
+  predates the run; receipt `before` 15:55:18, first chunk start 15:55:21; no
+  download/curl/wget/pip/huggingface line in `e3c_host_run.log`; walls 545/492/524/477 s = the
+  claimed 34 min, exit 0 per chunk.
 
-## Suite state
+## Independent recomputation (raw rows, own Wilson)
 
-`uv run --frozen --extra dev pytest -q` → `1 failed, 1116 passed, 44 skipped`; the one failure is
-`tests/test_e3b_labels.py::test_a_table_with_any_sub_5e_05_value_prints_in_scientific_notation`, which
-lives in the **27 uncommitted lines of the sibling card `t_6952f0dd`** in this shared tree — not in
-this card's diff. With that file ignored: `1073 passed, 44 skipped, 0 failed` (total 1117 = the
-implementer's 1074+43; one test moves between pass/skip on this box). `ruff` (project config) is clean
-on both changed code files; the 213 repo-wide ruff hits all sit in untracked scratch trees
-(`.e3b/mutants_old_1446`, `.e2e/…`, `mutants-e1c-backup`, `.e3c_scratch`).
-(One earlier full-suite run showed 24 transient failures in the probe/runtime files; two consecutive
-re-runs since are green apart from the sibling test. Container flake, not attributable to this diff.)
+- Mass split: Occamy below the 0.10 floor on 57/60 (agreement 29/57 = 0.509), the 4B on 12 (6/12 =
+  0.500); `measured` 32/48 vs 2/3; Wilson [0.383–0.634] / [0.254–0.746] / [0.525–0.783] /
+  [0.208–0.939] — every cell matches the published sentence.
+- Host wall per chunk 49.2 / 42.7 / 47.0 / 44.6 s recomputed from `wall_ms` → matches §2.3 exactly.
+- Tags derived from the reports' own facts: 001/002 = 8 GiB cgroup + placement; 003–006 = no cgroup
+  keys + `device_buffers {Vulkan0: 10, Vulkan_Host: 10}`, `effective_backend: vulkan`. ✔
+- §4.4's "reduction predates this card" holds: `e2_quality.json` lacks every modern key
+  (`budget`/`wall_ms`/`truncated`/`skipped`/`quick`/`devices`/`device_buffers`/`effective_backend`).
 
-## Findings
+## Nits (⚪ — recorded, not blocking)
 
-### F1 — 🟠 MAJOR (required before this card can close)
-`tools/e3_build_evidence.py:300` calls `_measured_note(second)` with the whole challenger model row,
-so `block.get("n")` is always `0` and the **generated, published** §4.1 sentence reads:
-
-> …against 0.667 (2/3) [0.208–0.939], **which is only 0 item(s)**.
-
-The measured block is 3 rows (verified from the merged report), and the helper's own docstring says it
-wants "the note a three-row `measured` block needs". The existing gates cannot catch this class: they
-compare the generator's output to the files, and the file faithfully contains the generator's wrong
-number. Minimum outcome: pass the measured block (`second[compare.MEASURED]`), regenerate the evidence
-doc, keep `--check` green, and add a gate that pins the note's number to the actual measured-block size.
-
-### F2 — 🟡 MINOR (implementer's call; cheap while the file is open)
-`render_bench_comparison` (~`tools/e3_build_evidence.py:413`) renders
-`cell(first["per_type"].get(qtype) or {})`; `_cell` reads `block["n"]`, so `{}` raises `KeyError` the
-day one side lacks a whole question type. `render_comparison` already guards for that case. Not
-reachable with today's six chunks.
-
-### F3 — ⚪ NIT
-§4.4's "the key exists only in the latency suite's report": true for the report-level block, but a
-`placement` *field* also exists in the throughput/determinism rows (`row["placement"] = "n_gpu_layers=…"`).
-Also, the merged report's top-level `placement` is chunk 001's alone (container, 0 layers) while its 60
-rows now mix boxes — §4.3 documents this; half a sentence in §4.4 would spare a JSON-only reader.
-
-### F4 — ⚪ NIT
-`report_box()` decides `[host]` by "no cgroup keys". Correct for all six reports here (read from the
-actual keys), but the tag is load-bearing for a published claim; a comment on the heuristic (or a
-report field the tool controls) would make a future unconstrained-container run fail loudly instead
-of silently tagging as `[host]`.
+- **N1** The generated §2.3 sentence says "``chunks`` lists every chunk it stitched: `report_001.json`,
+  …" — the merged report's `chunks` field entries carry `{items, model, reproduce}`, not file names
+  (`compare.merge_reports`, `compare.py:111`). The mapping is 1:1 and order-true (my concatenation
+  check holds element for element; 003–006 name their devset in `reproduce`), so the claim reads
+  true, but a JSON-only reader cannot map entry→file from the field alone. A `path`-bearing entry
+  (or "the campaign's six reports, in merge order") would make it exact.
+- **N2** §4.4's parenthetical "`e2_quality.json` … has the same reduced shape" is loose: the baseline
+  is *more* reduced than 001/002 — it lacks `placement` **and** `backend_selection` too. The
+  paragraph's thesis (the reduction predates this card) stands.
+- Interpretive note (not a finding): §4.2/§4.4 are prose and sit outside the marked regions by
+  design; the card's requirement-2 concern (numbers that move with `n` must be generated) is fully
+  covered by the six regions. The §4.4 edit in `13535a6` is prose maintenance, and its single
+  machine fact ("degraded to 0 layers") recomputes true.
 
 ## Verdict
 
-Approve is not available with F1 outstanding: the card's point is that published numbers come from the
-artifacts, and the new generator prints one that does not. F2–F4 are optional notes. Everything else —
-merge coverage, generated sections, the tags, the pin, the recomputed table, the suite — reproduces.
+APPROVE. The reviewed change is exactly the round-1 fix set, every prior finding landed, the new gate
+fails on the pre-fix artifact and passes on this one, the suite is green, and the pin is unchanged.
+N1/N2 are wording notes for a future doc pass, not blockers.
