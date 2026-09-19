@@ -1,0 +1,211 @@
+warning: Ignoring existing virtual environment linked to non-existent Python interpreter: .venv/bin/python3 -> python
+Using CPython 3.11.15 interpreter at: /usr/local/bin/python3
+Removed virtual environment at: .venv
+Creating virtual environment at: .venv
+Installed 1 package in 3ms
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 271.1974 MiB, matches expectation of 271.1974 MiB
+{"item": "c01", "shapes": {"shipped": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.9535749340028952}, "top": [["\n", 0.9536], ["The", 0.0083]], "coverage": {"bare": 0.0114425752, "space": 2.24358e-05, "caps": 0.0006036689, "newline": 1.0, "long": 0.0114425752}}, "answer_is": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.7103823777987842}, "top": [["\n", 0.7104], [" technical", 0.1971]], "coverage": {"bare": 6.4531e-06, "space": 0.1977049743, "caps": 8.588e-07, "newline": 1.0, "long": 6.4531e-06}}, "answer_colon": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.8568003898286323}, "top": [["\n", 0.8568], ["------", 0.0231]], "coverage": {"bare": 4.419e-06, "space": 0.0033236202, "caps": 9.251e-06, "newline": 1.0, "long": 4.419e-06}}, "wybieram_pl": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.8077707477208353}, "top": [["\n", 0.8078], [" technical", 0.0794]], "coverage": {"bare": 3.67412e-05, "space": 0.0809474753, "caps": 2.16333e-05, "newline": 1.0, "long": 3.67412e-05}}, "json_field": {"verdict": {"refused": false, "token": 97, "closer": null, "mass": 0.5927525936543385}, "top": [["t", 0.5928], ["b", 0.3575]], "coverage": {"bare": 0.9994492761, "space": 2.25687e-05, "caps": 1.13571e-05, "newline": 4.9096e-06, "long": 0.9994492761}}, "two_step_shipped": {"verdict": {"refused": false, "token": 97, "closer": null, "mass": 0.8580226438857704}, "top": [["t", 0.858], ["b", 0.0707]], "coverage": {"bare": 0.9457332527, "space": 0.0016637944, "caps": 0.0099819032, "newline": 0.0007022324, "long": 0.9457332527}}, "two_step_answer_is": {"verdict": {"refused": false, "token": 97, "closer": null, "mass": 0.9100706125388618}, "top": [["t", 0.9101], ["T", 0.0305]], "coverage": {"bare": 0.9493240429, "space": 0.0025612908, "caps": 0.031379631, "newline": 0.0003721214, "long": 0.9493240429}}}, "ranked": {"shipped=bare": {"got": "billing", "correct": false, "agrees": true}, "two_step_shipped=bare": {"got": "technical", "correct": true, "agrees": true}, "answer_is=bare": {"got": "technical", "correct": true, "agrees": false}}}
+~llama_context:        CPU compute buffer size is 271.0020 MiB, matches expectation of 271.0020 MiB
+{"item": "s01", "shapes": {"shipped": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.7622013564072103}, "top": [["\n", 0.7622], ["```", 0.045]], "coverage": {"bare": 0.0490420931, "space": 0.0008456006, "caps": 0.0490420931, "newline": 1.0, "long": 4.97962e-05}}, "answer_is": {"verdict": {"refused": false, "token": 32, "closer": null, "mass": 0.7872529218118106}, "top": [["3", 0.7873], ["4", 0.1992]], "coverage": {"bare": 0.9870543155, "space": 6.643e-07, "caps": 0.9870543155, "newline": 0.0641491957, "long": 8.7e-09}}, "answer_colon": {"verdict": {"refused": false, "token": 32, "closer": null, "mass": 0.6271319643645938}, "top": [["3", 0.6271], ["4", 0.2791]], "coverage": {"bare": 0.9083651443, "space": 4.903e-06, "caps": 0.9083651443, "newline": 0.4523775806, "long": 3.35e-08}}, "wybieram_pl": {"verdict": {"refused": false, "token": 32, "closer": null, "mass": 0.803593617140434}, "top": [["3", 0.8036], ["4", 0.1864]], "coverage": {"bare": 0.997152656, "space": 1.516e-07, "caps": 0.997152656, "newline": 0.0138018157, "long": 7.7e-09}}, "json_field": {"verdict": {"refused": false, "token": 32, "closer": null, "mass": 0.8100133684728135}, "top": [["3", 0.81], ["4", 0.1721]], "coverage": {"bare": 0.9913294615, "space": 1.12373e-05, "caps": 0.9913294615, "newline": 0.0001208012, "long": 0.0081189848}}, "two_step_shipped": {"verdict": {"refused": false, "token": 32, "closer": null, "mass": 0.7366726341345796}, "top": [["3", 0.7367], ["**", 0.0847]], "coverage": {"bare": 0.8258555849, "space": 9.63253e-05, "caps": 0.8258555849, "newline": 0.0021314385, "long": 5.24848e-05}}, "two_step_answer_is": {"verdict": {"refused": false, "token": 1, "closer": null, "mass": 0.616368390163008}, "top": [["<｜end▁of▁sentence｜>", 0.6164], [".", 0.3771]], "coverage": {"bare": 1.3711e-06, "space": 1.87955e-05, "caps": 1.3711e-06, "newline": 0.0288851114, "long": 5.9e-09}}}, "ranked": {"shipped=bare": {"got": "1", "correct": false, "agrees": true}, "two_step_shipped=bare": {"got": "3", "correct": true, "agrees": true}, "answer_is=bare": {"got": "3", "correct": true, "agrees": true}}}
+~llama_context:        CPU compute buffer size is 271.0801 MiB, matches expectation of 271.0801 MiB
+{"item": "n01", "shapes": {"shipped": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.943104946035639}, "top": [["\n", 0.9431], ["yes", 0.0199]], "coverage": {"bare": 0.027539841, "space": 0.0002330466, "caps": 0.002265677, "newline": 1.0, "long": 0.027539841}}, "answer_is": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.6011454960628182}, "top": [["\n", 0.6011], [" **", 0.196]], "coverage": {"bare": 0.0035259337, "space": 0.0530318237, "caps": 0.0002358009, "newline": 1.0, "long": 0.0035259337}}, "answer_colon": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.9772484323789281}, "top": [["\n", 0.9772], ["</think>", 0.004]], "coverage": {"bare": 3.67075e-05, "space": 0.0023741908, "caps": 1.54838e-05, "newline": 1.0, "long": 3.67075e-05}}, "wybieram_pl": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.9280746656821727}, "top": [["\n", 0.9281], ["<think>", 0.0345]], "coverage": {"bare": 8.43397e-05, "space": 0.0109425063, "caps": 6.9081e-06, "newline": 1.0, "long": 8.43397e-05}}, "json_field": {"verdict": {"refused": false, "token": 4244, "closer": null, "mass": 0.9991320542969984}, "top": [["yes", 0.9991], ["no", 0.0009]], "coverage": {"bare": 0.9999838893, "space": 3.0557e-06, "caps": 6.5211e-06, "newline": 1.3221e-06, "long": 0.9999838893}}, "two_step_shipped": {"verdict": {"refused": false, "token": 4244, "closer": null, "mass": 0.7656106166521157}, "top": [["yes", 0.7656], ["no", 0.17]], "coverage": {"bare": 0.9356188189, "space": 0.000121155, "caps": 0.0536751816, "newline": 0.0031797239, "long": 0.9356188189}}, "two_step_answer_is": {"verdict": {"refused": false, "token": 4244, "closer": null, "mass": 0.7393532286946592}, "top": [["yes", 0.7394], ["no", 0.2555]], "coverage": {"bare": 0.994887398, "space": 6.18594e-05, "caps": 0.0016992607, "newline": 0.000158641, "long": 0.994887398}}}, "ranked": {"shipped=bare": {"got": "yes", "correct": true, "agrees": true}, "two_step_shipped=bare": {"got": "yes", "correct": true, "agrees": true}, "answer_is=bare": {"got": "yes", "correct": true, "agrees": true}}}
+~llama_context:        CPU compute buffer size is 271.1974 MiB, matches expectation of 271.1974 MiB
+{"item": "c02", "shapes": {"shipped": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.9362354215009554}, "top": [["\n", 0.9362], ["b", 0.0304]], "coverage": {"bare": 0.0304838553, "space": 9.13203e-05, "caps": 0.0008570216, "newline": 1.0, "long": 0.0304838553}}, "answer_is": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.6121357190813722}, "top": [["\n", 0.6121], [" billing", 0.3654]], "coverage": {"bare": 1.23659e-05, "space": 0.3728791579, "caps": 1.3749e-06, "newline": 1.0, "long": 1.23659e-05}}, "answer_colon": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.745118441513788}, "top": [["\n", 0.7451], [" billing", 0.1387]], "coverage": {"bare": 9.29258e-05, "space": 0.139154068, "caps": 2.50962e-05, "newline": 1.0, "long": 9.29258e-05}}, "wybieram_pl": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.7174898473069067}, "top": [["\n", 0.7175], ["~~", 0.0552]], "coverage": {"bare": 0.0022595048, "space": 0.0510060308, "caps": 0.0002906428, "newline": 1.0, "long": 0.0022595048}}, "json_field": {"verdict": {"refused": false, "token": 79, "closer": null, "mass": 0.9702779923328347}, "top": [["b", 0.9703], ["esc", 0.0153]], "coverage": {"bare": 0.9996651658, "space": 2.58213e-05, "caps": 1.25594e-05, "newline": 3.1038e-06, "long": 0.9996651658}}, "two_step_shipped": {"verdict": {"refused": false, "token": 79, "closer": null, "mass": 0.997504381945797}, "top": [["b", 0.9975], ["B", 0.0004]], "coverage": {"bare": 0.9979311263, "space": 3.0707e-06, "caps": 0.0004774042, "newline": 8.29946e-05, "long": 0.9979311263}}, "two_step_answer_is": {"verdict": {"refused": false, "token": 79, "closer": null, "mass": 0.9618810606239953}, "top": [["b", 0.9619], ["account", 0.0145]], "coverage": {"bare": 0.9902410254, "space": 0.0008303785, "caps": 0.003175262, "newline": 2.53506e-05, "long": 0.9902410254}}}, "ranked": {"shipped=bare": {"got": "billing", "correct": true, "agrees": true}, "two_step_shipped=bare": {"got": "billing", "correct": true, "agrees": true}, "answer_is=bare": {"got": "escalation", "correct": false, "agrees": true}}}
+~llama_context:        CPU compute buffer size is 271.1974 MiB, matches expectation of 271.1974 MiB
+{"item": "s02", "shapes": {"shipped": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.9574425710862161}, "top": [["\n", 0.9574], ["1", 0.0099]], "coverage": {"bare": 0.0135351683, "space": 5.66765e-05, "caps": 0.0135351683, "newline": 1.0, "long": 1.414e-07}}, "answer_is": {"verdict": {"refused": false, "token": 30, "closer": null, "mass": 0.7060599853987404}, "top": [["1", 0.7061], ["3", 0.2453]], "coverage": {"bare": 0.9994949277, "space": 8.88e-08, "caps": 0.9994949277, "newline": 0.0006246057, "long": 4e-10}}, "answer_colon": {"verdict": {"refused": false, "token": 30, "closer": null, "mass": 0.7885533619524432}, "top": [["1", 0.7886], ["3", 0.1407]], "coverage": {"bare": 0.9982625355, "space": 1.533e-07, "caps": 0.9982625355, "newline": 0.0063417379, "long": 1e-10}}, "wybieram_pl": {"verdict": {"refused": false, "token": 32, "closer": null, "mass": 0.5796127457121094}, "top": [["3", 0.5796], ["1", 0.3784]], "coverage": {"bare": 0.9934384901, "space": 1.561e-07, "caps": 0.9934384901, "newline": 0.0247908114, "long": 6e-10}}, "json_field": {"verdict": {"refused": false, "token": 30, "closer": null, "mass": 0.5537661409342515}, "top": [["1", 0.5538], ["2", 0.2793]], "coverage": {"bare": 0.9988311231, "space": 1.14749e-05, "caps": 0.9988311231, "newline": 0.0003277121, "long": 6.1417e-06}}, "two_step_shipped": {"verdict": {"refused": false, "token": 30, "closer": null, "mass": 0.4810559535699666}, "top": [["1", 0.4811], ["3", 0.4542]], "coverage": {"bare": 0.9728409575, "space": 3.31833e-05, "caps": 0.9728409575, "newline": 0.0001513041, "long": 1.162e-07}}, "two_step_answer_is": {"verdict": {"refused": false, "token": 1, "closer": null, "mass": 0.87449952984718}, "top": [["<｜end▁of▁sentence｜>", 0.8745], [".", 0.1251]], "coverage": {"bare": 9.524e-07, "space": 1.7245e-06, "caps": 9.524e-07, "newline": 0.0010407214, "long": 1e-10}}}, "ranked": {"shipped=bare": {"got": "1", "correct": false, "agrees": true}, "two_step_shipped=bare": {"got": "1", "correct": false, "agrees": true}, "answer_is=bare": {"got": "1", "correct": false, "agrees": true}}}
+~llama_context:        CPU compute buffer size is 271.0801 MiB, matches expectation of 271.0801 MiB
+{"item": "n02", "shapes": {"shipped": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.8678579197883792}, "top": [["\n", 0.8679], ["yes", 0.0525]], "coverage": {"bare": 0.0635077985, "space": 0.0009484777, "caps": 0.0196651535, "newline": 1.0, "long": 0.0635077985}}, "answer_is": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.6393709457271338}, "top": [["\n", 0.6394], [" **", 0.1736]], "coverage": {"bare": 0.0034114446, "space": 0.0222240546, "caps": 0.0002769887, "newline": 1.0, "long": 0.0034114446}}, "answer_colon": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.9756670076067455}, "top": [["\n", 0.9757], ["</think>", 0.0041]], "coverage": {"bare": 4.17653e-05, "space": 0.0046519471, "caps": 1.23388e-05, "newline": 1.0, "long": 4.17653e-05}}, "wybieram_pl": {"verdict": {"refused": false, "token": 198, "closer": null, "mass": 0.9248542422311642}, "top": [["\n", 0.9249], ["<think>", 0.0306]], "coverage": {"bare": 3.17114e-05, "space": 0.0069394742, "caps": 6.6901e-06, "newline": 1.0, "long": 3.17114e-05}}, "json_field": {"verdict": {"refused": false, "token": 4244, "closer": null, "mass": 0.9353357080346497}, "top": [["yes", 0.9353], ["no", 0.0646]], "coverage": {"bare": 0.9999470289, "space": 3.2192e-06, "caps": 2.48834e-05, "newline": 2.7197e-06, "long": 0.9999470289}}, "two_step_shipped": {"verdict": {"refused": false, "token": 4244, "closer": null, "mass": 0.9280000716662613}, "top": [["yes", 0.928], ["no", 0.0618]], "coverage": {"bare": 0.9898187948, "space": 4.14892e-05, "caps": 0.0081448926, "newline": 0.0009351613, "long": 0.9898187948}}, "two_step_answer_is": {"verdict": {"refused": false, "token": 1643, "closer": null, "mass": 0.7369860336854005}, "top": [["no", 0.737], ["yes", 0.2604]], "coverage": {"bare": 0.997398904, "space": 3.3127e-05, "caps": 0.0003204652, "newline": 7.6842e-06, "long": 0.997398904}}}, "ranked": {"shipped=bare": {"got": "yes", "correct": true, "agrees": true}, "two_step_shipped=bare": {"got": "yes", "correct": true, "agrees": true}, "answer_is=bare": {"got": "yes", "correct": true, "agrees": true}}}
+run: .e3c/spark4b.json
+report: .e3c/spark4b.md
+# E3c — cue shapes that put the readout mid-answer (`spark2_5`)
+
+- card `t_6c119626` · model `Spark-X2.5-4B-Q8_0.gguf` (4,375,021,152 bytes, sha256 `5c2c3c190e4337e1…`)
+- runtime `/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan` · backend claim `cpu` (explicit) · threads 4 · `--gpu-layers` requested 0
+- placement used: `{"note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)", "n_gpu_layers": 0, "kv_type": "auto", "degraded": false, "attempts": [], "warnings": []}`
+- engine device log (tail): `sched_reserve:        CPU compute buffer size =   271.20 MiB
+sched_reserve: graph nodes  = 1266
+sched_reserve: graph splits = 1
+sched_reserve: reserve took 4.12 ms, sched copies = 1`- dev items: c01, s01, n01, c02, s02, n02 (choice 2, noul 2, score 2) · label variants: `bare`, `space`, `caps`, `newline`, `long` · generated 2026-09-19T15:42:17Z
+- engine floor: coverage < **0.10** ⇒ `low_mass` (`OPTION_DEFAULTS['coverage_floor']`)
+- shapes: `shipped`, `answer_is`, `answer_colon`, `wybieram_pl`, `json_field`, `two_step_shipped`, `two_step_answer_is`
+- wall: 201.9 s (one model load 677 ms, one context per item, all shapes of one item in one decode batch)
+
+## 1. The verdict table (the card's fixture: closer ⇒ warning, content token ⇒ none)
+
+| item | shape | readout row | top token at the readout | top-token mass | turn-closer mass | verdict |
+|---|---|---|---|---|---|---|
+| c01 | `shipped` | cue | `
+` | 0.9536 | 0.0000 | ok |
+| c01 | `answer_is` | cue | `
+` | 0.7104 | 0.0000 | ok |
+| c01 | `answer_colon` | cue | `
+` | 0.8568 | 0.0000 | ok |
+| c01 | `wybieram_pl` | cue | `
+` | 0.8078 | 0.0000 | ok |
+| c01 | `json_field` | cue | `t` | 0.5928 | 0.0000 | ok |
+| c01 | `two_step_shipped` | advanced | `t` | 0.8580 | 0.0000 | ok |
+| c01 | `two_step_answer_is` | advanced | `t` | 0.9101 | 0.0000 | ok |
+| s01 | `shipped` | cue | `
+` | 0.7622 | 0.0000 | ok |
+| s01 | `answer_is` | cue | `3` | 0.7873 | 0.0000 | ok |
+| s01 | `answer_colon` | cue | `3` | 0.6271 | 0.0000 | ok |
+| s01 | `wybieram_pl` | cue | `3` | 0.8036 | 0.0000 | ok |
+| s01 | `json_field` | cue | `3` | 0.8100 | 0.0000 | ok |
+| s01 | `two_step_shipped` | advanced | `3` | 0.7367 | 0.0000 | ok |
+| s01 | `two_step_answer_is` | advanced | `<｜end▁of▁sentence｜>` | 0.6164 | 0.0000 | ok |
+| n01 | `shipped` | cue | `
+` | 0.9431 | 0.0000 | ok |
+| n01 | `answer_is` | cue | `
+` | 0.6011 | 0.0000 | ok |
+| n01 | `answer_colon` | cue | `
+` | 0.9772 | 0.0000 | ok |
+| n01 | `wybieram_pl` | cue | `
+` | 0.9281 | 0.0000 | ok |
+| n01 | `json_field` | cue | `yes` | 0.9991 | 0.0000 | ok |
+| n01 | `two_step_shipped` | advanced | `yes` | 0.7656 | 0.0000 | ok |
+| n01 | `two_step_answer_is` | advanced | `yes` | 0.7394 | 0.0000 | ok |
+| c02 | `shipped` | cue | `
+` | 0.9362 | 0.0000 | ok |
+| c02 | `answer_is` | cue | `
+` | 0.6121 | 0.0000 | ok |
+| c02 | `answer_colon` | cue | `
+` | 0.7451 | 0.0000 | ok |
+| c02 | `wybieram_pl` | cue | `
+` | 0.7175 | 0.0000 | ok |
+| c02 | `json_field` | cue | `b` | 0.9703 | 0.0000 | ok |
+| c02 | `two_step_shipped` | advanced | `b` | 0.9975 | 0.0000 | ok |
+| c02 | `two_step_answer_is` | advanced | `b` | 0.9619 | 0.0000 | ok |
+| s02 | `shipped` | cue | `
+` | 0.9574 | 0.0000 | ok |
+| s02 | `answer_is` | cue | `1` | 0.7061 | 0.0000 | ok |
+| s02 | `answer_colon` | cue | `1` | 0.7886 | 0.0000 | ok |
+| s02 | `wybieram_pl` | cue | `3` | 0.5796 | 0.0000 | ok |
+| s02 | `json_field` | cue | `1` | 0.5538 | 0.0000 | ok |
+| s02 | `two_step_shipped` | advanced | `1` | 0.4811 | 0.0000 | ok |
+| s02 | `two_step_answer_is` | advanced | `<｜end▁of▁sentence｜>` | 0.8745 | 0.0000 | ok |
+| n02 | `shipped` | cue | `
+` | 0.8679 | 0.0000 | ok |
+| n02 | `answer_is` | cue | `
+` | 0.6394 | 0.0000 | ok |
+| n02 | `answer_colon` | cue | `
+` | 0.9757 | 0.0000 | ok |
+| n02 | `wybieram_pl` | cue | `
+` | 0.9249 | 0.0000 | ok |
+| n02 | `json_field` | cue | `yes` | 0.9353 | 0.0000 | ok |
+| n02 | `two_step_shipped` | advanced | `yes` | 0.9280 | 0.0000 | ok |
+| n02 | `two_step_answer_is` | advanced | `no` | 0.7370 | 0.0000 | ok |
+
+`W_CUE_REFUSED` = the row's top token is a turn-closer the model's own tokenizer encodes as one token (`engine/cue.py`): the model closes the assistant turn instead of answering, so *no* label rendering can reach the floor here. `turn-closer mass` is the largest mass any catalogue closer holds at that row.
+
+## 2. The EOT side: turn-closer mass vs the candidate's mass
+
+| item | shape |  | `bare` coverage |
+|---|---|---|
+| c01 | `shipped` |  | 1.144e-02 |
+| c01 | `answer_is` |  | 6.453e-06 |
+| c01 | `answer_colon` |  | 4.419e-06 |
+| c01 | `wybieram_pl` |  | 3.674e-05 |
+| c01 | `json_field` |  | 9.994e-01 |
+| c01 | `two_step_shipped` |  | 9.457e-01 |
+| c01 | `two_step_answer_is` |  | 9.493e-01 |
+| s01 | `shipped` |  | 4.904e-02 |
+| s01 | `answer_is` |  | 9.871e-01 |
+| s01 | `answer_colon` |  | 9.084e-01 |
+| s01 | `wybieram_pl` |  | 9.972e-01 |
+| s01 | `json_field` |  | 9.913e-01 |
+| s01 | `two_step_shipped` |  | 8.259e-01 |
+| s01 | `two_step_answer_is` |  | 1.371e-06 |
+| n01 | `shipped` |  | 2.754e-02 |
+| n01 | `answer_is` |  | 3.526e-03 |
+| n01 | `answer_colon` |  | 3.671e-05 |
+| n01 | `wybieram_pl` |  | 8.434e-05 |
+| n01 | `json_field` |  | 1.000e+00 |
+| n01 | `two_step_shipped` |  | 9.356e-01 |
+| n01 | `two_step_answer_is` |  | 9.949e-01 |
+| c02 | `shipped` |  | 3.048e-02 |
+| c02 | `answer_is` |  | 1.237e-05 |
+| c02 | `answer_colon` |  | 9.293e-05 |
+| c02 | `wybieram_pl` |  | 2.260e-03 |
+| c02 | `json_field` |  | 9.997e-01 |
+| c02 | `two_step_shipped` |  | 9.979e-01 |
+| c02 | `two_step_answer_is` |  | 9.902e-01 |
+| s02 | `shipped` |  | 1.354e-02 |
+| s02 | `answer_is` |  | 9.995e-01 |
+| s02 | `answer_colon` |  | 9.983e-01 |
+| s02 | `wybieram_pl` |  | 9.934e-01 |
+| s02 | `json_field` |  | 9.988e-01 |
+| s02 | `two_step_shipped` |  | 9.728e-01 |
+| s02 | `two_step_answer_is` |  | 9.524e-07 |
+| n02 | `shipped` |  | 6.351e-02 |
+| n02 | `answer_is` |  | 3.411e-03 |
+| n02 | `answer_colon` |  | 4.177e-05 |
+| n02 | `wybieram_pl` |  | 3.171e-05 |
+| n02 | `json_field` |  | 9.999e-01 |
+| n02 | `two_step_shipped` |  | 9.898e-01 |
+| n02 | `two_step_answer_is` |  | 9.974e-01 |
+
+## 3. Coverage per item, shape × label variant
+
+| shape | label | c01 | s01 | n01 | c02 | s02 | n02 | above floor | median |
+|---|---|---|---|---|---|---|---|---|---|
+| `shipped` | `bare` | 0.0114* | 0.0490* | 0.0275* | 0.0305* | 0.0135* | 0.0635* | 0/6 | 0.0305 |
+| `shipped` | `space` | 2.244e-05* | 8.456e-04* | 2.330e-04* | 9.132e-05* | 5.668e-05* | 9.485e-04* | 0/6 | 2.330e-04 |
+| `shipped` | `caps` | 0.0006* | 0.0490* | 0.0023* | 0.0009* | 0.0135* | 0.0197* | 0/6 | 0.0135 |
+| `shipped` | `newline` | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 6/6 | 1.0000 |
+| `shipped` | `long` | 1.144e-02* | 4.980e-05* | 2.754e-02* | 3.048e-02* | 1.414e-07* | 6.351e-02* | 0/6 | 2.754e-02 |
+| `answer_is` | `bare` | 6.453e-06* | 9.871e-01 | 3.526e-03* | 1.237e-05* | 9.995e-01 | 3.411e-03* | 2/6 | 3.526e-03 |
+| `answer_is` | `space` | 1.977e-01 | 6.643e-07* | 5.303e-02* | 3.729e-01 | 8.883e-08* | 2.222e-02* | 2/6 | 5.303e-02 |
+| `answer_is` | `caps` | 8.588e-07* | 9.871e-01 | 2.358e-04* | 1.375e-06* | 9.995e-01 | 2.770e-04* | 2/6 | 2.770e-04 |
+| `answer_is` | `newline` | 1.0000 | 0.0641* | 1.0000 | 1.0000 | 0.0006* | 1.0000 | 4/6 | 1.0000 |
+| `answer_is` | `long` | 6.453e-06* | 8.651e-09* | 3.526e-03* | 1.237e-05* | 4.240e-10* | 3.411e-03* | 0/6 | 1.237e-05 |
+| `answer_colon` | `bare` | 4.419e-06* | 9.084e-01 | 3.671e-05* | 9.293e-05* | 9.983e-01 | 4.177e-05* | 2/6 | 9.293e-05 |
+| `answer_colon` | `space` | 3.324e-03* | 4.903e-06* | 2.374e-03* | 1.392e-01 | 1.533e-07* | 4.652e-03* | 1/6 | 3.324e-03 |
+| `answer_colon` | `caps` | 9.251e-06* | 9.084e-01 | 1.548e-05* | 2.510e-05* | 9.983e-01 | 1.234e-05* | 2/6 | 2.510e-05 |
+| `answer_colon` | `newline` | 1.0000 | 0.4524 | 1.0000 | 1.0000 | 0.0063* | 1.0000 | 5/6 | 1.0000 |
+| `answer_colon` | `long` | 4.419e-06* | 3.352e-08* | 3.671e-05* | 9.293e-05* | 1.350e-10* | 4.177e-05* | 0/6 | 3.671e-05 |
+| `wybieram_pl` | `bare` | 3.674e-05* | 9.972e-01 | 8.434e-05* | 2.260e-03* | 9.934e-01 | 3.171e-05* | 2/6 | 2.260e-03 |
+| `wybieram_pl` | `space` | 8.095e-02* | 1.516e-07* | 1.094e-02* | 5.101e-02* | 1.561e-07* | 6.939e-03* | 0/6 | 1.094e-02 |
+| `wybieram_pl` | `caps` | 2.163e-05* | 9.972e-01 | 6.908e-06* | 2.906e-04* | 9.934e-01 | 6.690e-06* | 2/6 | 2.906e-04 |
+| `wybieram_pl` | `newline` | 1.0000 | 0.0138* | 1.0000 | 1.0000 | 0.0248* | 1.0000 | 4/6 | 1.0000 |
+| `wybieram_pl` | `long` | 3.674e-05* | 7.666e-09* | 8.434e-05* | 2.260e-03* | 5.528e-10* | 3.171e-05* | 0/6 | 3.674e-05 |
+| `json_field` | `bare` | 0.9994 | 0.9913 | 1.0000 | 0.9997 | 0.9988 | 0.9999 | 6/6 | 0.9997 |
+| `json_field` | `space` | 2.257e-05* | 1.124e-05* | 3.056e-06* | 2.582e-05* | 1.147e-05* | 3.219e-06* | 0/6 | 1.147e-05 |
+| `json_field` | `caps` | 1.136e-05* | 9.913e-01 | 6.521e-06* | 1.256e-05* | 9.988e-01 | 2.488e-05* | 2/6 | 2.488e-05 |
+| `json_field` | `newline` | 4.910e-06* | 1.208e-04* | 1.322e-06* | 3.104e-06* | 3.277e-04* | 2.720e-06* | 0/6 | 4.910e-06 |
+| `json_field` | `long` | 9.994e-01 | 8.119e-03* | 1.000e+00 | 9.997e-01 | 6.142e-06* | 9.999e-01 | 4/6 | 9.997e-01 |
+| `two_step_shipped` | `bare` | 0.9457 | 0.8259 | 0.9356 | 0.9979 | 0.9728 | 0.9898 | 6/6 | 0.9728 |
+| `two_step_shipped` | `space` | 1.664e-03* | 9.633e-05* | 1.212e-04* | 3.071e-06* | 3.318e-05* | 4.149e-05* | 0/6 | 9.633e-05 |
+| `two_step_shipped` | `caps` | 0.0100* | 0.8259 | 0.0537* | 0.0005* | 0.9728 | 0.0081* | 2/6 | 0.0537 |
+| `two_step_shipped` | `newline` | 0.0007* | 0.0021* | 0.0032* | 0.0001* | 0.0002* | 0.0009* | 0/6 | 0.0009 |
+| `two_step_shipped` | `long` | 9.457e-01 | 5.248e-05* | 9.356e-01 | 9.979e-01 | 1.162e-07* | 9.898e-01 | 4/6 | 9.457e-01 |
+| `two_step_answer_is` | `bare` | 9.493e-01 | 1.371e-06* | 9.949e-01 | 9.902e-01 | 9.524e-07* | 9.974e-01 | 4/6 | 9.902e-01 |
+| `two_step_answer_is` | `space` | 2.561e-03* | 1.880e-05* | 6.186e-05* | 8.304e-04* | 1.725e-06* | 3.313e-05* | 0/6 | 6.186e-05 |
+| `two_step_answer_is` | `caps` | 3.138e-02* | 1.371e-06* | 1.699e-03* | 3.175e-03* | 9.524e-07* | 3.205e-04* | 0/6 | 1.699e-03 |
+| `two_step_answer_is` | `newline` | 3.721e-04* | 2.889e-02* | 1.586e-04* | 2.535e-05* | 1.041e-03* | 7.684e-06* | 0/6 | 3.721e-04 |
+| `two_step_answer_is` | `long` | 9.493e-01 | 5.887e-09* | 9.949e-01 | 9.902e-01 | 1.025e-10* | 9.974e-01 | 4/6 | 9.902e-01 |
+
+`*` = below the engine's floor (0.10 ⇒ `low_mass`). Coverage is the full-vocabulary mass of the label's first token at the shape's readout row (`readout.coverage_from_scale`) — every label variant of one shape costs no extra forward pass.
+
+## 4. Shape summary (the `bare` label the engine ships)
+
+| shape | readout row | mean `bare` coverage | median | above floor | refused items | advance rule |
+|---|---|---|---|---|---|---|
+| `shipped` | cue | 0.0326 | 0.0305 | 0/6 | 0/6 | — |
+| `answer_is` | cue | 3.323e-01 | 3.526e-03 | 2/6 | 0/6 | — |
+| `answer_colon` | cue | 3.178e-01 | 9.293e-05 | 2/6 | 0/6 | — |
+| `wybieram_pl` | cue | 3.322e-01 | 2.260e-03 | 2/6 | 0/6 | — |
+| `json_field` | cue | 0.9982 | 0.9997 | 6/6 | 0/6 | — |
+| `two_step_shipped` | advanced | 0.9446 | 0.9728 | 6/6 | 0/6 | content |
+| `two_step_answer_is` | advanced | 6.553e-01 | 9.902e-01 | 4/6 | 0/6 | content |
+
+## 5. The ranked readout (the engine's own arithmetic) vs the probe's ranking
+
+| policy | n | correct | agreement | 95% CI | low_mass | median coverage | ranked == coverage |
+|---|---|---|---|---|---|---|---|
+| `shipped=bare` | 6 | 3 | 0.500 | 0.188–0.812 | 6/6 | 0.0305 | 6/6 |
+| `two_step_shipped=bare` | 6 | 5 | 0.833 | 0.436–0.970 | 0/6 | 0.9728 | 6/6 |
+| `answer_is=bare` | 6 | 4 | 0.667 | 0.300–0.903 | 4/6 | 0.0035 | 5/6 |
+
+

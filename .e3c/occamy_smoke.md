@@ -1,0 +1,53 @@
+# E3c — cue shapes that put the readout mid-answer (`qwen35moe`)
+
+- card `t_6c119626` · model `Accio-Lab_occamy-1.0-Q4_K_L.gguf` (24,113,674,848 bytes, sha256 `633ae57faf731e86…`)
+- runtime `/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan` · backend claim `cpu` (explicit) · threads 4 · `--gpu-layers` requested 0
+- placement used: `{"note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)", "n_gpu_layers": 0, "kv_type": "auto", "degraded": false, "attempts": [], "warnings": []}`
+- engine device log (tail): `sched_reserve:        CPU compute buffer size =   501.81 MiB
+sched_reserve: graph nodes  = 3787
+sched_reserve: graph splits = 1
+sched_reserve: reserve took 61.06 ms, sched copies = 1`- dev items: c01 (choice 1) · label variants: `bare` · generated 2026-09-19T15:52:35Z
+- engine floor: coverage < **0.10** ⇒ `low_mass` (`OPTION_DEFAULTS['coverage_floor']`)
+- shapes: `shipped`, `two_step_shipped`
+- wall: 201.5 s (one model load 89484 ms, one context per item, all shapes of one item in one decode batch)
+
+## 1. The verdict table (the card's fixture: closer ⇒ warning, content token ⇒ none)
+
+| item | shape | readout row | top token at the readout | top-token mass | turn-closer mass | verdict |
+|---|---|---|---|---|---|---|
+| c01 | `shipped` | cue | `<|im_end|>` | 1.0000 | 1.0000 | W_CUE_REFUSED |
+| c01 | `two_step_shipped` | advanced | `
+
+` | 0.9998 | 0.0000 | ok |
+
+`W_CUE_REFUSED` = the row's top token is a turn-closer the model's own tokenizer encodes as one token (`engine/cue.py`): the model closes the assistant turn instead of answering, so *no* label rendering can reach the floor here. `turn-closer mass` is the largest mass any catalogue closer holds at that row.
+
+## 2. The EOT side: turn-closer mass vs the candidate's mass
+
+| item | shape | `<|endoftext|>` | `<|im_end|>` | `eos` | `bare` coverage |
+|---|---|---|---|---|---|
+| c01 | `shipped` | 0.0000 | 1.0000 | 0.0000 | 5.262e-08 |
+| c01 | `two_step_shipped` | 0.0000 | 0.0000 | 0.0000 | 5.458e-12 |
+
+## 3. Coverage per item, shape × label variant
+
+| shape | label | c01 | above floor | median |
+|---|---|---|---|---|
+| `shipped` | `bare` | 5.262e-08* | 0/1 | 5.262e-08 |
+| `two_step_shipped` | `bare` | 5.458e-12* | 0/1 | 5.458e-12 |
+
+`*` = below the engine's floor (0.10 ⇒ `low_mass`). Coverage is the full-vocabulary mass of the label's first token at the shape's readout row (`readout.coverage_from_scale`) — every label variant of one shape costs no extra forward pass.
+
+## 4. Shape summary (the `bare` label the engine ships)
+
+| shape | readout row | mean `bare` coverage | median | above floor | refused items | advance rule |
+|---|---|---|---|---|---|---|
+| `shipped` | cue | 5.262e-08 | 5.262e-08 | 0/1 | 1/1 | — |
+| `two_step_shipped` | advanced | 5.458e-12 | 5.458e-12 | 0/1 | 0/1 | content |
+
+## 5. The ranked readout (the engine's own arithmetic) vs the probe's ranking
+
+| policy | n | correct | agreement | 95% CI | low_mass | median coverage | ranked == coverage |
+|---|---|---|---|---|---|---|---|
+| `shipped=bare` | 1 | 0 | 0.000 | 0.000–0.793 | 1/1 | 0.0000 | 1/1 |
+

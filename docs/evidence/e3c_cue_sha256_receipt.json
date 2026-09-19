@@ -1,0 +1,22 @@
+{
+ "4B": {
+  "path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "bytes": 4375021152,
+  "after": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+  "before": [
+   "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2"
+  ],
+  "identical": true
+ },
+ "occamy": {
+  "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+  "bytes": 24113674848,
+  "after": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "before": [
+   "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757"
+  ],
+  "identical": true,
+  "published": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "published_matches": true
+ }
+}

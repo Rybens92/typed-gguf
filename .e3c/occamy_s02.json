@@ -1,0 +1,1622 @@
+{
+  "schema": "ggufone.e3c.cue-shapes/v1",
+  "generated_at": "2026-09-19T16:16:20Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "name": "Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "bytes": 24113674848,
+    "arch": "qwen35moe"
+  },
+  "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 0,
+  "backend_claim": "cpu",
+  "backend_source": "explicit",
+  "placement": {
+    "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)",
+    "n_gpu_layers": 0,
+    "kv_type": "auto",
+    "degraded": false,
+    "attempts": [],
+    "warnings": []
+  },
+  "load_ms": 107005.0,
+  "shapes": [
+    "shipped",
+    "answer_is",
+    "answer_colon",
+    "wybieram_pl",
+    "json_field",
+    "two_step_shipped",
+    "two_step_answer_is"
+  ],
+  "label_variants": [
+    "bare",
+    "space",
+    "caps",
+    "newline",
+    "long"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [
+    "shipped=bare",
+    "two_step_shipped=bare",
+    "answer_is=bare"
+  ],
+  "counts": {
+    "score": 1
+  },
+  "devset": "docs/evidence/e3_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "s02",
+      "type": "score",
+      "expected": "3",
+      "prefix_tokens": 85,
+      "n_ctx": 4258,
+      "n_seq_max": 28,
+      "prefix_tail": "he answer takes one minute.<|im_end|>\n<|im_start|>assistant\n",
+      "opener": {
+        "shipped": "",
+        "answer_is": "The answer is ",
+        "answer_colon": "Answer: ",
+        "wybieram_pl": "Zgodnie z opisem, wybieram: ",
+        "json_field": "{{\"{field}\": \"",
+        "two_step_shipped": "",
+        "two_step_answer_is": "The answer is "
+      },
+      "shapes": {
+        "shipped": {
+          "suffix_tokens": 44,
+          "readout": {
+            "row": "cue",
+            "position": 128,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999716291581692
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 1.7391621193428646e-05
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 5.852900222903319e-06
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 1.217002846297428e-06
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 8.616150248734204e-07
+              },
+              {
+                "token": 248045,
+                "piece": "<|im_start|>",
+                "p_full": 5.316990844351607e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.2896090022768641e-12,
+              "<|endoftext|>": 8.616150248734204e-07,
+              "<|im_end|>": 0.9999716291581692
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999716291581692,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 6.1535870833158015e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.2757954495523656e-07,
+                  5.778547081803274e-08,
+                  1.1532184463921328e-07,
+                  5.852900222903319e-06
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 7.201153144349685e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8002882860874214e-10,
+                  1.8002882860874214e-10,
+                  1.8002882860874214e-10,
+                  1.8002882860874214e-10
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 6.1535870833158015e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.2757954495523656e-07,
+                  5.778547081803274e-08,
+                  1.1532184463921328e-07,
+                  5.852900222903319e-06
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 7.3766321710257e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.844158042756425e-09,
+                  1.844158042756425e-09,
+                  1.844158042756425e-09,
+                  1.844158042756425e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "whenever",
+                  "this week",
+                  "this quarter",
+                  "today"
+                ],
+                "first_tokens": [
+                  1266,
+                  559,
+                  559,
+                  29129
+                ],
+                "coverage": 1.1332117413727575e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.3791911558489834e-11,
+                  4.664224804463573e-11,
+                  4.664224804463573e-11,
+                  6.244766489514457e-12
+                ]
+              }
+            }
+          }
+        },
+        "answer_is": {
+          "suffix_tokens": 48,
+          "readout": {
+            "row": "cue",
+            "position": 132,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9841185083376907
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 0.014587209276445651
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.0004904938892986135
+              },
+              {
+                "token": 10992,
+                "piece": "？",
+                "p_full": 0.00033287374857679964
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 0.00014653060296756644
+              },
+              {
+                "token": 15,
+                "piece": "0",
+                "p_full": 7.68502017460729e-05
+              }
+            ],
+            "closer_mass": {
+              "eos": 2.009259187572709e-11,
+              "<|endoftext|>": 4.510497590371771e-05,
+              "<|im_end|>": 0.9841185083376907
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9841185083376907,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.014704038527122744,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.68502017460729e-05,
+                  3.22335662860676e-05,
+                  7.74548264495136e-06,
+                  0.014587209276445651
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 8.728763673000936e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.182190918250234e-07,
+                  2.182190918250234e-07,
+                  2.182190918250234e-07,
+                  2.182190918250234e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.014704038527122744,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.68502017460729e-05,
+                  3.22335662860676e-05,
+                  7.74548264495136e-06,
+                  0.014587209276445651
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.583050691222482e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.957626728056205e-09,
+                  3.957626728056205e-09,
+                  3.957626728056205e-09,
+                  3.957626728056205e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "whenever",
+                  "this week",
+                  "this quarter",
+                  "today"
+                ],
+                "first_tokens": [
+                  1266,
+                  559,
+                  559,
+                  29129
+                ],
+                "coverage": 9.533905254084009e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.669482042726154e-11,
+                  1.1571500743087787e-10,
+                  1.1571500743087787e-10,
+                  9.285780418794992e-09
+                ]
+              }
+            }
+          }
+        },
+        "answer_colon": {
+          "suffix_tokens": 47,
+          "readout": {
+            "row": "cue",
+            "position": 131,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9783013232993988
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 0.02123729156775999
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.0002369932137644019
+              },
+              {
+                "token": 15,
+                "piece": "0",
+                "p_full": 9.20238350477938e-05
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 4.172162574335346e-05
+              },
+              {
+                "token": 17,
+                "piece": "2",
+                "p_full": 3.322634900006114e-05
+              }
+            ],
+            "closer_mass": {
+              "eos": 2.1762532966041514e-12,
+              "<|endoftext|>": 5.049607146404133e-07,
+              "<|im_end|>": 0.9783013232993988
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9783013232993988,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.02139394677022019,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.20238350477938e-05,
+                  3.140501841234508e-05,
+                  3.322634900006114e-05,
+                  0.02123729156775999
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 9.211365188076925e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.3028412970192312e-07,
+                  2.3028412970192312e-07,
+                  2.3028412970192312e-07,
+                  2.3028412970192312e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.02139394677022019,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.20238350477938e-05,
+                  3.140501841234508e-05,
+                  3.322634900006114e-05,
+                  0.02123729156775999
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 4.064368696827155e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.0160921742067887e-08,
+                  1.0160921742067887e-08,
+                  1.0160921742067887e-08,
+                  1.0160921742067887e-08
+                ]
+              },
+              "long": {
+                "texts": [
+                  "whenever",
+                  "this week",
+                  "this quarter",
+                  "today"
+                ],
+                "first_tokens": [
+                  1266,
+                  559,
+                  559,
+                  29129
+                ],
+                "coverage": 9.337690468859311e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.727239116068092e-12,
+                  1.0816006607967638e-11,
+                  1.0816006607967638e-11,
+                  9.312331216527307e-09
+                ]
+              }
+            }
+          }
+        },
+        "wybieram_pl": {
+          "suffix_tokens": 55,
+          "readout": {
+            "row": "cue",
+            "position": 139,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.5642690167678117
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 0.4225301126758477
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 0.004856987889037654
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 0.0031135246799805115
+              },
+              {
+                "token": 15,
+                "piece": "0",
+                "p_full": 0.002697590708603083
+              },
+              {
+                "token": 17,
+                "piece": "2",
+                "p_full": 0.0011719615595599806
+              }
+            ],
+            "closer_mass": {
+              "eos": 3.4931838153114567e-11,
+              "<|endoftext|>": 1.7826125206066667e-05,
+              "<|im_end|>": 0.5642690167678117
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.5642690167678117,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.4295131896239913,
+                "reliability": "ok",
+                "first_mass": [
+                  0.002697590708603083,
+                  0.0031135246799805115,
+                  0.0011719615595599806,
+                  0.4225301126758477
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 0.00033729098001122437,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.432274500280609e-05,
+                  8.432274500280609e-05,
+                  8.432274500280609e-05,
+                  8.432274500280609e-05
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.4295131896239913,
+                "reliability": "ok",
+                "first_mass": [
+                  0.002697590708603083,
+                  0.0031135246799805115,
+                  0.0011719615595599806,
+                  0.4225301126758477
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 2.7764198148117335e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.941049537029334e-08,
+                  6.941049537029334e-08,
+                  6.941049537029334e-08,
+                  6.941049537029334e-08
+                ]
+              },
+              "long": {
+                "texts": [
+                  "whenever",
+                  "this week",
+                  "this quarter",
+                  "today"
+                ],
+                "first_tokens": [
+                  1266,
+                  559,
+                  559,
+                  29129
+                ],
+                "coverage": 3.9049074010627816e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.03049634675639e-11,
+                  2.0784880148581763e-10,
+                  2.0784880148581763e-10,
+                  3.9003473753983896e-07
+                ]
+              }
+            }
+          }
+        },
+        "json_field": {
+          "suffix_tokens": 48,
+          "readout": {
+            "row": "cue",
+            "position": 132,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9989680849615002
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 0.0007379867677478126
+              },
+              {
+                "token": 29129,
+                "piece": "today",
+                "p_full": 0.00010591510745479722
+              },
+              {
+                "token": 3187,
+                "piece": "level",
+                "p_full": 5.532784398967148e-05
+              },
+              {
+                "token": 4303,
+                "piece": "Level",
+                "p_full": 1.0459089686447055e-05
+              },
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 9.278018227995898e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.0652761178274556e-11,
+              "<|endoftext|>": 5.781067283361025e-06,
+              "<|im_end|>": 0.9989680849615002
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9989680849615002,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.0007429864234661011,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.4806780330547589e-06,
+                  1.6248021985086442e-06,
+                  1.8941754867250833e-06,
+                  0.0007379867677478126
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 2.8824446142318515e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.206111535579629e-07,
+                  7.206111535579629e-07,
+                  7.206111535579629e-07,
+                  7.206111535579629e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.0007429864234661011,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.4806780330547589e-06,
+                  1.6248021985086442e-06,
+                  1.8941754867250833e-06,
+                  0.0007379867677478126
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 3.711207291198359e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.278018227995898e-06,
+                  9.278018227995898e-06,
+                  9.278018227995898e-06,
+                  9.278018227995898e-06
+                ]
+              },
+              "long": {
+                "texts": [
+                  "whenever",
+                  "this week",
+                  "this quarter",
+                  "today"
+                ],
+                "first_tokens": [
+                  1266,
+                  559,
+                  559,
+                  29129
+                ],
+                "coverage": 0.00011021961373392381,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.2121137544365195e-09,
+                  2.151647082686075e-06,
+                  2.151647082686075e-06,
+                  0.00010591510745479722
+                ]
+              }
+            }
+          }
+        },
+        "two_step_shipped": {
+          "suffix_tokens": 44,
+          "readout": {
+            "row": "advanced",
+            "position": 129,
+            "top_tokens": [
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.9981192629551929
+              },
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.0016133487129840888
+              },
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.00025931346287501447
+              },
+              {
+                "token": 1358,
+                "piece": "\n\n\n",
+                "p_full": 4.159353191403484e-06
+              },
+              {
+                "token": 987,
+                "piece": "\n\n\n\n",
+                "p_full": 1.1702638976456304e-06
+              },
+              {
+                "token": 220,
+                "piece": " ",
+                "p_full": 7.002020580069191e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.2985549026589101e-13,
+              "<|endoftext|>": 1.8589514302519081e-07,
+              "<|im_end|>": 0.00025931346287501447
+            },
+            "cue": {
+              "refused": false,
+              "token": 271,
+              "closer": null,
+              "mass": 0.9981192629551929
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 1.6215646850649075e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.115125118757862e-10,
+                  2.2831836749740897e-09,
+                  7.688216418925193e-09,
+                  1.517735559007157e-07
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 2.8008082320276765e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.002020580069191e-07,
+                  7.002020580069191e-07,
+                  7.002020580069191e-07,
+                  7.002020580069191e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 1.6215646850649075e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.115125118757862e-10,
+                  2.2831836749740897e-09,
+                  7.688216418925193e-09,
+                  1.517735559007157e-07
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 0.006453394851936355,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.0016133487129840888,
+                  0.0016133487129840888,
+                  0.0016133487129840888,
+                  0.0016133487129840888
+                ]
+              },
+              "long": {
+                "texts": [
+                  "whenever",
+                  "this week",
+                  "this quarter",
+                  "today"
+                ],
+                "first_tokens": [
+                  1266,
+                  559,
+                  559,
+                  29129
+                ],
+                "coverage": 8.61154314542223e-13,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.35771531778e-13,
+                  1.71160708511956e-14,
+                  1.71160708511956e-14,
+                  1.9115064106183183e-13
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248069,
+            "piece": "</think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 128,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999895326083361
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 6.9150447668232735e-06
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 1.6662571673462046e-06
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 5.343876254561587e-07
+              },
+              {
+                "token": 248045,
+                "piece": "<|im_start|>",
+                "p_full": 3.3476829223910345e-07
+              },
+              {
+                "token": 8944,
+                "piece": "answer",
+                "p_full": 1.9902274134416024e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 7.03830226484314e-13,
+              "<|endoftext|>": 2.2015894331193743e-08,
+              "<|im_end|>": 0.9999895326083361
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999895326083361,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 1.7794792687152478e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.9093112747743775e-08,
+                  1.24974108444655e-08,
+                  8.163157777683394e-08,
+                  1.6662571673462046e-06
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 3.563387360440699e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.908468401101747e-11,
+                  8.908468401101747e-11,
+                  8.908468401101747e-11,
+                  8.908468401101747e-11
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 1.7794792687152478e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.9093112747743775e-08,
+                  1.24974108444655e-08,
+                  8.163157777683394e-08,
+                  1.6662571673462046e-06
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 4.356751129282126e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.0891877823205314e-09,
+                  1.0891877823205314e-09,
+                  1.0891877823205314e-09,
+                  1.0891877823205314e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "whenever",
+                  "this week",
+                  "this quarter",
+                  "today"
+                ],
+                "first_tokens": [
+                  1266,
+                  559,
+                  559,
+                  29129
+                ],
+                "coverage": 3.857876544689177e-11,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.8265752103395946e-12,
+                  1.3375114133539452e-11,
+                  1.3375114133539452e-11,
+                  8.001961969473274e-12
+                ]
+              }
+            }
+          }
+        },
+        "two_step_answer_is": {
+          "suffix_tokens": 48,
+          "readout": {
+            "row": "advanced",
+            "position": 133,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9967925042004275
+              },
+              {
+                "token": 25,
+                "piece": ":",
+                "p_full": 0.0015678553145186257
+              },
+              {
+                "token": 13,
+                "piece": ".",
+                "p_full": 0.0009431686940769549
+              },
+              {
+                "token": 318,
+                "piece": " (",
+                "p_full": 0.0002172101206839277
+              },
+              {
+                "token": 30,
+                "piece": "?",
+                "p_full": 0.0001780146371725375
+              },
+              {
+                "token": 3242,
+                "piece": " today",
+                "p_full": 0.00010246452976763257
+              }
+            ],
+            "closer_mass": {
+              "eos": 2.8545523679543683e-12,
+              "<|endoftext|>": 7.249906618534076e-06,
+              "<|im_end|>": 0.9967925042004275
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9967925042004275,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 1.0024777435679988e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.487206115089858e-08,
+                  2.0112112783273423e-08,
+                  4.5881004834162075e-09,
+                  3.067549993921167e-08
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 3.600975391201121e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.002438478002802e-08,
+                  9.002438478002802e-08,
+                  9.002438478002802e-08,
+                  9.002438478002802e-08
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 1.0024777435679988e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.487206115089858e-08,
+                  2.0112112783273423e-08,
+                  4.5881004834162075e-09,
+                  3.067549993921167e-08
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 3.19426660553495e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.985666513837375e-06,
+                  7.985666513837375e-06,
+                  7.985666513837375e-06,
+                  7.985666513837375e-06
+                ]
+              },
+              "long": {
+                "texts": [
+                  "whenever",
+                  "this week",
+                  "this quarter",
+                  "today"
+                ],
+                "first_tokens": [
+                  1266,
+                  559,
+                  559,
+                  29129
+                ],
+                "coverage": 7.931967905940988e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.7297456273828144e-12,
+                  2.4741215016778096e-11,
+                  2.4741215016778096e-11,
+                  7.931455784184379e-07
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 18,
+            "piece": "3"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 132,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9940605333676426
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 0.005115691750912976
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.00038222370692113974
+              },
+              {
+                "token": 10992,
+                "piece": "？",
+                "p_full": 0.00022878318849408352
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 4.494635866727532e-05
+              },
+              {
+                "token": 15,
+                "piece": "0",
+                "p_full": 3.29015896053672e-05
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.0187503186054674e-11,
+              "<|endoftext|>": 1.5440663496934018e-05,
+              "<|im_end|>": 0.9940605333676426
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9940605333676426,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.005161883224677082,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.29015896053672e-05,
+                  1.0730662369105194e-05,
+                  2.5592217896336134e-06,
+                  0.005115691750912976
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 9.421209849341539e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.3553024623353848e-07,
+                  2.3553024623353848e-07,
+                  2.3553024623353848e-07,
+                  2.3553024623353848e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18
+                ],
+                "coverage": 0.005161883224677082,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.29015896053672e-05,
+                  1.0730662369105194e-05,
+                  2.5592217896336134e-06,
+                  0.005115691750912976
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 2.1504336388223426e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.3760840970558565e-09,
+                  5.3760840970558565e-09,
+                  5.3760840970558565e-09,
+                  5.3760840970558565e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "whenever",
+                  "this week",
+                  "this quarter",
+                  "today"
+                ],
+                "first_tokens": [
+                  1266,
+                  559,
+                  559,
+                  29129
+                ],
+                "coverage": 9.067632835065206e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.0160435225458729e-11,
+                  8.680389231639078e-11,
+                  8.680389231639078e-11,
+                  8.883864615206966e-09
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ranked": {
+        "shipped=bare": {
+          "probabilities": {
+            "0": 0.020732548873996195,
+            "1": 0.009390534339670967,
+            "2": 0.018740588713188927,
+            "3": 0.9511363280731439
+          },
+          "sequence_scores": {
+            "[15]": -15.874525784879545,
+            "[16]": -16.666528462797025,
+            "[17]": -15.975538968473295,
+            "[18]": -12.048573254972318
+          },
+          "got": "3",
+          "confidence": 0.9348484374308584,
+          "shape": "shipped",
+          "label": "bare",
+          "coverage": 6.1535870833158015e-06,
+          "reliability": "low_mass",
+          "correct": true,
+          "top_coverage": "3",
+          "agrees": true
+        },
+        "two_step_shipped=bare": {
+          "probabilities": {
+            "0": 0.002537749592513568,
+            "1": 0.014080127027943378,
+            "2": 0.047412332605266685,
+            "3": 0.9359697907742763
+          },
+          "sequence_scores": {
+            "[15]": -21.611181690743198,
+            "[16]": -19.897695019295444,
+            "[17]": -18.68357701545023,
+            "[18]": -15.70087619071268
+          },
+          "got": "3",
+          "confidence": 0.9146263876990351,
+          "shape": "two_step_shipped",
+          "label": "bare",
+          "coverage": 1.6215646850649075e-07,
+          "reliability": "low_mass",
+          "correct": true,
+          "top_coverage": "3",
+          "agrees": true
+        },
+        "answer_is=bare": {
+          "probabilities": {
+            "0": 0.00522646901423148,
+            "1": 0.0021921573604836713,
+            "2": 0.0005267588649651737,
+            "3": 0.9920546147603198
+          },
+          "sequence_scores": {
+            "[15]": -9.473652462790234,
+            "[16]": -10.34250221712373,
+            "[17]": -11.768400769064648,
+            "[18]": -4.22761021120332
+          },
+          "got": "3",
+          "confidence": 0.9894061530137597,
+          "shape": "answer_is",
+          "label": "bare",
+          "coverage": 0.014704038527122744,
+          "reliability": "low_mass",
+          "correct": true,
+          "top_coverage": "3",
+          "agrees": true
+        }
+      },
+      "prefill_ms": 57567.0,
+      "backend_claim": "cpu",
+      "backend_source": "explicit",
+      "device_log_tail": "sched_reserve:        CPU compute buffer size =   501.91 MiB\nsched_reserve: graph nodes  = 3787\nsched_reserve: graph splits = 1\nsched_reserve: reserve took 16.55 ms, sched copies = 1",
+      "cue_decode_s": 124.2,
+      "advance_decode_s": 15.7
+    }
+  ],
+  "wall_s": 317.4,
+  "device_log_tail": "repack: repack tensor blk.36.ffn_gate_exps.weight with q4_K_8x8\nrepack: repack tensor blk.37.ffn_gate_exps.weight with q4_K_8x8\n.\nrepack: repack tensor blk.38.ffn_gate_exps.weight with q4_K_8x8\n.\n"
+}

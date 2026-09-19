@@ -1,0 +1,15 @@
+E3c model-integrity receipt (card t_6c119626)
+before = the digest every probe run recorded before loading
+after  = sha256 of the file on disk now (this file)
+
+4B: /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf
+  before: 5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2
+  after : 5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2
+  identical: True
+
+occamy: /var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf
+  before: 633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757
+  after : 633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757
+  identical: True
+  E3's published digest: 633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757 (matches: True)
+

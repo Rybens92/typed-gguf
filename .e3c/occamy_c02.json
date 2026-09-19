@@ -1,0 +1,1621 @@
+{
+  "schema": "ggufone.e3c.cue-shapes/v1",
+  "generated_at": "2026-09-19T16:06:08Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "name": "Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "bytes": 24113674848,
+    "arch": "qwen35moe"
+  },
+  "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 0,
+  "backend_claim": "cpu",
+  "backend_source": "explicit",
+  "placement": {
+    "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)",
+    "n_gpu_layers": 0,
+    "kv_type": "auto",
+    "degraded": false,
+    "attempts": [],
+    "warnings": []
+  },
+  "load_ms": 87922.2,
+  "shapes": [
+    "shipped",
+    "answer_is",
+    "answer_colon",
+    "wybieram_pl",
+    "json_field",
+    "two_step_shipped",
+    "two_step_answer_is"
+  ],
+  "label_variants": [
+    "bare",
+    "space",
+    "caps",
+    "newline",
+    "long"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [
+    "shipped=bare",
+    "two_step_shipped=bare",
+    "answer_is=bare"
+  ],
+  "counts": {
+    "choice": 1
+  },
+  "devset": "docs/evidence/e3_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "c02",
+      "type": "choice",
+      "expected": "billing",
+      "prefix_tokens": 99,
+      "n_ctx": 4280,
+      "n_seq_max": 28,
+      "prefix_tail": "ttled charges for one seat.<|im_end|>\n<|im_start|>assistant\n",
+      "opener": {
+        "shipped": "",
+        "answer_is": "The answer is ",
+        "answer_colon": "Answer: ",
+        "wybieram_pl": "Zgodnie z opisem, wybieram: ",
+        "json_field": "{{\"{field}\": \"",
+        "two_step_shipped": "",
+        "two_step_answer_is": "The answer is "
+      },
+      "shapes": {
+        "shipped": {
+          "suffix_tokens": 51,
+          "readout": {
+            "row": "cue",
+            "position": 149,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.999992385568486
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 4.615400937595162e-06
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 6.536211726009163e-07
+              },
+              {
+                "token": 8944,
+                "piece": "answer",
+                "p_full": 5.861565233802474e-07
+              },
+              {
+                "token": 69685,
+                "piece": "technical",
+                "p_full": 4.5459196137376156e-07
+              },
+              {
+                "token": 71093,
+                "piece": "```",
+                "p_full": 2.457952041473238e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.0207125955155458e-12,
+              "<|endoftext|>": 7.073988550613006e-08,
+              "<|im_end|>": 0.999992385568486
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.999992385568486,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "account",
+                  "escalation"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 7.421023711757935e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.027605470170543e-08,
+                  4.5459196137376156e-07,
+                  1.4804034767077036e-08,
+                  2.3243032033324954e-07
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " account",
+                  " escalation"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  2605,
+                  67909
+                ],
+                "coverage": 8.892694608865954e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.60103164991803e-10,
+                  3.869830289396505e-09,
+                  6.03067202065485e-11,
+                  4.002454434271097e-09
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Account",
+                  "Escalation"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  7133,
+                  34926
+                ],
+                "coverage": 1.6948369897711298e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.580649431465804e-10,
+                  1.1939325571794415e-08,
+                  5.188573468367866e-10,
+                  3.632122035933517e-09
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\naccount",
+                  "\nescalation"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 4.625100754598751e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.1562751886496878e-09,
+                  1.1562751886496878e-09,
+                  1.1562751886496878e-09,
+                  1.1562751886496878e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: duplicate charges and refunds",
+                  "technical: product bugs",
+                  "account: plan changes and seat management",
+                  "escalation: formal complaints"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 7.421023711757935e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.027605470170543e-08,
+                  4.5459196137376156e-07,
+                  1.4804034767077036e-08,
+                  2.3243032033324954e-07
+                ]
+              }
+            }
+          }
+        },
+        "answer_is": {
+          "suffix_tokens": 55,
+          "readout": {
+            "row": "cue",
+            "position": 153,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.999693397886422
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.0002814371157475182
+              },
+              {
+                "token": 97632,
+                "piece": "答案",
+                "p_full": 3.8668680535179855e-06
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 3.548911388376237e-06
+              },
+              {
+                "token": 32419,
+                "piece": " billing",
+                "p_full": 2.3883183485620175e-06
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 1.8861468259681578e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 3.134847596933328e-12,
+              "<|endoftext|>": 3.548911388376237e-06,
+              "<|im_end|>": 0.999693397886422
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.999693397886422,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "account",
+                  "escalation"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 4.0404465542922294e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.9141194148366517e-07,
+                  6.377767780450472e-09,
+                  1.7698594021271631e-09,
+                  4.485086762980154e-09
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " account",
+                  " escalation"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  2605,
+                  67909
+                ],
+                "coverage": 2.5246979447245705e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.3883183485620175e-06,
+                  3.3841041194182755e-08,
+                  5.53950254805436e-08,
+                  4.714352948782646e-08
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Account",
+                  "Escalation"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  7133,
+                  34926
+                ],
+                "coverage": 8.864527736994799e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.560999737309354e-08,
+                  2.18823548844323e-09,
+                  7.256664997496547e-10,
+                  1.2137800866156195e-10
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\naccount",
+                  "\nescalation"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.4974911260796106e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.7437278151990264e-09,
+                  3.7437278151990264e-09,
+                  3.7437278151990264e-09,
+                  3.7437278151990264e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: duplicate charges and refunds",
+                  "technical: product bugs",
+                  "account: plan changes and seat management",
+                  "escalation: formal complaints"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 4.0404465542922294e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.9141194148366517e-07,
+                  6.377767780450472e-09,
+                  1.7698594021271631e-09,
+                  4.485086762980154e-09
+                ]
+              }
+            }
+          }
+        },
+        "answer_colon": {
+          "suffix_tokens": 54,
+          "readout": {
+            "row": "cue",
+            "position": 152,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9856299805880381
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.014359730344774524
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 2.46404282435632e-06
+              },
+              {
+                "token": 17,
+                "piece": "2",
+                "p_full": 1.1209378656714269e-06
+              },
+              {
+                "token": 15,
+                "piece": "0",
+                "p_full": 7.244852861805934e-07
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 4.919131148631615e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 3.5812494697828083e-12,
+              "<|endoftext|>": 4.290397052506988e-08,
+              "<|im_end|>": 0.9856299805880381
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9856299805880381,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "account",
+                  "escalation"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 6.845404512945456e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.8088831001737464e-08,
+                  8.851489034164703e-09,
+                  3.475592546142835e-11,
+                  1.4789691680909688e-09
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " account",
+                  " escalation"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  2605,
+                  67909
+                ],
+                "coverage": 2.244703856596528e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.914623072128004e-07,
+                  3.009587935394366e-08,
+                  1.4463238112745521e-10,
+                  2.767566711781293e-09
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Account",
+                  "Escalation"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  7133,
+                  34926
+                ],
+                "coverage": 1.5157775405196872e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.2862399022156477e-08,
+                  2.184390015514542e-09,
+                  6.666660472991608e-11,
+                  4.431976279593387e-11
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\naccount",
+                  "\nescalation"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 3.3025859916806726e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.256464979201681e-10,
+                  8.256464979201681e-10,
+                  8.256464979201681e-10,
+                  8.256464979201681e-10
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: duplicate charges and refunds",
+                  "technical: product bugs",
+                  "account: plan changes and seat management",
+                  "escalation: formal complaints"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 6.845404512945456e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.8088831001737464e-08,
+                  8.851489034164703e-09,
+                  3.475592546142835e-11,
+                  1.4789691680909688e-09
+                ]
+              }
+            }
+          }
+        },
+        "wybieram_pl": {
+          "suffix_tokens": 62,
+          "readout": {
+            "row": "cue",
+            "position": 160,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9998937471833041
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 7.91507660150519e-05
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 7.824187260185966e-06
+              },
+              {
+                "token": 1799,
+                "piece": " Z",
+                "p_full": 3.143301151579274e-06
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 2.0058084379380648e-06
+              },
+              {
+                "token": 318,
+                "piece": " (",
+                "p_full": 9.61197654238946e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 5.831207071995222e-13,
+              "<|endoftext|>": 2.0058084379380648e-06,
+              "<|im_end|>": 0.9998937471833041
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9998937471833041,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "account",
+                  "escalation"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 1.7218916370267522e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.4674261285890818e-08,
+                  2.372169844475104e-09,
+                  1.1417325581990256e-10,
+                  5.831198408169764e-11
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " account",
+                  " escalation"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  2605,
+                  67909
+                ],
+                "coverage": 5.150473337656635e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.661289785782796e-07,
+                  4.104871840645944e-08,
+                  6.296405784504221e-09,
+                  1.5732309964201305e-09
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Account",
+                  "Escalation"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  7133,
+                  34926
+                ],
+                "coverage": 1.4599957091646124e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.2285998469486978e-09,
+                  2.0638218695978301e-10,
+                  2.361713371931942e-11,
+                  1.3965415368120663e-12
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\naccount",
+                  "\nescalation"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.4732692194297197e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.683173048574299e-09,
+                  3.683173048574299e-09,
+                  3.683173048574299e-09,
+                  3.683173048574299e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: duplicate charges and refunds",
+                  "technical: product bugs",
+                  "account: plan changes and seat management",
+                  "escalation: formal complaints"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 1.7218916370267522e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.4674261285890818e-08,
+                  2.372169844475104e-09,
+                  1.1417325581990256e-10,
+                  5.831198408169764e-11
+                ]
+              }
+            }
+          }
+        },
+        "json_field": {
+          "suffix_tokens": 55,
+          "readout": {
+            "row": "cue",
+            "position": 153,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9964090221999216
+              },
+              {
+                "token": 37355,
+                "piece": "billing",
+                "p_full": 0.0034234349749654785
+              },
+              {
+                "token": 69685,
+                "piece": "technical",
+                "p_full": 4.841035024884385e-05
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 2.2807536614490517e-05
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 1.8951529133579097e-05
+              },
+              {
+                "token": 4459,
+                "piece": "account",
+                "p_full": 7.735365200203557e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 4.9323361570211035e-11,
+              "<|endoftext|>": 1.8951529133579097e-05,
+              "<|im_end|>": 0.9964090221999216
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9964090221999216,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "account",
+                  "escalation"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 0.0034802851098785425,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.0034234349749654785,
+                  4.841035024884385e-05,
+                  7.735365200203557e-06,
+                  7.044194640165981e-07
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " account",
+                  " escalation"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  2605,
+                  67909
+                ],
+                "coverage": 6.974814867998088e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.837375205334671e-06,
+                  5.6515471635702344e-08,
+                  8.84328927622849e-09,
+                  7.208090175148671e-08
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Account",
+                  "Escalation"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  7133,
+                  34926
+                ],
+                "coverage": 6.029451378729732e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.9945414807607575e-06,
+                  2.1641879433517935e-07,
+                  7.544542876225638e-07,
+                  6.403681601123027e-08
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\naccount",
+                  "\nescalation"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 5.640702993618591e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.4101757484046477e-06,
+                  1.4101757484046477e-06,
+                  1.4101757484046477e-06,
+                  1.4101757484046477e-06
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: duplicate charges and refunds",
+                  "technical: product bugs",
+                  "account: plan changes and seat management",
+                  "escalation: formal complaints"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 0.0034802851098785425,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.0034234349749654785,
+                  4.841035024884385e-05,
+                  7.735365200203557e-06,
+                  7.044194640165981e-07
+                ]
+              }
+            }
+          }
+        },
+        "two_step_shipped": {
+          "suffix_tokens": 51,
+          "readout": {
+            "row": "advanced",
+            "position": 150,
+            "top_tokens": [
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.9999911313864743
+              },
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 8.24060003852441e-06
+              },
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 4.7262767999832543e-07
+              },
+              {
+                "token": 1358,
+                "piece": "\n\n\n",
+                "p_full": 1.0459181787012976e-07
+              },
+              {
+                "token": 987,
+                "piece": "\n\n\n\n",
+                "p_full": 2.7161140124342927e-08
+              },
+              {
+                "token": 25,
+                "piece": ":",
+                "p_full": 6.63023078602325e-09
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.4970206559119134e-15,
+              "<|endoftext|>": 1.1732386574669323e-09,
+              "<|im_end|>": 4.7262767999832543e-07
+            },
+            "cue": {
+              "refused": false,
+              "token": 271,
+              "closer": null,
+              "mass": 0.9999911313864743
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "account",
+                  "escalation"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 3.1929076188122405e-13,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.088687770984414e-14,
+                  1.6772064964428636e-15,
+                  5.164622765970657e-15,
+                  2.915620549089664e-13
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " account",
+                  " escalation"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  2605,
+                  67909
+                ],
+                "coverage": 2.1507297482061776e-12,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.238584935128104e-13,
+                  1.7787023574751533e-14,
+                  3.4819339550101513e-13,
+                  1.2608908356176006e-12
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Account",
+                  "Escalation"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  7133,
+                  34926
+                ],
+                "coverage": 2.4519985975655364e-13,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.504093619849798e-14,
+                  2.1833567225138933e-15,
+                  2.0435091351556802e-14,
+                  2.0754047548398499e-13
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\naccount",
+                  "\nescalation"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 3.296240015409764e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.24060003852441e-06,
+                  8.24060003852441e-06,
+                  8.24060003852441e-06,
+                  8.24060003852441e-06
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: duplicate charges and refunds",
+                  "technical: product bugs",
+                  "account: plan changes and seat management",
+                  "escalation: formal complaints"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 3.1929076188122405e-13,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.088687770984414e-14,
+                  1.6772064964428636e-15,
+                  5.164622765970657e-15,
+                  2.915620549089664e-13
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248069,
+            "piece": "</think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 149,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999825426850973
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 1.0785245762186644e-05
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 1.6369465625476306e-06
+              },
+              {
+                "token": 78288,
+                "piece": "escal",
+                "p_full": 1.173361287868271e-06
+              },
+              {
+                "token": 8944,
+                "piece": "answer",
+                "p_full": 7.851099990869358e-07
+              },
+              {
+                "token": 69685,
+                "piece": "technical",
+                "p_full": 6.830729684731299e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 2.465291200964027e-12,
+              "<|endoftext|>": 9.817202706574571e-08,
+              "<|im_end|>": 0.9999825426850973
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999825426850973,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "account",
+                  "escalation"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 2.0938168913927685e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.9539988550352133e-07,
+                  6.830729684731299e-07,
+                  4.198274954784626e-08,
+                  1.173361287868271e-06
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " account",
+                  " escalation"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  2605,
+                  67909
+                ],
+                "coverage": 3.544664658741881e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.98932509400917e-09,
+                  7.127731137408996e-09,
+                  2.497401131953143e-10,
+                  2.407985024280533e-08
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Account",
+                  "Escalation"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  7133,
+                  34926
+                ],
+                "coverage": 5.0372790845744296e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.9500682864489766e-09,
+                  2.411908228686225e-08,
+                  2.832507575965722e-09,
+                  1.8471132696467348e-08
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\naccount",
+                  "\nescalation"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.7000508646236832e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.250127161559208e-09,
+                  4.250127161559208e-09,
+                  4.250127161559208e-09,
+                  4.250127161559208e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: duplicate charges and refunds",
+                  "technical: product bugs",
+                  "account: plan changes and seat management",
+                  "escalation: formal complaints"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 2.0938168913927685e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.9539988550352133e-07,
+                  6.830729684731299e-07,
+                  4.198274954784626e-08,
+                  1.173361287868271e-06
+                ]
+              }
+            }
+          }
+        },
+        "two_step_answer_is": {
+          "suffix_tokens": 55,
+          "readout": {
+            "row": "advanced",
+            "position": 154,
+            "top_tokens": [
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.8824319390658115
+              },
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.1174935418264279
+              },
+              {
+                "token": 561,
+                "piece": " The",
+                "p_full": 2.8279548318290733e-05
+              },
+              {
+                "token": 318,
+                "piece": " (",
+                "p_full": 1.0294240411340412e-05
+              },
+              {
+                "token": 353,
+                "piece": " I",
+                "p_full": 7.373805820566876e-06
+              },
+              {
+                "token": 1639,
+                "piece": "\\n",
+                "p_full": 5.059872727786104e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.1358310044014286e-12,
+              "<|endoftext|>": 1.1008333660871869e-07,
+              "<|im_end|>": 7.556618593281472e-07
+            },
+            "cue": {
+              "refused": false,
+              "token": 198,
+              "closer": null,
+              "mass": 0.8824319390658115
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "account",
+                  "escalation"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 1.5723737916578226e-11,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.242130974100865e-12,
+                  8.023199299752307e-13,
+                  8.205877608889214e-12,
+                  4.73409403612914e-13
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " account",
+                  " escalation"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  2605,
+                  67909
+                ],
+                "coverage": 2.637877132426111e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.3692524784388162e-11,
+                  1.4596360467187964e-11,
+                  2.3169262295729504e-10,
+                  3.80620503373991e-12
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Account",
+                  "Escalation"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  7133,
+                  34926
+                ],
+                "coverage": 1.749471945943197e-11,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.664530789953393e-12,
+                  1.1100481644979393e-12,
+                  7.287808366907573e-12,
+                  4.32332138073067e-13
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\naccount",
+                  "\nescalation"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.0,
+                "reliability": "ok",
+                "first_mass": [
+                  0.8824319390658115,
+                  0.8824319390658115,
+                  0.8824319390658115,
+                  0.8824319390658115
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: duplicate charges and refunds",
+                  "technical: product bugs",
+                  "account: plan changes and seat management",
+                  "escalation: formal complaints"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 1.5723737916578226e-11,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.242130974100865e-12,
+                  8.023199299752307e-13,
+                  8.205877608889214e-12,
+                  4.73409403612914e-13
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248068,
+            "piece": "<think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 153,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9996047742159644
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.00037416476469327785
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 3.514989324701715e-06
+              },
+              {
+                "token": 97632,
+                "piece": "答案",
+                "p_full": 2.540994342250674e-06
+              },
+              {
+                "token": 32419,
+                "piece": " billing",
+                "p_full": 1.8212791468911096e-06
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 1.4286279779775727e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 3.652030395187994e-12,
+              "<|endoftext|>": 3.514989324701715e-06,
+              "<|im_end|>": 0.9996047742159644
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9996047742159644,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "account",
+                  "escalation"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 3.310886437811354e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.2187704609374246e-07,
+                  4.542580086262704e-09,
+                  1.0839888876537067e-09,
+                  3.5850287134765663e-09
+                ]
+              },
+              "space": {
+                "texts": [
+                  " billing",
+                  " technical",
+                  " account",
+                  " escalation"
+                ],
+                "first_tokens": [
+                  32419,
+                  10597,
+                  2605,
+                  67909
+                ],
+                "coverage": 1.9056116320352292e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8212791468911096e-06,
+                  2.3639414217880482e-08,
+                  2.899603431643615e-08,
+                  3.169703660980313e-08
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Billing",
+                  "Technical",
+                  "Account",
+                  "Escalation"
+                ],
+                "first_tokens": [
+                  79177,
+                  60130,
+                  7133,
+                  34926
+                ],
+                "coverage": 8.133985961924746e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.890900679303701e-08,
+                  1.8008829028955964e-09,
+                  5.257642137746244e-10,
+                  1.0420570954023016e-10
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\naccount",
+                  "\nescalation"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.4589997305915909e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.6474993264789773e-09,
+                  3.6474993264789773e-09,
+                  3.6474993264789773e-09,
+                  3.6474993264789773e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "billing: duplicate charges and refunds",
+                  "technical: product bugs",
+                  "account: plan changes and seat management",
+                  "escalation: formal complaints"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  4459,
+                  78288
+                ],
+                "coverage": 3.310886437811354e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.2187704609374246e-07,
+                  4.542580086262704e-09,
+                  1.0839888876537067e-09,
+                  3.5850287134765663e-09
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ranked": {
+        "shipped=bare": {
+          "probabilities": {
+            "billing": 8.618398434433805e-05,
+            "technical": 0.0009727503543299944,
+            "account": 3.16781449933024e-05,
+            "escalation": 0.9989093875163323
+          },
+          "sequence_scores": {
+            "[4459]": -18.02836607393316,
+            "[37355]": -17.02750872072271,
+            "[69685]": -14.603865608540094,
+            "[78288, 362]": -7.669573734330607
+          },
+          "got": "escalation",
+          "confidence": 0.9985458500217764,
+          "shape": "shipped",
+          "label": "bare",
+          "coverage": 7.421023711757935e-07,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "technical",
+          "agrees": false
+        },
+        "two_step_shipped=bare": {
+          "probabilities": {
+            "billing": 3.872197276009525e-08,
+            "technical": 3.109356274811071e-09,
+            "account": 9.5746422628706e-09,
+            "escalation": 0.9999999485940287
+          },
+          "sequence_scores": {
+            "[4459]": -32.896944331604516,
+            "[37355]": -31.499655293900044,
+            "[69685]": -34.0216467852178,
+            "[78288, 362]": -14.432796718852732
+          },
+          "got": "escalation",
+          "confidence": 0.999999931458705,
+          "shape": "two_step_shipped",
+          "label": "bare",
+          "coverage": 3.1929076188122405e-13,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "escalation",
+          "agrees": true
+        },
+        "answer_is=bare": {
+          "probabilities": {
+            "billing": 0.005850691549461866,
+            "technical": 9.533268687733425e-05,
+            "account": 2.6455251744518288e-05,
+            "escalation": 0.9940275205119163
+          },
+          "sequence_scores": {
+            "[4459]": -20.15236572734217,
+            "[37355]": -14.753505272782842,
+            "[69685]": -18.870447678483526,
+            "[78288, 362]": -9.618300247718144
+          },
+          "got": "escalation",
+          "confidence": 0.9920366940158885,
+          "shape": "answer_is",
+          "label": "bare",
+          "coverage": 4.0404465542922294e-07,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "billing",
+          "agrees": false
+        }
+      },
+      "prefill_ms": 42401.4,
+      "backend_claim": "cpu",
+      "backend_source": "explicit",
+      "device_log_tail": "sched_reserve:        CPU compute buffer size =   501.91 MiB\nsched_reserve: graph nodes  = 3787\nsched_reserve: graph splits = 1\nsched_reserve: reserve took 16.42 ms, sched copies = 1",
+      "cue_decode_s": 101.7,
+      "advance_decode_s": 13.9
+    }
+  ],
+  "wall_s": 286.7,
+  "device_log_tail": "repack: repack tensor blk.36.ffn_gate_exps.weight with q4_K_8x8\nrepack: repack tensor blk.37.ffn_gate_exps.weight with q4_K_8x8\n.\nrepack: repack tensor blk.38.ffn_gate_exps.weight with q4_K_8x8\n.\n"
+}

@@ -1,0 +1,316 @@
+{
+  "schema": "ggufone.e3c.cue-shapes/v1",
+  "generated_at": "2026-09-19T15:52:35Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "name": "Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "bytes": 24113674848,
+    "arch": "qwen35moe"
+  },
+  "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 0,
+  "backend_claim": "cpu",
+  "backend_source": "explicit",
+  "placement": {
+    "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)",
+    "n_gpu_layers": 0,
+    "kv_type": "auto",
+    "degraded": false,
+    "attempts": [],
+    "warnings": []
+  },
+  "load_ms": 89484.2,
+  "shapes": [
+    "shipped",
+    "two_step_shipped"
+  ],
+  "label_variants": [
+    "bare"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [
+    "shipped=bare"
+  ],
+  "counts": {
+    "choice": 1
+  },
+  "devset": "docs/evidence/e3_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "expected": "technical",
+      "prefix_tokens": 109,
+      "n_ctx": 4291,
+      "n_seq_max": 23,
+      "prefix_tail": " the database is reachable.<|im_end|>\n<|im_start|>assistant\n",
+      "opener": {
+        "shipped": "",
+        "two_step_shipped": ""
+      },
+      "shapes": {
+        "shipped": {
+          "suffix_tokens": 53,
+          "readout": {
+            "row": "cue",
+            "position": 161,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999838609559863
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 1.0190586683476737e-05
+              },
+              {
+                "token": 71093,
+                "piece": "```",
+                "p_full": 4.784916955507563e-06
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 4.4304066952843725e-07
+              },
+              {
+                "token": 97632,
+                "piece": "答案",
+                "p_full": 1.3968907432388497e-07
+              },
+              {
+                "token": 8944,
+                "piece": "answer",
+                "p_full": 1.0982090406507807e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.6552391254897486e-13,
+              "<|endoftext|>": 3.1786445299012534e-08,
+              "<|im_end|>": 0.9999838609559863
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999838609559863,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 5.261702844833152e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8229099917298105e-08,
+                  9.722408718655863e-09,
+                  1.381150437231741e-08,
+                  1.0854015440060141e-08
+                ]
+              }
+            }
+          }
+        },
+        "two_step_shipped": {
+          "suffix_tokens": 53,
+          "readout": {
+            "row": "advanced",
+            "position": 162,
+            "top_tokens": [
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.9998346969249096
+              },
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.00016408164874309996
+              },
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 6.69474734393666e-07
+              },
+              {
+                "token": 1358,
+                "piece": "\n\n\n",
+                "p_full": 4.310626848800221e-07
+              },
+              {
+                "token": 987,
+                "piece": "\n\n\n\n",
+                "p_full": 7.80017508139788e-08
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 8.328656820578154e-09
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.6474491856341928e-15,
+              "<|endoftext|>": 8.328656820578154e-09,
+              "<|im_end|>": 6.69474734393666e-07
+            },
+            "cue": {
+              "refused": false,
+              "token": 271,
+              "closer": null,
+              "mass": 0.9998346969249096
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 5.457690742771052e-12,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.3162835973980657e-13,
+                  5.155392525232598e-12,
+                  3.416892692907308e-14,
+                  1.3650093086957462e-13
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248069,
+            "piece": "</think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 161,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999798249612918
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 1.2459596324775516e-05
+              },
+              {
+                "token": 71093,
+                "piece": "```",
+                "p_full": 6.529155336194095e-06
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 5.168946153637591e-07
+              },
+              {
+                "token": 97632,
+                "piece": "答案",
+                "p_full": 1.360289304564746e-07
+              },
+              {
+                "token": 8944,
+                "piece": "answer",
+                "p_full": 1.0891471559381813e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 1.7854535776382749e-13,
+              "<|endoftext|>": 3.2023982155748855e-08,
+              "<|im_end|>": 0.9999798249612918
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999798249612918,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  37355,
+                  69685,
+                  28094,
+                  22637
+                ],
+                "coverage": 4.674108846301612e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.7059368530531254e-08,
+                  6.452887746875854e-09,
+                  1.4529732874165296e-08,
+                  8.699099311443712e-09
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ranked": {
+        "shipped=bare": {
+          "probabilities": {
+            "billing": 0.3464486774504679,
+            "technical": 0.18477684896635702,
+            "sales": 0.2624911512416542,
+            "support": 0.20628332234152083
+          },
+          "sequence_scores": {
+            "[22637]": -18.338730738783624,
+            "[28094]": -18.097763941908624,
+            "[37355]": -17.82024662318304,
+            "[69685]": -18.448832438612726
+          },
+          "got": "billing",
+          "confidence": 0.1285982366006239,
+          "shape": "shipped",
+          "label": "bare",
+          "coverage": 5.261702844833152e-08,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "billing",
+          "agrees": true
+        }
+      },
+      "prefill_ms": 47131.4,
+      "backend_claim": "cpu",
+      "backend_source": "explicit",
+      "device_log_tail": "sched_reserve:        CPU compute buffer size =   501.81 MiB\nsched_reserve: graph nodes  = 3787\nsched_reserve: graph splits = 1\nsched_reserve: reserve took 61.06 ms, sched copies = 1",
+      "cue_decode_s": 47.2,
+      "advance_decode_s": 9.2
+    }
+  ],
+  "wall_s": 201.5,
+  "device_log_tail": "repack: repack tensor blk.36.ffn_gate_exps.weight with q4_K_8x8\nrepack: repack tensor blk.37.ffn_gate_exps.weight with q4_K_8x8\n.\nrepack: repack tensor blk.38.ffn_gate_exps.weight with q4_K_8x8\n.\n"
+}

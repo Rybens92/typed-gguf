@@ -226,10 +226,13 @@ model's own first token — the generalized `newline`) takes the same 6 items fr
 and 3/6 correct to 6/6 and 5/6, and opening the JSON field does it in one shot. The plain openers
 only triple the mass without clearing the floor.
 
-Occamy — the family that refuses — is a different story: at the shipped cue the row is
-`<|im_end|>` (p = 0.99998, `W_CUE_REFUSED`), its first *content* token is `</think>` (the closer
-E1c's empty-block strip removed from the prefix) and after that token the model emits a blank line,
-so a **one**-step readout lands on whitespace, not on an answer. Its 6-item shape table is
+Occamy — the family that refuses — is a different story, and a **clean negative**: all five
+at-the-cue shapes (the forced openers in both languages *and* the opened JSON field) are refused
+**30/30** shape×item cells, with `<|im_end|>` the argmax at p = 0.56…1.00. The two-step shapes do
+get past the closer (only 2/12 of their cells are refused) but land on whitespace: the model's
+first *content* token is `</think>` (the closer E1c's empty-block strip removed from the prefix) and
+the row after it is a newline at p = 0.54…1.00 — 0/6 items above the floor. One cell in the whole
+sweep cleared the floor (`wybieram_pl`, 1/6) and its row was refused too. Tables:
 `docs/evidence/e3c_cue_shapes_occamy.md`; both runs' raw records are kept next to it.
 
 ---

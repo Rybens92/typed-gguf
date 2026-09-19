@@ -1,0 +1,1762 @@
+{
+  "schema": "ggufone.e3c.cue-shapes/v1",
+  "generated_at": "2026-09-19T16:11:21Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "name": "Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "bytes": 24113674848,
+    "arch": "qwen35moe"
+  },
+  "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 0,
+  "backend_claim": "cpu",
+  "backend_source": "explicit",
+  "placement": {
+    "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)",
+    "n_gpu_layers": 0,
+    "kv_type": "auto",
+    "degraded": false,
+    "attempts": [],
+    "warnings": []
+  },
+  "load_ms": 89664.5,
+  "shapes": [
+    "shipped",
+    "answer_is",
+    "answer_colon",
+    "wybieram_pl",
+    "json_field",
+    "two_step_shipped",
+    "two_step_answer_is"
+  ],
+  "label_variants": [
+    "bare",
+    "space",
+    "caps",
+    "newline",
+    "long"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [
+    "shipped=bare",
+    "two_step_shipped=bare",
+    "answer_is=bare"
+  ],
+  "counts": {
+    "score": 1
+  },
+  "devset": "docs/evidence/e3_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "s01",
+      "type": "score",
+      "expected": "3",
+      "prefix_tokens": 87,
+      "n_ctx": 4263,
+      "n_seq_max": 32,
+      "prefix_tail": ", and no workaround exists.<|im_end|>\n<|im_start|>assistant\n",
+      "opener": {
+        "shipped": "",
+        "answer_is": "The answer is ",
+        "answer_colon": "Answer: ",
+        "wybieram_pl": "Zgodnie z opisem, wybieram: ",
+        "json_field": "{{\"{field}\": \"",
+        "two_step_shipped": "",
+        "two_step_answer_is": "The answer is "
+      },
+      "shapes": {
+        "shipped": {
+          "suffix_tokens": 47,
+          "readout": {
+            "row": "cue",
+            "position": 133,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999936315479727
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 4.18319858318467e-06
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 1.2100971509188384e-06
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 5.005441854473523e-07
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 7.356810633840177e-08
+              },
+              {
+                "token": 71093,
+                "piece": "```",
+                "p_full": 4.591633195726032e-08
+              }
+            ],
+            "closer_mass": {
+              "eos": 5.869871490845581e-13,
+              "<|endoftext|>": 1.2142054848653344e-08,
+              "<|im_end|>": 0.9999936315479727
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999936315479727,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 1.2505372289242577e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.1765756148219787e-08,
+                  9.73102851082621e-09,
+                  4.427459264123759e-09,
+                  1.4515834082249434e-08,
+                  1.2100971509188384e-06
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3",
+                  " 4"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 7.893517901248866e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.5787035802497732e-10,
+                  1.5787035802497732e-10,
+                  1.5787035802497732e-10,
+                  1.5787035802497732e-10,
+                  1.5787035802497732e-10
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 1.2505372289242577e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.1765756148219787e-08,
+                  9.73102851082621e-09,
+                  4.427459264123759e-09,
+                  1.4515834082249434e-08,
+                  1.2100971509188384e-06
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3",
+                  "\n4"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 3.4605562785425116e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.921112557085023e-09,
+                  6.921112557085023e-09,
+                  6.921112557085023e-09,
+                  6.921112557085023e-09,
+                  6.921112557085023e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "cosmetic",
+                  "annoying",
+                  "degrading",
+                  "critical",
+                  "catastrophic"
+                ],
+                "first_tokens": [
+                  9128,
+                  985,
+                  442,
+                  40167,
+                  216931
+                ],
+                "coverage": 1.332556003432773e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.9191566032732265e-11,
+                  2.7007895183439478e-12,
+                  1.1068579505102883e-09,
+                  5.361687759776364e-11,
+                  1.401888197736448e-10
+                ]
+              }
+            }
+          }
+        },
+        "answer_is": {
+          "suffix_tokens": 51,
+          "readout": {
+            "row": "cue",
+            "position": 137,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9963437025183504
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 0.0018024331880420697
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.0017388401904458817
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 8.556357193957157e-05
+              },
+              {
+                "token": 10992,
+                "piece": "？",
+                "p_full": 1.3840309106063924e-05
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 1.7482921541144127e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 6.972526624556532e-12,
+              "<|endoftext|>": 1.7482921541144127e-06,
+              "<|im_end|>": 0.9963437025183504
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9963437025183504,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.001888555216558345,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8630068102126132e-07,
+                  2.77197267711487e-07,
+                  9.495862797079962e-08,
+                  8.556357193957157e-05,
+                  0.0018024331880420697
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3",
+                  " 4"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 2.0238143019245779e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.0476286038491556e-08,
+                  4.0476286038491556e-08,
+                  4.0476286038491556e-08,
+                  4.0476286038491556e-08,
+                  4.0476286038491556e-08
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.001888555216558345,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8630068102126132e-07,
+                  2.77197267711487e-07,
+                  9.495862797079962e-08,
+                  8.556357193957157e-05,
+                  0.0018024331880420697
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3",
+                  "\n4"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 3.862700326986741e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.725400653973483e-10,
+                  7.725400653973483e-10,
+                  7.725400653973483e-10,
+                  7.725400653973483e-10,
+                  7.725400653973483e-10
+                ]
+              },
+              "long": {
+                "texts": [
+                  "cosmetic",
+                  "annoying",
+                  "degrading",
+                  "critical",
+                  "catastrophic"
+                ],
+                "first_tokens": [
+                  9128,
+                  985,
+                  442,
+                  40167,
+                  216931
+                ],
+                "coverage": 1.3764772858920384e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.826207888425357e-13,
+                  2.293112184875468e-13,
+                  2.3763016338093273e-11,
+                  1.7791417570393414e-10,
+                  1.3562383734871027e-08
+                ]
+              }
+            }
+          }
+        },
+        "answer_colon": {
+          "suffix_tokens": 50,
+          "readout": {
+            "row": "cue",
+            "position": 136,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9981290700461775
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 0.0008978561531358161
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.0005146512092461187
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 0.00044983899144387235
+              },
+              {
+                "token": 15,
+                "piece": "0",
+                "p_full": 2.3087281002249214e-06
+              },
+              {
+                "token": 17,
+                "piece": "2",
+                "p_full": 1.5863721859877173e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 4.061816762341148e-12,
+              "<|endoftext|>": 1.6655562069166045e-07,
+              "<|im_end|>": 0.9981290700461775
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9981290700461775,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.0013531091211877444,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.3087281002249214e-06,
+                  1.5188763218432693e-06,
+                  1.5863721859877173e-06,
+                  0.00044983899144387235,
+                  0.0008978561531358161
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3",
+                  " 4"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 5.269162931380997e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.0538325862761994e-07,
+                  1.0538325862761994e-07,
+                  1.0538325862761994e-07,
+                  1.0538325862761994e-07,
+                  1.0538325862761994e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.0013531091211877444,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.3087281002249214e-06,
+                  1.5188763218432693e-06,
+                  1.5863721859877173e-06,
+                  0.00044983899144387235,
+                  0.0008978561531358161
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3",
+                  "\n4"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 3.693545329009126e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.387090658018252e-09,
+                  7.387090658018252e-09,
+                  7.387090658018252e-09,
+                  7.387090658018252e-09,
+                  7.387090658018252e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "cosmetic",
+                  "annoying",
+                  "degrading",
+                  "critical",
+                  "catastrophic"
+                ],
+                "first_tokens": [
+                  9128,
+                  985,
+                  442,
+                  40167,
+                  216931
+                ],
+                "coverage": 5.384212442242573e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.2916258373317683e-12,
+                  3.7701453184872207e-13,
+                  1.8471896652695048e-11,
+                  2.4442970195251554e-11,
+                  5.339628935025446e-09
+                ]
+              }
+            }
+          }
+        },
+        "wybieram_pl": {
+          "suffix_tokens": 58,
+          "readout": {
+            "row": "cue",
+            "position": 144,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9030075942165923
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 0.09294583441338487
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 0.002922449607440899
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.00025045559065336954
+              },
+              {
+                "token": 15,
+                "piece": "0",
+                "p_full": 0.00017783112092794755
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 0.00014391839466449977
+              }
+            ],
+            "closer_mass": {
+              "eos": 6.749146730458917e-11,
+              "<|endoftext|>": 1.023786646225319e-05,
+              "<|im_end|>": 0.9030075942165923
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9030075942165923,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.09626475055383016,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.00017783112092794755,
+                  0.00014391839466449977,
+                  7.471701741193354e-05,
+                  0.002922449607440899,
+                  0.09294583441338487
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3",
+                  " 4"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 0.000602364767742056,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.0001204729535484112,
+                  0.0001204729535484112,
+                  0.0001204729535484112,
+                  0.0001204729535484112,
+                  0.0001204729535484112
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.09626475055383016,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.00017783112092794755,
+                  0.00014391839466449977,
+                  7.471701741193354e-05,
+                  0.002922449607440899,
+                  0.09294583441338487
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3",
+                  "\n4"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 9.917193741568803e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.9834387483137606e-08,
+                  1.9834387483137606e-08,
+                  1.9834387483137606e-08,
+                  1.9834387483137606e-08,
+                  1.9834387483137606e-08
+                ]
+              },
+              "long": {
+                "texts": [
+                  "cosmetic",
+                  "annoying",
+                  "degrading",
+                  "critical",
+                  "catastrophic"
+                ],
+                "first_tokens": [
+                  9128,
+                  985,
+                  442,
+                  40167,
+                  216931
+                ],
+                "coverage": 7.545477431962662e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.5982730976556674e-10,
+                  2.123473255564871e-11,
+                  4.580316098781418e-10,
+                  9.833171477322637e-10,
+                  7.3532363519695e-08
+                ]
+              }
+            }
+          }
+        },
+        "json_field": {
+          "suffix_tokens": 51,
+          "readout": {
+            "row": "cue",
+            "position": 137,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9996650389699164
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 0.00017183118562442623
+              },
+              {
+                "token": 3187,
+                "piece": "level",
+                "p_full": 4.514918793438713e-05
+              },
+              {
+                "token": 38555,
+                "piece": "LEVEL",
+                "p_full": 1.0814372882537988e-05
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 9.386501081298214e-06
+              },
+              {
+                "token": 45,
+                "piece": "N",
+                "p_full": 9.113965252559018e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 4.040843537761183e-11,
+              "<|endoftext|>": 1.90295024991808e-06,
+              "<|im_end|>": 0.9996650389699164
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9996650389699164,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.00018389248304569208,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.6362231165343912e-07,
+                  1.2706785827244783e-06,
+                  1.2404954455897002e-06,
+                  9.386501081298214e-06,
+                  0.00017183118562442623
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3",
+                  " 4"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 1.575652469767836e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.151304939535672e-07,
+                  3.151304939535672e-07,
+                  3.151304939535672e-07,
+                  3.151304939535672e-07,
+                  3.151304939535672e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.00018389248304569208,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.6362231165343912e-07,
+                  1.2706785827244783e-06,
+                  1.2404954455897002e-06,
+                  9.386501081298214e-06,
+                  0.00017183118562442623
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3",
+                  "\n4"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 5.7253191619644025e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.1450638323928805e-06,
+                  1.1450638323928805e-06,
+                  1.1450638323928805e-06,
+                  1.1450638323928805e-06,
+                  1.1450638323928805e-06
+                ]
+              },
+              "long": {
+                "texts": [
+                  "cosmetic",
+                  "annoying",
+                  "degrading",
+                  "critical",
+                  "catastrophic"
+                ],
+                "first_tokens": [
+                  9128,
+                  985,
+                  442,
+                  40167,
+                  216931
+                ],
+                "coverage": 6.313123256959776e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.351874678870337e-09,
+                  3.9967373915303715e-10,
+                  5.3383707451081625e-08,
+                  1.2872408071088861e-06,
+                  4.963747193981785e-06
+                ]
+              }
+            }
+          }
+        },
+        "two_step_shipped": {
+          "suffix_tokens": 47,
+          "readout": {
+            "row": "advanced",
+            "position": 134,
+            "top_tokens": [
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.8895928975599924
+              },
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.11033801480024744
+              },
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 5.816159504778086e-05
+              },
+              {
+                "token": 1358,
+                "piece": "\n\n\n",
+                "p_full": 8.177227503719742e-06
+              },
+              {
+                "token": 987,
+                "piece": "\n\n\n\n",
+                "p_full": 6.804047248766436e-07
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 5.226489797531274e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 9.602332288662113e-14,
+              "<|endoftext|>": 5.226489797531274e-07,
+              "<|im_end|>": 5.816159504778086e-05
+            },
+            "cue": {
+              "refused": false,
+              "token": 198,
+              "closer": null,
+              "mass": 0.8895928975599924
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 1.1477768423061567e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.652999469891545e-12,
+                  5.875295937546121e-11,
+                  4.5190728039445956e-10,
+                  4.6784940212920943e-11,
+                  5.806786628534236e-10
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3",
+                  " 4"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 6.60237322549284e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.320474645098568e-07,
+                  1.320474645098568e-07,
+                  1.320474645098568e-07,
+                  1.320474645098568e-07,
+                  1.320474645098568e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 1.1477768423061567e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.652999469891545e-12,
+                  5.875295937546121e-11,
+                  4.5190728039445956e-10,
+                  4.6784940212920943e-11,
+                  5.806786628534236e-10
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3",
+                  "\n4"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.0,
+                "reliability": "ok",
+                "first_mass": [
+                  0.8895928975599924,
+                  0.8895928975599924,
+                  0.8895928975599924,
+                  0.8895928975599924,
+                  0.8895928975599924
+                ]
+              },
+              "long": {
+                "texts": [
+                  "cosmetic",
+                  "annoying",
+                  "degrading",
+                  "critical",
+                  "catastrophic"
+                ],
+                "first_tokens": [
+                  9128,
+                  985,
+                  442,
+                  40167,
+                  216931
+                ],
+                "coverage": 3.3470655594969636e-11,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.0178434620873945e-11,
+                  3.3816425583922654e-15,
+                  7.388296638368025e-14,
+                  5.084422060808672e-13,
+                  2.2706514159072754e-11
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248069,
+            "piece": "</think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 133,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999936695863844
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 5.166595571693728e-06
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 5.780893224490664e-07
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 2.3524939577020345e-07
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 5.881274133461219e-08
+              },
+              {
+                "token": 71093,
+                "piece": "```",
+                "p_full": 4.73588774596428e-08
+              }
+            ],
+            "closer_mass": {
+              "eos": 4.1476504811127244e-13,
+              "<|endoftext|>": 1.1279044224417844e-08,
+              "<|im_end|>": 0.9999936695863844
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999936695863844,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 6.127416159248558e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.227308562155694e-09,
+                  4.982428940932204e-09,
+                  1.4870012006318379e-09,
+                  2.095555477206974e-08,
+                  5.780893224490664e-07
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3",
+                  " 4"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 6.052978447528587e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.2105956895057174e-10,
+                  1.2105956895057174e-10,
+                  1.2105956895057174e-10,
+                  1.2105956895057174e-10,
+                  1.2105956895057174e-10
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 6.127416159248558e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.227308562155694e-09,
+                  4.982428940932204e-09,
+                  1.4870012006318379e-09,
+                  2.095555477206974e-08,
+                  5.780893224490664e-07
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3",
+                  "\n4"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 2.0312272316191666e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.062454463238333e-09,
+                  4.062454463238333e-09,
+                  4.062454463238333e-09,
+                  4.062454463238333e-09,
+                  4.062454463238333e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "cosmetic",
+                  "annoying",
+                  "degrading",
+                  "critical",
+                  "catastrophic"
+                ],
+                "first_tokens": [
+                  9128,
+                  985,
+                  442,
+                  40167,
+                  216931
+                ],
+                "coverage": 1.0475847667078987e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.3761603822225037e-11,
+                  2.056097275964891e-12,
+                  7.197192447760824e-10,
+                  6.663135878781637e-11,
+                  2.3541646204581e-10
+                ]
+              }
+            }
+          }
+        },
+        "two_step_answer_is": {
+          "suffix_tokens": 51,
+          "readout": {
+            "row": "advanced",
+            "position": 138,
+            "top_tokens": [
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.9435871029861927
+              },
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.05627399788066588
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 3.786376677265486e-05
+              },
+              {
+                "token": 1639,
+                "piece": "\\n",
+                "p_full": 2.708991417196576e-05
+              },
+              {
+                "token": 561,
+                "piece": " The",
+                "p_full": 1.541271517385822e-05
+              },
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 1.4802712546357163e-05
+              }
+            ],
+            "closer_mass": {
+              "eos": 4.64332973272869e-12,
+              "<|endoftext|>": 4.1759119051260385e-07,
+              "<|im_end|>": 1.4802712546357163e-05
+            },
+            "cue": {
+              "refused": false,
+              "token": 271,
+              "closer": null,
+              "mass": 0.9435871029861927
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 3.677964332924478e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.851769248694755e-07,
+                  5.394135218963435e-07,
+                  1.6378890118678318e-07,
+                  1.8305250447616584e-07,
+                  1.90653248049571e-06
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3",
+                  " 4"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 3.173830437198602e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.347660874397204e-07,
+                  6.347660874397204e-07,
+                  6.347660874397204e-07,
+                  6.347660874397204e-07,
+                  6.347660874397204e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 3.677964332924478e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  8.851769248694755e-07,
+                  5.394135218963435e-07,
+                  1.6378890118678318e-07,
+                  1.8305250447616584e-07,
+                  1.90653248049571e-06
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3",
+                  "\n4"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 0.2813699894033294,
+                "reliability": "ok",
+                "first_mass": [
+                  0.05627399788066588,
+                  0.05627399788066588,
+                  0.05627399788066588,
+                  0.05627399788066588,
+                  0.05627399788066588
+                ]
+              },
+              "long": {
+                "texts": [
+                  "cosmetic",
+                  "annoying",
+                  "degrading",
+                  "critical",
+                  "catastrophic"
+                ],
+                "first_tokens": [
+                  9128,
+                  985,
+                  442,
+                  40167,
+                  216931
+                ],
+                "coverage": 6.820903272911949e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.2727704513326104e-12,
+                  9.989618497312203e-13,
+                  3.543165379778465e-11,
+                  7.750205107061085e-13,
+                  6.416119206816403e-10
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248068,
+            "piece": "<think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 137,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9969617743771053
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.0015521983581378907
+              },
+              {
+                "token": 19,
+                "piece": "4",
+                "p_full": 0.0014074713410578434
+              },
+              {
+                "token": 18,
+                "piece": "3",
+                "p_full": 5.770681235789117e-05
+              },
+              {
+                "token": 10992,
+                "piece": "？",
+                "p_full": 7.814573216792409e-06
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 1.4445915168255925e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 6.756974368862381e-12,
+              "<|endoftext|>": 1.4445915168255925e-06,
+              "<|im_end|>": 0.9969617743771053
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9969617743771053,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.001465528857452254,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.3288954540760465e-07,
+                  1.7462188255366995e-07,
+                  4.3192608558156836e-08,
+                  5.770681235789117e-05,
+                  0.0014074713410578434
+                ]
+              },
+              "space": {
+                "texts": [
+                  " 0",
+                  " 1",
+                  " 2",
+                  " 3",
+                  " 4"
+                ],
+                "first_tokens": [
+                  220,
+                  220,
+                  220,
+                  220,
+                  220
+                ],
+                "coverage": 2.2195621482927735e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.439124296585547e-08,
+                  4.439124296585547e-08,
+                  4.439124296585547e-08,
+                  4.439124296585547e-08,
+                  4.439124296585547e-08
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4"
+                ],
+                "first_tokens": [
+                  15,
+                  16,
+                  17,
+                  18,
+                  19
+                ],
+                "coverage": 0.001465528857452254,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.3288954540760465e-07,
+                  1.7462188255366995e-07,
+                  4.3192608558156836e-08,
+                  5.770681235789117e-05,
+                  0.0014074713410578434
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\n0",
+                  "\n1",
+                  "\n2",
+                  "\n3",
+                  "\n4"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 3.2854924547923535e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.570984909584708e-10,
+                  6.570984909584708e-10,
+                  6.570984909584708e-10,
+                  6.570984909584708e-10,
+                  6.570984909584708e-10
+                ]
+              },
+              "long": {
+                "texts": [
+                  "cosmetic",
+                  "annoying",
+                  "degrading",
+                  "critical",
+                  "catastrophic"
+                ],
+                "first_tokens": [
+                  9128,
+                  985,
+                  442,
+                  40167,
+                  216931
+                ],
+                "coverage": 6.025704090010136e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.3046404162226927e-13,
+                  8.59366796372592e-14,
+                  9.979999745267052e-12,
+                  1.7169099874856622e-10,
+                  5.8436166907950435e-09
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ranked": {
+        "shipped=bare": {
+          "probabilities": {
+            "0": 0.00940856127757266,
+            "1": 0.007781478460419029,
+            "2": 0.0035404457873936036,
+            "3": 0.011607678481300636,
+            "4": 0.967661835993314
+          },
+          "sequence_scores": {
+            "[15]": -18.25807254584047,
+            "[16]": -18.447946241214005,
+            "[17]": -19.235439946963517,
+            "[18]": -18.048025777651993,
+            "[19]": -13.624809911563126
+          },
+          "got": "4",
+          "confidence": 0.9595772949916426,
+          "shape": "shipped",
+          "label": "bare",
+          "coverage": 1.2505372289242577e-06,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "4",
+          "agrees": true
+        },
+        "two_step_shipped=bare": {
+          "probabilities": {
+            "0": 0.008410170961888699,
+            "1": 0.051188486480884664,
+            "2": 0.3937239921015223,
+            "3": 0.04076135576922676,
+            "4": 0.5059159946864775
+          },
+          "sequence_scores": {
+            "[15]": -25.363752422978518,
+            "[16]": -23.557679591824648,
+            "[17]": -21.5175440890094,
+            "[18]": -23.785459755112765,
+            "[19]": -21.266823588063357
+          },
+          "got": "4",
+          "confidence": 0.38239499335809685,
+          "shape": "two_step_shipped",
+          "label": "bare",
+          "coverage": 1.1477768423061567e-09,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "4",
+          "agrees": true
+        },
+        "answer_is=bare": {
+          "probabilities": {
+            "0": 9.864719833861726e-05,
+            "1": 0.00014677742291096166,
+            "2": 5.028109696673302e-05,
+            "3": 0.04530636498704044,
+            "4": 0.9543979292947432
+          },
+          "sequence_scores": {
+            "[15]": -15.4959039038369,
+            "[16]": -15.098536426419908,
+            "[17]": -16.169824535245592,
+            "[18]": -9.366250926847155,
+            "[19]": -6.318617755765612
+          },
+          "got": "4",
+          "confidence": 0.9429974116184289,
+          "shape": "answer_is",
+          "label": "bare",
+          "coverage": 0.001888555216558345,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "4",
+          "agrees": true
+        }
+      },
+      "prefill_ms": 44071.7,
+      "backend_claim": "cpu",
+      "backend_source": "explicit",
+      "device_log_tail": "sched_reserve:        CPU compute buffer size =   501.27 MiB\nsched_reserve: graph nodes  = 3787\nsched_reserve: graph splits = 1\nsched_reserve: reserve took 99.39 ms, sched copies = 1",
+      "cue_decode_s": 90.8,
+      "advance_decode_s": 12.0
+    }
+  ],
+  "wall_s": 248.4,
+  "device_log_tail": "repack: repack tensor blk.36.ffn_gate_exps.weight with q4_K_8x8\nrepack: repack tensor blk.37.ffn_gate_exps.weight with q4_K_8x8\n.\nrepack: repack tensor blk.38.ffn_gate_exps.weight with q4_K_8x8\n.\n"
+}

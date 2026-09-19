@@ -1,0 +1,393 @@
+{
+  "schema": "ggufone.e3c.cue-shapes/v1",
+  "generated_at": "2026-09-19T15:41:41Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "name": "Spark-X2.5-4B-Q8_0.gguf",
+    "bytes": 4375021152,
+    "arch": "spark2_5"
+  },
+  "model_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+  "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 0,
+  "backend_claim": "cpu",
+  "backend_source": "explicit",
+  "placement": {
+    "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)",
+    "n_gpu_layers": 0,
+    "kv_type": "auto",
+    "degraded": false,
+    "attempts": [],
+    "warnings": []
+  },
+  "load_ms": 668.1,
+  "shapes": [
+    "shipped",
+    "two_step_shipped"
+  ],
+  "label_variants": [
+    "bare",
+    "newline"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [
+    "shipped=bare",
+    "two_step_shipped=bare"
+  ],
+  "counts": {
+    "choice": 1
+  },
+  "devset": "docs/evidence/e3_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "expected": "technical",
+      "prefix_tokens": 119,
+      "n_ctx": 4306,
+      "n_seq_max": 23,
+      "prefix_tail": "ble.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think>\n",
+      "opener": {
+        "shipped": "",
+        "two_step_shipped": ""
+      },
+      "shapes": {
+        "shipped": {
+          "suffix_tokens": 57,
+          "readout": {
+            "row": "cue",
+            "position": 175,
+            "top_tokens": [
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.9535749340028952
+              },
+              {
+                "token": 1046,
+                "piece": "The",
+                "p_full": 0.00830527313951704
+              },
+              {
+                "token": 79,
+                "piece": "b",
+                "p_full": 0.006149127055393291
+              },
+              {
+                "token": 21906,
+                "piece": "```",
+                "p_full": 0.005362394756576172
+              },
+              {
+                "token": 96,
+                "piece": "s",
+                "p_full": 0.0027586400055802807
+              },
+              {
+                "token": 97,
+                "piece": "t",
+                "p_full": 0.00242996697064178
+              }
+            ],
+            "closer_mass": {},
+            "cue": {
+              "refused": false,
+              "token": 198,
+              "closer": null,
+              "mass": 0.9535749340028952
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  79,
+                  97,
+                  96,
+                  101326
+                ],
+                "coverage": 0.011442575234460151,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.006149127055393291,
+                  0.00242996697064178,
+                  0.0027586400055802807,
+                  0.0001048412028447978
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.0,
+                "reliability": "ok",
+                "first_mass": [
+                  0.9535749340028952,
+                  0.9535749340028952,
+                  0.9535749340028952,
+                  0.9535749340028952
+                ]
+              }
+            }
+          }
+        },
+        "two_step_shipped": {
+          "suffix_tokens": 57,
+          "readout": {
+            "row": "advanced",
+            "position": 176,
+            "top_tokens": [
+              {
+                "token": 97,
+                "piece": "t",
+                "p_full": 0.8675485914209476
+              },
+              {
+                "token": 79,
+                "piece": "b",
+                "p_full": 0.0669374837876003
+              },
+              {
+                "token": 82541,
+                "piece": "tech",
+                "p_full": 0.023659396149981762
+              },
+              {
+                "token": 96,
+                "piece": "s",
+                "p_full": 0.015322087345808836
+              },
+              {
+                "token": 65,
+                "piece": "T",
+                "p_full": 0.007056358311001383
+              },
+              {
+                "token": 1933,
+                "piece": "技术",
+                "p_full": 0.003253412157830092
+              }
+            ],
+            "closer_mass": {},
+            "cue": {
+              "refused": false,
+              "token": 97,
+              "closer": null,
+              "mass": 0.8675485914209476
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  79,
+                  97,
+                  96,
+                  101326
+                ],
+                "coverage": 0.9505822414872487,
+                "reliability": "ok",
+                "first_mass": [
+                  0.0669374837876003,
+                  0.8675485914209476,
+                  0.015322087345808836,
+                  0.00077407893289183
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 0.0006822199085743059,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.00017055497714357648,
+                  0.00017055497714357648,
+                  0.00017055497714357648,
+                  0.00017055497714357648
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 198,
+            "piece": "\n"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 175,
+            "top_tokens": [
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.959963100278192
+              },
+              {
+                "token": 79,
+                "piece": "b",
+                "p_full": 0.007640364898297534
+              },
+              {
+                "token": 1046,
+                "piece": "The",
+                "p_full": 0.006219669888233164
+              },
+              {
+                "token": 21906,
+                "piece": "```",
+                "p_full": 0.004783115402806723
+              },
+              {
+                "token": 97,
+                "piece": "t",
+                "p_full": 0.002204238094328014
+              },
+              {
+                "token": 96,
+                "piece": "s",
+                "p_full": 0.0021918630663609875
+              }
+            ],
+            "closer_mass": {},
+            "cue": {
+              "refused": false,
+              "token": 198,
+              "closer": null,
+              "mass": 0.959963100278192
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "billing",
+                  "technical",
+                  "sales",
+                  "support"
+                ],
+                "first_tokens": [
+                  79,
+                  97,
+                  96,
+                  101326
+                ],
+                "coverage": 0.01211348715849201,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.007640364898297534,
+                  0.002204238094328014,
+                  0.0021918630663609875,
+                  7.702109950547385e-05
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nbilling",
+                  "\ntechnical",
+                  "\nsales",
+                  "\nsupport"
+                ],
+                "first_tokens": [
+                  198,
+                  198,
+                  198,
+                  198
+                ],
+                "coverage": 1.0,
+                "reliability": "ok",
+                "first_mass": [
+                  0.959963100278192,
+                  0.959963100278192,
+                  0.959963100278192,
+                  0.959963100278192
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ranked": {
+        "shipped=bare": {
+          "probabilities": {
+            "billing": 0.4348627590988869,
+            "technical": 0.27336283206668294,
+            "sales": 0.29119300286372596,
+            "support": 0.00058140597070417
+          },
+          "sequence_scores": {
+            "[79, 15493]": -2.5457272000613256,
+            "[96, 7295]": -2.946771397639652,
+            "[97, 79152]": -3.0099577170839864,
+            "[101326]": -9.163063706427252
+          },
+          "got": "billing",
+          "confidence": 0.24648367879851585,
+          "shape": "shipped",
+          "label": "bare",
+          "coverage": 0.011442575234460151,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "billing",
+          "agrees": true
+        },
+        "two_step_shipped=bare": {
+          "probabilities": {
+            "billing": 0.19679573350274734,
+            "technical": 0.7084818950627252,
+            "sales": 0.09413356911314913,
+            "support": 0.0005888023213783386
+          },
+          "sequence_scores": {
+            "[79, 15493]": -1.3520056350496852,
+            "[96, 7295]": -2.0894572183859528,
+            "[97, 79152]": -0.07104743517141521,
+            "[101326]": -7.163836709093802
+          },
+          "got": "technical",
+          "confidence": 0.6113091934169669,
+          "shape": "two_step_shipped",
+          "label": "bare",
+          "coverage": 0.9505822414872487,
+          "reliability": "ok",
+          "correct": true,
+          "top_coverage": "technical",
+          "agrees": true
+        }
+      },
+      "prefill_ms": 7993.9,
+      "backend_claim": "cpu",
+      "backend_source": "explicit",
+      "device_log_tail": "sched_reserve:        CPU compute buffer size =   271.17 MiB\nsched_reserve: graph nodes  = 1266\nsched_reserve: graph splits = 1\nsched_reserve: reserve took 3.72 ms, sched copies = 1",
+      "cue_decode_s": 7.8,
+      "advance_decode_s": 0.3
+    }
+  ],
+  "wall_s": 20.4,
+  "device_log_tail": ".\n.\n.\n.\n.\n"
+}

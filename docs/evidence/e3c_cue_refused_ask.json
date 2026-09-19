@@ -1,0 +1,133 @@
+{
+  "model": "Accio-Lab_occamy-1.0-Q4_K_L",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "vulkan",
+    "backend_source": "bundle",
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "CPU_REPACK"
+    ],
+    "device_buffers": {
+      "CPU": 1
+    },
+    "effective_backend": "cpu",
+    "readout": "sequence",
+    "kv_unified": true,
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 71,
+    "state_id": "sha256:a9e44c96da8955b8689a47e59cfb237655c38a65c7523988bb01012dffc55381",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "qwen35moe",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "q4_0",
+    "n_gpu_layers": 0,
+    "placement": {
+      "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=q4_0)",
+      "n_gpu_layers": 0,
+      "kv_type": "q4_0",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    },
+    "fit": {
+      "n_gpu_layers": 0,
+      "n_ctx": 4096,
+      "kv_type": "q4_0",
+      "n_seq_max": 8,
+      "est_weights_bytes": 24101519360,
+      "est_kv_bytes": 94371840,
+      "est_total_bytes": 24746393600,
+      "backend": "cpu",
+      "source": "llama-fit-params",
+      "warnings": [
+        "W_KV_TYPE_DOWNGRADE",
+        "W_FIT_DOWNGRADE"
+      ],
+      "notes": [
+        "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 22985 MiB, context 142 MiB, compute 525 MiB)",
+        "device memory bound: offloading 7/40 layers within 4661 MiB (--fit-target 1024 MiB, 5685 MiB free of 8192 MiB)",
+        "re-planned for free device memory: 3995 MiB budget (driver reported 5019 MiB free of 8192 MiB, --fit-target 1024 MiB); n_gpu_layers 7 -> 3, kv_type q4_0 -> q4_0",
+        "CPU only: no weights are offloaded to the device",
+        "re-planned for free device memory: 0 MiB budget (driver reported 367 MiB free of 8192 MiB, --fit-target 1024 MiB); n_gpu_layers 3 -> 0, kv_type q4_0 -> q4_0"
+      ],
+      "arch": "qwen35moe",
+      "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+      "host_fingerprint": "e2f65aaa0226c162",
+      "budget_bytes": 90177536,
+      "created_at": "2026-09-18T13:32:13Z",
+      "schema": "ggufone.fit/v1"
+    },
+    "escalations": {
+      "enabled": false,
+      "limit": 0,
+      "threshold": 0.5,
+      "target": null,
+      "count": 0,
+      "decisions": [],
+      "skipped": []
+    }
+  },
+  "answers": {
+    "area": {
+      "type": "choice",
+      "choice": "support",
+      "probabilities": {
+        "billing": 0.0421847,
+        "technical": 0.302004,
+        "support": 0.655811
+      },
+      "confidence": 0.483716,
+      "coverage": 3.57148e-06,
+      "reliability": "low_mass",
+      "cue": {
+        "refused": true,
+        "token": 248046,
+        "closer": "<|im_end|>",
+        "mass": 0.999909,
+        "hint": "docs/TEMPLATES.md \u00a74 (the label policy, measured) \u2014 the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+      },
+      "decode_steps": 3
+    }
+  },
+  "usage": {
+    "input_tokens": 100,
+    "output_tokens": 3,
+    "questions": 1,
+    "forks": 3,
+    "prefill_tokens": 71,
+    "decode_steps": 3,
+    "waves": 1
+  },
+  "timings": {
+    "model_load_ms": 117147.0,
+    "prefill_ms": 47657.9,
+    "questions_ms": 35608.5,
+    "total_ms": 83296.3
+  },
+  "warnings": [
+    "W_BACKEND_MISMATCH",
+    "W_LOW_MASS",
+    "W_CUE_REFUSED"
+  ],
+  "calibrated": false,
+  "calibration": {
+    "source": "",
+    "applied": false,
+    "model": null,
+    "params_hash": "",
+    "temperatures": {},
+    "confidence_modes": {},
+    "accepted_types": []
+  }
+}

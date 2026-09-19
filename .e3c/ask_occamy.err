@@ -1,0 +1,3 @@
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 130.5736 MiB, matches expectation of 130.5736 MiB

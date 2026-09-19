@@ -1,0 +1,36 @@
+warning: Ignoring existing virtual environment linked to non-existent Python interpreter: .venv/bin/python3 -> python
+Using CPython 3.11.15 interpreter at: /usr/local/bin/python3
+Removed virtual environment at: .venv
+Creating virtual environment at: .venv
+Installed 1 package in 3ms
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = NVIDIA GeForce RTX 3060 Ti (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0 | warp size: 32 | shared memory: 49152 | int dot: 1 | matrix cores: NV_coopmat2
+load_backend: loaded Vulkan backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-vulkan.so
+load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+ggml_vulkan: Device memory allocation of size 887802624 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+ggml_vulkan: Device memory allocation of size 825059328 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+ggml_vulkan: Device memory allocation of size 1057619968 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+ggml_vulkan: Device memory allocation of size 1057619968 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+ggml_vulkan: Device memory allocation of size 1057619968 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+Traceback (most recent call last):
+  File "/var/home/rybens/workspace/ggufone/tools/e3c_cue_shapes.py", line 605, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/var/home/rybens/workspace/ggufone/tools/e3c_cue_shapes.py", line 601, in main
+    return live_run(args)
+           ^^^^^^^^^^^^^^
+  File "/var/home/rybens/workspace/ggufone/tools/e3c_cue_shapes.py", line 522, in live_run
+    piece = measure_item(handle, item, shapes=shapes, variants=args.label_variants,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/home/rybens/workspace/ggufone/tools/e3c_cue_shapes.py", line 205, in measure_item
+    with session_module.ModelSession(handle, fixed, backend=backend, states_home=states_home,
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/home/rybens/workspace/ggufone/src/ggufone/engine/session.py", line 410, in __init__
+    raise failure or RuntimeMissingError(
+ggufone.errors.BackendOomError: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=0, kv_type=f16, needed ~1009 MiB); the driver reports unknown free; tried 3 placement(s) down to CPU-only, none fit: ctx kv_type=f16 -> oom; ctx kv_type=q8_0 -> oom; ctx kv_type=q4_0 -> oom; the backend asked for a 1009 MiB allocation; backend log: 'ggml_gallocr_reserve_n_impl: failed to allocate Vulkan0 buffer of size 1057619968'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant

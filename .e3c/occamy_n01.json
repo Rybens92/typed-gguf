@@ -1,0 +1,1339 @@
+{
+  "schema": "ggufone.e3c.cue-shapes/v1",
+  "generated_at": "2026-09-19T16:33:01Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "name": "Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "bytes": 24113674848,
+    "arch": "qwen35moe"
+  },
+  "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 0,
+  "backend_claim": "cpu",
+  "backend_source": "explicit",
+  "placement": {
+    "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)",
+    "n_gpu_layers": 0,
+    "kv_type": "auto",
+    "degraded": false,
+    "attempts": [],
+    "warnings": []
+  },
+  "load_ms": 295178.8,
+  "shapes": [
+    "shipped",
+    "answer_is",
+    "answer_colon",
+    "wybieram_pl",
+    "json_field",
+    "two_step_shipped",
+    "two_step_answer_is"
+  ],
+  "label_variants": [
+    "bare",
+    "space",
+    "caps",
+    "newline",
+    "long"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [
+    "shipped=bare",
+    "two_step_shipped=bare",
+    "answer_is=bare"
+  ],
+  "counts": {
+    "noul": 1
+  },
+  "devset": "docs/evidence/e3_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "n01",
+      "type": "noul",
+      "expected": "yes",
+      "prefix_tokens": 84,
+      "n_ctx": 4254,
+      "n_seq_max": 20,
+      "prefix_tail": "ne thousand euros a minute.<|im_end|>\n<|im_start|>assistant\n",
+      "opener": {
+        "shipped": "",
+        "answer_is": "The answer is ",
+        "answer_colon": "Answer: ",
+        "wybieram_pl": "Zgodnie z opisem, wybieram: ",
+        "json_field": "{{\"{field}\": \"",
+        "two_step_shipped": "",
+        "two_step_answer_is": "The answer is "
+      },
+      "shapes": {
+        "shipped": {
+          "suffix_tokens": 41,
+          "readout": {
+            "row": "cue",
+            "position": 124,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999774848752283
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 1.0310998345562242e-05
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 7.765867046760734e-06
+              },
+              {
+                "token": 2083,
+                "piece": "no",
+                "p_full": 1.232220298627865e-06
+              },
+              {
+                "token": 71093,
+                "piece": "```",
+                "p_full": 7.118429779469435e-07
+              },
+              {
+                "token": 8944,
+                "piece": "answer",
+                "p_full": 5.567522094977664e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 3.2460286255225173e-12,
+              "<|endoftext|>": 1.7409668422183934e-08,
+              "<|im_end|>": 0.9999774848752283
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999774848752283,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "yes",
+                  "no"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 1.2498695739151354e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.764927528727045e-08,
+                  1.232220298627865e-06
+                ]
+              },
+              "space": {
+                "texts": [
+                  " yes",
+                  " no"
+                ],
+                "first_tokens": [
+                  9542,
+                  874
+                ],
+                "coverage": 4.842657312355576e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.643688593128403e-10,
+                  4.078288453042735e-09
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Yes",
+                  "No"
+                ],
+                "first_tokens": [
+                  9175,
+                  2665
+                ],
+                "coverage": 1.7072300413610687e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.1189151600430827e-09,
+                  1.5953385253567605e-08
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nyes",
+                  "\nno"
+                ],
+                "first_tokens": [
+                  198,
+                  198
+                ],
+                "coverage": 1.3727852667379244e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.863926333689622e-09,
+                  6.863926333689622e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "yes, page immediately",
+                  "no, handle it in business hours"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 1.2498695739151354e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.764927528727045e-08,
+                  1.232220298627865e-06
+                ]
+              }
+            }
+          }
+        },
+        "answer_is": {
+          "suffix_tokens": 45,
+          "readout": {
+            "row": "cue",
+            "position": 128,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9996290251541832
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.0003636217187836451
+              },
+              {
+                "token": 9542,
+                "piece": " yes",
+                "p_full": 1.4228078329244102e-06
+              },
+              {
+                "token": 10992,
+                "piece": "？",
+                "p_full": 9.734125607186718e-07
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 5.850172206171078e-07
+              },
+              {
+                "token": 4087,
+                "piece": " answer",
+                "p_full": 5.002676866337998e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 4.894576371188106e-13,
+              "<|endoftext|>": 5.850172206171078e-07,
+              "<|im_end|>": 0.9996290251541832
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9996290251541832,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "yes",
+                  "no"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 5.901782718630788e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.6844991641208616e-09,
+                  2.1728355450992683e-10
+                ]
+              },
+              "space": {
+                "texts": [
+                  " yes",
+                  " no"
+                ],
+                "first_tokens": [
+                  9542,
+                  874
+                ],
+                "coverage": 1.917266086197092e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.4228078329244102e-06,
+                  4.944582532726817e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Yes",
+                  "No"
+                ],
+                "first_tokens": [
+                  9175,
+                  2665
+                ],
+                "coverage": 7.168240525816379e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.059740267416209e-10,
+                  1.0850025840017065e-11
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nyes",
+                  "\nno"
+                ],
+                "first_tokens": [
+                  198,
+                  198
+                ],
+                "coverage": 3.0239089219575948e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.5119544609787974e-09,
+                  1.5119544609787974e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "yes, page immediately",
+                  "no, handle it in business hours"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 5.901782718630788e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.6844991641208616e-09,
+                  2.1728355450992683e-10
+                ]
+              }
+            }
+          }
+        },
+        "answer_colon": {
+          "suffix_tokens": 44,
+          "readout": {
+            "row": "cue",
+            "position": 127,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9994471763499123
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.0005025652948858814
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 1.6704809618164754e-05
+              },
+              {
+                "token": 874,
+                "piece": " no",
+                "p_full": 9.087896513002832e-06
+              },
+              {
+                "token": 17,
+                "piece": "2",
+                "p_full": 3.610863547975897e-06
+              },
+              {
+                "token": 15,
+                "piece": "0",
+                "p_full": 2.6511301985406484e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 2.9682892101075146e-12,
+              "<|endoftext|>": 1.3813791412126788e-07,
+              "<|im_end|>": 0.9994471763499123
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9994471763499123,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "yes",
+                  "no"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 1.325320124622335e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.599458771302841e-09,
+                  7.65374247492051e-09
+                ]
+              },
+              "space": {
+                "texts": [
+                  " yes",
+                  " no"
+                ],
+                "first_tokens": [
+                  9542,
+                  874
+                ],
+                "coverage": 1.1683210893269062e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.595314380266229e-06,
+                  9.087896513002832e-06
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Yes",
+                  "No"
+                ],
+                "first_tokens": [
+                  9175,
+                  2665
+                ],
+                "coverage": 2.4498034784080567e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.1688766618590186e-09,
+                  2.809268165490383e-10
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nyes",
+                  "\nno"
+                ],
+                "first_tokens": [
+                  198,
+                  198
+                ],
+                "coverage": 6.776828595905004e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.388414297952502e-09,
+                  3.388414297952502e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "yes, page immediately",
+                  "no, handle it in business hours"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 1.325320124622335e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.599458771302841e-09,
+                  7.65374247492051e-09
+                ]
+              }
+            }
+          }
+        },
+        "wybieram_pl": {
+          "suffix_tokens": 52,
+          "readout": {
+            "row": "cue",
+            "position": 135,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9998390862303052
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.00011097308515417766
+              },
+              {
+                "token": 16,
+                "piece": "1",
+                "p_full": 1.3464257487230974e-05
+              },
+              {
+                "token": 1799,
+                "piece": " Z",
+                "p_full": 3.522411319687636e-06
+              },
+              {
+                "token": 318,
+                "piece": " (",
+                "p_full": 2.9332887788530504e-06
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 2.530426066509831e-06
+              }
+            ],
+            "closer_mass": {
+              "eos": 7.27622950046539e-12,
+              "<|endoftext|>": 2.530426066509831e-06,
+              "<|im_end|>": 0.9998390862303052
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9998390862303052,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "yes",
+                  "no"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 4.45741707357397e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.409829958155873e-09,
+                  4.758711541809715e-11
+                ]
+              },
+              "space": {
+                "texts": [
+                  " yes",
+                  " no"
+                ],
+                "first_tokens": [
+                  9542,
+                  874
+                ],
+                "coverage": 6.593298600856109e-07,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.292682417348514e-07,
+                  3.0061618350759486e-08
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Yes",
+                  "No"
+                ],
+                "first_tokens": [
+                  9175,
+                  2665
+                ],
+                "coverage": 3.658347644806989e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.6511284068593786e-09,
+                  7.2192379476104076e-12
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nyes",
+                  "\nno"
+                ],
+                "first_tokens": [
+                  198,
+                  198
+                ],
+                "coverage": 4.9748126654743e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.48740633273715e-09,
+                  2.48740633273715e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "yes, page immediately",
+                  "no, handle it in business hours"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 4.45741707357397e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.409829958155873e-09,
+                  4.758711541809715e-11
+                ]
+              }
+            }
+          }
+        },
+        "json_field": {
+          "suffix_tokens": 45,
+          "readout": {
+            "row": "cue",
+            "position": 128,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9300587987141967
+              },
+              {
+                "token": 9405,
+                "piece": "yes",
+                "p_full": 0.06497251377939066
+              },
+              {
+                "token": 2083,
+                "piece": "no",
+                "p_full": 0.003823675327726448
+              },
+              {
+                "token": 13602,
+                "piece": "YES",
+                "p_full": 0.0002656448302754911
+              },
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.00014319261459044155
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 6.71225009879554e-05
+              }
+            ],
+            "closer_mass": {
+              "eos": 9.1827151279418e-09,
+              "<|endoftext|>": 6.71225009879554e-05,
+              "<|im_end|>": 0.9300587987141967
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9300587987141967,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "yes",
+                  "no"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 0.0687961891071171,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.06497251377939066,
+                  0.003823675327726448
+                ]
+              },
+              "space": {
+                "texts": [
+                  " yes",
+                  " no"
+                ],
+                "first_tokens": [
+                  9542,
+                  874
+                ],
+                "coverage": 6.208951335410793e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.062746257527257e-05,
+                  1.462050778835367e-06
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Yes",
+                  "No"
+                ],
+                "first_tokens": [
+                  9175,
+                  2665
+                ],
+                "coverage": 3.355710643474307e-05,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.165796036545065e-05,
+                  1.8991460692924206e-06
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nyes",
+                  "\nno"
+                ],
+                "first_tokens": [
+                  198,
+                  198
+                ],
+                "coverage": 0.0002863852291808831,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.00014319261459044155,
+                  0.00014319261459044155
+                ]
+              },
+              "long": {
+                "texts": [
+                  "yes, page immediately",
+                  "no, handle it in business hours"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 0.0687961891071171,
+                "reliability": "low_mass",
+                "first_mass": [
+                  0.06497251377939066,
+                  0.003823675327726448
+                ]
+              }
+            }
+          }
+        },
+        "two_step_shipped": {
+          "suffix_tokens": 41,
+          "readout": {
+            "row": "advanced",
+            "position": 125,
+            "top_tokens": [
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.999958324568583
+              },
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 3.6171420830973194e-05
+              },
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 1.8334830756383867e-06
+              },
+              {
+                "token": 9542,
+                "piece": " yes",
+                "p_full": 1.0820697423197235e-06
+              },
+              {
+                "token": 1358,
+                "piece": "\n\n\n",
+                "p_full": 5.604289358392277e-07
+              },
+              {
+                "token": 874,
+                "piece": " no",
+                "p_full": 4.4670979617010005e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 7.780635075397113e-14,
+              "<|endoftext|>": 6.791024133773671e-08,
+              "<|im_end|>": 3.6171420830973194e-05
+            },
+            "cue": {
+              "refused": false,
+              "token": 271,
+              "closer": null,
+              "mass": 0.999958324568583
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "yes",
+                  "no"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 1.7934219263029026e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.4965293801435684e-08,
+                  2.9689254615933406e-09
+                ]
+              },
+              "space": {
+                "texts": [
+                  " yes",
+                  " no"
+                ],
+                "first_tokens": [
+                  9542,
+                  874
+                ],
+                "coverage": 1.5287795384898237e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.0820697423197235e-06,
+                  4.4670979617010005e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Yes",
+                  "No"
+                ],
+                "first_tokens": [
+                  9175,
+                  2665
+                ],
+                "coverage": 9.046396110244993e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  6.936204127119756e-10,
+                  2.1101919831252367e-10
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nyes",
+                  "\nno"
+                ],
+                "first_tokens": [
+                  198,
+                  198
+                ],
+                "coverage": 3.6669661512767734e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8334830756383867e-06,
+                  1.8334830756383867e-06
+                ]
+              },
+              "long": {
+                "texts": [
+                  "yes, page immediately",
+                  "no, handle it in business hours"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 1.7934219263029026e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.4965293801435684e-08,
+                  2.9689254615933406e-09
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248069,
+            "piece": "</think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 124,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9999776749299579
+              },
+              {
+                "token": 248069,
+                "piece": "</think>",
+                "p_full": 1.086061233513197e-05
+              },
+              {
+                "token": 15666,
+                "piece": "Answer",
+                "p_full": 7.166387774841e-06
+              },
+              {
+                "token": 2083,
+                "piece": "no",
+                "p_full": 1.1803330576751233e-06
+              },
+              {
+                "token": 71093,
+                "piece": "```",
+                "p_full": 7.167170127189776e-07
+              },
+              {
+                "token": 8944,
+                "piece": "answer",
+                "p_full": 5.517909592919181e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 3.354470550888975e-12,
+              "<|endoftext|>": 1.5913986248956964e-08,
+              "<|im_end|>": 0.9999776749299579
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9999776749299579,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "yes",
+                  "no"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 1.1984665765431164e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8133518867993086e-08,
+                  1.1803330576751233e-06
+                ]
+              },
+              "space": {
+                "texts": [
+                  " yes",
+                  " no"
+                ],
+                "first_tokens": [
+                  9542,
+                  874
+                ],
+                "coverage": 4.349573723003147e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.410585319040041e-10,
+                  3.608515191099143e-09
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Yes",
+                  "No"
+                ],
+                "first_tokens": [
+                  9175,
+                  2665
+                ],
+                "coverage": 1.690401048111549e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.1500874890741743e-09,
+                  1.5753922992041313e-08
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nyes",
+                  "\nno"
+                ],
+                "first_tokens": [
+                  198,
+                  198
+                ],
+                "coverage": 1.4214245928329994e-08,
+                "reliability": "low_mass",
+                "first_mass": [
+                  7.107122964164997e-09,
+                  7.107122964164997e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "yes, page immediately",
+                  "no, handle it in business hours"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 1.1984665765431164e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.8133518867993086e-08,
+                  1.1803330576751233e-06
+                ]
+              }
+            }
+          }
+        },
+        "two_step_answer_is": {
+          "suffix_tokens": 45,
+          "readout": {
+            "row": "advanced",
+            "position": 129,
+            "top_tokens": [
+              {
+                "token": 271,
+                "piece": "\n\n",
+                "p_full": 0.8225993744856833
+              },
+              {
+                "token": 198,
+                "piece": "\n",
+                "p_full": 0.17644784300667285
+              },
+              {
+                "token": 561,
+                "piece": " The",
+                "p_full": 0.0005199289921129658
+              },
+              {
+                "token": 1639,
+                "piece": "\\n",
+                "p_full": 0.00014401258715709283
+              },
+              {
+                "token": 318,
+                "piece": " (",
+                "p_full": 4.705746335356406e-05
+              },
+              {
+                "token": 59,
+                "piece": "\\",
+                "p_full": 4.5736583249935135e-05
+              }
+            ],
+            "closer_mass": {
+              "eos": 4.464839957678449e-12,
+              "<|endoftext|>": 2.658295269458457e-07,
+              "<|im_end|>": 2.832589275110634e-05
+            },
+            "cue": {
+              "refused": false,
+              "token": 271,
+              "closer": null,
+              "mass": 0.8225993744856833
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "yes",
+                  "no"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 8.377762764248191e-12,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.3758209703200625e-12,
+                  4.001941793928129e-12
+                ]
+              },
+              "space": {
+                "texts": [
+                  " yes",
+                  " no"
+                ],
+                "first_tokens": [
+                  9542,
+                  874
+                ],
+                "coverage": 1.1302356384261442e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  5.829804182887431e-10,
+                  5.47255220137401e-10
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Yes",
+                  "No"
+                ],
+                "first_tokens": [
+                  9175,
+                  2665
+                ],
+                "coverage": 6.817968170282395e-11,
+                "reliability": "low_mass",
+                "first_mass": [
+                  3.631090719751348e-11,
+                  3.1868774505310476e-11
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nyes",
+                  "\nno"
+                ],
+                "first_tokens": [
+                  198,
+                  198
+                ],
+                "coverage": 0.3528956860133457,
+                "reliability": "ok",
+                "first_mass": [
+                  0.17644784300667285,
+                  0.17644784300667285
+                ]
+              },
+              "long": {
+                "texts": [
+                  "yes, page immediately",
+                  "no, handle it in business hours"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 8.377762764248191e-12,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.3758209703200625e-12,
+                  4.001941793928129e-12
+                ]
+              }
+            }
+          },
+          "advance": {
+            "rule": "content",
+            "token": 248068,
+            "piece": "<think>"
+          },
+          "cue_row": {
+            "row": "cue",
+            "position": 128,
+            "top_tokens": [
+              {
+                "token": 248046,
+                "piece": "<|im_end|>",
+                "p_full": 0.9997036823344433
+              },
+              {
+                "token": 248068,
+                "piece": "<think>",
+                "p_full": 0.0002888735246636978
+              },
+              {
+                "token": 10992,
+                "piece": "？",
+                "p_full": 1.3762963105053115e-06
+              },
+              {
+                "token": 9542,
+                "piece": " yes",
+                "p_full": 9.394874618740034e-07
+              },
+              {
+                "token": 874,
+                "piece": " no",
+                "p_full": 7.867241018085299e-07
+              },
+              {
+                "token": 248044,
+                "piece": "<|endoftext|>",
+                "p_full": 4.5608847111675795e-07
+              }
+            ],
+            "closer_mass": {
+              "eos": 5.046512141032553e-13,
+              "<|endoftext|>": 4.5608847111675795e-07,
+              "<|im_end|>": 0.9997036823344433
+            },
+            "cue": {
+              "refused": true,
+              "token": 248046,
+              "closer": "<|im_end|>",
+              "mass": 0.9997036823344433,
+              "hint": "docs/TEMPLATES.md §4 (the label policy, measured) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it instead of answering"
+            },
+            "labels": {
+              "bare": {
+                "texts": [
+                  "yes",
+                  "no"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 2.503577239555576e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.1978053995629815e-09,
+                  3.0577183999259435e-10
+                ]
+              },
+              "space": {
+                "texts": [
+                  " yes",
+                  " no"
+                ],
+                "first_tokens": [
+                  9542,
+                  874
+                ],
+                "coverage": 1.7262115636825334e-06,
+                "reliability": "low_mass",
+                "first_mass": [
+                  9.394874618740034e-07,
+                  7.867241018085299e-07
+                ]
+              },
+              "caps": {
+                "texts": [
+                  "Yes",
+                  "No"
+                ],
+                "first_tokens": [
+                  9175,
+                  2665
+                ],
+                "coverage": 4.975174104524983e-10,
+                "reliability": "low_mass",
+                "first_mass": [
+                  4.775343857893526e-10,
+                  1.9983024663145727e-11
+                ]
+              },
+              "newline": {
+                "texts": [
+                  "\nyes",
+                  "\nno"
+                ],
+                "first_tokens": [
+                  198,
+                  198
+                ],
+                "coverage": 3.0626681442939687e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  1.5313340721469844e-09,
+                  1.5313340721469844e-09
+                ]
+              },
+              "long": {
+                "texts": [
+                  "yes, page immediately",
+                  "no, handle it in business hours"
+                ],
+                "first_tokens": [
+                  9405,
+                  2083
+                ],
+                "coverage": 2.503577239555576e-09,
+                "reliability": "low_mass",
+                "first_mass": [
+                  2.1978053995629815e-09,
+                  3.0577183999259435e-10
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ranked": {
+        "shipped=bare": {
+          "probabilities": {
+            "yes": 0.014120893616111668,
+            "no": 0.9858791063838883
+          },
+          "sequence_scores": {
+            "[2083]": -13.606692895016913,
+            "[9405]": -17.852571114621405
+          },
+          "got": "no",
+          "confidence": 0.9717582127677766,
+          "shape": "shipped",
+          "label": "bare",
+          "coverage": 1.2498695739151354e-06,
+          "reliability": "low_mass",
+          "correct": false,
+          "top_coverage": "no",
+          "agrees": true
+        },
+        "two_step_shipped=bare": {
+          "probabilities": {
+            "yes": 0.8344547137486096,
+            "no": 0.16554528625139048
+          },
+          "sequence_scores": {
+            "[2083]": -19.635065747039608,
+            "[9405]": -18.017532063262752
+          },
+          "got": "yes",
+          "confidence": 0.6689094274972192,
+          "shape": "two_step_shipped",
+          "label": "bare",
+          "coverage": 1.7934219263029026e-08,
+          "reliability": "low_mass",
+          "correct": true,
+          "top_coverage": "yes",
+          "agrees": true
+        },
+        "answer_is=bare": {
+          "probabilities": {
+            "yes": 0.9631834032411928,
+            "no": 0.03681659675880723
+          },
+          "sequence_scores": {
+            "[2083]": -22.249817912570492,
+            "[9405]": -18.98552281140472
+          },
+          "got": "yes",
+          "confidence": 0.9263668064823856,
+          "shape": "answer_is",
+          "label": "bare",
+          "coverage": 5.901782718630788e-09,
+          "reliability": "low_mass",
+          "correct": true,
+          "top_coverage": "yes",
+          "agrees": true
+        }
+      },
+      "prefill_ms": 127769.4,
+      "backend_claim": "cpu",
+      "backend_source": "explicit",
+      "device_log_tail": "sched_reserve:        CPU compute buffer size =   501.52 MiB\nsched_reserve: graph nodes  = 3787\nsched_reserve: graph splits = 1\nsched_reserve: reserve took 19.57 ms, sched copies = 1",
+      "cue_decode_s": 288.4,
+      "advance_decode_s": 45.4
+    }
+  ],
+  "wall_s": 767.4,
+  "device_log_tail": "repack: repack tensor blk.36.ffn_gate_exps.weight with q4_K_8x8\nrepack: repack tensor blk.37.ffn_gate_exps.weight with q4_K_8x8\n.\nrepack: repack tensor blk.38.ffn_gate_exps.weight with q4_K_8x8\n.\n"
+}
