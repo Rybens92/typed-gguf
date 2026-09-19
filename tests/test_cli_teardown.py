@@ -20,9 +20,13 @@ import importlib
 import pathlib
 import subprocess
 import sys
+import types
+
+import pytest
 
 import ggufone
 from ggufone import cli
+from ggufone.runtime import teardown
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 #: the checkout's `src/`: the child processes import the working tree, not an installed copy
@@ -160,3 +164,71 @@ def test_main_still_returns_the_code_in_process() -> None:
     """Every existing caller (`tests/`, the API) keeps a pure function — never a process exit."""
     assert cli.main(["--help"]) == 0
     assert cli.main(["definitely-not-a-command"]) == 2
+
+
+# ------------------------------------------------- the remedy, in this process (mutmut's eyes)
+# The child-process gates above are the real contract, but they run the remedy in *another*
+# process: a mutation run (and a coverage run) sees no executed line of `runtime/teardown.py`.
+# These two drive the same functions here, with the exit itself spied on, so "flush, then end" and
+# "follow the loader" are pinned where a sweep can see them.
+class _Spy:
+    """A stream that records the order its `flush` was called in."""
+
+    def __init__(self, name: str, log: list[str]) -> None:
+        self.name, self.log = name, log
+
+    def flush(self) -> None:
+        self.log.append(self.name)
+
+
+class _Exited(Exception):
+    """What the spied `os._exit` raises, so the test can carry on after the call."""
+
+    def __init__(self, code: int) -> None:
+        super().__init__(code)
+        self.code = code
+
+
+def test_end_process_flushes_both_streams_before_it_exits(monkeypatch) -> None:
+    """Order matters: the code is the process's, and the bytes are on the wire before it dies."""
+    log: list[str] = []
+
+    def _exit(code: int) -> None:
+        log.append(f"exit={code}")
+        raise _Exited(code)
+
+    monkeypatch.setattr(teardown, "os", types.SimpleNamespace(_exit=_exit))
+    monkeypatch.setattr(teardown.sys, "stdout", _Spy("stdout", log))
+    monkeypatch.setattr(teardown.sys, "stderr", _Spy("stderr", log))
+    with pytest.raises(_Exited) as exited:
+        teardown.end_process(3)
+    assert exited.value.code == 3
+    assert log == ["stdout", "stderr", "exit=3"]
+
+
+def test_end_process_survives_a_stream_that_cannot_be_flushed(monkeypatch) -> None:
+    """A closed stream must not change the exit status (the report file is already written)."""
+    log: list[str] = []
+
+    class _Broken:
+        def flush(self) -> None:
+            raise ValueError("I/O operation on closed file")
+
+    def _exit(code: int) -> None:
+        log.append(f"exit={code}")
+        raise _Exited(code)
+
+    monkeypatch.setattr(teardown, "os", types.SimpleNamespace(_exit=_exit))
+    monkeypatch.setattr(teardown.sys, "stdout", _Broken())
+    monkeypatch.setattr(teardown.sys, "stderr", _Spy("stderr", log))
+    with pytest.raises(_Exited):
+        teardown.end_process(0)
+    assert log == ["stderr", "exit=0"]
+
+
+def test_engine_loaded_follows_the_loader(monkeypatch) -> None:
+    """The branch `cli.run` takes is the loader's answer, not a guess about the command."""
+    monkeypatch.setattr(teardown.ctypes_binding, "loaded_runtimes", lambda: ())
+    assert teardown.engine_loaded() is False
+    monkeypatch.setattr(teardown.ctypes_binding, "loaded_runtimes", lambda: ("/fake/bundle",))
+    assert teardown.engine_loaded() is True

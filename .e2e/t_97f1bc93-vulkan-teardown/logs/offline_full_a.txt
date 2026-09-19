@@ -1,0 +1,40 @@
+........................................................................ [  7%]
+.............................sssssss.................................... [ 14%]
+..........s............................................................. [ 21%]
+..................................................................s..... [ 28%]
+........................................................................ [ 35%]
+....................ss.................................................. [ 42%]
+.....................................................sssssss............ [ 49%]
+......................................sssssss.ss........................ [ 56%]
+..................ss.......................ssss......................... [ 63%]
+........................................................................ [ 70%]
+........................................................................ [ 77%]
+....................................F................................... [ 84%]
+.....sssss.............................................................. [ 92%]
+.............................................................ssss....... [ 99%]
+.........                                                                [100%]
+=================================== FAILURES ===================================
+_______________ test_oracle_live_section_is_green_without_skips ________________
+
+    def test_oracle_live_section_is_green_without_skips() -> None:
+        runtime = _installed_runtime()
+        if runtime is None:
+            pytest.skip("no runtime installed (run `ggufone init` or set GGUFONE_RUNTIME_DIR)")
+        import os
+        env = {**os.environ, "GGUFONE_RUNTIME_DIR": str(runtime)}
+        result = run_oracle(env=env)
+        assert result.returncode == 0, result.stdout[-4000:]
+        live = result.stdout.split("[B] live runtime probes")[-1].split("[C] arithmetic mirror")[0]
+        skips = [line for line in live.splitlines() if re.match(r"\s*SKIP ", line)]
+>       assert skips == [], f"section B skipped: {skips}"
+E       AssertionError: section B skipped: ['  SKIP /root/.hermes/models/Spark-X2.5-4B-Q8_0.gguf absent — sha256 download-verify evidence not re-run']
+E       assert ['  SKIP /roo...e not re-run'] == []
+E         
+E         Left contains one more item: '  SKIP /root/.hermes/models/Spark-X2.5-4B-Q8_0.gguf absent — sha256 download-verify evidence not re-run'
+E         Use -v to get more diff
+
+tests/test_runtime_contract.py:66: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+1 failed, 974 passed, 42 skipped in 72.11s (0:01:12)
+EXIT=1

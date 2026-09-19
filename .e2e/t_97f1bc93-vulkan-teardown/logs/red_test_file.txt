@@ -1,0 +1,133 @@
+FFFFFF.                                                                  [100%]
+=================================== FAILURES ===================================
+______ test_the_entry_point_ends_the_process_before_third_party_teardown _______
+
+    def test_the_entry_point_ends_the_process_before_third_party_teardown() -> None:
+        """`cli.run` never returns: the entry point's code is the process's, the handler never runs."""
+        child = PREAMBLE + LOADED_BUNDLE + """
+    from ggufone import cli
+    cli.run(["--help"])
+    sys.stderr.write("ENTRY-POINT-RETURNED\\n")
+    sys.stderr.flush()
+    """
+        completed = run_child(child)
+>       assert completed.returncode == 0, (
+            f"the entry point exited {completed.returncode}, not the CLI's own code\n"
+            f"{completed.stderr[-600:]}")
+E       AssertionError: the entry point exited -11, not the CLI's own code
+E         Traceback (most recent call last):
+E           File "<string>", line 17, in <module>
+E         AttributeError: module 'ggufone.cli' has no attribute 'run'
+E         THIRD-PARTY-TEARDOWN-RAN
+E         
+E       assert -11 == 0
+E        +  where -11 = CompletedProcess(args=['/work/t97-ggufone/.venv/bin/python', '-c', '\nimport sys\nsys.path.insert(0, \'/work/t97-red/s...>", line 17, in <module>\nAttributeError: module \'ggufone.cli\' has no attribute \'run\'\nTHIRD-PARTY-TEARDOWN-RAN\n').returncode
+
+tests/test_cli_teardown.py:78: AssertionError
+_____________ test_the_entry_point_hands_the_cli_code_to_the_shell _____________
+
+    def test_the_entry_point_hands_the_cli_code_to_the_shell() -> None:
+        """The shell sees the code `main` produced, not a signal and not a silent 0."""
+        child = PREAMBLE + LOADED_BUNDLE + """
+    from ggufone import cli
+    cli.run(["definitely-not-a-command"])
+    """
+        completed = run_child(child)
+>       assert completed.returncode == 2, (
+            f"expected the CLI's own 2 (unknown command), got {completed.returncode}\n"
+            f"{completed.stderr[-600:]}")
+E       AssertionError: expected the CLI's own 2 (unknown command), got -11
+E         Traceback (most recent call last):
+E           File "<string>", line 17, in <module>
+E         AttributeError: module 'ggufone.cli' has no attribute 'run'
+E         THIRD-PARTY-TEARDOWN-RAN
+E         
+E       assert -11 == 2
+E        +  where -11 = CompletedProcess(args=['/work/t97-ggufone/.venv/bin/python', '-c', '\nimport sys\nsys.path.insert(0, \'/work/t97-red/s...>", line 17, in <module>\nAttributeError: module \'ggufone.cli\' has no attribute \'run\'\nTHIRD-PARTY-TEARDOWN-RAN\n').returncode
+
+tests/test_cli_teardown.py:94: AssertionError
+_____________ test_the_streams_are_flushed_before_the_process_ends _____________
+
+    def test_the_streams_are_flushed_before_the_process_ends() -> None:
+        """A piped stdout is block-buffered: the usage text survives only if it was flushed."""
+        child = PREAMBLE + LOADED_BUNDLE + """
+    from ggufone import cli
+    cli.run(["--help"])
+    """
+        completed = run_child(child)
+>       assert completed.returncode == 0
+E       assert -11 == 0
+E        +  where -11 = CompletedProcess(args=['/work/t97-ggufone/.venv/bin/python', '-c', '\nimport sys\nsys.path.insert(0, \'/work/t97-red/s...>", line 17, in <module>\nAttributeError: module \'ggufone.cli\' has no attribute \'run\'\nTHIRD-PARTY-TEARDOWN-RAN\n').returncode
+
+tests/test_cli_teardown.py:106: AssertionError
+_____ test_a_process_that_never_loaded_a_bundle_keeps_the_normal_shutdown ______
+
+    def test_a_process_that_never_loaded_a_bundle_keeps_the_normal_shutdown() -> None:
+        """Only the process that dlopened a bundle ends deliberately; everything else is untouched."""
+        child = PLAIN_PREAMBLE + """
+    from ggufone import cli
+    try:
+        cli.run(["--help"])
+    except SystemExit as exc:
+        sys.stderr.write(f"SYSTEM-EXIT-{exc.code}\\n")
+        sys.stderr.flush()
+    """
+        completed = run_child(child)
+>       assert completed.returncode == 0, completed.stderr[-600:]
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 7, in <module>
+E         AttributeError: module 'ggufone.cli' has no attribute 'run'
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/work/t97-ggufone/.venv/bin/python', '-c', '\nimport sys\nsys.path.insert(0, \'/work/t97-red/s...all last):\n  File "<string>", line 7, in <module>\nAttributeError: module \'ggufone.cli\' has no attribute \'run\'\n').returncode
+
+tests/test_cli_teardown.py:123: AssertionError
+___________ test_the_module_entry_point_runs_the_process_entry_point ___________
+
+    def test_the_module_entry_point_runs_the_process_entry_point() -> None:
+        """`python -m ggufone` — the command every live gate and the isolation child uses."""
+        child = PREAMBLE + LOADED_BUNDLE + """
+    import runpy, sys
+    sys.argv = ["ggufone", "--help"]
+    runpy.run_module("ggufone", run_name="__main__", alter_sys=True)
+    sys.stderr.write("ENTRY-POINT-RETURNED\\n")
+    sys.stderr.flush()
+    """
+        completed = run_child(child)
+>       assert completed.returncode == 0, (
+            f"`python -m ggufone` exited {completed.returncode}\n{completed.stderr[-600:]}")
+E       AssertionError: `python -m ggufone` exited -11
+E         THIRD-PARTY-TEARDOWN-RAN
+E         
+E       assert -11 == 0
+E        +  where -11 = CompletedProcess(args=['/work/t97-ggufone/.venv/bin/python', '-c', '\nimport sys\nsys.path.insert(0, \'/work/t97-red/s...ite("ENTRY-POINT-RETURNED\\n")\nsys.stderr.flush()\n'], returncode=-11, stdout='', stderr='THIRD-PARTY-TEARDOWN-RAN\n').returncode
+
+tests/test_cli_teardown.py:140: AssertionError
+__________ test_the_console_script_points_at_the_process_entry_point ___________
+
+    def test_the_console_script_points_at_the_process_entry_point() -> None:
+        """`ggufone …` in a shell gets the same story as `python -m ggufone …`."""
+        import tomllib
+    
+        payload = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+        target = payload["project"]["scripts"]["ggufone"]
+>       assert target == "ggufone.cli:run", (
+            f"the console script points at {target}: it must use the entry point that ends the "
+            f"process itself (ggufone.cli:run)")
+E       AssertionError: the console script points at ggufone.cli:main: it must use the entry point that ends the process itself (ggufone.cli:run)
+E       assert 'ggufone.cli:main' == 'ggufone.cli:run'
+E         
+E         - ggufone.cli:run
+E         ?             ^^
+E         + ggufone.cli:main
+E         ?             ^^^
+
+tests/test_cli_teardown.py:152: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_cli_teardown.py::test_the_entry_point_ends_the_process_before_third_party_teardown
+FAILED tests/test_cli_teardown.py::test_the_entry_point_hands_the_cli_code_to_the_shell
+FAILED tests/test_cli_teardown.py::test_the_streams_are_flushed_before_the_process_ends
+FAILED tests/test_cli_teardown.py::test_a_process_that_never_loaded_a_bundle_keeps_the_normal_shutdown
+FAILED tests/test_cli_teardown.py::test_the_module_entry_point_runs_the_process_entry_point
+FAILED tests/test_cli_teardown.py::test_the_console_script_points_at_the_process_entry_point
+6 failed, 1 passed in 2.24s

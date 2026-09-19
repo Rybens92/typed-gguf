@@ -134,8 +134,8 @@ def device_pressure(tmp_path: pathlib.Path, *, model: pathlib.Path, bundle: str,
                                              seconds=PRESSURE_SECONDS), encoding="utf-8")
     log_path = tmp_path / "pressure.log"
     with log_path.open("w", encoding="utf-8") as log:
-        child = subprocess.Popen([sys.executable, str(script)], stdout=log, stderr=subprocess.STDOUT,
-                                 text=True, env=child_env())
+        child = subprocess.Popen([sys.executable, str(script)], stdout=log,
+                                 stderr=subprocess.STDOUT, text=True, env=child_env())
         try:
             deadline = time.monotonic() + PRESSURE_READY_TIMEOUT
             ready = False
