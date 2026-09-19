@@ -66,6 +66,8 @@ from ggufone.engine import session as session_module  # noqa: E402
 SCHEMA = "ggufone.e3c.cue-shapes/v1"
 DEFAULT_THREADS = 4
 DEFAULT_VK_DRIVER_FILES = "/work/e3scratch/nvidia_egl_icd.json"
+#: `--hide-devices`: an ICD manifest that does not exist, so the Vulkan loader enumerates nothing
+HIDDEN_ICD = "/nonexistent/no-vulkan-icd.json"
 DEFAULT_STATES_HOME = "/work/e3c/states"
 DEFAULT_TOP_TOKENS = 6
 MAX_SEQUENCES = 64
@@ -181,7 +183,8 @@ def row_block(row: Sequence[float], scale: float, handle: Any, *, which: str, po
 def measure_item(handle: session_module.ModelHandle, item: devset.DevItem, *, shapes: Sequence[Shape],
                  variants: Sequence[str], rank: Sequence[tuple[str, str]], threads: int,
                  states_home: pathlib.Path, length_norm: float, temperature: float,
-                 max_sequences: int, top_tokens_count: int) -> dict[str, Any]:
+                 max_sequences: int, top_tokens_count: int,
+                 backend: str | None = None) -> dict[str, Any]:
     """One dev item: prefill once, one batched decode for every shape, one step for the two-steps."""
     n_seq_max = max(1 + len(shapes) + 4 * len(item.criteria) + 4, 8)
     request = e3b.request_for_item(item, threads=threads, n_seq_max=n_seq_max)
@@ -199,10 +202,13 @@ def measure_item(handle: session_module.ModelHandle, item: devset.DevItem, *, sh
         "prefix_tokens": fixed.n_prefix, "n_ctx": fixed.n_ctx, "n_seq_max": fixed.n_seq_max,
         "prefix_tail": rendered[-60:], "opener": {shape.name: shape.opener for shape in shapes},
         "shapes": {}, "ranked": {}}
-    with session_module.ModelSession(handle, fixed, backend="vulkan", states_home=states_home,
+    with session_module.ModelSession(handle, fixed, backend=backend, states_home=states_home,
                                      log=[]) as live:
         info = live.prefill(list(fixed.prefix_tokens), state_cache=False)
         record["prefill_ms"] = round(info.prefill_ms, 1)
+        record["backend_claim"] = live.backend
+        record["backend_source"] = live.backend_source
+        record["device_log_tail"] = "\n".join(live.device_log.splitlines()[-4:])
         wanted: list[tuple[int, Sequence[int]]] = []
         heads: dict[str, int] = {}
         for index, shape in enumerate(shapes, start=1):
@@ -420,9 +426,11 @@ def render_report(record: Mapping[str, Any]) -> str:
         "",
         f"- card `t_6c119626` · model `{model.get('name')}` "
         f"({model.get('bytes') or 0:,} bytes, sha256 `{str(record.get('model_sha256'))[:16]}…`)",
-        f"- runtime `{record['runtime']}` · backend `vulkan` · threads {record['threads']} "
+        f"- runtime `{record['runtime']}` · backend claim `{record.get('backend_claim') or 'n/a'}`"
+        f" ({record.get('backend_source') or 'n/a'}) · threads {record['threads']} "
         f"· `--gpu-layers` requested {record['gpu_layers']}",
         f"- placement used: `{json.dumps(record['placement'])}`",
+        f"- engine device log (tail): `{(record['items'][0].get('device_log_tail') or 'n/a')[-200:]}`"
         f"- dev items: {', '.join(item['id'] for item in record['items'])} "
         f"({', '.join(f'{key} {value}' for key, value in sorted(record['counts'].items()))}) "
         f"· label variants: {', '.join(f'`{name}`' for name in record['label_variants'])} "
@@ -459,7 +467,14 @@ def render_report(record: Mapping[str, Any]) -> str:
 
 # --------------------------------------------------------------------------- live driver
 def live_run(args: argparse.Namespace) -> int:
-    os.environ.setdefault("VK_DRIVER_FILES", args.vk_driver_files)
+    if getattr(args, "hide_devices", False):
+        # a deterministic CPU-only run: the Vulkan loader finds no ICD, ggml-vulkan reports no
+        # devices and every tensor stays on the CPU (the E2 4B baseline is a CPU number, and the
+        # sibling campaign owns the GPU here)
+        os.environ["VK_DRIVER_FILES"] = HIDDEN_ICD
+        os.environ["VK_ICD_FILENAMES"] = HIDDEN_ICD
+    else:
+        os.environ.setdefault("VK_DRIVER_FILES", args.vk_driver_files)
     model_path = str(pathlib.Path(os.path.expanduser(args.model)))
     runtime = args.runtime or os.environ.get("GGUFONE_RUNTIME_DIR")
     items = select_items(devset.load(args.devset), ids=args.ids, per_type=args.per_type,
@@ -491,6 +506,7 @@ def live_run(args: argparse.Namespace) -> int:
         "model": harness.model_facts(model_path),
         "model_sha256": sha, "runtime": str(handle.runtime.directory),
         "threads": args.threads, "gpu_layers": args.gpu_layers,
+        "backend_claim": "", "backend_source": "",
         "placement": handle.placement.to_dict(), "load_ms": round(handle.load_ms, 1),
         "shapes": [shape.name for shape in shapes],
         "label_variants": list(args.label_variants),
@@ -507,8 +523,10 @@ def live_run(args: argparse.Namespace) -> int:
                                  rank=rank, threads=args.threads, states_home=states,
                                  length_norm=args.length_norm, temperature=args.temperature,
                                  max_sequences=args.max_sequences,
-                                 top_tokens_count=args.top_tokens)
+                                 top_tokens_count=args.top_tokens, backend=args.backend)
             record["items"].append(piece)
+            record["backend_claim"] = piece.get("backend_claim", "")
+            record["backend_source"] = piece.get("backend_source", "")
             print(json.dumps({
                 "item": item.id,
                 "shapes": {name: {
@@ -555,7 +573,12 @@ def main(argv: list[str] | None = None) -> int:
                      help="shape=label policies to score fully (repeatable)")
     run.add_argument("--top-tokens", dest="top_tokens", type=int, default=DEFAULT_TOP_TOKENS)
     run.add_argument("--threads", type=int, default=DEFAULT_THREADS)
+    run.add_argument("--backend", default=None,
+                     help="the `engine.backend` claim this run publishes (`cpu`, `vulkan`); "
+                          "default: the bundle's own record")
     run.add_argument("--gpu-layers", dest="gpu_layers", type=int, default=7)
+    run.add_argument("--hide-devices", dest="hide_devices", action="store_true",
+                     help="CPU-only: point the Vulkan loader at an ICD that does not exist")
     run.add_argument("--length-norm", dest="length_norm", type=float, default=1.0)
     run.add_argument("--temperature", type=float, default=1.0)
     run.add_argument("--max-sequences", dest="max_sequences", type=int, default=MAX_SEQUENCES)
