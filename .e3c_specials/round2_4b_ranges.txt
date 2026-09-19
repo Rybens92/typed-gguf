@@ -1,0 +1,7 @@
+receipt: .e3c_specials/4b_verdicts.json  (20 rows, Spark-X2.5-4B-Q8_0 · serving shape · CPU · n_seq_max 8 · 20 questions)
+cue mass   min=0.892533 (c19)  max=0.998772 (c20)
+coverage   min=4.6529e-07 (c10)  max=0.0545063 (c18)
+refused    before=0/20  after=0/20
+measured   0/20 -> 0/20
+cue ids    {'198': 20}
+identical  coverage=True reliability=True answers=True

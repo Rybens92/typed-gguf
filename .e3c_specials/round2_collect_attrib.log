@@ -1,0 +1,14 @@
+== committed tree /work/t635/committed-head (8938950, no sibling WIP)
+tests/test_typesafe_adapter.py::test_noul_answers_carry_no_confidence_in_either_format
+
+1249 tests collected in 1.20s
+
+== live shared tree /var/home/rybens/workspace/ggufone (sibling WIP untracked files present)
+tests/test_typesafe_adapter.py::test_noul_answers_carry_no_confidence_in_either_format
+
+1286 tests collected in 1.80s
+
+== untracked test files in the live tree
+ M tests/test_e3c_cue_refused.py
+?? tests/test_e3d_cue_decision.py
+?? tests/test_e3d_cue_switch.py

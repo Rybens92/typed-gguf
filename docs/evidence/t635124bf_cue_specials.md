@@ -1,7 +1,8 @@
 # E3c FIX — the *second* silent refusal: a special token the catalogue cannot name
 
-Card `t_635124bf` (code-tdd) · 2026-09-19 · branch `wt/t_635124bf`, first commit `331240c`
-(the fix + gates), this document and its receipts after it.
+Card `t_635124bf` (code-tdd) · 2026-09-19 · commits on `main` in the shared tree (no git remote is
+configured there, so nothing was pushed), first commit `331240c` (the fix + gates), this document and
+its receipts after it.
 
 The card asked for one thing: the E3c verdict (`engine/cue.py`, card `t_6c119626`) refused a cue row
 only when the row's argmax was one of the **documented turn-closer strings** the session's tokenizer
@@ -156,8 +157,11 @@ Spark-X2.5-4B-Q8_0 (CPU, `--backend cpu`, one state, `n_seq_max` 8, the same 20 
 pre-fix tree and post-fix tree, `4b_verdicts.json` + `mutmut`-style receipts:
 
 * cue argmax on **all 20** items: token **198** = `Ċ` — a **newline**, `token_type` `NORMAL`,
-  `special: false`, mass 0.9784 … 0.9978. Nothing for this detector to catch.
-* **refusals 0/20 before → 0/20 after**; `measured` 0/20 → 0/20; `coverage` 2.3e-04 … 1.4e-03.
+  `special: false`, mass **0.892533 … 0.998772** (low c19, high c20). Nothing for this detector to catch.
+* **refusals 0/20 before → 0/20 after**; `measured` 0/20 → 0/20; `coverage` **4.6529e-07 … 5.4506e-02**
+  (low c10, high c18 — both ranges re-read off the 20 rows of `.e3c_specials/4b_verdicts.json` with
+  `.e3c_specials/round2_4b_ranges.py`, log `.txt` beside it). The starvation is deeper here than on
+  Tiel, it is simply not a refusal: the mass sits on a content token.
 * So the *starvation* on the serving shape is not Tiel-specific (the 4B starves too, 0/20), but the
   **refusal class is**: the 4B's mass sits on a content token, and the honest verdict for it is
   `low_mass`, not "the model closed the turn".
@@ -187,9 +191,13 @@ pins pass** — the pins must pass on both trees, so the count is the honest one
 ## 7. The suite, the lint, the Tier-M sweep (no tier declared on the card → M)
 
 * `tests/test_e3c_cue_specials.py tests/test_e3c_cue_refused.py tests/test_e3c_cue_shapes.py` →
-  **58 passed**.
-* full `uv run pytest -q` → **1221 passed, 43 skipped** (104.8 s) — includes the two other E3c gate
-  files and every earlier card's gates.
+  **58 passed** (committed tree, same log as the next bullet).
+* full `uv run pytest -q` **on the committed tree** — a clean detached worktree of `8938950`
+  (`/work/t635/committed-head`, no sibling WIP) → **1206 passed, 43 skipped** (117.6 s; 1249 collected)
+  — includes the two other E3c gate files and every earlier card's gates
+  (`.e3c_specials/round2_suite_committed.log`). Round 1 caught this bullet quoting **1221**: that is
+  the *live* shared tree, which additionally collects a sibling card's untracked `tests/test_e3d_*.py`
+  (`.e3c_specials/round2_collect_attrib.log`). The committed tree is the number this card owns.
 * `ruff check src/ggufone tools tests` → clean for every file this card touches (the two remaining
   `E501`s are in a sibling card's untracked `tests/test_e3d_cue_decision.py` /
   `tools/e3d_cue_decision.py`, which this card does not own).
@@ -238,4 +246,7 @@ pins pass** — the pins must pass on both trees, so the count is the honest one
 .e3c_specials/analyze_tiel.sh             the two commands above, wired to the two responses
 .e3c_specials/run_batch.sh                the serving-shaped runner the re-runs used
 .e3c_specials/census.py · tiel_record.py  the sweep census and the committed run's row read-out
+.e3c_specials/round2_suite_committed.log   the suite on the committed tree (1206 passed / 43 skipped)
+.e3c_specials/round2_collect_attrib.sh|log collect-only in both trees: what the live tree adds
+.e3c_specials/round2_4b_ranges.py|.txt     §5's ranges, re-read off 4b_verdicts.json (20 rows)
 ```
