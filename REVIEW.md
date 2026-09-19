@@ -1,269 +1,108 @@
-# E1a final review — card `t_ee24bd7c` (code-reviewer)
+# E3 completion review — card `t_6d2e084d` (code-reviewer)
 
-- **Verdict: PASS** — no blocking findings at the reviewed final head `1c20ad4`.
-- Reviewers revision history (the head moved *during* this review — see §1):
-  - `3f18890` — as-dispatched head; the duel's survivors (`m08`–`m11`) were verified to survive here:
-    **B1 was blocking at this revision**;
-  - `1c20ad4` — final head after card `t_83ee1eed` landed the B1/B2/B3 pins mid-review; the referee
-    re-run (§2-G) shows every survivor killed. This is the revision the PASS applies to.
-- Environment: podman container, **no GPU / no operator host**: `nvidia-smi` absent, `/dev/dri` absent,
-  `/dev/nvidia*` absent. Python 3.11.15, uv 0.12.0, canonical gate `uv run pytest -q`.
-  For the GPU-shaped runs the host fact was simulated the way the evidence file does it: a fake
-  `nvidia-smi` first on `PATH` (`/tmp/rev/fakebin/nvidia-smi`), plus — for one reproduction only —
-  a synthetic `/dev/dri/renderD128` + `/usr/share/vulkan/icd.d` that were **removed afterwards**
-  (verified gone: `exists? False`).
-- Inputs consumed: the diff `a4ab12e..1c20ad4`, `docs/evidence/e1a_baseline.json`
-  (`e1a_fix_t_eae35404.host`), the adversarial report
-  `docs/evidence/e1a_t_0fc576df_host_access_mutants.md`, the fight dir
-  `/var/home/rybens/workspace/state/fights/e1a-t0fc576df/` (mutants + patches + witnesses).
+- **Verdict: REQUEST CHANGES** — one required correction (F1); everything else I checked reproduces.
+- Reviewed head: `8c9e3e9` (branch `main`, shared tree), round 1 — artifact lens (cold diff read first).
+- File note: this file previously held the E1a final review (`t_ee24bd7c`); that record stays in git at
+  `05f3ee4` and in the E1a board thread.
+- Environment: podman container (no GPU); the repo, all six chunk reports and the 24 GB model file are
+  reachable. Gates run here: `uv run --frozen --extra dev pytest -q`, `ruff` (project config),
+  `python3 tools/e3_build_evidence.py --check`, `sha256sum` on the model, and my own recomputation
+  scripts (`/tmp/e3review/verify1.py`, `verify2.py`, `provenance_ast.py`).
 
----
+## What I verified independently (not from the handoff)
 
-## 1. Summary (what happened, in order)
+**Requirement 1 — the merge covers every chunk that ran.**
+- `e3_occamy_quality.json`: `ok: true`, 60 rows, ids unique, `chunks` = 6 × 10; my deep compare says
+  `merged["items"] == concatenation(report_001..006["items"])` — true, element for element.
+- every report on disk `ok: true` with 10/10 rows; no gap anywhere (the OOM lines in the logs are the
+  degrade ladder, no lost row).
+- `devset_001..006.jsonl` ids equal the committed 60-item dev set exactly (0 duplicates, 0 missing),
+  and each chunk's devset ids equal its report's ids in order.
 
-1. At `3f18890` the reviewed state had a **verified, blocking test-strength hole**: the duel's `m11`
-   (drop the injected `system` in `capability.backends`) survived the task-0 regression file, the full
-   suite **and** the oracle (§2-F). `m08`/`m09` survived the task-0 file (killed only by `test_pins.py`),
-   and `m10` survived the task-0 file *and* the whole suite **in a GPU-less world** (its only killer,
-   `test_recommend_quant.py::test_host_budget_reads_meminfo`, needs a real GPU to bite).
-2. While this review was running, card `t_83ee1eed` (created 21:22, same repo dir workspace) landed
-   commit `1c20ad4` — add-only pins for exactly those four mutants in `tests/test_host_purity.py`
-   (`+126/-1`, the one deletion being a re-used import line).
-3. I re-ran the referee check myself on `1c20ad4` (fresh worktree, the duel's own patches applied,
-   my own script): **m08, m09, m10 and m11 are all killed** by named node ids (§2-G), control green.
-4. Canonical gates on `1c20ad4`: suite green in both worlds, oracle exit 0, the card's 7 named tests
-   pass, pre-fix tree still red as required (§2-A..E).
-5. Because the reviewed subject is a repo that is **actively being edited by a sibling live card**,
-   the PASS is pinned to `1c20ad4`. Any later commit that touches `src/` or `tests/` invalidates the
-   re-run for the changed files.
+**Requirement 2 — the sections are generated, not hand-edited.**
+- `tools/e3_build_evidence.py --check` → `current` for both files, exit 0 (I ran it myself).
+- `tests/test_e3.py` → 28 passed, including the three new gates; the new gate re-renders every marked
+  region and compares it to disk.
+- The commit touches only `docs/*`, `tools/e3_build_evidence.py`, `tests/test_e3.py` — no production
+  line. BENCHMARKS diff hunks are confined to §6.2/§6.4; the evidence-doc diff only replaces the old
+  hand-written n=20 prose with the generated n=60 prose (nothing of substance dropped).
 
-## 2. Evidence — command + output tail per claim
+**Requirement 3 — the `[host]` statement and the tags.**
+- §2.3/§6.2 state the `[host]` run happened (4 of 6 chunks, `report_003..006`) and what it changed
+  (n and the intervals); the per-item *cost* table keeps its `[container]` lead-in.
+- The tags match the reports' own facts, read directly: 001/002 carry
+  `cgroup_memory_bytes=8589934592`/`cgroup_cpu_max=2.0` and a `placement` block, no `devices`;
+  003..006 carry no cgroup keys and `devices`/`device_buffers {Vulkan0: 10, Vulkan_Host: 10}`/
+  `effective_backend: vulkan`.
 
-### A. Canonical suite on the final head (offline semantics: network tests are marked/skipped)
-```
-$ cd /var/home/rybens/workspace/ggufone && git log --oneline -1
-1c20ad4 test(E1a t_83ee1eed): pin the duel's survivors — injected system (m11), unnamed machine (m08), omitted dri_nodes (m09), empty vram probe (m10)
-$ UV_CACHE_DIR=/tmp/uvcache uv run pytest -q
-333 passed, 12 skipped in 5.18s          EXIT=0
-```
+**Requirement 4 — pin, no downloads, no mutation.**
+- I re-hashed `/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf` **in this container
+  today**: `633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757` — identical to
+  `e3c_sha256_receipt.json` (`identical: true`), to both receipts' before/after and to E3's pin; mtime
+  `2026-09-18 09:18` predates the run. The host log records only local paths (no download).
+- Tier M / mutation: no new production surface in this diff; the mutmut pair is owned by the sibling
+  E3b sweep — consistent with the repo's own convention (pyproject comments; E1a precedent).
 
-### B. Same suite in the GPU-shaped world (the host's shape, simulated)
-```
-$ PATH=/tmp/rev/fakebin:$PATH uv run pytest -q
-333 passed, 12 skipped in 5.11s          EXIT=0
-```
+**Numbers — recomputed from the raw rows, not from the renderer.**
+- An independent Wilson implementation reproduces every published cell: 4B 0.633 (38/60) [0.507–0.744],
+  Occamy 0.517 (31/60) [0.393–0.638], delta −0.117, choice 0.750/0.625, noul 0.889/0.389, score
+  0.222/0.500, low_mass 0.500 (6/12)/0.509 (29/57), measured 0.667 (32/48)/0.667 (2/3); `--align`
+  drops 0/0; the intervals overlap.
+- Chunk facts: per-chunk medians 113.2/99.5/49.2/42.7/47.0/44.6 s — the published "42.7–49.2 s/item
+  against 99–113 s in the container" holds; the log's own boundaries (545/492/524/477 s, start
+  15:55:21 CEST, done 16:29:19) match `e3c_host_run.log`; `report_003`'s first two rows match the §2.3
+  table (`n07` 23,408 ms / 46.9 s / ✘(`no`) / 0.037; `c08` 28,577 ms / 49.1 s / ✔(`business_hours`) /
+  0.052); `report_002`'s placement block says exactly what §2.3 prints.
+- §4.4's core provenance claim is true: an AST walk over **all 13 revisions** of
+  `src/ggufone/bench/suites.py` shows a report-level `placement` block is never written by
+  `_run_quality` (only `_run_latency`, plus per-row fields in throughput/determinism).
 
-### C. Runtime-contract oracle
-```
-$ python3 docs/verify_runtime_contract.py
-failures: 0  skips: 3                    EXIT=0
-```
-(the 3 skips are the runtime/model-absent ones in this container; section B live was covered by
-`t_3831b7b3` and the coordinator's host run — §5)
+## Suite state
 
-### D. The two originally-failing tests + the 5 CLI tests using the same mapping
-```
-$ uv run pytest -q \
-    tests/test_pins.py::test_detect_backend[probes2-vulkan] \
-    tests/test_pins.py::test_host_variant_mapping[auto-linux-x86_64-linux-x64-cpu] \
-    tests/test_cli_doctor_branches.py::test_init_text_mode_with_the_offline_cache \
-    tests/test_cli_e1a.py::test_init_dry_run_json_prints_the_plan_and_writes_nothing \
-    tests/test_cli_e1a.py::test_init_dry_run_text_says_so \
-    tests/test_cli_e1a.py::test_init_from_offline_cache_with_a_poisoned_path \
-    tests/test_cli_e1a.py::test_init_twice_is_idempotent
-7 passed in 0.08s                        EXIT=0
-```
-(also verified on the pinned `3f18890` worktree: `7 passed`)
+`uv run --frozen --extra dev pytest -q` → `1 failed, 1116 passed, 44 skipped`; the one failure is
+`tests/test_e3b_labels.py::test_a_table_with_any_sub_5e_05_value_prints_in_scientific_notation`, which
+lives in the **27 uncommitted lines of the sibling card `t_6952f0dd`** in this shared tree — not in
+this card's diff. With that file ignored: `1073 passed, 44 skipped, 0 failed` (total 1117 = the
+implementer's 1074+43; one test moves between pass/skip on this box). `ruff` (project config) is clean
+on both changed code files; the 213 repo-wide ruff hits all sit in untracked scratch trees
+(`.e3b/mutants_old_1446`, `.e2e/…`, `mutants-e1c-backup`, `.e3c_scratch`).
+(One earlier full-suite run showed 24 transient failures in the probe/runtime files; two consecutive
+re-runs since are green apart from the sibling test. Container flake, not attributable to this diff.)
 
-### E. The regression test genuinely FAILS on pre-fix code
-Pre-fix tree = `a4ab12e`, detached worktree `/tmp/rev/prea4a`, final test file dropped in unchanged,
-GPU-shaped world:
-```
-$ PATH=/tmp/rev/fakebin:$PATH python3 -m pytest -q tests/test_host_purity.py
-11 failed in 0.14s                       EXIT=1
-$ PATH=/tmp/rev/fakebin:$PATH python3 -m pytest -q          # whole pre-fix suite
-18 failed, 254 passed, 11 skipped in 0.91s   EXIT=1
-```
-The 7 non-purity failures are **exactly** the coordinator's host set (5 CLI + 2 pins):
-```
-FAILED tests/test_cli_doctor_branches.py::test_init_text_mode_with_the_offline_cache
-FAILED tests/test_cli_e1a.py::test_init_dry_run_json_prints_the_plan_and_writes_nothing
-FAILED tests/test_cli_e1a.py::test_init_dry_run_text_says_so
-FAILED tests/test_cli_e1a.py::test_init_from_offline_cache_with_a_poisoned_path
-FAILED tests/test_cli_e1a.py::test_init_twice_is_idempotent
-FAILED tests/test_pins.py::test_host_variant_mapping[auto-linux-x86_64-linux-x64-cpu]
-FAILED tests/test_pins.py::test_detect_backend[probes2-vulkan]
-```
-(The 11 new tests also fail in a plain GPU-less world — same count, so the red is not an artifact of
-the simulated GPU facts.)
+## Findings
 
-### F. Duels' survivors at the as-dispatched head `3f18890` (my re-run, fight copies)
-The fight `base/` is a byte-faithful copy of the reviewed tree for the relevant files
-(`sha256 capability.py 05193de8…`, `pins.py 5ae4f0e1…`, `install.py 82b61ddd…`,
-`finder.py 5926b87f…` all equal to HEAD; `tests/test_host_purity.py` equal to
-`git show 3f18890:tests/test_host_purity.py`).
-```
-$ cd <fight>/mNN && python3 -m pytest -q tests/test_host_purity.py
-m08 11 passed · m09 11 passed · m10 11 passed · m11 11 passed      (base: 11 passed)
-$ cd <fight>/mNN && python3 -m pytest -q                            # full offline suite
-m08 1 failed, 327 passed, 12 skipped   (tests/test_pins.py::test_probes_never_fall_back_to_the_real_host)
-m09 1 failed, 327 passed, 12 skipped   (same test)
-m10 328 passed, 12 skipped             <- SURVIVES the whole suite in a GPU-less world
-m11 328 passed, 12 skipped             <- SURVIVES every gate
-$ cd <fight>/base|m11 && python3 docs/verify_runtime_contract.py
-failures: 0  skips: 3      (identical for base and m11 — the oracle does not catch m11)
-$ python3 witnesses/w11.py base   ->  M11 capability.backends(<dir with libggml-cpu.so>, system=windows) -> []
-$ python3 witnesses/w11.py m11    ->  M11 capability.backends(<dir with libggml-cpu.so>, system=windows) -> ['cpu']
-```
-Notes the attacker's report did not state:
-- `m10`'s kill is **host-dependent**: on a GPU-less box the whole suite is green on the mutant,
-  because `registry.recommend._query_nvidia_smi()` answers 0 there; only a real GPU makes
-  `test_recommend_quant.py::test_host_budget_reads_meminfo` bite.
-- `HEAD` `capability.backends()` **does** forward `system` (`capability.py:140`); the mutant is a
-  plausible-fault probe, not a description of the shipped code. B1 is a test-strength finding.
+### F1 — 🟠 MAJOR (required before this card can close)
+`tools/e3_build_evidence.py:300` calls `_measured_note(second)` with the whole challenger model row,
+so `block.get("n")` is always `0` and the **generated, published** §4.1 sentence reads:
 
-### G. Referee re-run after `1c20ad4` — the survivors are dead (my script, fresh worktree)
-```
-$ git worktree add --detach /tmp/rev/head1c20 1c20ad4
-$ bash /tmp/rev/killcheck.sh /tmp/rev/head1c20 <fight> /tmp/rev/kills
-== m08 (patch applied) ==
-FAILED tests/test_host_purity.py::test_an_unnamed_machine_is_a_caller_error_not_a_platform_machine_read
-1 failed, 15 passed
-== m09 (patch applied) ==
-FAILED tests/test_host_purity.py::test_omitted_dri_nodes_never_list_the_real_dev_dri
-1 failed, 15 passed
-== m10 (patch applied) ==
-FAILED tests/test_host_purity.py::test_an_empty_injected_vram_probe_never_reaches_the_real_driver
-1 failed, 15 passed
-== m11 (patch applied) ==
-FAILED tests/test_host_purity.py::test_backends_answers_the_system_the_caller_named
-FAILED tests/test_host_purity.py::test_backends_never_asks_this_host_for_a_system_the_caller_supplied
-2 failed, 14 passed
-== control: same file on unmutated HEAD ==
-16 passed
-```
-The `m10` pin is trap-based (`monkeypatch.setattr(recommend, "_query_nvidia_smi", tripwire)`), so —
-unlike the old killer — it bites in a GPU-less world too. That closes the host-dependence noted in §F.
+> …against 0.667 (2/3) [0.208–0.939], **which is only 0 item(s)**.
 
-Independent residual probe (mine, `/tmp/rev/residual_probe.py`, run on both the reviewed revision and
-`m11`) confirms the injected fact wins in both directions after the fix:
-```
-capability.backends(distractor, system='linux')   -> ['cpu']        (m11: ['cpu']  — same, host is linux)
-capability.backends(distractor, system='windows') -> ['vulkan']     (m11: ['cpu']  — the leak)
-finder.library_glob('windows') with platform trapped -> '*ggml-*.dll'   (no host read)
-capability.probe_symbols(system='windows') with platform trapped -> windows-shaped error, no host read
-```
+The measured block is 3 rows (verified from the merged report), and the helper's own docstring says it
+wants "the note a three-row `measured` block needs". The existing gates cannot catch this class: they
+compare the generator's output to the files, and the file faithfully contains the generator's wrong
+number. Minimum outcome: pass the measured block (`second[compare.MEASURED]`), regenerate the evidence
+doc, keep `--check` green, and add a gate that pins the note's number to the actual measured-block size.
 
-### H. Evidence-document check (`docs/evidence/e1a_baseline.json`)
-- `e1a_fix_t_eae35404.host` exists with `round_1_host_result` (SIGABRT run) and
-  `round_2_host_result` (all-green run: `init.exit 0`, `init.variant linux-x64-vulkan`,
-  `init.fallback` = the pre-flight skip line, doctor 2, oracle 0 + `section_b_skips 0`, both suites 0,
-  poisoned 0 / 0 shims), each with `recorded_by` + the source board comment, plus
-  `container_corroboration` (worker `code-e2e t_3831b7b3`, raw logs under `.e2e/`).
-- The sandbox section is present and **labelled**: `e1a_fix_t_eae35404.sandbox_host_simulated`
-  (`vehicle`: podman container, no `/dev/dri`, no `/dev/nvidia*`, fake `nvidia-smi` on PATH; real
-  downloads — e.g. the 30 294 625 B vulkan asset and the 4.38 GB model).
-- Every live number in the file carries a `cmd` + a result/exit; the host block states explicitly that
-  the raw host log dir `/home/rybens/.ggufone-host-gate-20260917T182117Z` is **not mounted** into the
-  container, so it is quoted verbatim (no prose-only numbers; the limit is the mounting, not the
-  reporting).
-- Extra live-gate numbers that are command-backed in `.e2e/t_3831b7b3-host-gate/` (10/10 steps green,
-  12 journeys, real 4.38 GB pull with sha check).
+### F2 — 🟡 MINOR (implementer's call; cheap while the file is open)
+`render_bench_comparison` (~`tools/e3_build_evidence.py:413`) renders
+`cell(first["per_type"].get(qtype) or {})`; `_cell` reads `block["n"]`, so `{}` raises `KeyError` the
+day one side lacks a whole question type. `render_comparison` already guards for that case. Not
+reachable with today's six chunks.
 
-## 3. Findings by severity
+### F3 — ⚪ NIT
+§4.4's "the key exists only in the latency suite's report": true for the report-level block, but a
+`placement` *field* also exists in the throughput/determinism rows (`row["placement"] = "n_gpu_layers=…"`).
+Also, the merged report's top-level `placement` is chunk 001's alone (container, 0 layers) while its 60
+rows now mix boxes — §4.3 documents this; half a sentence in §4.4 would spare a JSON-only reader.
 
-### 🔴 B1 — CRITICAL — `capability.backends()` drops an injected `system` (m11 survives every gate)
-- Found at `3f18890`; **closed at `1c20ad4`**; kill re-verified by me (§2-G).
-- What it is: a caller stating `system="windows"` got Linux-shaped globs
-  (`[]` vs `["cpu"]` on the witness). HEAD itself forwards the argument, so this was a hole in the
-  *regression file*, not in shipped behaviour — but it is exactly the invariant E1a exists for
-  ("a supplied fact must win"), and it was invisible to every gate.
-- Fix landed (`1c20ad4`): `test_backends_answers_the_system_the_caller_named` (distractor bundle,
-  both directions) + `test_backends_never_asks_this_host_for_a_system_the_caller_supplied` (tripwire
-  on `pins.platform.system`). Both fail on the mutant, pass on HEAD.
+### F4 — ⚪ NIT
+`report_box()` decides `[host]` by "no cgroup keys". Correct for all six reports here (read from the
+actual keys), but the tag is load-bearing for a published claim; a comment on the heuristic (or a
+report field the tool controls) would make a future unconstrained-container run fail loudly instead
+of silently tagging as `[host]`.
 
-### 🟠 B2 — MAJOR — omitted `machine` / omitted `dri_nodes` fell back to the real host (m08, m09)
-- Found at `3f18890` (both survived the task-0 file in both worlds; killed only by `test_pins.py`);
-  **closed at `1c20ad4`** (`test_an_unnamed_machine_is_a_caller_error_not_a_platform_machine_read`,
-  `test_omitted_dri_nodes_never_list_the_real_dev_dri`); kill re-verified by me (§2-G).
+## Verdict
 
-### 🟠 B3 — MAJOR — `host_budget` fell through to the real driver on an empty injected probe (m10)
-- Found at `3f18890`; the only killer was host-dependent (see §F), so in a GPU-less world the mutant
-  survived the **whole suite**; **closed at `1c20ad4`** by a trap-based pin
-  (`test_an_empty_injected_vram_probe_never_reaches_the_real_driver`), re-verified by me (§2-G).
-
-### 🟡 M1 — MINOR — the older `vram` killer is still host-dependent (not blocking)
-`tests/test_recommend_quant.py::test_host_budget_reads_meminfo` only detects an
-`m10`-style fall-through on a box with a real `nvidia-smi`/GPU. The new pin makes the gate honest in
-every world; consider giving the older test the same `_query_nvidia_smi` trap (one line) so the
-detection does not depend on where the suite runs.
-
-### 🟡 M2 — MINOR — two report-only host reads have no probe seam (not blocking)
-`capability.platform_summary()` and `capability.host_expectation()` (`capability.py:390-403`, used by
-`cli.py:220/251/374` for the `host`/`expected_backend` blocks) read the real machine with no injection.
-That is their job (a report about the real box) and no test needs a foreign world there — but the
-scope note in the module docstring should say so explicitly, since everything else in the detection
-layer is injectable now.
-
-### ⚪ N1 — NIT — wording of the adversarial headline
-The duel's board comment says "`capability.backends()` gubi wstrzyknięty `system`", which reads as a
-production bug; the mutant *is* the fault — HEAD forwards the argument. Keep the two apart in the fix
-card so nobody goes looking for a production change.
-
-### ⚪ N2 — NIT — evidence hygiene
-`docs/evidence/e1a_t_0fc576df_host_access_mutants.md` is still **untracked** in the shared tree (the
-duel wrote it after its last commit), and `state/groupchat/ggufone-e1.md` is dirty (the coordinator's
-chat file — never stage it). The duel's register row is not yet in `state/fights.csv`; that plus the
-referee register is card `t_83ee1eed`/@auditor territory. Coordinator: consider committing the report
-before the workspace is cleaned.
-
-## 4. Scope-creep / no-weakening review of `a4ab12e..1c20ad4`
-
-- **Implementation was fixed, not the expectations.** The two originally-failing tests keep their
-  assertions; across the whole range `tests/` has exactly **two deleted lines**, both import rewrites
-  (`-from ggufone.runtime import pins`, `-from ggufone.runtime import finder`). Everything else in
-  `tests/` is additions (`git diff --numstat a4ab12e..1c20ad4 -- tests/`: conftest 12/0,
-  test_cli_doctor_branches 4/0, test_cli_e1a 36/0, test_host_purity 356/0, test_pins 117/1,
-  test_probe_isolation 578/0, test_runtime_fallback 571/0, test_runtime_live 25/1).
-- `tests/test_cli_e1a.py` / `test_cli_doctor_branches.py`: the autouse fixture now names the fake CPU
-  machine those tests always assumed. Reviewed and accepted: the files test the *plan* mapping, the
-  assertions are unchanged, and the GPU direction is covered by the new
-  `test_init_dry_run_on_a_gpu_host_plans_the_pinned_cuda_bundle` plus the `test_pins.py` fake worlds.
-- `pyproject.toml`: mutmut config only (test selection + `max_children 1 -> 8`); no pytest behaviour
-  change.
-- `runtime.lock`: pinned sha256 for `linux-x64-vulkan` / `linux-x64-cuda-12.8` + the new `system_libs`
-  pre-flight map — addresses round-1 findings 1 and 2.
-- `src/ggufone/runtime/isolated.py` + `probe_child.py` (new): the "one bundle per process" fix for the
-  host SIGABRT. Reviewed for the security-relevant surfaces of the installer path: download/cache SHA-256
-  verification still enforced (`E_SHA256_MISMATCH`), tar extraction uses `filter="data"`
-  (py>=3.11.4; `TypeError` fallback documented), zip extraction pre-checks every member for traversal,
-  `rmtree` targets are the plan's own staging/dest paths.
-- No drive-by refactors, renames or reformatting spotted outside the touched modules.
-
-## 5. Verification limits (honest list)
-
-1. **No GPU / operator-host access from this worker** (same container class as the other cards):
-   `nvidia-smi` absent, `/dev/dri` not creatable by `mknod` (EPERM), operator log dir not mounted.
-   The card's "confirm green ON THE GPU HOST" criterion therefore rests on (a) the coordinator's
-   quoted round-2 host run in the evidence file, (b) `t_3831b7b3`'s container corroboration of the
-   same gate step-for-step on `eb1cde3`, and (c) my own green runs in the GPU-shaped world at the
-   as-dispatched and final heads. I did **not** re-execute the suite on the RTX 3060 Ti myself.
-2. The mutmut scores quoted by earlier cards were **not** re-run here (single-owner rule; the
-   machine's pid cap makes full sweeps hostile). The gate that mattered for this review — the duel's
-   11 hand-crafted mutants — **was** re-run by me, at both heads.
-3. My GPU-shape simulation (a real `/dev/dri/renderD128` + `/usr/share/vulkan/icd.d` in the container)
-   used during part of the review has been removed; `/dev/dri` and `/usr/share/vulkan` do not exist in
-   the container now.
-4. The workspace `.venv` was a dead symlink to a host interpreter; `uv run` rebuilt it in-container
-   (gitignored, no effect on the repo).
-
-## 6. Sign-off
-
-At `1c20ad4`: canonical suite green in both worlds (`333 passed, 12 skipped`), oracle `failures: 0`
-exit 0, the host's original 7 failures green, the regression file red on pre-fix code (`11 failed`)
-and the whole pre-fix suite reproducing the host's `7 failed / 254 passed / 11 skipped` set, and all
-four duel survivors killed with named node ids. **No blocking item remains. PASS.**
-
-Reviewed head: `1c20ad4` — the tree was being edited by card `t_83ee1eed` during this run; if any
-commit after `1c20ad4` touches `src/` or `tests/`, the kill re-run (§2-G) must be repeated for the
-changed files.
+Approve is not available with F1 outstanding: the card's point is that published numbers come from the
+artifacts, and the new generator prints one that does not. F2–F4 are optional notes. Everything else —
+merge coverage, generated sections, the tags, the pin, the recomputed table, the suite — reproduces.
