@@ -1,0 +1,79 @@
+# Card t_635124bf — Tiel, serving shape, live post-fix re-run vs the committed pre-fix run.
+# 2026-09-19T18:03:01Z · container: cgroup 8589934592
+#   before: .e3c_tiel/batch_response.json (host, pre-fix, 35.6 s)
+#   after:  /work/t635/tiel-post/batch_response.json (this box, post-fix, 1460.9 s)
+
+== Tiel serving shape · before = committed host run · after = this box: 20 items
+coverage identical in the two runs: True · reliability identical: True · answers identical: True
+refusals   before 1/20 · after 20/20
+measured   before 0/20 · after 0/20
+low_mass   before 20/20 · after 20/20
+cue top token histogram: {"248069": 19, "248046": 1}
+silently low-mass rows now flagged: 19 ['c01', 'c02', 'c03', 'c04', 'c05', 'c06', 'c07', 'c08', 'c09', 'c10', 'c12', 'c13', 'c14', 'c15', 'c16', 'c17', 'c18', 'c19', 'c20']
+refusals the fix removed (must be none): 0 []
+vocabulary: 248320 ids · specials 33
+cue tokens the runs saw:
+| token | vocabulary text | piece | gguf type | special? | items |
+|---|---|---|---|---|---|
+| 248069 | `</think>` | `</think>` | USER_DEFINED | True | 19 |
+| 248046 | `<|im_end|>` | `<|im_end|>` | CONTROL | True | 1 |
+
+| id | type | coverage (both) | reliability | cue token | closer before → after | mass | refused before → after |
+|---|---|---|---|---|---|---|---|
+| c01 | choice | 1.570e-06 | low_mass | 248069 | None → </think> | 0.9916 | False → True |
+| c02 | choice | 1.107e-06 | low_mass | 248069 | None → </think> | 0.8196 | False → True |
+| c03 | choice | 8.132e-06 | low_mass | 248069 | None → </think> | 0.9796 | False → True |
+| c04 | choice | 1.896e-05 | low_mass | 248069 | None → </think> | 0.9054 | False → True |
+| c05 | choice | 1.907e-05 | low_mass | 248069 | None → </think> | 0.8752 | False → True |
+| c06 | choice | 2.675e-05 | low_mass | 248069 | None → </think> | 0.9457 | False → True |
+| c07 | choice | 3.440e-06 | low_mass | 248069 | None → </think> | 0.8594 | False → True |
+| c08 | choice | 7.967e-07 | low_mass | 248069 | None → </think> | 0.7311 | False → True |
+| c09 | choice | 2.278e-06 | low_mass | 248069 | None → </think> | 0.7107 | False → True |
+| c10 | choice | 9.917e-07 | low_mass | 248069 | None → </think> | 0.7894 | False → True |
+| c11 | choice | 1.752e-06 | low_mass | 248046 | <|im_end|> → <|im_end|> | 0.5037 | True → True |
+| c12 | choice | 7.965e-05 | low_mass | 248069 | None → </think> | 0.6817 | False → True |
+| c13 | choice | 9.558e-05 | low_mass | 248069 | None → </think> | 0.9369 | False → True |
+| c14 | choice | 4.475e-06 | low_mass | 248069 | None → </think> | 0.8289 | False → True |
+| c15 | choice | 4.706e-06 | low_mass | 248069 | None → </think> | 0.9165 | False → True |
+| c16 | choice | 1.468e-05 | low_mass | 248069 | None → </think> | 0.9616 | False → True |
+| c17 | choice | 1.049e-06 | low_mass | 248069 | None → </think> | 0.9730 | False → True |
+| c18 | choice | 1.390e-03 | low_mass | 248069 | None → </think> | 0.8970 | False → True |
+| c19 | choice | 9.186e-04 | low_mass | 248069 | None → </think> | 0.8070 | False → True |
+| c20 | choice | 9.572e-05 | low_mass | 248069 | None → </think> | 0.9493 | False → True |
+
+warnings before: ["W_TEMPLATE_FALLBACK", "W_LOW_MASS", "W_CUE_REFUSED"]
+warnings after:  ["W_TEMPLATE_FALLBACK", "W_LOW_MASS", "W_CUE_REFUSED"]
+usage before {"input_tokens": 1175, "output_tokens": 117, "questions": 20, "forks": 80, "prefill_tokens": 109, "decode_steps": 117, "waves": 40}
+usage after  {"input_tokens": 1175, "output_tokens": 117, "questions": 20, "forks": 80, "prefill_tokens": 109, "decode_steps": 117, "waves": 40}
+coverage before: min 7.967e-07 max 1.390e-03
+coverage after:  min 7.967e-07 max 1.390e-03
+
+## row identity (did the two boxes put the same row on the cue?)
+items compared: 20 · differences: 25
+   ('c02', 'probabilities', 'differ', 'differ')
+   ('c04', 'probabilities', 'differ', 'differ')
+   ('c07', 'probabilities', 'differ', 'differ')
+   ('c08', 'confidence', 0.583455, 0.583459)
+   ('c08', 'probabilities', 'differ', 'differ')
+   ('c09', 'confidence', 0.988746, 0.988744)
+   ('c09', 'probabilities', 'differ', 'differ')
+   ('c10', 'probabilities', 'differ', 'differ')
+   ('c11', 'confidence', 0.946771, 0.946953)
+   ('c11', 'probabilities', 'differ', 'differ')
+   ('c13', 'confidence', 0.897284, 0.897087)
+   ('c13', 'probabilities', 'differ', 'differ')
+   ('c14', 'confidence', 0.689173, 0.68916)
+   ('c14', 'probabilities', 'differ', 'differ')
+   ('c15', 'confidence', 0.260673, 0.260768)
+   ('c15', 'probabilities', 'differ', 'differ')
+   ('c16', 'probabilities', 'differ', 'differ')
+   ('c17', 'confidence', 0.687378, 0.687372)
+   ('c17', 'probabilities', 'differ', 'differ')
+   ('c18', 'confidence', 0.958247, 0.958235)
+argmax ids: identical True
+cue masses: identical True
+usage before == usage after: True
+state id before/after: sha256:c206645c0f17551a425f5f4e76d4a4da745144c0119e91e2bf821e756ace0ebb / sha256:c206645c0f17551a425f5f4e76d4a4da745144c0119e91e2bf821e756ace0ebb
+n_gpu_layers before/after: 9 / 8
+timings before: {"model_load_ms": 9850.92, "prefill_ms": 7878.95, "questions_ms": 27715.2, "total_ms": 35618.1}
+timings after:  {"model_load_ms": 31469.5, "prefill_ms": 205200.0, "questions_ms": 1255510.0, "total_ms": 1460910.0}
