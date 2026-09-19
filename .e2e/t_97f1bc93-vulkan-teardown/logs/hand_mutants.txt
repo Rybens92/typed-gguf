@@ -1,0 +1,47 @@
+2026-09-19T13:59:48Z
+tree: cbaed9a
+cmd: .venv/bin/python .e2e/t_97f1bc93-vulkan-teardown/hand_mutants.py
+tree: cbaed9a
+gate file: tests/test_cli_teardown.py   python: 3.11.15
+
+h1_drop_the_flush: KILLED   pytest exit=1  3 failed, 7 passed in 6.70s
+    failed: test_the_streams_are_flushed_before_the_process_ends, test_end_process_flushes_both_streams_before_it_exits, test_end_process_survives_a_stream_that_cannot_be_flushed
+    restore: 31b8d80b127cfdf8… byte-identical
+h2_drop_os_exit: KILLED   pytest exit=1  6 failed, 4 passed in 7.81s
+    failed: test_the_entry_point_ends_the_process_before_third_party_teardown, test_the_entry_point_hands_the_cli_code_to_the_shell, test_the_streams_are_flushed_before_the_process_ends, test_the_module_entry_point_runs_the_process_entry_point, test_end_process_flushes_both_streams_before_it_exits, test_end_process_survives_a_stream_that_cannot_be_flushed
+    restore: 31b8d80b127cfdf8… byte-identical
+h3_loader_always_false: KILLED   pytest exit=1  5 failed, 5 passed in 6.78s
+    failed: test_the_entry_point_ends_the_process_before_third_party_teardown, test_the_entry_point_hands_the_cli_code_to_the_shell, test_the_streams_are_flushed_before_the_process_ends, test_the_module_entry_point_runs_the_process_entry_point, test_engine_loaded_follows_the_loader
+    restore: 31b8d80b127cfdf8… byte-identical
+h4_loader_always_true: KILLED   pytest exit=1  2 failed, 8 passed in 5.89s
+    failed: test_a_process_that_never_loaded_a_bundle_keeps_the_normal_shutdown, test_engine_loaded_follows_the_loader
+    restore: 31b8d80b127cfdf8… byte-identical
+h5_silent_zero: KILLED   pytest exit=1  2 failed, 8 passed in 7.40s
+    failed: test_the_entry_point_hands_the_cli_code_to_the_shell, test_end_process_flushes_both_streams_before_it_exits
+    restore: 31b8d80b127cfdf8… byte-identical
+h6_main_entry_point: KILLED   pytest exit=1  1 failed, 9 passed in 8.11s
+    failed: test_the_module_entry_point_runs_the_process_entry_point
+    restore: aa7abb03d6142539… byte-identical
+h7_console_script_target: KILLED   pytest exit=1  1 failed, 9 passed in 4.29s
+    failed: test_the_console_script_points_at_the_process_entry_point
+    restore: 0ecfc98ed083660f… byte-identical
+e1_int_is_redundant: SURVIVED pytest exit=0  10 passed in 5.39s
+    failed: (no named failure)
+    restore: 31b8d80b127cfdf8… byte-identical
+c1_docstring_wording: SURVIVED pytest exit=0  10 passed in 8.08s
+    failed: (no named failure)
+    restore: 31b8d80b127cfdf8… byte-identical
+
+== table ==
+  h1_drop_the_flush          KILLED   (expected KILLED)  ok
+  h2_drop_os_exit            KILLED   (expected KILLED)  ok
+  h3_loader_always_false     KILLED   (expected KILLED)  ok
+  h4_loader_always_true      KILLED   (expected KILLED)  ok
+  h5_silent_zero             KILLED   (expected KILLED)  ok
+  h6_main_entry_point        KILLED   (expected KILLED)  ok
+  h7_console_script_target   KILLED   (expected KILLED)  ok
+  e1_int_is_redundant        SURVIVED (expected SURVIVED)  ok
+  c1_docstring_wording       SURVIVED (expected SURVIVED)  ok
+
+RESULT: every row as expected
+EXIT=0

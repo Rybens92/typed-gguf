@@ -1,0 +1,2 @@
+4 mutants | killed 4 | survived 0 | pending 0
+PENDING=0

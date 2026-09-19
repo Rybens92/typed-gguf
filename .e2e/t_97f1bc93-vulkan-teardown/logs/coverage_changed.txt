@@ -1,0 +1,19 @@
+2026-09-19T13:57:03Z
+tree: cbaed9a (cbaed9a test+evidence(E2 FIX t_97f1bc93): the sweep-visible )
+cmd: sh .e2e/t_97f1bc93-vulkan-teardown/coverage.sh
+$ .venv/bin/python -m pytest -q tests/test_cli_teardown.py -p no:randomly
+..........                                                               [100%]
+10 passed in 8.20s
+pytest EXIT=0
+$ .venv/bin/python -m ggufone --help      # the __main__.py path, no bundle -> normal shutdown
+ggufone --help EXIT=0
+Combined 3 files
+combine EXIT=0
+Name                              Stmts   Miss  Cover   Missing
+---------------------------------------------------------------
+src/ggufone/__main__.py               1      0   100%
+src/ggufone/cli.py                  909    802    12%   99-104, 120-149, 153-156, 160-168, 172-188, 193-256, 266-273, 279-417, 457-474, 479, 493-505, 509-525, 529-534, 538-610, 614-627, 631-647, 651-665, 669-707, 711-714, 718-765, 781-803, 808-824, 828-838, 845-858, 863-880, 885-896, 909-921, 928-962, 978-999, 1010-1015, 1024-1028, 1044-1078, 1084-1090, 1097-1114, 1119-1121, 1130-1154, 1165-1179, 1184-1190, 1195-1213, 1217-1251, 1263-1276, 1285-1294, 1299, 1310-1312, 1325-1367, 1386-1415, 1424, 1439-1470, 1476-1509, 1514-1533, 1548-1585, 1589-1596, 1614
+src/ggufone/runtime/teardown.py      13      0   100%
+---------------------------------------------------------------
+TOTAL                               923    802    13%
+report EXIT=0

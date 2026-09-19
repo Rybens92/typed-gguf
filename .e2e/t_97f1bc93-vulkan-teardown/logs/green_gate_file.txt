@@ -1,0 +1,6 @@
+2026-09-19T13:51:48Z
+tree: cbaed9a (cbaed9a test+evidence(E2 FIX t_97f1bc93): the sweep-visible gates, the box raws and the repro drivers)
+cmd: .venv/bin/python -m pytest -q tests/test_cli_teardown.py -p no:randomly
+..........                                                               [100%]
+10 passed in 5.20s
+EXIT=0

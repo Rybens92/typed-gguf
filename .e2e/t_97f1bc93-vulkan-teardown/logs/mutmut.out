@@ -1,5 +1,13 @@
+attempt 1: pid cgroup at 225/256 — waiting
+attempt 1: pid cgroup at 227/256 — waiting
+=== attempt 1 — 13:58:33 pids=174/256 ===
+   Building ggufone @ file:///work/t97-ggufone
+      Built ggufone @ file:///work/t97-ggufone
+Uninstalled 1 package in 1ms
+Installed 1 package in 2ms
+Installed 19 packages in 1.40s
 ⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants
-    done in 2097ms (1 files mutated, 0 ignored, 0 unmodified)
+    done in 2199ms (1 files mutated, 0 ignored, 0 unmodified)
 ⠏ Running stats     ⠋ Running stats⠙ Running stats⠹ Running stats⠸ Running stats⠼ Running stats⠴ Running stats⠦ Running stats⠧ Running stats⠇ Running stats⠏ Running stats⠋ Running stats⠙ Running stats
     done
 ⠹ Running clean tests⠸ Running clean tests⠼ Running clean tests⠴ Running clean tests⠦ Running clean tests⠧ Running clean tests⠇ Running clean tests⠏ Running clean tests⠋ Running clean tests⠙ Running clean tests⠹ Running clean tests⠸ Running clean tests⠼ Running clean tests
@@ -8,5 +16,10 @@
     done
 Running mutation testing
 ⠏ 0/4  🎉 0 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠋ 0/4  🎉 0 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠙ 0/4  🎉 0 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠹ 1/4  🎉 1 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠸ 4/4  🎉 4 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0
-3.34 mutations/second
-EXIT=0
+4.41 mutations/second
+attempt 1 exit=0
+4 mutants | killed 4 | survived 0 | pending 0
+PENDING=0
+4 mutants | killed 4 | survived 0 | pending 0
+PENDING=0
+=== sweep done 13:59:07 ===

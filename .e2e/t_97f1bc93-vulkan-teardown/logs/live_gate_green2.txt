@@ -1,0 +1,13 @@
+2026-09-19T14:01:19Z
+tree: cbaed9a
+cmd: VK_DRIVER_FILES=… GGUFONE_RUNTIME_DIR=…b11026-linux-x64-vulkan GGUFONE_BENCH_MODEL=…4B .venv/bin/python -m pytest -q --run-network tests/test_bench_vulkan_teardown_live.py -s
+pressure ready=False layers=12 free_mib=477
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/t97-ggufone/src/ggufone/engine/session.py", line 322, in open_model
+    raise fit.backend_oom_error(candidate, free_bytes=_free_bytes(free_probe),
+ggufone.errors.BackendOomError: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=12, kv_type=auto, needed ~1022 MiB); the driver reports 442 MiB free; tried 1 placement(s) down to CPU-only, none fit: n_gpu_layers=12 -> oom; the backend asked for a 1022 MiB allocation; backend log: 'alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1071201536'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant
+
+exit=1 free_mib_after=624
+.
+1 passed in 47.29s
+EXIT=0
