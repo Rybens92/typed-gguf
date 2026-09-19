@@ -1,0 +1,26 @@
+# replaying 22 survivors of src/ggufone/engine/session.py matching ['ModelSessionǁ__init__']
+# sha256 before: 7e295bb07adcd6fb7be62f28c4dc6b71edaff44e424e93871f25b8499c4aa3e6
+# CONTROL (unmutated tree): PASS
+KILLED   xǁModelSessionǁ__init____mutmut_18  tests/test_serving_attribution.py::test_an_explicit_backend_with_no_source_is_named_explicit
+SURVIVED xǁModelSessionǁ__init____mutmut_2  
+KILLED   xǁModelSessionǁ__init____mutmut_20  tests/test_serving_attribution.py::test_an_explicit_backend_with_no_source_is_named_explicit
+KILLED   xǁModelSessionǁ__init____mutmut_21  tests/test_serving_attribution.py::test_an_explicit_backend_with_no_source_is_named_explicit
+SURVIVED xǁModelSessionǁ__init____mutmut_22  
+SURVIVED xǁModelSessionǁ__init____mutmut_23  
+SURVIVED xǁModelSessionǁ__init____mutmut_24  
+SURVIVED xǁModelSessionǁ__init____mutmut_25  
+SURVIVED xǁModelSessionǁ__init____mutmut_26  
+SURVIVED xǁModelSessionǁ__init____mutmut_27  
+SURVIVED xǁModelSessionǁ__init____mutmut_28  
+SURVIVED xǁModelSessionǁ__init____mutmut_29  
+SURVIVED xǁModelSessionǁ__init____mutmut_37  
+SURVIVED xǁModelSessionǁ__init____mutmut_38  
+KILLED   xǁModelSessionǁ__init____mutmut_47  tests/test_serving_attribution.py::test_a_caller_owned_log_sink_receives_the_context_lines
+SURVIVED xǁModelSessionǁ__init____mutmut_48  
+SURVIVED xǁModelSessionǁ__init____mutmut_50  
+SURVIVED xǁModelSessionǁ__init____mutmut_51  
+SURVIVED xǁModelSessionǁ__init____mutmut_52  
+SURVIVED xǁModelSessionǁ__init____mutmut_53  
+SURVIVED xǁModelSessionǁ__init____mutmut_54  
+KILLED   xǁModelSessionǁ__init____mutmut_7  tests/test_serving_attribution.py::test_an_explicit_backend_with_no_source_is_named_explicit
+# sha256 after:  7e295bb07adcd6fb7be62f28c4dc6b71edaff44e424e93871f25b8499c4aa3e6   restored=True

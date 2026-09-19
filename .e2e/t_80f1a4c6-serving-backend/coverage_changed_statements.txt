@@ -1,0 +1,9 @@
+file                                      stmts   hit   cover  missing
+src/ggufone/bench/harness.py                  1     1    100%  
+src/ggufone/cli.py                            1     1    100%  
+src/ggufone/engine/decide.py                 12    12    100%  
+src/ggufone/engine/session.py                31    30     97%  747
+src/ggufone/errors.py                         0     0       —  
+src/ggufone/runtime/finder.py                16    15     94%  48
+
+changed statements: 59/61 = 96.7%

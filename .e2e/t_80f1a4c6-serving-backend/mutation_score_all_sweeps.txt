@@ -1,0 +1,93 @@
+src/ggufone/engine/decide.py.meta                total   980  killed   432  survived   524  score  45.2 %  not-run     0  no-tests   24
+src/ggufone/engine/session.py.meta               total  1016  killed   192  survived   360  score  34.8 %  not-run     0  no-tests  464
+--------------------------------------------------------------------------------------------------------------
+TOTAL total 1996  {'killed': 624, 'survived': 884, 'no-tests': 488}
+SCORE killed/scored = 41.4 %   (scored=1508, score-minus-no-tests-and-not-run)
+survivors by symbol (top 25):
+    192  ggufone.engine.session.x_open_model
+    103  ggufone.engine.decide.x.DecisionEngine._answer_question
+     98  ggufone.engine.decide.x.DecisionEngine.decide
+     77  ggufone.engine.decide.x.DecisionEngine._score_group
+     57  ggufone.engine.session.x__init_context
+     50  ggufone.engine.decide.x_plan_context
+     36  ggufone.engine.decide.x_resolve_template
+     27  ggufone.engine.decide.x.DecisionEngine._calibrate
+     26  ggufone.engine.session.x.ModelHandle.__init__
+     22  ggufone.engine.session.x.ModelSession.__init__
+     19  ggufone.engine.session.x__context_params
+     18  ggufone.engine.decide.x.DecisionEngine._calibration_surface
+     18  ggufone.engine.decide.x.DecisionEngine._template_surface
+     15  ggufone.engine.session.x__model_facts_for_ladder
+     14  ggufone.engine.decide.x.DecisionEngine._guard_context
+     13  ggufone.engine.decide.x.DecideResult.payload
+     13  ggufone.engine.session.x__placement_note
+     12  ggufone.engine.decide.x_planned_waves
+     10  ggufone.engine.decide.x_question_requirements
+      7  ggufone.engine.decide.x_candidate_sequences
+      6  ggufone.engine.decide.x.Batch.__post_init__
+      6  ggufone.engine.decide.x.DecisionEngine._fork
+      6  ggufone.engine.decide.x__check_collisions
+      5  ggufone.engine.decide.x_state_id_for
+      5  ggufone.engine.decide.x.DecisionEngine.__init__
+src/ggufone/engine/decide.py.meta                total   980  killed   432  survived   524  score  45.2 %  not-run     0  no-tests   24
+src/ggufone/engine/session.py.meta               total  1016  killed   192  survived   360  score  34.8 %  not-run     0  no-tests  464
+--------------------------------------------------------------------------------------------------------------
+TOTAL total 1996  {'killed': 624, 'survived': 884, 'no-tests': 488}
+SCORE killed/scored = 41.4 %   (scored=1508, score-minus-no-tests-and-not-run)
+survivors by symbol (top 25):
+    192  ggufone.engine.session.x_open_model
+    103  ggufone.engine.decide.x.DecisionEngine._answer_question
+     98  ggufone.engine.decide.x.DecisionEngine.decide
+     77  ggufone.engine.decide.x.DecisionEngine._score_group
+     57  ggufone.engine.session.x__init_context
+     50  ggufone.engine.decide.x_plan_context
+     36  ggufone.engine.decide.x_resolve_template
+     27  ggufone.engine.decide.x.DecisionEngine._calibrate
+     26  ggufone.engine.session.x.ModelHandle.__init__
+     22  ggufone.engine.session.x.ModelSession.__init__
+     19  ggufone.engine.session.x__context_params
+     18  ggufone.engine.decide.x.DecisionEngine._calibration_surface
+     18  ggufone.engine.decide.x.DecisionEngine._template_surface
+     15  ggufone.engine.session.x__model_facts_for_ladder
+     14  ggufone.engine.decide.x.DecisionEngine._guard_context
+     13  ggufone.engine.decide.x.DecideResult.payload
+     13  ggufone.engine.session.x__placement_note
+     12  ggufone.engine.decide.x_planned_waves
+     10  ggufone.engine.decide.x_question_requirements
+      7  ggufone.engine.decide.x_candidate_sequences
+      6  ggufone.engine.decide.x.Batch.__post_init__
+      6  ggufone.engine.decide.x.DecisionEngine._fork
+      6  ggufone.engine.decide.x__check_collisions
+      5  ggufone.engine.decide.x_state_id_for
+      5  ggufone.engine.decide.x.DecisionEngine.__init__
+src/ggufone/engine/decide.py.meta                total   980  killed   432  survived   524  score  45.2 %  not-run     0  no-tests   24
+src/ggufone/engine/session.py.meta               total  1016  killed   199  survived   353  score  36.1 %  not-run     0  no-tests  464
+--------------------------------------------------------------------------------------------------------------
+TOTAL total 1996  {'killed': 631, 'survived': 877, 'no-tests': 488}
+SCORE killed/scored = 41.8 %   (scored=1508, score-minus-no-tests-and-not-run)
+survivors by symbol (top 25):
+    190  ggufone.engine.session.x_open_model
+    103  ggufone.engine.decide.x.DecisionEngine._answer_question
+     98  ggufone.engine.decide.x.DecisionEngine.decide
+     77  ggufone.engine.decide.x.DecisionEngine._score_group
+     57  ggufone.engine.session.x__init_context
+     50  ggufone.engine.decide.x_plan_context
+     36  ggufone.engine.decide.x_resolve_template
+     27  ggufone.engine.decide.x.DecisionEngine._calibrate
+     26  ggufone.engine.session.x.ModelHandle.__init__
+     19  ggufone.engine.session.x__context_params
+     18  ggufone.engine.decide.x.DecisionEngine._calibration_surface
+     18  ggufone.engine.decide.x.DecisionEngine._template_surface
+     17  ggufone.engine.session.x.ModelSession.__init__
+     15  ggufone.engine.session.x__model_facts_for_ladder
+     14  ggufone.engine.decide.x.DecisionEngine._guard_context
+     13  ggufone.engine.decide.x.DecideResult.payload
+     13  ggufone.engine.session.x__placement_note
+     12  ggufone.engine.decide.x_planned_waves
+     10  ggufone.engine.decide.x_question_requirements
+      7  ggufone.engine.decide.x_candidate_sequences
+      6  ggufone.engine.decide.x.Batch.__post_init__
+      6  ggufone.engine.decide.x.DecisionEngine._fork
+      6  ggufone.engine.decide.x__check_collisions
+      5  ggufone.engine.decide.x_state_id_for
+      5  ggufone.engine.decide.x.DecisionEngine.__init__

@@ -1,0 +1,10 @@
+# session.py: 353 survivors — 3 mutate a needle line, 350 mutate something else, 0 could not be matched to a block (indented method mutants are not top-level defs in the run file)
+  x_open_model__mutmut_161
+      in def x_open_model__mutmut_orig(path: str | os.PathLike[str], 
+      mutated original line: placement=placement, load_log=captured)
+  x_open_model__mutmut_169
+      in def x_open_model__mutmut_orig(path: str | os.PathLike[str], 
+      mutated original line: placement=placement, load_log=captured)
+  x_open_model__mutmut_170
+      in def x_open_model__mutmut_orig(path: str | os.PathLike[str], 
+      mutated original line: placement=placement, load_log=captured)

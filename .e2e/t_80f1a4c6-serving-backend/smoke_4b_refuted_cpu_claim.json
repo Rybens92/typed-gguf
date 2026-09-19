@@ -1,0 +1,119 @@
+{
+  "model": "Qwen3.5-4B-Q4_0",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "backend_source": "request",
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan",
+    "readout": "sequence",
+    "kv_unified": true,
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 73,
+    "state_id": "sha256:383c29439df0ccfc5b025394d8f134d9ee8737cab02476e068e42157e1ed7d14",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "qwen35",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "f16",
+    "n_gpu_layers": 32,
+    "placement": {
+      "note": "fit plan: 32 layer(s) offloaded, kv_type=f16",
+      "n_gpu_layers": 32,
+      "kv_type": "f16",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    },
+    "fit": {
+      "n_gpu_layers": 32,
+      "n_ctx": 4096,
+      "kv_type": "f16",
+      "n_seq_max": 8,
+      "est_weights_bytes": 3092250624,
+      "est_kv_bytes": 186646528,
+      "est_total_bytes": 3824156672,
+      "backend": "cpu",
+      "source": "llama-fit-params",
+      "warnings": [],
+      "notes": [
+        "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 2949 MiB, context 178 MiB, compute 520 MiB)"
+      ],
+      "arch": "qwen35",
+      "model_sha256": "298fcb5fe7a77ccc79745ae24751560c5ac56874caff4bb39b1f2055bd72b8bb",
+      "host_fingerprint": "e2f65aaa0226c162",
+      "budget_bytes": 4985978880,
+      "created_at": "2026-09-18T16:16:42Z",
+      "schema": "ggufone.fit/v1"
+    },
+    "escalations": {
+      "enabled": false,
+      "limit": 0,
+      "threshold": 0.5,
+      "target": null,
+      "count": 0,
+      "decisions": [],
+      "skipped": []
+    }
+  },
+  "answers": {
+    "area": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": {
+        "billing": 0.909421,
+        "technical": 0.0905635,
+        "data": 1.55455e-05
+      },
+      "confidence": 0.864131,
+      "coverage": 0.293912,
+      "reliability": "ok",
+      "decode_steps": 3
+    }
+  },
+  "usage": {
+    "input_tokens": 102,
+    "output_tokens": 3,
+    "questions": 1,
+    "forks": 3,
+    "prefill_tokens": 73,
+    "decode_steps": 3,
+    "waves": 1
+  },
+  "timings": {
+    "model_load_ms": 1775.95,
+    "prefill_ms": 18774.2,
+    "questions_ms": 3323.44,
+    "total_ms": 22110.3
+  },
+  "warnings": [
+    "W_BACKEND_MISMATCH"
+  ],
+  "calibrated": false,
+  "calibration": {
+    "source": "",
+    "applied": false,
+    "model": null,
+    "params_hash": "",
+    "temperatures": {},
+    "confidence_modes": {},
+    "accepted_types": []
+  }
+}

@@ -1,0 +1,11 @@
+# replaying 7 device_evidence survivors: ['x_device_evidence__mutmut_11', 'x_device_evidence__mutmut_12', 'x_device_evidence__mutmut_16', 'x_device_evidence__mutmut_17', 'x_device_evidence__mutmut_18', 'x_device_evidence__mutmut_5', 'x_device_evidence__mutmut_8']
+# src sha256 before: ce9944a40cde0aa6bd29d23ef897a088df2cc2a1c082a6b82a76999e514acbc4
+# CONTROL (unmutated tree): PASS
+SURVIVED x_device_evidence__mutmut_11  
+SURVIVED x_device_evidence__mutmut_12  
+KILLED   x_device_evidence__mutmut_16  FAILED tests/test_serving_attribution.py::test_a_log_kept_as_lines_reads_like_the_joined_text
+KILLED   x_device_evidence__mutmut_17  FAILED tests/test_serving_attribution.py::test_a_log_kept_as_lines_reads_like_the_joined_text
+SURVIVED x_device_evidence__mutmut_18  
+SURVIVED x_device_evidence__mutmut_5  
+KILLED   x_device_evidence__mutmut_8  FAILED tests/test_serving_attribution.py::test_a_session_without_a_log_reads_as_unverified
+# src sha256 after:  ce9944a40cde0aa6bd29d23ef897a088df2cc2a1c082a6b82a76999e514acbc4   restored=True

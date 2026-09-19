@@ -1,0 +1,461 @@
+FFFFFFFFFFFFFFFFFFFFs                                                    [100%]
+=================================== FAILURES ===================================
+___ test_the_serving_response_carries_the_device_evidence_the_engine_logged ____
+
+    def test_the_serving_response_carries_the_device_evidence_the_engine_logged() -> None:
+        """The E3 response must read `devices` / `device_buffers` / `effective_backend` from the log."""
+        engine = serving(E3_VULKAN_LOG, backend="vulkan", source="request")["engine"]
+>       assert engine["devices"] == ["Vulkan0", "Vulkan_Host"]
+               ^^^^^^^^^^^^^^^^^
+E       KeyError: 'devices'
+
+tests/test_serving_attribution.py:134: KeyError
+_______________________ test_a_cpu_only_box_reads_as_cpu _______________________
+
+    def test_a_cpu_only_box_reads_as_cpu() -> None:
+        body = serving(CPU_LOG, backend="cpu")
+>       assert body["engine"]["effective_backend"] == "cpu"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_serving_attribution.py:141: KeyError
+_____________ test_the_request_side_offload_line_is_never_evidence _____________
+
+    def test_the_request_side_offload_line_is_never_evidence() -> None:
+        """`offloaded N/M layers to GPU` is a request; the CPU compute buffer is the measurement."""
+        body = serving(OFFLOAD_REQUEST_LOG, backend="cpu")
+>       assert body["engine"]["effective_backend"] == "cpu"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_serving_attribution.py:149: KeyError
+_____ test_the_device_evidence_is_not_read_from_the_fit_plan_or_the_record _____
+
+    def test_the_device_evidence_is_not_read_from_the_fit_plan_or_the_record() -> None:
+        """The fit plan says `backend: cpu` (it was built for the fit host) — the log says Vulkan.
+    
+        A response that keeps reading the plan/record for its device fields cannot pass this.
+        """
+        body = serving(E3_VULKAN_LOG, backend="cpu", source="record")
+>       assert body["engine"]["effective_backend"] == "vulkan"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_serving_attribution.py:159: KeyError
+_______________ test_a_claim_the_log_refutes_is_a_named_warning ________________
+
+    def test_a_claim_the_log_refutes_is_a_named_warning() -> None:
+        """The E3 lie: a `cpu` label while `Vulkan0 compute buffer size` lines show the device ran."""
+        body = serving(E3_VULKAN_LOG, backend="cpu", source="record")
+        assert body["engine"]["backend"] == "cpu"            # the claim is not silently rewritten
+>       assert body["engine"]["effective_backend"] == "vulkan"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_serving_attribution.py:168: KeyError
+_______ test_an_accelerator_claim_the_log_cannot_corroborate_is_flagged ________
+
+    def test_an_accelerator_claim_the_log_cannot_corroborate_is_flagged() -> None:
+        """A `vulkan` label with no compute-buffer line at all is not publishable either."""
+        body = serving(SILENT_LOG, backend="vulkan", source="request")
+>       assert body["engine"]["effective_backend"] is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_serving_attribution.py:176: KeyError
+____________ test_a_silent_log_reads_as_unverified_never_as_a_claim ____________
+
+    def test_a_silent_log_reads_as_unverified_never_as_a_claim() -> None:
+        """`effective_backend: null` + the named source — not `cpu`, and not a warning either.
+    
+        Nothing computed anywhere else does not refute a `cpu` claim (the bench rule), so a box whose
+        log carries no buffer line reads *unverified*, with the claim's source visible.
+        """
+        body = serving(SILENT_LOG, backend="cpu", source="default")
+        engine = body["engine"]
+>       assert engine["effective_backend"] is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'effective_backend'
+
+tests/test_serving_attribution.py:189: KeyError
+__________________ test_a_verified_vulkan_run_is_not_flagged ___________________
+
+    def test_a_verified_vulkan_run_is_not_flagged() -> None:
+        body = serving(E3_VULKAN_LOG, backend="vulkan", source="bundle")
+>       assert body["engine"]["backend_source"] == "bundle"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'backend_source'
+
+tests/test_serving_attribution.py:197: KeyError
+_____________ test_a_log_kept_as_lines_reads_like_the_joined_text ______________
+
+    def test_a_log_kept_as_lines_reads_like_the_joined_text() -> None:
+        """`device_log` may be a sequence of lines, not one string — the loader's own shape.
+    
+        `ModelSession.device_log` joins its lines (`ModelHandle.load_log` + the context's), but the
+        evidence helper accepts a session-like object directly, and the loader's capture *is* a tuple:
+        reading a sequence as text would drop exactly the lines this card exists to read (the mutation
+        sweep's `device_evidence` survivors 16/17 pin this branch — card t_80f1a4c6, Tier M).
+        """
+        lines = tuple(line for line in E3_VULKAN_LOG.splitlines() if line)
+>       from_lines = decide.device_evidence(SimpleNamespace(device_log=lines), "vulkan")
+                     ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.decide' has no attribute 'device_evidence'
+
+tests/test_serving_attribution.py:210: AttributeError
+_______________ test_a_session_without_a_log_reads_as_unverified _______________
+
+    def test_a_session_without_a_log_reads_as_unverified() -> None:
+        """No `device_log` attribute at all is an *empty* log (unverified), not an exception.
+    
+        The `getattr` default is the silent case of requirement 1 — a session object that predates the
+        evidence capture (or a fake in an older gate) must not turn the response into a traceback. The
+        mutation sweep's survivor 8 (a `getattr` with no default) is the mutant this pins.
+        """
+>       evidence = decide.device_evidence(SimpleNamespace(), "cpu")
+                   ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.decide' has no attribute 'device_evidence'
+
+tests/test_serving_attribution.py:225: AttributeError
+___________________ test_the_claim_is_what_the_run_asked_for ___________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_the_claim_is_what_the_run0')
+
+    def test_the_claim_is_what_the_run_asked_for(tmp_path: pathlib.Path) -> None:
+        cpu_bundle = bundle(tmp_path, "b11026-linux-x64-cpu")
+>       claim = session_module.backend_claim(requested="vulkan", runtime_dir=cpu_bundle)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.session' has no attribute 'backend_claim'
+
+tests/test_serving_attribution.py:233: AttributeError
+_____________ test_the_claim_falls_back_to_the_bundle_that_loaded ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_the_claim_falls_back_to_t0')
+
+    def test_the_claim_falls_back_to_the_bundle_that_loaded(tmp_path: pathlib.Path) -> None:
+        vulkan = bundle(tmp_path, "b11026-linux-x64-vulkan", "libggml-vulkan.so")
+        cpu = bundle(tmp_path, "b11026-linux-x64-cpu")
+>       assert session_module.backend_claim(requested="auto", runtime_dir=vulkan) == \
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            session_module.BackendClaim(backend="vulkan", source="bundle")
+E       AttributeError: module 'ggufone.engine.session' has no attribute 'backend_claim'
+
+tests/test_serving_attribution.py:240: AttributeError
+_________ test_the_claim_falls_back_to_the_install_record_then_to_cpu __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_the_claim_falls_back_to_t1')
+
+    def test_the_claim_falls_back_to_the_install_record_then_to_cpu(tmp_path: pathlib.Path) -> None:
+        home = tmp_path / "home"
+        home.mkdir()
+        finder.write_runtime_record({"backend_requested": "cuda", "backend_working": "vulkan",
+                                     "dir": str(tmp_path / "gone")}, home=home)
+>       recorded = session_module.backend_claim(home=home)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.session' has no attribute 'backend_claim'
+
+tests/test_serving_attribution.py:253: AttributeError
+____________ test_a_record_without_a_working_backend_is_not_a_claim ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_a_record_without_a_workin0')
+
+    def test_a_record_without_a_working_backend_is_not_a_claim(tmp_path: pathlib.Path) -> None:
+        """An unprobed install record (`backend_working: null`) names nothing — same as no record."""
+        home = tmp_path / "home"
+        home.mkdir()
+        finder.write_runtime_record({"backend_requested": "cuda", "backend_working": None,
+                                     "dir": str(tmp_path / "gone")}, home=home)
+>       claim = session_module.backend_claim(home=home)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.session' has no attribute 'backend_claim'
+
+tests/test_serving_attribution.py:265: AttributeError
+_______ test_the_bundle_classifier_refuses_a_platform_it_has_no_rule_for _______
+
+    def test_the_bundle_classifier_refuses_a_platform_it_has_no_rule_for() -> None:
+        """Same rule as `finder.library_names`: an unknown platform is an error, never a guess."""
+        from ggufone.errors import RuntimeMissingError
+    
+        with pytest.raises(RuntimeMissingError) as excinfo:
+>           finder.accelerator_names("plan9")
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'ggufone.runtime.finder' has no attribute 'accelerator_names'
+
+tests/test_serving_attribution.py:274: AttributeError
+_________ test_the_live_session_records_the_load_and_the_context_lines _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_the_live_session_records_0')
+
+    def test_the_live_session_records_the_load_and_the_context_lines(tmp_path: pathlib.Path) -> None:
+        """`open_model` keeps the *successful* load's lines; the session adds its context's.
+    
+        The vehicle is `tests.test_fit_oom_recovery`'s fake runtime, whose lambdas print through the
+        real `llama_log_set` ABI (card t_8cb0a05e): the same two captures a serving run collects.
+        """
+        from ggufone.engine.decide import ContextPlan
+        from ggufone.runtime import fit
+        from tests.test_fit import write_gguf
+        from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    
+        model_path = write_gguf(tmp_path / "model.gguf", n_layer=4)
+        backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
+    
+        def load(path: bytes, params: object) -> int:
+            backend._installed(4, b"load_tensors:         CPU model buffer size =  4167.21 MiB\n", None)
+            return 1
+    
+        def init(model: object, params: object) -> int:
+            backend._installed(4, b"sched_reserve:    Vulkan0 compute buffer size =   545.31 MiB\n",
+                               None)
+            return 7
+    
+        backend.llama.llama_model_load_from_file = load
+        backend.llama.llama_context_default_params = lambda: SimpleNamespace(
+            n_ctx=0, n_batch=0, n_ubatch=0, n_seq_max=0, n_threads=0, n_threads_batch=0,
+            type_k=0, type_v=0, kv_unified=False, no_perf=True, flash_attn_type=0)
+        backend.llama.llama_init_from_model = init
+        backend.llama.llama_get_memory = lambda ctx: 8
+        backend.llama.llama_free = lambda ctx: None
+        backend.llama.llama_n_ctx = lambda ctx: 512
+        backend.llama.llama_n_seq_max = lambda ctx: 3
+    
+        with fake_runtime(tmp_path, backend):
+            handle = session_module.open_model(model_path, runtime_dir=backend.directory,
+                                               fit_plan=fit.coerce_plan(SimpleNamespace(
+                                                   n_gpu_layers=0, kv_type="auto")),
+                                               log=None)
+            try:
+>               assert handle.load_log == ("load_tensors:         CPU model buffer size =  4167.21 MiB",
+                       ^^^^^^^^^^^^^^^
+                                           )
+E                                          AttributeError: 'ModelHandle' object has no attribute 'load_log'
+
+tests/test_serving_attribution.py:319: AttributeError
+_______________ test_the_live_session_names_the_bundle_it_loaded _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_the_live_session_names_th0')
+
+    def test_the_live_session_names_the_bundle_it_loaded(tmp_path: pathlib.Path) -> None:
+        """No `--backend` flag: the claim is the backend the bundle this run loaded carries."""
+        from ggufone.engine.decide import ContextPlan
+        from ggufone.runtime import fit
+        from tests.test_fit import write_gguf
+        from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    
+        model_path = write_gguf(tmp_path / "model.gguf", n_layer=4)
+        backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
+        backend.llama.llama_context_default_params = lambda: SimpleNamespace(
+            n_ctx=0, n_batch=0, n_ubatch=0, n_seq_max=0, n_threads=0, n_threads_batch=0,
+            type_k=0, type_v=0, kv_unified=False, no_perf=True, flash_attn_type=0)
+        backend.llama.llama_init_from_model = lambda model, params: 7
+        backend.llama.llama_get_memory = lambda ctx: 8
+        backend.llama.llama_free = lambda ctx: None
+        backend.llama.llama_n_ctx = lambda ctx: 512
+        backend.llama.llama_n_seq_max = lambda ctx: 3
+    
+        with fake_runtime(tmp_path, backend):
+            (backend.directory / "libggml-vulkan.so").write_bytes(b"")
+            handle = session_module.open_model(model_path, runtime_dir=backend.directory,
+                                              fit_plan=fit.coerce_plan(SimpleNamespace(
+                                                  n_gpu_layers=0, kv_type="auto")))
+            try:
+                live = session_module.ModelSession(
+                    handle, ContextPlan(n_ctx=512, n_seq_max=3, threads=1, kv_type="auto",
+                                        prefix_tokens=(1, 2, 3)))
+>               assert (live.backend, live.backend_source) == ("vulkan", "bundle")
+                                      ^^^^^^^^^^^^^^^^^^^
+E               AttributeError: 'ModelSession' object has no attribute 'backend_source'
+
+tests/test_serving_attribution.py:367: AttributeError
+__________ test_an_explicit_backend_with_no_source_is_named_explicit ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_an_explicit_backend_with_0')
+
+    def test_an_explicit_backend_with_no_source_is_named_explicit(tmp_path: pathlib.Path) -> None:
+        """`backend=` without `backend_source=`: the label is the caller's, so the source is `explicit`.
+    
+        The loaded bundle carries Vulkan, so a session that resolved the claim anyway — instead of
+        honouring the explicit argument — would answer `vulkan`/`bundle`. The sweep's mutants 7/18/20/21
+        of `ModelSession.__init__` are exactly that path: with the caller naming a backend, the claim is
+        not resolved, and `backend_source` is the contract that says so.
+        """
+        with live_session(tmp_path, backend="cpu") as live:
+            assert live.backend == "cpu"
+>           assert live.backend_source == "explicit"
+                   ^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'ModelSession' object has no attribute 'backend_source'
+
+tests/test_serving_attribution.py:431: AttributeError
+___________ test_a_caller_owned_log_sink_receives_the_context_lines ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_a_caller_owned_log_sink_r0')
+
+    def test_a_caller_owned_log_sink_receives_the_context_lines(tmp_path: pathlib.Path) -> None:
+        """`log=` is a caller-owned sink (the bench keeps one): the context's lines must reach it.
+    
+        Pins the sweep's `ModelSession.__init__` mutant 47 (`log.extend(None)`), which only a session
+        built *with* a sink can see.
+        """
+        sink: list[str] = []
+>       with live_session(tmp_path, backend="vulkan", backend_source="request", log=sink) as live:
+
+tests/test_serving_attribution.py:441: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_a_caller_owned_log_sink_r0')
+session_kwargs = {'backend': 'vulkan', 'backend_source': 'request', 'log': []}
+
+    @contextlib.contextmanager
+    def live_session(tmp_path: pathlib.Path, **session_kwargs: Any) -> Iterator[Any]:
+        """A real `ModelSession` over `test_fit_oom_recovery`'s fake llama runtime.
+    
+        The two gates above build this scaffold inline; the two below need the same world with
+        different constructor kwargs (an explicit backend, a caller-owned log sink), so the harness is
+        shared while the *observations* stay per-gate. The bundle on disk carries `libggml-vulkan.so`,
+        which is what makes "the claim was not resolved" observable.
+        """
+        from ggufone.engine.decide import ContextPlan
+        from ggufone.runtime import fit
+        from tests.test_fit import write_gguf
+        from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    
+        model_path = write_gguf(tmp_path / "model.gguf", n_layer=4)
+        backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
+    
+        def init(model: object, params: object) -> int:
+            backend._installed(4, b"sched_reserve:    Vulkan0 compute buffer size =   545.31 MiB\n",
+                               None)
+            return 7
+    
+        backend.llama.llama_context_default_params = lambda: SimpleNamespace(
+            n_ctx=0, n_batch=0, n_ubatch=0, n_seq_max=0, n_threads=0, n_threads_batch=0,
+            type_k=0, type_v=0, kv_unified=False, no_perf=True, flash_attn_type=0)
+        backend.llama.llama_init_from_model = init
+        backend.llama.llama_get_memory = lambda ctx: 8
+        backend.llama.llama_free = lambda ctx: None
+        backend.llama.llama_n_ctx = lambda ctx: 512
+        backend.llama.llama_n_seq_max = lambda ctx: 3
+    
+        with fake_runtime(tmp_path, backend):
+            (backend.directory / "libggml-vulkan.so").write_bytes(b"")
+            handle = session_module.open_model(model_path, runtime_dir=backend.directory,
+                                              fit_plan=fit.coerce_plan(SimpleNamespace(
+                                                  n_gpu_layers=0, kv_type="auto")))
+            try:
+>               live = session_module.ModelSession(
+                    handle, ContextPlan(n_ctx=512, n_seq_max=3, threads=1, kv_type="auto",
+                                        prefix_tokens=(1, 2, 3)), **session_kwargs)
+E                                       TypeError: ModelSession.__init__() got an unexpected keyword argument 'backend_source'
+
+tests/test_serving_attribution.py:410: TypeError
+_____ test_the_serving_payload_hands_the_claim_and_the_log_to_the_session ______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f38822cf990>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-1139/test_the_serving_payload_hands0')
+
+    def test_the_serving_payload_hands_the_claim_and_the_log_to_the_session(
+            monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+        """`decide_payload` is the one place that knows the request: it must claim its backend.
+    
+        The session is the real `FakeSession` (so the real `DecisionEngine` runs); only the two
+        session-construction calls are replaced, and both are asserted.
+        """
+        model = tmp_path / "model.gguf"
+        model.write_bytes(b"GGUF")
+        directory = bundle(tmp_path, "b11026-linux-x64-vulkan", "libggml-vulkan.so")
+        seen: dict[str, Any] = {}
+    
+        class RecordingSession(FakeSession):
+            def __init__(self, handle: Any, plan: Any, **kwargs: Any) -> None:
+                seen["session_kwargs"] = kwargs
+                super().__init__(n_vocab=512, backend=kwargs.get("backend") or "cpu",
+                                 device_log=E3_VULKAN_LOG,
+                                 backend_source=kwargs.get("backend_source", ""))
+    
+            def __enter__(self) -> RecordingSession:
+                return self
+    
+            def __exit__(self, *exc: object) -> None:
+                self.close()
+    
+        class FakeHandle:
+            """The `ModelHandle` surface `decide_payload` touches (no runtime involved)."""
+    
+            def __init__(self) -> None:
+                self.runtime = SimpleNamespace(directory=directory)
+                self.path = str(model)
+                self.n_vocab = 512
+                self.load_ms = 1.0
+                self.n_layer = 4
+                self.placement = None
+    
+            def tokenize(self, text: str, *, add_special: bool = False) -> list[int]:
+                return [1, 2, 3]
+    
+            def close(self) -> None:
+                pass
+    
+            def __enter__(self) -> FakeHandle:
+                return self
+    
+            def __exit__(self, *exc: object) -> None:
+                self.close()
+    
+        def fake_open_model(path: Any, **kwargs: Any) -> Any:
+            seen["open_kwargs"] = kwargs
+            return FakeHandle()
+    
+        monkeypatch.setattr(session_module, "open_model", fake_open_model)
+        monkeypatch.setattr(session_module, "ModelSession", RecordingSession)
+        monkeypatch.setattr(cli, "load_calibration_for", lambda model_path, **kwargs: None)
+    
+        payload = request_payload({"backend": "vulkan", "threads": 4})
+        payload["model"] = str(model)
+>       body = cli.decide_payload(payload, home=tmp_path / "home", fit_enabled=False)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_serving_attribution.py:505: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/ggufone/cli.py:948: in decide_payload
+    with session_module.ModelSession(handle, context_plan,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <[AttributeError("'RecordingSession' object has no attribute 'batches'") raised in repr()] RecordingSession object at 0x7f38822cf210>
+handle = <tests.test_serving_attribution.test_the_serving_payload_hands_the_claim_and_the_log_to_the_session.<locals>.FakeHandle object at 0x7f38822cca90>
+plan = ContextPlan(prefix_tokens=(1, 2, 3), n_ctx=41, n_seq_max=3, threads=4, kv_type='auto', max_question_tokens=6, template=None, enable_thinking=False)
+kwargs = {'backend': 'cpu', 'states_home': PosixPath('/tmp/pytest-of-root/pytest-1139/test_the_serving_payload_hands0/home/states')}
+
+    def __init__(self, handle: Any, plan: Any, **kwargs: Any) -> None:
+        seen["session_kwargs"] = kwargs
+>       super().__init__(n_vocab=512, backend=kwargs.get("backend") or "cpu",
+                         device_log=E3_VULKAN_LOG,
+                         backend_source=kwargs.get("backend_source", ""))
+E       TypeError: FakeSession.__init__() got an unexpected keyword argument 'device_log'
+
+tests/test_serving_attribution.py:462: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_serving_attribution.py::test_the_serving_response_carries_the_device_evidence_the_engine_logged
+FAILED tests/test_serving_attribution.py::test_a_cpu_only_box_reads_as_cpu - ...
+FAILED tests/test_serving_attribution.py::test_the_request_side_offload_line_is_never_evidence
+FAILED tests/test_serving_attribution.py::test_the_device_evidence_is_not_read_from_the_fit_plan_or_the_record
+FAILED tests/test_serving_attribution.py::test_a_claim_the_log_refutes_is_a_named_warning
+FAILED tests/test_serving_attribution.py::test_an_accelerator_claim_the_log_cannot_corroborate_is_flagged
+FAILED tests/test_serving_attribution.py::test_a_silent_log_reads_as_unverified_never_as_a_claim
+FAILED tests/test_serving_attribution.py::test_a_verified_vulkan_run_is_not_flagged
+FAILED tests/test_serving_attribution.py::test_a_log_kept_as_lines_reads_like_the_joined_text
+FAILED tests/test_serving_attribution.py::test_a_session_without_a_log_reads_as_unverified
+FAILED tests/test_serving_attribution.py::test_the_claim_is_what_the_run_asked_for
+FAILED tests/test_serving_attribution.py::test_the_claim_falls_back_to_the_bundle_that_loaded
+FAILED tests/test_serving_attribution.py::test_the_claim_falls_back_to_the_install_record_then_to_cpu
+FAILED tests/test_serving_attribution.py::test_a_record_without_a_working_backend_is_not_a_claim
+FAILED tests/test_serving_attribution.py::test_the_bundle_classifier_refuses_a_platform_it_has_no_rule_for
+FAILED tests/test_serving_attribution.py::test_the_live_session_records_the_load_and_the_context_lines
+FAILED tests/test_serving_attribution.py::test_the_live_session_names_the_bundle_it_loaded
+FAILED tests/test_serving_attribution.py::test_an_explicit_backend_with_no_source_is_named_explicit
+FAILED tests/test_serving_attribution.py::test_a_caller_owned_log_sink_receives_the_context_lines
+FAILED tests/test_serving_attribution.py::test_the_serving_payload_hands_the_claim_and_the_log_to_the_session
+20 failed, 1 skipped in 2.80s

@@ -1,0 +1,18 @@
+=== parent-tree full-suite run 1 (random order, my gate file ignored)
+FAILED tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+FAILED tests/test_runtime_fallback.py::test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads
+FAILED tests/test_runtime_fallback.py::test_install_reports_a_bundle_that_carries_no_such_backend
+FAILED tests/test_runtime_fallback.py::test_a_tier_this_lock_does_not_pin_is_coded_no_asset
+FAILED tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent
+FAILED tests/test_runtime_install.py::test_install_from_the_offline_cache - a...
+36 failed, 1036 passed, 42 skipped in 16.92s
+=== parent-tree full-suite run 2 (random order, my gate file ignored)
+timeout: fork system call failed: Resource temporarily unavailable
+=== parent-tree full-suite run 3 (random order, my gate file ignored)
+timeout: fork system call failed: Resource temporarily unavailable
+=== parent-tree full-suite run 4 (random order, my gate file ignored)
+timeout: fork system call failed: Resource temporarily unavailable
+=== quiet-box control (the flaky pair, both trees, deterministic):
+40 passed in 8.20s
+40 passed in 6.88s

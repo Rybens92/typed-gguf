@@ -1,0 +1,133 @@
+{
+  "model": "Accio-Lab_occamy-1.0-Q4_K_L",
+  "engine": {
+    "runtime": "llama.cpp",
+    "backend": "vulkan",
+    "backend_source": "request",
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan",
+    "readout": "sequence",
+    "kv_unified": true,
+    "n_ctx": 256,
+    "n_seq_max": 4,
+    "prefix_tokens": 109,
+    "state_id": "sha256:c206645c0f17551a425f5f4e76d4a4da745144c0119e91e2bf821e756ace0ebb",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "qwen35moe",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "q4_0",
+    "n_gpu_layers": 0,
+    "placement": {
+      "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=q4_0)",
+      "n_gpu_layers": 0,
+      "kv_type": "q4_0",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    },
+    "fit": {
+      "n_gpu_layers": 0,
+      "n_ctx": 4096,
+      "kv_type": "q4_0",
+      "n_seq_max": 8,
+      "est_weights_bytes": 24101519360,
+      "est_kv_bytes": 94371840,
+      "est_total_bytes": 24746393600,
+      "backend": "cpu",
+      "source": "llama-fit-params",
+      "warnings": [
+        "W_KV_TYPE_DOWNGRADE",
+        "W_FIT_DOWNGRADE"
+      ],
+      "notes": [
+        "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 22985 MiB, context 142 MiB, compute 525 MiB)",
+        "device memory bound: offloading 7/40 layers within 4661 MiB (--fit-target 1024 MiB, 5685 MiB free of 8192 MiB)",
+        "re-planned for free device memory: 3995 MiB budget (driver reported 5019 MiB free of 8192 MiB, --fit-target 1024 MiB); n_gpu_layers 7 -> 3, kv_type q4_0 -> q4_0",
+        "CPU only: no weights are offloaded to the device",
+        "re-planned for free device memory: 0 MiB budget (driver reported 367 MiB free of 8192 MiB, --fit-target 1024 MiB); n_gpu_layers 3 -> 0, kv_type q4_0 -> q4_0"
+      ],
+      "arch": "qwen35moe",
+      "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+      "host_fingerprint": "e2f65aaa0226c162",
+      "budget_bytes": 1119879168,
+      "created_at": "2026-09-18T13:32:13Z",
+      "schema": "ggufone.fit/v1"
+    },
+    "escalations": {
+      "enabled": false,
+      "limit": 0,
+      "threshold": 0.5,
+      "target": null,
+      "count": 0,
+      "decisions": [],
+      "skipped": []
+    }
+  },
+  "answers": {
+    "c01": {
+      "type": "choice",
+      "choice": "sales",
+      "probabilities": {
+        "billing": 0.248176,
+        "technical": 0.0494971,
+        "sales": 0.399583,
+        "support": 0.302745
+      },
+      "confidence": 0.199443,
+      "coverage": 3.91689e-08,
+      "reliability": "low_mass",
+      "decode_steps": 4,
+      "legend": {
+        "billing": "payments, invoices and refunds",
+        "technical": "api, infrastructure and deploys",
+        "sales": "contracts and pricing",
+        "support": "customer conversations"
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 162,
+    "output_tokens": 4,
+    "questions": 1,
+    "forks": 4,
+    "prefill_tokens": 109,
+    "decode_steps": 4,
+    "waves": 2
+  },
+  "timings": {
+    "model_load_ms": 15219.4,
+    "prefill_ms": 44952.3,
+    "questions_ms": 85029.4,
+    "total_ms": 130008.0
+  },
+  "warnings": [
+    "W_LOW_MASS"
+  ],
+  "calibrated": false,
+  "calibration": {
+    "source": "",
+    "applied": false,
+    "model": null,
+    "params_hash": "",
+    "temperatures": {},
+    "confidence_modes": {},
+    "accepted_types": []
+  }
+}

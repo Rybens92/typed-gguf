@@ -1,0 +1,13 @@
+# decide.py: 524 survivors — 4 mutate a needle line, 520 mutate something else, 0 could not be matched to a block (indented method mutants are not top-level defs in the run file)
+  x_device_evidence__mutmut_5
+      in def x_device_evidence__mutmut_orig(session: Any, claimed: st
+      mutated original line: text = getattr(session, "device_log", "") or ""
+  x_device_evidence__mutmut_11
+      in def x_device_evidence__mutmut_orig(session: Any, claimed: st
+      mutated original line: text = getattr(session, "device_log", "") or ""
+  x_device_evidence__mutmut_12
+      in def x_device_evidence__mutmut_orig(session: Any, claimed: st
+      mutated original line: text = getattr(session, "device_log", "") or ""
+  x_device_evidence__mutmut_18
+      in def x_device_evidence__mutmut_orig(session: Any, claimed: st
+      mutated original line: text if isinstance(text, str) else "\n".join(text))

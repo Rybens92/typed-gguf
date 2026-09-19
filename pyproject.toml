@@ -128,7 +128,7 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # lives inside `run_backend_child`, whose mutants only the pair together kill. A bench sweep only
 # has to restore the three bench gate files above; an E3 sweep restores `compare.py` +
 # `test_e3.py`. Card t_80f1a4c6 (E3 FIX, the serving path's backend label) is the newest sweep:
-# its two engine modules are driven by tests/test_serving_attribution.py (16 offline + 1 live
+# its two engine modules are driven by tests/test_serving_attribution.py (20 offline + 1 live
 # gate). Restore the isolation pair (or the bench triple above) when a bench card sweeps next.
 pytest_add_cli_args_test_selection = ["tests/test_serving_attribution.py"]
 max_children = 2
