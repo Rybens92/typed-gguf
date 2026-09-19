@@ -196,6 +196,35 @@ def test_a_verified_vulkan_run_is_not_flagged() -> None:
     assert "W_BACKEND_MISMATCH" not in body["warnings"]
 
 
+def test_a_log_kept_as_lines_reads_like_the_joined_text() -> None:
+    """`device_log` may be a sequence of lines, not one string — the loader's own shape.
+
+    `ModelSession.device_log` joins its lines (`ModelHandle.load_log` + the context's), but the
+    evidence helper accepts a session-like object directly, and the loader's capture *is* a tuple:
+    reading a sequence as text would drop exactly the lines this card exists to read (the mutation
+    sweep's `device_evidence` survivors 16/17 pin this branch — card t_80f1a4c6, Tier M).
+    """
+    lines = tuple(line for line in E3_VULKAN_LOG.splitlines() if line)
+    from_lines = decide.device_evidence(SimpleNamespace(device_log=lines), "vulkan")
+    from_text = decide.device_evidence(SimpleNamespace(device_log=E3_VULKAN_LOG), "vulkan")
+    assert from_lines == from_text
+    assert from_lines["effective_backend"] == "vulkan"
+    assert from_lines["device_buffers"] == {"Vulkan0": 2, "Vulkan_Host": 1}
+    assert from_lines["warnings"] == []
+
+
+def test_a_session_without_a_log_reads_as_unverified() -> None:
+    """No `device_log` attribute at all is an *empty* log (unverified), not an exception.
+
+    The `getattr` default is the silent case of requirement 1 — a session object that predates the
+    evidence capture (or a fake in an older gate) must not turn the response into a traceback. The
+    mutation sweep's survivor 8 (a `getattr` with no default) is the mutant this pins.
+    """
+    evidence = decide.device_evidence(SimpleNamespace(), "cpu")
+    assert evidence == {"devices": [], "device_buffers": {}, "effective_backend": None,
+                        "warnings": []}
+
+
 # ------------------------------------------------- the claim, and where it comes from
 def test_the_claim_is_what_the_run_asked_for(tmp_path: pathlib.Path) -> None:
     cpu_bundle = bundle(tmp_path, "b11026-linux-x64-cpu")
