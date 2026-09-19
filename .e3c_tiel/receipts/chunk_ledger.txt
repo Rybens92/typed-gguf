@@ -1,0 +1,12 @@
+chunk | items (c/s/n) | correct | agreement | median item ms | wall s | load s | ngl | degraded
+001   | 4/3/3          | 5/10     | 0.5 | 7.0    | 204.9 | 29.29 | 9 | False
+002   | 3/4/3          | 5/10     | 0.5 | 2.4    | 141.0 | 12.513 | 9 | False
+003   | 3/3/4          | 6/10     | 0.6 | 1.6    | 136.5 | 24.943 | 9 | False
+004   | 4/3/3          | 5/10     | 0.5 | 30.7    | 957.7 | 9.073 | 9 | False
+005   | 3/4/3          | 5/10     | 0.5 | 2.9    | 178.3 | 18.99 | 9 | False
+006   | 7/1/2          | 5/10     | 0.5 | 4.4    | 152.6 | 26.942 | 9 | False
+
+merged: 60 items · 31 correct · 0.517 · overall block {"agreement": 0.5166666666666667, "ci": [0.39307594850843575, 0.6382515871422999], "correct": 31, "n": 60}
+per-item questions_ms over 60 items: median 5.0 s · min 1.2 s · max 65.2 s
+merged types: {'choice': 24, 'score': 18, 'noul': 18}
+coverage summary in the merged report: null

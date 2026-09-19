@@ -1,0 +1,2 @@
+9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c  /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf
+633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757  /var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf

@@ -799,3 +799,159 @@ requests — and route the interactive work elsewhere**: 0.28 tok/s decode is th
 23 GB model that cannot be cached in 8 GiB, and no flag changes that. A host that can keep the
 weights resident (the operator host's own 31 GiB) turns the same command into a compute-bound run.
 
+## 7. E3c — Tiel-Coder (35B-A3B, 20.8 GB) measured like Occamy, and the three-way table
+
+<!-- @@E3C_TIEL_BENCH_7_BEGIN@@ -->
+**This section is the third column of the `qwen35moe` comparison** (card `t_a58f8b67`): E2's
+`4B default` (§2, container, CPU), E3's `Occamy 1.0` (§6, chunks, vulkan) and **Tiel-Coder**
+(here, host, vulkan) on the **same 60 committed dev items**. Raw evidence:
+`docs/evidence/e3c_tiel_t_a58f8b67_tiel.md` (the campaign doc, with QA in its §11),
+`docs/evidence/tiel_chunks/` (6 raw reports + placement captures), `docs/evidence/tiel_quality.json`
+(the merge), `docs/evidence/e3c_tiel_three_way.md` (the table).
+
+### 7.1 The pin, the box, and the scope that decides the numbers
+
+| what | value |
+|---|---|
+| model | `Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf` — 22 360 476 736 B (20.8 GiB), arch `qwen35moe`, GGUF name `Ornith-1.5-35B`, 40 layers, 256 experts / 8 used |
+| SHA-256 | `9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c` — **identical before and after** the campaign (`.e3c_tiel/sha256_before.txt` / `sha256_after.txt`) |
+| downloads | none: the file's `mtime` is 2026-09-04, the card started 2026-09-19 |
+| runtime | pinned `b11026-linux-x64-vulkan`; every row `--backend vulkan --threads 4` |
+| GPU | `NVIDIA GeForce RTX 3060 Ti`, 8192 MiB, driver 615.71.09, `vram_free_bytes` 6 955 204 608 at plan time |
+| box | **host**, `systemd-run --user --unit=e3c-tiel-campaign` with `MemoryMax=infinity` (`memory.max=max` printed in the run's own log) |
+| Occamy (untouched) | `633ae57f…df757`, 24 113 674 848 B — re-verified after the campaign |
+
+**The scope is a measurement condition, not a detail.** Run inside the kanban worker's own scope
+(`memory.max = 4 GiB`) a 21 GB model re-reads its weights from disk on every forward: **608 s for
+one 10-item chunk**, `read_bytes` 68 GB in 12 minutes, `wchan = folio_wait_bit_common`. In the
+unlimited scope the same chunk costs 141–205 s and the load 9–29 s. The two capped chunks are kept
+as `.e3c_tiel/flawed_capped/` and are **not** model rows — they measure the cap. E3's `[host]` rows
+(§6.2) are on the same box for the same reason.
+
+### 7.2 Placement (free-VRAM aware, and what the loader actually did)
+
+`ggufone fit --print --json` plans `n_gpu_layers 9 / n_ctx 4096 / kv_type q4_0 / n_seq_max 8`
+(warnings `W_KV_TYPE_DOWNGRADE`, `W_FIT_DOWNGRADE`; note "offloading 9/40 layers within 5609 MiB").
+The quality report shape does not carry the placement (E3 §4.3), so
+`tools/e3c_tiel_reproduce.py` records what the loader settled on per chunk — an observer on
+`handle.placement.to_dict()`, no flag or number changed:
+
+| chunk | ngl requested | ngl used | degraded | attempts | load wall | chunk wall |
+|---|---|---|---|---|---|---|
+| 001 | 9 | 9 | false | `[]` | 29.3 s | 204.9 s |
+| 002 | 9 | 9 | false | `[]` | 12.5 s | 141.0 s |
+| 003 | 9 | 9 | false | `[]` | 24.9 s | 136.5 s |
+| 004 | 9 | 9 | false | `[]` | 9.1 s | **957.7 s** (contention, below) |
+| 005 | 9 | 9 | false | `[]` | 19.0 s | 178.3 s |
+| 006 | 9 | 9 | false | `[]` | 26.9 s | 152.6 s |
+
+**No degrade rung was taken in any chunk** (Occamy took two in E3/E3b). Engine log, verbatim:
+`load_tensors: offloaded 9/41 layers to GPU` · `CPU_Mapped model buffer size = 16680.10 MiB` ·
+`Vulkan0 model buffer size = 4634.02 MiB`. Chunk 004 ran while a sibling card's own 21 GB Occamy
+probe was on the same GPU (`tools/e3c_cue_shapes.py`, `.e3c/logs/occamy_c01_vulkan.log`) — two
+21 GB models on a 32 GB host: its wall is an artifact of that contention; the answers are
+unaffected (the decode is deterministic for the same items, and its agreement matches the rest).
+
+### 7.3 The chunk ledger and the merged result (deliverable 2)
+
+| chunk | items (choice/score/noul) | correct | median item decision | box |
+|---|---|---|---:|---|
+| `report_001.json` | 10 (4/3/3) | 5/10 | 7.0 s | host, unlimited scope |
+| `report_002.json` | 10 (3/4/3) | 5/10 | 2.4 s | host, unlimited scope |
+| `report_003.json` | 10 (3/3/4) | 6/10 | 1.6 s | host, unlimited scope |
+| `report_004.json` | 10 (4/3/3) | 5/10 | 30.7 s | host, contended (see 7.2) |
+| `report_005.json` | 10 (3/4/3) | 5/10 | 2.9 s | host, unlimited scope |
+| `report_006.json` | 10 (7/1/2) | 5/10 | 4.4 s | host, unlimited scope |
+
+Merged (`docs/evidence/tiel_quality.json`, 60 items, every row `ok`): **31/60 = 0.517
+[0.393–0.638]** — per type `choice` 16/24 (0.667), `noul` 7/18 (0.389), `score` 8/18 (0.444).
+Decision cost per item over the 60 rows: median 5.0 s, min 1.2 s, max 65.2 s. The dev-set slices are
+byte-identical copies of `docs/evidence/e3_chunks/devset_00{1..6}.jsonl` (SHA-verified), so every
+column of the three-way table is paired on the same items.
+
+### 7.4 The mass split — and the shape it depends on (deliverable 3, input to `t_6952f0dd`)
+
+| | 4B default (E2) | Occamy 1.0 (E3) | **Tiel-Coder (E3c)** |
+|---|---|---|---|
+| rows `measured` (≥ the 0.10 floor) | 48/60 | 3/60 | **46/60** |
+| rows `low_mass` | 12/60 | 57/60 | 14/60 |
+| coverage median · min · max | 2.56e-01 · 9.96e-03 · 8.94e-01 | 2.34e-02 · 1.86e-03 · 2.00e-01 | **2.58e-01** · 7.88e-03 · 8.20e-01 |
+
+On the committed dev set **Tiel is not starved — it lands on the label strings**, with the 4B's
+coverage shape rather than Occamy's, on the shipped `bare` label policy (nothing in the default
+policy changed for this campaign; the control sweep is `docs/evidence/tiel_label_policy_tables.md`).
+
+**The same 20 items read by the serving shape say the opposite, and both readings ship.** The
+batch's questions are byte-identical to the bench suite's `c01`…`c20`, yet:
+
+| shape | `measured` on c01–c20 | coverage median | cue row's argmax |
+|---|---|---|---|
+| bench (`--suite quality`) | 15/20 | 2.33e-01 | a real token on 17/20 |
+| serving (`--suite batch`, one state, `readout: sequence`) | **0/20** | 6.42e-06 | special token `248069` on 19/20 (mass 0.68–0.99), `<|im_end|>` once |
+
+So "Tiel answers where Occamy does not" holds for the **bench** shape (and is why a family-wide
+label correction is still wrong); on the **serving** shape *both* 35B-A3B models return 20/20
+`low_mass` (Occamy 8.8e-09…2.2e-06). The shapes differ in state prefix (109 tokens), `n_ctx` 256,
+`readout: sequence`, 4 forks/question and one process for all 20 questions; **which** of those turns
+the cue row away from the labels is not measured here — it is the cue-shape card's probe
+(`t_6c119626`, `docs/evidence/e3c_cue_shapes.md`).
+
+### 7.5 The 20-question batch (deliverable 4)
+
+| what | value |
+|---|---|
+| outcome | exit 0 · **20/20 answers** · no OOM (`.e3c_tiel/batch_response.json`, `.e3c_tiel/extras_logs/extras2.log`) |
+| wall | **35.6 s** (load 9.85 s + prefill 7.88 s + questions 27.72 s) |
+| `usage` | questions 20 · forks 80 · **waves 40** · decode_steps 117 · input_tokens 1 175 · output_tokens 117 · prefill_tokens 109 |
+| placement | `{n_gpu_layers: 9, kv_type: q4_0, degraded: false, attempts: []}` — no degrade |
+| verdict | 20/20 `low_mass` (§7.4); warnings `[W_TEMPLATE_FALLBACK, W_LOW_MASS, W_CUE_REFUSED]` |
+
+Occamy's E3 batch (§6.3) ran the same workload at `n_seq_max 4` and cost 3 633.6 s in the container;
+Tiel's 35.6 s is a host figure at `n_seq_max 8` — **no speed comparison is claimed** between them.
+
+### 7.6 Threads (deliverable 5)
+
+`llama-bench` from the same bundle at the fitted placement, E3's sizes (`-p 64 -n 8 -r 2`), raw
+tables in `.e3c_tiel/extras_logs/extras.log`:
+
+| threads | pp64 (tok/s) | tg8 (tok/s) |
+|---|---:|---:|
+| 4 | 5.33 ± 2.39 | 1.85 ± 0.60 |
+| **8** | **10.91 ± 3.12** | 3.26 ± 0.32 |
+| 12 | 10.29 ± 2.87 | **5.53 ± 0.86** |
+
+**The opposite of Occamy** (E3 §6.5: `-t 4` won, 8/12 were worse): Tiel scales with threads here —
+prefill doubles 4 → 8 and decode keeps climbing to 12. The campaign kept `--threads 4` for E3
+comparability and therefore publishes Tiel's **lower bound**. Recommendation for this artifact:
+`--backend vulkan --gpu-layers 9 --threads 8` (more threads than E3's Occamy recommendation), on a
+box that can keep the weights resident.
+
+### 7.7 Three-way table (deliverable 6) — quotation only
+
+`docs/evidence/e3c_tiel_three_way.md` (`tools/e3c_tiel_table.py`, which reuses
+`ggufone.bench.compare`, paired, 0 unpaired rows):
+
+| metric | 4B default (E2, 60, CPU) | Occamy 1.0 (E3, chunks, vulkan) | Tiel-Coder (E3c, host, vulkan) |
+|---|---|---|---|
+| overall | 0.633 (38/60) [0.507–0.744] | 0.517 (31/60) [0.393–0.638] | 0.517 (31/60) [0.393–0.638] |
+| choice | 0.750 (18/24) [0.551–0.880] | 0.625 (15/24) [0.427–0.788] | 0.667 (16/24) [0.467–0.820] |
+| noul | 0.889 (16/18) [0.672–0.969] | 0.389 (7/18) [0.203–0.614] | 0.389 (7/18) [0.203–0.614] |
+| score | 0.222 (4/18) [0.090–0.452] | 0.500 (9/18) [0.290–0.710] | 0.444 (8/18) [0.246–0.663] |
+| low_mass | 0.500 (6/12) [0.254–0.746] | 0.509 (29/57) [0.383–0.634] | 0.571 (8/14) [0.326–0.786] |
+| measured | 0.667 (32/48) [0.525–0.783] | 0.667 (2/3) [0.208–0.939] | 0.500 (23/46) [0.361–0.639] |
+
+**Every interval overlaps: no ranking is claimed.** Tiel and Occamy are identical overall
+(31/60 each) — the pair that separates is `noul` (both 0.389 against the 4B's 0.889, and *those*
+intervals do not overlap), and the honest reading of the whole table is that the two 35B-A3B
+checkpoints are the same quality on this set while differing in *how much a reader can trust each
+number* (7.4).
+
+### 7.8 What §7 does not claim
+
+No ranking (intervals overlap); no mechanism for the bench/serving split; no speed comparison
+between the two batches; no claim about the token id `248069` beyond what it is not (it is not
+`<|im_end|>`, so `W_CUE_REFUSED` does not fire on those 19 rows — a closers-list question for
+`t_6c119626`); and no number at all from the two capped chunks
+(`.e3c_tiel/flawed_capped/`).
+<!-- @@E3C_TIEL_BENCH_7_END@@ -->
+

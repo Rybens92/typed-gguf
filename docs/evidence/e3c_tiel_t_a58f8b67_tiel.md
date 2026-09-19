@@ -1,6 +1,6 @@
 # E3c — Tiel-Coder (Ornith-1.5-35B, 35B-A3B, 21 GB local) measured like Occamy 1.0
 
-Card `t_a58f8b67` (main-coder) · host run · 2026-09-19 · commit to follow this file.
+Card `t_a58f8b67` (main-coder) · host run · 2026-09-19 · artifacts committed in `2408fad`, QA in §11.
 
 Tiel is the third model in the `qwen35moe` comparison: the E2 baseline (`4B default`, CPU, 60
 items), E3's `Occamy 1.0` (24.1 GB, chunks, vulkan) and now Tiel-Coder (20.8 GB, chunks, vulkan) —
@@ -78,8 +78,12 @@ apply. `n_ctx` / `n_seq_max` are planned per request and recorded per chunk in t
 (154–186 tokens of prefix+question+margin; `n_seq_max` 3–6 — the per-item questions are narrower
 than the fit plan's global bound of 8).
 
-Per-item wall: median ≈ 13–20 s over the 60 items (chunk 004's items ran under a *neighbouring*
-21 GB probe — see §7).
+Per-item decision cost, read off the 60 rows' own `questions_ms`: **median 5.0 s, min 1.2 s, max
+65.2 s**. The max is chunk 004's: those ten items ran under a *neighbouring* 21 GB probe (a
+sibling card's `e3c_cue_shapes.py` on Occamy, `.e3c/logs/occamy_c01_vulkan.log`) — see §9 — and its
+30.7 s median is a contention artifact, not a model property. The other five chunks' medians are
+1.6–7.0 s. Load wall per chunk is in the table above (9.1–29.3 s; the first two chunks also paid
+the shader/pipeline compile).
 
 ## 4. Quality on the committed 60-item dev set (deliverable 2)
 
@@ -140,11 +144,74 @@ label-policy sweep on Tiel, run for the same control E3b used, is in
 Interpretation for the label-policy card: Occamy's starvation is a *model behaviour*, not a
 `qwen35moe` family property — a sibling checkpoint of the same architecture and vendor line puts
 its mass exactly where a label policy needs it. Any policy that fixes Occamy must therefore be
-justified as a rescue, not as a family-wide correction.
+justified as a rescue, not as a family-wide correction. §5.1 qualifies that sentence with a
+measurement the reader must have before acting on it.
+
+### 5.1 The split is shape-dependent — the same 20 items, read twice
+
+The `run`-shaped batch (§6) asks the **same** questions as the bench suite — `batch_questions.json`
+is byte-identical to `docs/evidence/e3_batch_questions.json`, and all 20 items' `criteria` /
+`instructions` are equal to dev rows `c01`…`c20` (`.e3c_tiel/batch_vs_devset.py`, 20/20 identical).
+The two shapes disagree completely about Tiel's mass:
+
+| shape | items | `measured` | coverage min · median · max | cue row's argmax |
+|---|---|---|---|---|
+| bench (`--suite quality`, per item, no state) | c01–c20 | **15/20** (low_mass: c01, c02, c07, c10, c17) | 7.88e-03 · **2.33e-01** · 5.73e-01 | a real token on 17/20 (e.g. `14501`, `271`, `2054`), `248068`/`248069` on 3 |
+| serving (`--suite batch`, one state, `readout: sequence`, 4 forks/question) | c01–c20 | **0/20** | 7.97e-07 · **6.42e-06** · 1.39e-03 | special token `248069` on 19/20 (mass 0.68–0.99), `<|im_end|>` on `c11` (0.50) |
+
+Worst case vs best case, same item: `c03` reads 5.36e-01 (`ok`, bench) and 8.13e-06 (`low_mass`,
+serving) — five orders of magnitude apart, and the model does not even pick the same option
+(bench `mobile` 0.966, serving `backend` 0.845). `c01`/`c02`/`c07`/`c10`/`c17` are `low_mass` on
+*both* shapes; the other 15 flip.
+
+What the two shapes differ in — named, **not** attributed: a saved prefix state (`prefix_tokens`
+109, one `state_id` for all 20 questions), `n_ctx` 256 (planned per request, not the fit plan's
+4096), `readout: "sequence"`, four forks per question decoded as 40 waves, and one process for all
+20 questions instead of one per item. Which of these turns Tiel's cue row away from the labels is
+a controlled-probe question, and it belongs to the card that owns the cue shapes (`t_6c119626`,
+`docs/evidence/e3c_cue_shapes.md`) — this card measures the pair of readings and stops there.
+
+**Consequence for `t_6952f0dd` (the one sentence to carry over):** "Tiel answers where Occamy does
+not" is true on the **bench** shape and false on the **serving** shape — on that shape *both*
+35B-A3B models return 20/20 `low_mass`, Occamy at coverage 8.8e-09…2.2e-06 and Tiel at
+8.0e-07…1.4e-03 (`docs/evidence/e3_batch.json` vs `.e3c_tiel/batch_response.json`). A label policy
+justified as a family-wide correction is still wrong (the bench shape separates them); one
+justified as an Occamy-only rescue would leave the serving shape's refusal in place for the
+sibling too.
 
 ## 6. The 20-question batch (deliverable 4)
 
-§8 below, after the run.
+Command (`.e3c_tiel/run_batch.sh`, raw response `.e3c_tiel/batch_response.json`), run inside
+`e3c-tiel-extras2.service` — an unlimited scope (the unit's own accounting: `21.1 G memory peak`,
+see §9 for why that matters):
+
+```bash
+NSEQ=8 bash .e3c_tiel/run_batch.sh     # GGUFONE_RUNTIME_DIR / VK_DRIVER_FILES as in §4
+```
+
+| what | value |
+|---|---|
+| outcome | exit 0 · **20/20 answers** (`c01`…`c20`, none empty) · no OOM in the log |
+| wall | **35.6 s** whole run (`timings.total_ms` 35 618.1) = load 9.85 s + prefill 7.88 s + questions 27.72 s |
+| `usage` | questions 20 · forks 80 · **waves 40** · decode_steps 117 · input_tokens 1 175 · output_tokens 117 · prefill_tokens 109 |
+| placement used | `{n_gpu_layers: 9, kv_type: q4_0, degraded: false, attempts: []}` — the fit plan's own rung, no degrade |
+| context | `n_ctx` 256 · `n_seq_max` 8 (the fit plan's bound) · `prefix_tokens` 109 · one `state_id` (`sha256:c206645c…`) · `readout: "sequence"` |
+| warnings | `[W_TEMPLATE_FALLBACK, W_LOW_MASS, W_CUE_REFUSED]` · `calibrated: false` |
+
+`waves = 40` for `forks = 80`: the same adaptation E3 §6.3 measured on Occamy — with four forks per
+question the engine groups them (20 questions × 2 groups = 40 decode batches) instead of decoding
+all 80 at once. No OOM, no degraded placement, exit 0.
+
+**The answers are not label answers, and the response says so.** The batch's own verdict is
+`low_mass` on **20/20** rows (§5.1): the cue row's argmax is the special token `248069` on 19 rows
+(mass 0.68–0.99) and `<|im_end|>` on `c11` (0.50, the one `W_CUE_REFUSED`). 20/20 answers exist as
+objects with a `choice` field; what they lack is mass at the readout the engine uses to justify it.
+
+Speed context, stated so it is not misread: the same 20 questions cost Occamy **3 633.6 s** in E3
+(`--n_seq_max 4`, 65 waves) — a number E3 itself attributes to the 8 GiB container, which could not
+keep 23 GB of weights resident (E3 §6.2). Tiel's 35.6 s is a *host* figure at `n_seq_max 8`; the
+workload matches (`forks` 80, `decode_steps` 117, `input_tokens` 1 175) and the wall does not, so
+this card claims no speed comparison between the two runs.
 
 ## 7. The threads probe (deliverable 5)
 
@@ -156,6 +223,11 @@ justified as a rescue, not as a family-wide correction.
 | 4 | 5.33 ± 2.39 | 1.85 ± 0.60 |
 | **8** | **10.91 ± 3.12** | 3.26 ± 0.32 |
 | 12 | 10.29 ± 2.87 | **5.53 ± 0.86** |
+
+**Receipt:** the probe's raw `llama-bench` tables are `.e3c_tiel/extras_logs/extras.log`
+(sha256 `2eb77fd5def9a3c39118cb3ec6df111b27969ec5beb9f5793f14305b0e2f524d`), written by
+`.e3c_tiel/run_threads.sh` inside `e3c-tiel-extras.service` (18:37:00–18:41:15). Each row is
+`-r 2` samples of the same binary E3 used, on the same model file, one load per row.
 
 **Opposite of Occamy** (E3 §6.5: `-t 4` won at 1.71 pp64 / 0.28 tg8, and 8/12 were *worse*). Tiel
 scales with threads on this box: prompt processing doubles from 4 → 8, and decode keeps climbing
@@ -228,9 +300,45 @@ given the same items), but no latency claim should be read from chunk 004.
 ## 10. What is not claimed
 
 - No download: the model file predates the card (mtime 2026-09-04); nothing wrote either `.gguf`
-  (SHA identical before/after).
+  (SHA identical before/after, §1).
 - No ranking between the three models: every 95 % interval in §8 overlaps except the `noul` pair
   noted there.
 - `low_mass` is a property of the *answer at the cue*, not of correctness: the `measured` rows in
   §8 are the ones a reader should trust (0.500 for Tiel on 46 rows — a coin flip).
 - Chunk 004's wall time is a contention artifact (§9), not a model property.
+- **No mechanism** for the bench/serving split in §5.1 — the two readings are measured, the cause is
+  not; the cue-shape card owns that probe.
+- **No speed comparison** between Tiel's batch (35.6 s, host, `n_seq_max 8`) and Occamy's (3 633.6 s,
+  container, `n_seq_max 4`) — different box and different batch width.
+- **No claim about the token id `248069`**: it is a single-token special in the 24804x–24806x block
+  (Tiel's vocabulary: `248046` = `<|im_end|>`, `248044` = `<|endoftext|>`, `248045` = `<|im_start|>`
+  — `.e3c_tiel/special_tokens.py`), it is not `<|im_end|>` (so the engine's cue verdict does **not**
+  fire) and this card does not name it. A control token that holds ~0.9 of the cue row's mass while
+  escaping `W_CUE_REFUSED` is a classification question for the closers list in
+  `src/ggufone/engine/cue.py`, reported to that card rather than patched here.
+
+## 11. QA — what was verified, by what
+
+`python3 .e3c_tiel/qa_tiel.py` (read-only; exits non-zero on any failure) — **ALL CHECKS PASS**:
+
+| check | result |
+|---|---|
+| six chunk reports | 10 rows each, every row `ok`, union **60 rows, 60 unique ids** |
+| dev-set pairing | each chunk's `devset_00N.jsonl` ids == its report's ids; **6/6 byte-identical to E3's `e3_chunks/devset_00N.jsonl`** (sha256) |
+| merge arithmetic | `tools/e3c_tiel_reproduce.py --suite merge --reports docs/evidence/tiel_chunks/report_*.json` re-run into `/tmp` reproduces the committed `docs/evidence/tiel_quality.json` **field for field** (report keys and all 60 rows' `correct`/`coverage`/`reliability`) |
+| three-way table | the three `model_row`s recompute to §8's numbers (Tiel 31/60, Occamy 31/60, 4B 38/60); the tie is asserted, not eyeballed |
+| batch | 20 ids, **20/20 non-empty answers**; `usage`/`timings` printed from the artifact (§6) |
+| model pins after the campaign | Tiel `9286a94c…cf17c`, Occamy `633ae57f…df757` — **both identical to the before-capture** (`.e3c_tiel/sha256_after.txt`) |
+| downloads | none: both files' `mtime` predate the card, the hashes are unchanged before **and** after, and no command in `.e3c_tiel/*.sh` fetches anything |
+
+The QA scripts themselves are committed evidence, not scratch: `qa_tiel.py` (the gate above),
+`chunk_ledger.py` (§3/§7 tables), `split_figures.py` (§5.1), `batch_facts.py`/`batch_peek.py` (§6),
+`batch_two_models.py`/`batch_vs_devset.py` (§5.1 pairing), `special_tokens.py` (§10), `shape_diff.py`
+and `token_probe.py` (the bench-vs-serving rows), `fit_dump.py` (the fit plan capture).
+
+One provenance wrinkle, kept rather than tidied: `.e3c_tiel/sha256_before.txt` lost its first line to
+a stray re-run of the *before* script five minutes into the after-capture (the job was killed
+immediately; it read no hash). The block in that file is the verbatim first capture, and it is
+corroborated twice — `ggufone fit`'s own `model_sha256` in `.e3c_tiel/fit_tiel.json` (created
+2026-09-19T15:20:46Z, i.e. read from the file on disk) and, for Occamy, `docs/evidence/e3c_sha256_receipt.json`
+(`identical: true`). Nothing in §1 rests on the damaged line alone.

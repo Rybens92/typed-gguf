@@ -1,0 +1,28 @@
+batch questions file: /var/home/rybens/workspace/ggufone/.e3c_tiel/batch_questions.json keys=['questions'] rows=20
+row0: {"id": "c01", "type": "choice", "criteria": {"billing": "payments, invoices and refunds", "technical": "api, infrastructure and deploys", "sales": "contracts and pricing", "support": "customer conversations"}, "instructions": "Which team owns this incident?"}
+same file as E3's batch questions: True
+devset rows: 60 ids ['c01', 'c02', 'c03']..['s17', 's18']
+
+id | batch type/text-head | devset type/text-head | same text? | quality cov/rel
+c01 | choice '' | choice '' | True | 0.035792110689775586 / low_mass
+c02 | choice '' | choice '' | True | 0.010434231314693326 / low_mass
+c03 | choice '' | choice '' | True | 0.53571048644023 / ok
+c04 | choice '' | choice '' | True | 0.2110784086456299 / ok
+c05 | choice '' | choice '' | True | 0.3600589948155634 / ok
+c06 | choice '' | choice '' | True | 0.37184910351086886 / ok
+c07 | choice '' | choice '' | True | 0.048109107635589246 / low_mass
+c08 | choice '' | choice '' | True | 0.37441921228486624 / ok
+c09 | choice '' | choice '' | True | 0.36843116419912797 / ok
+c10 | choice '' | choice '' | True | 0.0493186830662658 / low_mass
+c11 | choice '' | choice '' | True | 0.25521614112776736 / ok
+c12 | choice '' | choice '' | True | 0.3791534409849364 / ok
+c13 | choice '' | choice '' | True | 0.5733197183258847 / ok
+c14 | choice '' | choice '' | True | 0.14288149940725586 / ok
+c15 | choice '' | choice '' | True | 0.12137391386008509 / ok
+c16 | choice '' | choice '' | True | 0.2052137196994584 / ok
+c17 | choice '' | choice '' | True | 0.007882819358983223 / low_mass
+c18 | choice '' | choice '' | True | 0.4774529898667228 / ok
+c19 | choice '' | choice '' | True | 0.10256866711814888 / ok
+c20 | choice '' | choice '' | True | 0.42222133278074486 / ok
+
+items whose text is identical in both files: 20/20

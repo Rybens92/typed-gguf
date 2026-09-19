@@ -1,0 +1,30 @@
+text -> ids (single-token candidates only)
+   single token  248045  '<|im_start|>'
+   single token  248046  '<|im_end|>'
+   single token  248044  '<|endoftext|>'
+   single token  248047  '<|object_ref_start|>'
+   single token  248048  '<|object_ref_end|>'
+   single token  248049  '<|box_start|>'
+   single token  248050  '<|box_end|>'
+   single token  248051  '<|quad_start|>'
+   single token  248052  '<|quad_end|>'
+   single token  248053  '<|vision_start|>'
+   single token  248054  '<|vision_end|>'
+   single token  248055  '<|vision_pad|>'
+   single token  248056  '<|image_pad|>'
+   single token  248057  '<|video_pad|>'
+   single token  248060  '<|fim_prefix|>'
+   single token  248061  '<|fim_middle|>'
+   single token  248062  '<|fim_suffix|>'
+   single token  248063  '<|fim_pad|>'
+   single token  248064  '<|repo_name|>'
+   single token  248065  '<|file_sep|>'
+   single token  248058  '<tool_call>'
+   single token  248059  '</tool_call>'
+   single token   79420  'thinking'
+   single token     198  '\n'
+
+the engine's cue ids:
+   248046: <|im_end|>
+   248068: not among the probed control strings
+   248069: not among the probed control strings

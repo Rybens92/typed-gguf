@@ -1,0 +1,32 @@
+PASS  chunk 001 rows: 10 rows, not-ok none
+PASS  chunk 002 rows: 10 rows, not-ok none
+PASS  chunk 003 rows: 10 rows, not-ok none
+PASS  chunk 004 rows: 10 rows, not-ok none
+PASS  chunk 005 rows: 10 rows, not-ok none
+PASS  chunk 006 rows: 10 rows, not-ok none
+PASS  union of chunk ids: 60 rows, 60 unique
+PASS  devset 001 pairing: ids equal True (10 items)
+PASS  devset 002 pairing: ids equal True (10 items)
+PASS  devset 003 pairing: ids equal True (10 items)
+PASS  devset 004 pairing: ids equal True (10 items)
+PASS  devset 005 pairing: ids equal True (10 items)
+PASS  devset 006 pairing: ids equal True (10 items)
+PASS  devset bytes identical to E3 chunks: 6/6 identical
+PASS  merge command: rc=0 label=None out=True
+PASS  merged report == committed: differing keys: none
+PASS  merged rows field-equal: 60 rows, diffs none
+     4B default (E2): overall 0.633 (38/60) ci [0.507-0.744] · low_mass 12 · measured 48
+     Occamy 1.0 (E3): overall 0.517 (31/60) ci [0.393-0.638] · low_mass 57 · measured 3
+     Tiel-Coder (E3c): overall 0.517 (31/60) ci [0.393-0.638] · low_mass 14 · measured 46
+PASS  three-way ties Tiel to Occamy overall: Tiel 31 vs Occamy 31
+     quality row c01: coverage 0.035792110689775586 reliability low_mass cue {"closer": null, "mass": 0.3394860023636045, "refused": false, "token": 248068}
+     quality row c02: coverage 0.010434231314693326 reliability low_mass cue {"closer": null, "mass": 0.13026222533890117, "refused": false, "token": 248068}
+PASS  batch 20/20 answers: 20 ids, 20 with a choice/answer
+     batch usage: {"input_tokens": 1175, "output_tokens": 117, "questions": 20, "forks": 80, "prefill_tokens": 109, "decode_steps": 117, "waves": 40}
+     batch timings: {"model_load_ms": 9850.92, "prefill_ms": 7878.95, "questions_ms": 27715.2, "total_ms": 35618.1}
+     batch warnings: ["W_TEMPLATE_FALLBACK", "W_LOW_MASS", "W_CUE_REFUSED"]
+     batch reliability tally: {'low_mass': 20}
+     batch coverage min 7.967e-07 median 8.132e-06 max 1.390e-03
+     batch cue.refused rows: 1 ['c11']
+
+ALL CHECKS PASS

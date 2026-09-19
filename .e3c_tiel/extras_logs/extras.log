@@ -1,0 +1,56 @@
+=== tiel extras start 2026-09-19T18:37:03+02:00
+tiel label sweep start 2026-09-19T18:37:03+02:00 pid 970561
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib64/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/work/e3b'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/home/rybens/workspace/ggufone/tools/e3b_label_policy.py", line 709, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/var/home/rybens/workspace/ggufone/tools/e3b_label_policy.py", line 705, in main
+    return live_run(args)
+  File "/var/home/rybens/workspace/ggufone/tools/e3b_label_policy.py", line 596, in live_run
+    states.mkdir(parents=True, exist_ok=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.14/pathlib/__init__.py", line 1015, in mkdir
+    self.parent.mkdir(parents=True, exist_ok=True)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.14/pathlib/__init__.py", line 1015, in mkdir
+    self.parent.mkdir(parents=True, exist_ok=True)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+OSError: [Errno 30] Read-only file system: '/work'
+tiel label sweep exit=0 2026-09-19T18:37:53+02:00
+=== labels rc=0 2026-09-19T18:37:53+02:00
+tiel batch start 2026-09-19T18:37:53+02:00 pid 972067 n_seq_max=8
+$ /usr/bin/python3 -m ggufone run --questions .e3c_tiel/batch_questions.json --state @.e3c_tiel/batch_state.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --n-seq-max 8 --backend vulkan --out .e3c_tiel/batch_response.json
+/usr/bin/python3: No module named ggufone
+batch failed: exit 1 after 0.0s
+tiel batch exit=1 2026-09-19T18:37:53+02:00
+=== batch rc=1 2026-09-19T18:37:53+02:00
+threads probe start 2026-09-19T18:37:53+02:00; bin=/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/llama-bench
+=== ngl=9 threads=4 ===
+| model                          |       size |     params | backend    | ngl | threads |            test |                  t/s |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.81 GiB |    34.66 B | Vulkan     |   9 |       4 |            pp64 |          5.33 ± 2.39 |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.81 GiB |    34.66 B | Vulkan     |   9 |       4 |             tg8 |          1.85 ± 0.60 |
+=== ngl=9 threads=8 ===
+| model                          |       size |     params | backend    | ngl | threads |            test |                  t/s |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.81 GiB |    34.66 B | Vulkan     |   9 |       8 |            pp64 |         10.91 ± 3.12 |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.81 GiB |    34.66 B | Vulkan     |   9 |       8 |             tg8 |          3.26 ± 0.32 |
+=== ngl=9 threads=12 ===
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.81 GiB |    34.66 B | Vulkan     |   9 |            pp64 |         10.29 ± 2.87 |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.81 GiB |    34.66 B | Vulkan     |   9 |             tg8 |          5.53 ± 0.86 |
+threads probe done 2026-09-19T18:41:15+02:00
+=== threads rc=0 2026-09-19T18:41:15+02:00
+=== tiel extras done 2026-09-19T18:41:15+02:00

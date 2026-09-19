@@ -1,0 +1,43 @@
+
+== Occamy 1.0 (E3 batch)
+   model Accio-Lab_occamy-1.0-Q4_K_L · items 20
+   usage   {"input_tokens": 1175, "output_tokens": 117, "questions": 20, "forks": 80, "prefill_tokens": 109, "decode_steps": 117, "waves": 65}
+   timings {"model_load_ms": 26581.5, "prefill_ms": 193296.0, "questions_ms": 3272430.0, "total_ms": 3465810.0}
+   warnings ["W_LOW_MASS"]
+   reliability {'low_mass': 20}
+   coverage min 8.817e-09 median 2.834e-07 max 2.228e-06
+   cue.refused 0 []
+   cue tokens {'None': 20}
+
+== Tiel-Coder (E3c batch)
+   model Tiel-Coder-35B-A3B-UD-Q4_K_XL · items 20
+   usage   {"input_tokens": 1175, "output_tokens": 117, "questions": 20, "forks": 80, "prefill_tokens": 109, "decode_steps": 117, "waves": 40}
+   timings {"model_load_ms": 9850.92, "prefill_ms": 7878.95, "questions_ms": 27715.2, "total_ms": 35618.1}
+   warnings ["W_TEMPLATE_FALLBACK", "W_LOW_MASS", "W_CUE_REFUSED"]
+   reliability {'low_mass': 20}
+   coverage min 7.967e-07 median 8.132e-06 max 1.390e-03
+   cue.refused 1 ['c11']
+   cue tokens {'248069': 19, '248046': 1}
+
+== per item
+id  | occamy cov/rel            | tiel cov/rel              | tiel cue token/verse
+c01 | 3.830e-08 / low_mass  | 1.570e-06 / low_mass  | 248069 mass 0.991604
+c02 | 2.143e-07 / low_mass  | 1.107e-06 / low_mass  | 248069 mass 0.819552
+c03 | 8.838e-07 / low_mass  | 8.132e-06 / low_mass  | 248069 mass 0.979595
+c04 | 2.228e-06 / low_mass  | 1.896e-05 / low_mass  | 248069 mass 0.905409
+c05 | 1.548e-07 / low_mass  | 1.907e-05 / low_mass  | 248069 mass 0.875218
+c06 | 8.817e-09 / low_mass  | 2.675e-05 / low_mass  | 248069 mass 0.945718
+c07 | 5.450e-07 / low_mass  | 3.440e-06 / low_mass  | 248069 mass 0.859369
+c08 | 2.834e-07 / low_mass  | 7.967e-07 / low_mass  | 248069 mass 0.731062
+c09 | 1.188e-06 / low_mass  | 2.278e-06 / low_mass  | 248069 mass 0.710731
+c10 | 1.973e-08 / low_mass  | 9.917e-07 / low_mass  | 248069 mass 0.789392
+c11 | 1.340e-08 / low_mass  | 1.752e-06 / low_mass  | 248046 mass 0.503728
+c12 | 7.625e-08 / low_mass  | 7.965e-05 / low_mass  | 248069 mass 0.681731
+c13 | 7.871e-07 / low_mass  | 9.558e-05 / low_mass  | 248069 mass 0.936925
+c14 | 2.270e-07 / low_mass  | 4.475e-06 / low_mass  | 248069 mass 0.828903
+c15 | 1.045e-08 / low_mass  | 4.706e-06 / low_mass  | 248069 mass 0.916491
+c16 | 4.438e-07 / low_mass  | 1.468e-05 / low_mass  | 248069 mass 0.96159
+c17 | 2.661e-08 / low_mass  | 1.049e-06 / low_mass  | 248069 mass 0.972958
+c18 | 1.026e-06 / low_mass  | 1.390e-03 / low_mass  | 248069 mass 0.897007
+c19 | 6.113e-07 / low_mass  | 9.186e-04 / low_mass  | 248069 mass 0.807037
+c20 | 1.697e-06 / low_mass  | 9.572e-05 / low_mass  | 248069 mass 0.949315

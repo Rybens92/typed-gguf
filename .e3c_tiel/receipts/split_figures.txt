@@ -1,0 +1,27 @@
+ids c01..c20 (n=20)
+bench shape:   measured 15/20 · low_mass ['c01', 'c02', 'c07', 'c10', 'c17'] · coverage min 7.883e-03 median 2.331e-01 max 5.733e-01
+serving shape: measured 0/20 · low_mass 20/20 · coverage min 7.967e-07 median 6.419e-06 max 1.390e-03
+bench shape cue tokens: {'248068': 6, '14501': 1, '271': 3, '16539': 1, '21343': 1, '248069': 2, '25316': 1, '72967': 1, '27265': 1, '93686': 1, '2054': 1, '36479': 1}
+serving shape cue tokens: {'248069': 19, '248046': 1}
+
+| id | bench coverage / verdict | serving coverage / verdict | serving cue token (mass) |
+| c01 | 3.579e-02 / low_mass | 1.570e-06 / low_mass | `248069` (0.99) |
+| c02 | 1.043e-02 / low_mass | 1.107e-06 / low_mass | `248069` (0.82) |
+| c03 | 5.357e-01 / ok | 8.132e-06 / low_mass | `248069` (0.98) |
+| c04 | 2.111e-01 / ok | 1.896e-05 / low_mass | `248069` (0.91) |
+| c05 | 3.601e-01 / ok | 1.907e-05 / low_mass | `248069` (0.88) |
+| c06 | 3.718e-01 / ok | 2.675e-05 / low_mass | `248069` (0.95) |
+| c07 | 4.811e-02 / low_mass | 3.440e-06 / low_mass | `248069` (0.86) |
+| c08 | 3.744e-01 / ok | 7.967e-07 / low_mass | `248069` (0.73) |
+| c09 | 3.684e-01 / ok | 2.278e-06 / low_mass | `248069` (0.71) |
+| c10 | 4.932e-02 / low_mass | 9.917e-07 / low_mass | `248069` (0.79) |
+| c11 | 2.552e-01 / ok | 1.752e-06 / low_mass | `248046` (0.50) |
+| c12 | 3.792e-01 / ok | 7.965e-05 / low_mass | `248069` (0.68) |
+| c13 | 5.733e-01 / ok | 9.558e-05 / low_mass | `248069` (0.94) |
+| c14 | 1.429e-01 / ok | 4.475e-06 / low_mass | `248069` (0.83) |
+| c15 | 1.214e-01 / ok | 4.706e-06 / low_mass | `248069` (0.92) |
+| c16 | 2.052e-01 / ok | 1.468e-05 / low_mass | `248069` (0.96) |
+| c17 | 7.883e-03 / low_mass | 1.049e-06 / low_mass | `248069` (0.97) |
+| c18 | 4.775e-01 / ok | 1.390e-03 / low_mass | `248069` (0.90) |
+| c19 | 1.026e-01 / ok | 9.186e-04 / low_mass | `248069` (0.81) |
+| c20 | 4.222e-01 / ok | 9.572e-05 / low_mass | `248069` (0.95) |
