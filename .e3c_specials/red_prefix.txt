@@ -1,0 +1,277 @@
+# Card t_635124bf — the RED receipt: tests/test_e3c_cue_specials.py on the pre-fix tree.
+#
+# The clone is /work/t635/pre-fix, a `git clone --shared` of the card's tree at HEAD
+# (pre-fix: the state the card was filed against); its own .venv, its own src/.
+#   2026-09-19T17:39:03Z
+#   tree: b08f491 docs(E3c t_a58f8b67): the header points at the first commit, not at a hash list that rots
+#   grep -c REFUSAL_FLOOR src/ggufone/engine/cue.py → 0
+
+============================= test session starts ==============================
+collecting ... collected 19 items
+
+tests/test_e3c_cue_specials.py::test_a_dominating_special_token_outside_the_catalogue_is_a_refusal FAILED [  5%]
+tests/test_e3c_cue_specials.py::test_the_dominating_catalogue_closer_still_fires_exactly_as_before PASSED [ 10%]
+tests/test_e3c_cue_specials.py::test_a_content_token_dominating_the_cue_is_not_a_refusal PASSED [ 15%]
+tests/test_e3c_cue_specials.py::test_an_unknown_special_token_is_named_by_the_vocabulary_not_by_its_id FAILED [ 21%]
+tests/test_e3c_cue_specials.py::test_a_special_token_the_vocabulary_does_not_name_is_still_reported FAILED [ 26%]
+tests/test_e3c_cue_specials.py::test_the_dominance_floor_is_the_engine_s_own_coverage_floor FAILED [ 31%]
+tests/test_e3c_cue_specials.py::test_a_special_token_below_the_floor_is_not_called_dominating FAILED [ 36%]
+tests/test_e3c_cue_specials.py::test_a_catalogue_closer_below_the_floor_is_not_called_dominating FAILED [ 42%]
+tests/test_e3c_cue_specials.py::test_a_token_holding_exactly_the_floor_is_dominating FAILED [ 47%]
+tests/test_e3c_cue_specials.py::test_a_token_a_hair_below_the_floor_is_not_dominating FAILED [ 52%]
+tests/test_e3c_cue_specials.py::test_the_request_s_own_floor_decides_not_the_module_constant FAILED [ 57%]
+tests/test_e3c_cue_specials.py::test_the_closer_map_merges_the_catalogue_with_the_vocabulary_specials FAILED [ 63%]
+tests/test_e3c_cue_specials.py::test_the_closer_map_falls_back_to_the_catalogue_without_the_attribute_table FAILED [ 68%]
+tests/test_e3c_cue_specials.py::test_the_catalogue_wins_when_a_special_token_shares_its_id FAILED [ 73%]
+tests/test_e3c_cue_specials.py::test_the_scan_reads_the_vocabulary_attributes_control_and_user_defined_only FAILED [ 78%]
+tests/test_e3c_cue_specials.py::test_the_scan_degrades_to_empty_when_the_bundle_has_no_attribute_api FAILED [ 84%]
+tests/test_e3c_cue_specials.py::test_the_special_attribute_mask_is_control_plus_user_defined FAILED [ 89%]
+tests/test_e3c_cue_specials.py::test_the_quality_report_renders_the_special_token_where_it_used_to_read_ok FAILED [ 94%]
+tests/test_e3c_cue_specials.py::test_the_shape_probe_reads_its_verdict_map_from_the_vocabulary FAILED [100%]
+
+=================================== FAILURES ===================================
+______ test_a_dominating_special_token_outside_the_catalogue_is_a_refusal ______
+
+    def test_a_dominating_special_token_outside_the_catalogue_is_a_refusal():
+        """Fixture (b) — the Tiel shape: `</think>` dominates, the catalogue cannot name it."""
+        assert THINK_END_TEXT not in cue_module.TURN_CLOSERS          # the premise of the fixture
+        session = session_with({THINK_END: THINK_END_TEXT})
+        assert cue_module.single_token_closers(session.tokenize).get(THINK_END) is None
+        result = run_result(session, {THINK_END: TOP})
+        answer = result.answers["area"]
+>       assert "W_CUE_REFUSED" in result.warnings
+E       AssertionError: assert 'W_CUE_REFUSED' in ['W_LOW_MASS']
+E        +  where ['W_LOW_MASS'] = DecideResult(model='fake-model', engine={'runtime': 'llama.cpp b11026 (fake)', 'backend': 'cpu', 'backend_source': '', 'devices': [], 'device_buffers': {}, 'effective_backend': None, 'readout': 'sequence', 'kv_unified': True, 'n_ctx': 4096, 'n_seq_max': 5, 'prefix_tokens': 42, 'state_id': 'sha256:8d328b372e3a8bdf00c5386c513a3bbbbb8c70dc822c1144d2cfc67fead35ad9', 'prefill_reused': False, 'template': {'kind': 'plain', 'renderer': 'plain', 'source': 'prompt.py framing', 'family': None, 'thinking': 'n/a'}, 'kv_type': 'auto', 'n_gpu_layers': 0, 'placement': None}, answers={'area': {'type': 'choice', 'choice': 'billing', 'probabilities': {'billing': 0.5, 'technical': 0.5}, 'confidence': 0.0, 'coverage': 3.3120730417970574e-05, 'reliability': 'low_mass', 'cue': {'refused': False, 'token': 413, 'closer': None, 'mass': 0.9915376533782165}, 'decode_steps': 2, 'legend': {'billing': 'payments and invoices', 'technical': 'api and infrastructure'}}}, usage={'input_tokens': 61, 'output_tokens': 2, 'questions': 1, 'forks': 2, 'prefill_tokens': 42, 'decode_steps': 2, 'waves': 1}, timings={'model_load_ms': 12.5, 'prefill_ms': 0.5, 'questions_ms': 0.13386099999479484, 'total_ms': 1.3736830005655065}, warnings=['W_LOW_MASS'], calibrated=False, calibration={'source': '', 'applied': False, 'model': None, 'params_hash': '', 'temperatures': {}, 'confidence_modes': {}, 'accepted_types': []}).warnings
+
+tests/test_e3c_cue_specials.py:141: AssertionError
+____ test_an_unknown_special_token_is_named_by_the_vocabulary_not_by_its_id ____
+
+    def test_an_unknown_special_token_is_named_by_the_vocabulary_not_by_its_id():
+        """The fallback: the catalogue never heard of it; the vocabulary's attribute table did."""
+        session = session_with({UNKNOWN_SPECIAL: UNKNOWN_SPECIAL_TEXT})
+        assert session.tokenize(UNKNOWN_SPECIAL_TEXT) != [UNKNOWN_SPECIAL]   # not a catalogue string
+        assert cue_module.single_token_closers(session.tokenize).get(UNKNOWN_SPECIAL) is None
+        answer = run_row(session, {UNKNOWN_SPECIAL: TOP})
+>       assert answer["cue"]["refused"] is True
+E       assert False is True
+
+tests/test_e3c_cue_specials.py:176: AssertionError
+_____ test_a_special_token_the_vocabulary_does_not_name_is_still_reported ______
+
+    def test_a_special_token_the_vocabulary_does_not_name_is_still_reported():
+        """A vocabulary can carry a special token with no text: name it by its id, never `None`."""
+        answer = run_row(session_with({UNNAMED_SPECIAL: ""}), {UNNAMED_SPECIAL: TOP})
+>       assert answer["cue"]["refused"] is True
+E       assert False is True
+
+tests/test_e3c_cue_specials.py:184: AssertionError
+_________ test_the_dominance_floor_is_the_engine_s_own_coverage_floor __________
+
+    def test_the_dominance_floor_is_the_engine_s_own_coverage_floor():
+        """`dominating` is defined by the same threshold `reliability` uses — one number, not two."""
+>       assert pytest.approx(OPTION_DEFAULTS["coverage_floor"]) == cue_module.REFUSAL_FLOOR
+                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'REFUSAL_FLOOR'
+
+tests/test_e3c_cue_specials.py:191: AttributeError
+________ test_a_special_token_below_the_floor_is_not_called_dominating _________
+
+    def test_a_special_token_below_the_floor_is_not_called_dominating():
+        answer = run_row(session_with({THINK_END: THINK_END_TEXT}), {THINK_END: BELOW_FLOOR})
+>       assert answer["cue"]["mass"] < cue_module.REFUSAL_FLOOR          # the premise of the fixture
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'REFUSAL_FLOOR'
+
+tests/test_e3c_cue_specials.py:196: AttributeError
+_______ test_a_catalogue_closer_below_the_floor_is_not_called_dominating _______
+
+    def test_a_catalogue_closer_below_the_floor_is_not_called_dominating():
+        """The rule is uniform: `dominating` is about the row, not about which class matched."""
+        session = session_with({}, {"<|im_end|>": IM_END})
+        answer = run_row(session, {IM_END: BELOW_FLOOR})
+>       assert answer["cue"]["mass"] < cue_module.REFUSAL_FLOOR          # the premise of the fixture
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'REFUSAL_FLOOR'
+
+tests/test_e3c_cue_specials.py:206: AttributeError
+_____________ test_a_token_holding_exactly_the_floor_is_dominating _____________
+
+    def test_a_token_holding_exactly_the_floor_is_dominating():
+        """The rule is `>=`, and the boundary is named exactly.
+    
+        Four equal logits and the caller's floor at 0.25: `exp(0 - log 4)` *is* 0.25 as a double, so
+        the gate sits on the boundary instead of a hair away from it. The floor is the caller's —
+        `decide.py` passes the request's effective `coverage_floor` — so 0.25 is as legal a floor as the
+        0.10 default, and a sweep's `mass > floor` mutant has to die here.
+        """
+        row = [0.0, 0.0, 0.0, 0.0]
+>       verdict = cue_module.cue_verdict(row, readout.logsumexp(row), {0: THINK_END_TEXT}, floor=0.25)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cue_verdict() got an unexpected keyword argument 'floor'
+
+tests/test_e3c_cue_specials.py:219: TypeError
+____________ test_a_token_a_hair_below_the_floor_is_not_dominating _____________
+
+    def test_a_token_a_hair_below_the_floor_is_not_dominating():
+        """The other side of the same boundary — one ULP of floor higher and the row is `low_mass`."""
+        row = [0.0, 0.0, 0.0, 0.0]
+        floor = math.nextafter(0.25, math.inf)
+>       verdict = cue_module.cue_verdict(row, readout.logsumexp(row), {0: THINK_END_TEXT}, floor=floor)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cue_verdict() got an unexpected keyword argument 'floor'
+
+tests/test_e3c_cue_specials.py:229: TypeError
+_________ test_the_request_s_own_floor_decides_not_the_module_constant _________
+
+    def test_the_request_s_own_floor_decides_not_the_module_constant():
+        """One row, two floors: the caller's `coverage_floor` is the rule's number.
+    
+        The same cue row (a special at ~0.20 mass) is a refusal for a caller who asked for 0.10 and a
+        plain `low_mass` row for one who asked for 0.50 — the same threshold `reliability` reads, so
+        the verdict and the reliability word cannot drift apart.
+        """
+        session = session_with({THINK_END: THINK_END_TEXT})
+        dominant = run_result(session, {THINK_END: MID_FLOOR})
+>       assert dominant.answers["area"]["cue"]["mass"] >= cue_module.REFUSAL_FLOOR   # premise
+                                                          ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'REFUSAL_FLOOR'
+
+tests/test_e3c_cue_specials.py:244: AttributeError
+____ test_the_closer_map_merges_the_catalogue_with_the_vocabulary_specials _____
+
+    def test_the_closer_map_merges_the_catalogue_with_the_vocabulary_specials():
+        session = session_with({THINK_END: THINK_END_TEXT, UNKNOWN_SPECIAL: UNKNOWN_SPECIAL_TEXT},
+                               {"<|im_end|>": IM_END})
+>       mapping = cue_module.closer_map(session)
+                  ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'closer_map'
+
+tests/test_e3c_cue_specials.py:265: AttributeError
+_ test_the_closer_map_falls_back_to_the_catalogue_without_the_attribute_table __
+
+    def test_the_closer_map_falls_back_to_the_catalogue_without_the_attribute_table():
+        """A session that cannot enumerate its vocabulary keeps the pre-fix behaviour exactly."""
+        session = FakeSession(n_vocab=512)                       # no `special_tokens()` at all
+        assert not hasattr(session, "special_tokens")
+>       assert cue_module.closer_map(session) == cue_module.single_token_closers(session.tokenize)
+               ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'closer_map'
+
+tests/test_e3c_cue_specials.py:275: AttributeError
+__________ test_the_catalogue_wins_when_a_special_token_shares_its_id __________
+
+    def test_the_catalogue_wins_when_a_special_token_shares_its_id():
+        """`</s>` is a CONTROL token in most vocabularies: the documented name must survive."""
+>       mapping = cue_module.closer_map(session_with({IM_END: THINK_END_TEXT},
+                  ^^^^^^^^^^^^^^^^^^^^^
+                                                     {"<|im_end|>": IM_END}))
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'closer_map'
+
+tests/test_e3c_cue_specials.py:280: AttributeError
+_ test_the_scan_reads_the_vocabulary_attributes_control_and_user_defined_only __
+
+    def test_the_scan_reads_the_vocabulary_attributes_control_and_user_defined_only():
+        from ggufone.runtime import ctypes_binding as binding
+    
+        attrs = {
+>           10: binding.TOKEN_ATTR_NORMAL,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+            11: binding.TOKEN_ATTR_CONTROL,
+            12: binding.TOKEN_ATTR_USER_DEFINED,
+            13: binding.TOKEN_ATTR_UNUSED,
+            14: binding.TOKEN_ATTR_BYTE,
+            15: binding.TOKEN_ATTR_UNKNOWN,
+        }
+E       AttributeError: module 'ggufone.runtime.ctypes_binding' has no attribute 'TOKEN_ATTR_NORMAL'
+
+tests/test_e3c_cue_specials.py:326: AttributeError
+_____ test_the_scan_degrades_to_empty_when_the_bundle_has_no_attribute_api _____
+
+    def test_the_scan_degrades_to_empty_when_the_bundle_has_no_attribute_api():
+        from ggufone.engine import session as session_module
+    
+        class Bare:
+            llama_model_get_vocab = staticmethod(lambda model: "vocab")
+            llama_vocab_n_tokens = staticmethod(lambda vocab: 16)
+            llama_model_n_layer = staticmethod(lambda model: 4)
+    
+        runtime = type("FakeRuntime", (), {"llama": Bare})()
+        handle = session_module.ModelHandle(runtime, model=object(), path="/fake/model.gguf",
+                                            arch="qwen35moe", load_ms=1.0)
+>       assert ctypes_binding.token_attr(runtime, "vocab", 11) == 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.runtime.ctypes_binding' has no attribute 'token_attr'
+
+tests/test_e3c_cue_specials.py:352: AttributeError
+_________ test_the_special_attribute_mask_is_control_plus_user_defined _________
+
+    def test_the_special_attribute_mask_is_control_plus_user_defined():
+        from ggufone.runtime import ctypes_binding as binding
+    
+>       assert binding.SPECIAL_TOKEN_ATTRS == (binding.TOKEN_ATTR_CONTROL
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                               | binding.TOKEN_ATTR_USER_DEFINED)
+E       AttributeError: module 'ggufone.runtime.ctypes_binding' has no attribute 'SPECIAL_TOKEN_ATTRS'
+
+tests/test_e3c_cue_specials.py:359: AttributeError
+__ test_the_quality_report_renders_the_special_token_where_it_used_to_read_ok __
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f5f252e5f90>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-2815/test_the_quality_report_render0')
+
+    def test_the_quality_report_renders_the_special_token_where_it_used_to_read_ok(monkeypatch,
+                                                                                   tmp_path):
+        from ggufone.bench import harness, suites
+    
+        monkeypatch.setattr(harness, "backend_runtimes", lambda **kwargs: {"cpu": tmp_path / "bundle"})
+        report = suites.run_suite(harness.BenchConfig(suite="quality", model_path="/tmp/fake.gguf",
+                                                      runs=1, items=6),
+                                  factory=lambda spec: SpecialBenchModel(spec))
+        assert report["items"]
+>       assert all(row["cue"]["refused"] for row in report["items"])
+E       assert False
+E        +  where False = all(<generator object test_the_quality_report_renders_the_special_token_where_it_used_to_read_ok.<locals>.<genexpr> at 0x7f5f2533f2a0>)
+
+tests/test_e3c_cue_specials.py:392: AssertionError
+________ test_the_shape_probe_reads_its_verdict_map_from_the_vocabulary ________
+
+    def test_the_shape_probe_reads_its_verdict_map_from_the_vocabulary():
+        """`tools/e3c_cue_shapes.py` is the instrument for this verdict: it must see the same map."""
+        probe = load_probe()
+    
+        class Handle:
+            SPECIALS = {THINK_END: THINK_END_TEXT}
+    
+            def tokenize(self, text: str) -> list[int]:
+                return [IM_END] if text == "<|im_end|>" else [WORD]
+    
+            def special_tokens(self):
+                return sorted(self.SPECIALS.items())
+    
+>       mapping = probe.verdict_map(Handle())
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'e3c_cue_shapes_specials' has no attribute 'verdict_map'
+
+tests/test_e3c_cue_specials.py:422: AttributeError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_e3c_cue_specials.py::test_the_dominating_catalogue_closer_still_fires_exactly_as_before
+PASSED tests/test_e3c_cue_specials.py::test_a_content_token_dominating_the_cue_is_not_a_refusal
+FAILED tests/test_e3c_cue_specials.py::test_a_dominating_special_token_outside_the_catalogue_is_a_refusal
+FAILED tests/test_e3c_cue_specials.py::test_an_unknown_special_token_is_named_by_the_vocabulary_not_by_its_id
+FAILED tests/test_e3c_cue_specials.py::test_a_special_token_the_vocabulary_does_not_name_is_still_reported
+FAILED tests/test_e3c_cue_specials.py::test_the_dominance_floor_is_the_engine_s_own_coverage_floor
+FAILED tests/test_e3c_cue_specials.py::test_a_special_token_below_the_floor_is_not_called_dominating
+FAILED tests/test_e3c_cue_specials.py::test_a_catalogue_closer_below_the_floor_is_not_called_dominating
+FAILED tests/test_e3c_cue_specials.py::test_a_token_holding_exactly_the_floor_is_dominating
+FAILED tests/test_e3c_cue_specials.py::test_a_token_a_hair_below_the_floor_is_not_dominating
+FAILED tests/test_e3c_cue_specials.py::test_the_request_s_own_floor_decides_not_the_module_constant
+FAILED tests/test_e3c_cue_specials.py::test_the_closer_map_merges_the_catalogue_with_the_vocabulary_specials
+FAILED tests/test_e3c_cue_specials.py::test_the_closer_map_falls_back_to_the_catalogue_without_the_attribute_table
+FAILED tests/test_e3c_cue_specials.py::test_the_catalogue_wins_when_a_special_token_shares_its_id
+FAILED tests/test_e3c_cue_specials.py::test_the_scan_reads_the_vocabulary_attributes_control_and_user_defined_only
+FAILED tests/test_e3c_cue_specials.py::test_the_scan_degrades_to_empty_when_the_bundle_has_no_attribute_api
+FAILED tests/test_e3c_cue_specials.py::test_the_special_attribute_mask_is_control_plus_user_defined
+FAILED tests/test_e3c_cue_specials.py::test_the_quality_report_renders_the_special_token_where_it_used_to_read_ok
+FAILED tests/test_e3c_cue_specials.py::test_the_shape_probe_reads_its_verdict_map_from_the_vocabulary
+========================= 17 failed, 2 passed in 1.03s =========================

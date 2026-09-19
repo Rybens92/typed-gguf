@@ -1,0 +1,177 @@
+{
+ "model": "/var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+ "bytes": 22360476736,
+ "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+ "n_vocab": 248320,
+ "load_s": 2.677,
+ "scan_ms": 821.9,
+ "compare_ms": 308.8,
+ "specials": [
+  {
+   "token": 248044,
+   "gguf_type": "CONTROL",
+   "text": "<|endoftext|>"
+  },
+  {
+   "token": 248045,
+   "gguf_type": "CONTROL",
+   "text": "<|im_start|>"
+  },
+  {
+   "token": 248046,
+   "gguf_type": "CONTROL",
+   "text": "<|im_end|>"
+  },
+  {
+   "token": 248047,
+   "gguf_type": "CONTROL",
+   "text": "<|object_ref_start|>"
+  },
+  {
+   "token": 248048,
+   "gguf_type": "CONTROL",
+   "text": "<|object_ref_end|>"
+  },
+  {
+   "token": 248049,
+   "gguf_type": "CONTROL",
+   "text": "<|box_start|>"
+  },
+  {
+   "token": 248050,
+   "gguf_type": "CONTROL",
+   "text": "<|box_end|>"
+  },
+  {
+   "token": 248051,
+   "gguf_type": "CONTROL",
+   "text": "<|quad_start|>"
+  },
+  {
+   "token": 248052,
+   "gguf_type": "CONTROL",
+   "text": "<|quad_end|>"
+  },
+  {
+   "token": 248053,
+   "gguf_type": "CONTROL",
+   "text": "<|vision_start|>"
+  },
+  {
+   "token": 248054,
+   "gguf_type": "CONTROL",
+   "text": "<|vision_end|>"
+  },
+  {
+   "token": 248055,
+   "gguf_type": "CONTROL",
+   "text": "<|vision_pad|>"
+  },
+  {
+   "token": 248056,
+   "gguf_type": "CONTROL",
+   "text": "<|image_pad|>"
+  },
+  {
+   "token": 248057,
+   "gguf_type": "CONTROL",
+   "text": "<|video_pad|>"
+  },
+  {
+   "token": 248058,
+   "gguf_type": "USER_DEFINED",
+   "text": "<tool_call>"
+  },
+  {
+   "token": 248059,
+   "gguf_type": "USER_DEFINED",
+   "text": "</tool_call>"
+  },
+  {
+   "token": 248060,
+   "gguf_type": "CONTROL",
+   "text": "<|fim_prefix|>"
+  },
+  {
+   "token": 248061,
+   "gguf_type": "CONTROL",
+   "text": "<|fim_middle|>"
+  },
+  {
+   "token": 248062,
+   "gguf_type": "CONTROL",
+   "text": "<|fim_suffix|>"
+  },
+  {
+   "token": 248063,
+   "gguf_type": "CONTROL",
+   "text": "<|fim_pad|>"
+  },
+  {
+   "token": 248064,
+   "gguf_type": "CONTROL",
+   "text": "<|repo_name|>"
+  },
+  {
+   "token": 248065,
+   "gguf_type": "CONTROL",
+   "text": "<|file_sep|>"
+  },
+  {
+   "token": 248066,
+   "gguf_type": "USER_DEFINED",
+   "text": "<tool_response>"
+  },
+  {
+   "token": 248067,
+   "gguf_type": "USER_DEFINED",
+   "text": "</tool_response>"
+  },
+  {
+   "token": 248068,
+   "gguf_type": "USER_DEFINED",
+   "text": "<think>"
+  },
+  {
+   "token": 248069,
+   "gguf_type": "USER_DEFINED",
+   "text": "</think>"
+  },
+  {
+   "token": 248070,
+   "gguf_type": "CONTROL",
+   "text": "<|audio_start|>"
+  },
+  {
+   "token": 248071,
+   "gguf_type": "CONTROL",
+   "text": "<|audio_end|>"
+  },
+  {
+   "token": 248072,
+   "gguf_type": "CONTROL",
+   "text": "<tts_pad>"
+  },
+  {
+   "token": 248073,
+   "gguf_type": "CONTROL",
+   "text": "<tts_text_bos>"
+  },
+  {
+   "token": 248074,
+   "gguf_type": "CONTROL",
+   "text": "<tts_text_eod>"
+  },
+  {
+   "token": 248075,
+   "gguf_type": "CONTROL",
+   "text": "<tts_text_bos_single>"
+  },
+  {
+   "token": 248076,
+   "gguf_type": "CONTROL",
+   "text": "<|audio_pad|>"
+  }
+ ],
+ "disagreements": []
+}

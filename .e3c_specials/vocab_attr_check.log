@@ -1,0 +1,263 @@
+# Card t_635124bf — llama.cpp's token classification vs each GGUF's own `token_type`.
+# Every id of both vocabularies, vocab-only loads (no tensor read), 2026-09-19T17:42:06Z.
+#   3.11.15
+
+## Spark-X2.5-4B-Q8_0
+print_info: file format = GGUF V3 (latest)
+print_info: file type   = Q8_0
+print_info: file size   = 4.07 GiB (8.50 BPW) 
+init_tokenizer: initializing tokenizer for type 2
+load: 86 unused tokens
+load: control token: 130976 '<|Bot|>' is not marked as EOG
+load: control token: 130975 '<|Developer|>' is not marked as EOG
+load: control token: 130973 '<|User|>' is not marked as EOG
+load: control token: 130974 '<|Tool|>' is not marked as EOG
+load: control token:     13 '<｜fim▁end｜>' is not marked as EOG
+load: control token:      0 '<｜start▁of▁sentence｜>' is not marked as EOG
+load: control token: 130972 '<|System|>' is not marked as EOG
+load: control token:      2 '<｜▁pad▁｜>' is not marked as EOG
+load: control token:      5 '<unk>' is not marked as EOG
+load: control token:     12 '<｜fim▁hole｜>' is not marked as EOG
+load: control token:      6 '<｜start▁of▁text｜>' is not marked as EOG
+load: control token:      7 '<｜end▁of▁text｜>' is not marked as EOG
+load: control token:     11 '<｜fim▁begin｜>' is not marked as EOG
+load: printing all EOG tokens:
+load:   - 1 ('<｜end▁of▁sentence｜>')
+load: special tokens cache size = 113
+load: token to piece cache size = 0.7975 MB
+print_info: arch                  = spark2_5
+print_info: vocab_only            = 1
+print_info: no_alloc              = 0
+print_info: vocab type            = BPE
+print_info: n_vocab               = 131072
+print_info: n_merges              = 130716
+print_info: BOS token             = 0 '<｜start▁of▁sentence｜>'
+print_info: EOS token             = 1 '<｜end▁of▁sentence｜>'
+print_info: EOT token             = 1 '<｜end▁of▁sentence｜>'
+print_info: UNK token             = 5 '<unk>'
+print_info: PAD token             = 2 '<｜▁pad▁｜>'
+print_info: LF token              = 198 'Ċ'
+print_info: FIM PRE token         = 11 '<｜fim▁begin｜>'
+print_info: FIM SUF token         = 12 '<｜fim▁hole｜>'
+print_info: FIM MID token         = 13 '<｜fim▁end｜>'
+print_info: EOG token             = 1 '<｜end▁of▁sentence｜>'
+print_info: max token length      = 210
+model      Spark-X2.5-4B-Q8_0.gguf (4,375,021,152 bytes)
+load       vocab-only 2.17 s · vocab 131072 ids
+scan       specials() 82 ms · every-id comparison 331 ms (2.53 µs/id)
+specials   113 CONTROL / USER_DEFINED ids · gguf-vs-attr disagreements over all 131072 ids: 0
+         0  CONTROL      '<｜start▁of▁sentence｜>'
+         1  CONTROL      '<｜end▁of▁sentence｜>'
+         2  CONTROL      '<｜▁pad▁｜>'
+         3  USER_DEFINED '<think>'
+         4  USER_DEFINED '</think>'
+         5  CONTROL      '<unk>'
+         6  CONTROL      '<｜start▁of▁text｜>'
+         7  CONTROL      '<｜end▁of▁text｜>'
+         8  USER_DEFINED '<User>'
+         9  USER_DEFINED '<System>'
+        10  USER_DEFINED '<Bot>'
+        11  CONTROL      '<｜fim▁begin｜>'
+        12  CONTROL      '<｜fim▁hole｜>'
+        13  CONTROL      '<｜fim▁end｜>'
+    130972  CONTROL      '<|System|>'
+    130973  CONTROL      '<|User|>'
+    130974  CONTROL      '<|Tool|>'
+    130975  CONTROL      '<|Developer|>'
+    130976  CONTROL      '<|Bot|>'
+    130977  USER_DEFINED '<tool_call>'
+    130978  USER_DEFINED '<tool_response>'
+    130979  USER_DEFINED '</tool_response>'
+    130980  USER_DEFINED '<arg_key>'
+    130981  USER_DEFINED '</arg_key>'
+    130982  USER_DEFINED '<arg_value>'
+    130983  USER_DEFINED '</arg_value>'
+    130984  USER_DEFINED '</tool_call>'
+    130986  CONTROL      '<||unused2||>'
+    130987  CONTROL      '<||unused3||>'
+    130988  CONTROL      '<||unused4||>'
+    130989  CONTROL      '<||unused5||>'
+    130990  CONTROL      '<||unused6||>'
+    130991  CONTROL      '<||unused7||>'
+    130992  CONTROL      '<||unused8||>'
+    130993  CONTROL      '<||unused9||>'
+    130994  CONTROL      '<||unused10||>'
+    130995  CONTROL      '<||unused11||>'
+    130996  CONTROL      '<||unused12||>'
+    130997  CONTROL      '<||unused13||>'
+    130998  CONTROL      '<||unused14||>'
+    130999  CONTROL      '<||unused15||>'
+    131000  CONTROL      '<||unused16||>'
+    131001  CONTROL      '<||unused17||>'
+    131002  CONTROL      '<||unused18||>'
+    131003  CONTROL      '<||unused19||>'
+    131004  CONTROL      '<||unused20||>'
+    131005  CONTROL      '<||unused21||>'
+    131006  CONTROL      '<||unused22||>'
+    131007  CONTROL      '<||unused23||>'
+    131008  CONTROL      '<||unused24||>'
+    131009  CONTROL      '<||unused25||>'
+    131010  CONTROL      '<||unused26||>'
+    131011  CONTROL      '<||unused27||>'
+    131012  CONTROL      '<||unused28||>'
+    131013  CONTROL      '<||unused29||>'
+    131014  CONTROL      '<||unused30||>'
+    131015  CONTROL      '<||unused31||>'
+    131016  CONTROL      '<||unused32||>'
+    131017  CONTROL      '<||unused33||>'
+    131018  CONTROL      '<||unused34||>'
+    131019  CONTROL      '<||unused35||>'
+    131020  CONTROL      '<||unused36||>'
+    131021  CONTROL      '<||unused37||>'
+    131022  CONTROL      '<||unused38||>'
+    131023  CONTROL      '<||unused39||>'
+    131024  CONTROL      '<||unused40||>'
+    131025  CONTROL      '<||unused41||>'
+    131026  CONTROL      '<||unused42||>'
+    131027  CONTROL      '<||unused43||>'
+    131028  CONTROL      '<||unused44||>'
+    131029  CONTROL      '<||unused45||>'
+    131030  CONTROL      '<||unused46||>'
+    131031  CONTROL      '<||unused47||>'
+    131032  CONTROL      '<||unused48||>'
+    131033  CONTROL      '<||unused49||>'
+    131034  CONTROL      '<||unused50||>'
+    131035  CONTROL      '<||unused51||>'
+    131036  CONTROL      '<||unused52||>'
+    131037  CONTROL      '<||unused53||>'
+    131038  CONTROL      '<||unused54||>'
+    131039  CONTROL      '<||unused55||>'
+    131040  CONTROL      '<||unused56||>'
+    131041  CONTROL      '<||unused57||>'
+    131042  CONTROL      '<||unused58||>'
+    131043  CONTROL      '<||unused59||>'
+    131044  CONTROL      '<||unused60||>'
+    131045  CONTROL      '<||unused61||>'
+    131046  CONTROL      '<||unused62||>'
+    131047  CONTROL      '<||unused63||>'
+    131048  CONTROL      '<||unused64||>'
+    131049  CONTROL      '<||unused65||>'
+    131050  CONTROL      '<||unused66||>'
+    131051  CONTROL      '<||unused67||>'
+    131052  CONTROL      '<||unused68||>'
+    131053  CONTROL      '<||unused69||>'
+    131054  CONTROL      '<||unused70||>'
+    131055  CONTROL      '<||unused71||>'
+    131056  CONTROL      '<||unused72||>'
+    131057  CONTROL      '<||unused73||>'
+    131058  CONTROL      '<||unused74||>'
+    131059  CONTROL      '<||unused75||>'
+    131060  CONTROL      '<||unused76||>'
+    131061  CONTROL      '<||unused77||>'
+    131062  CONTROL      '<||unused78||>'
+    131063  CONTROL      '<||unused79||>'
+    131064  CONTROL      '<||unused80||>'
+    131065  CONTROL      '<||unused81||>'
+    131066  CONTROL      '<||unused82||>'
+    131067  CONTROL      '<||unused83||>'
+    131068  CONTROL      '<||unused84||>'
+    131069  CONTROL      '<||unused85||>'
+    131070  CONTROL      '<||unused86||>'
+    131071  CONTROL      '<||unused87||>'
+wrote .e3c_specials/receipts/vocab_only_Spark-X2.5-4B-Q8_0.json
+exit=0
+
+## Tiel-Coder-35B-A3B-UD-Q4_K_XL
+print_info: file format = GGUF V3 (latest)
+print_info: file type   = Q4_K - Medium
+print_info: file size   = 20.81 GiB (5.16 BPW) 
+init_tokenizer: initializing tokenizer for type 2
+load: 0 unused tokens
+load: control token: 248075 '<tts_text_bos_single>' is not marked as EOG
+load: control token: 248073 '<tts_text_bos>' is not marked as EOG
+load: control token: 248072 '<tts_pad>' is not marked as EOG
+load: control token: 248071 '<|audio_end|>' is not marked as EOG
+load: control token: 248061 '<|fim_middle|>' is not marked as EOG
+load: control token: 248055 '<|vision_pad|>' is not marked as EOG
+load: control token: 248052 '<|quad_end|>' is not marked as EOG
+load: control token: 248049 '<|box_start|>' is not marked as EOG
+load: control token: 248048 '<|object_ref_end|>' is not marked as EOG
+load: control token: 248045 '<|im_start|>' is not marked as EOG
+load: control token: 248057 '<|video_pad|>' is not marked as EOG
+load: control token: 248070 '<|audio_start|>' is not marked as EOG
+load: control token: 248056 '<|image_pad|>' is not marked as EOG
+load: control token: 248054 '<|vision_end|>' is not marked as EOG
+load: control token: 248060 '<|fim_prefix|>' is not marked as EOG
+load: control token: 248050 '<|box_end|>' is not marked as EOG
+load: control token: 248074 '<tts_text_eod>' is not marked as EOG
+load: control token: 248053 '<|vision_start|>' is not marked as EOG
+load: control token: 248062 '<|fim_suffix|>' is not marked as EOG
+load: control token: 248047 '<|object_ref_start|>' is not marked as EOG
+load: control token: 248051 '<|quad_start|>' is not marked as EOG
+load: control token: 248076 '<|audio_pad|>' is not marked as EOG
+load: printing all EOG tokens:
+load:   - 248044 ('<|endoftext|>')
+load:   - 248046 ('<|im_end|>')
+load:   - 248063 ('<|fim_pad|>')
+load:   - 248064 ('<|repo_name|>')
+load:   - 248065 ('<|file_sep|>')
+load: special tokens cache size = 33
+load: token to piece cache size = 1.7581 MB
+print_info: arch                  = qwen35moe
+print_info: vocab_only            = 1
+print_info: no_alloc              = 0
+print_info: vocab type            = BPE
+print_info: n_vocab               = 248320
+print_info: n_merges              = 247587
+print_info: BOS token             = 248044 '<|endoftext|>'
+print_info: EOS token             = 248046 '<|im_end|>'
+print_info: EOT token             = 248046 '<|im_end|>'
+print_info: PAD token             = 248044 '<|endoftext|>'
+print_info: LF token              = 198 'Ċ'
+print_info: FIM PRE token         = 248060 '<|fim_prefix|>'
+print_info: FIM SUF token         = 248062 '<|fim_suffix|>'
+print_info: FIM MID token         = 248061 '<|fim_middle|>'
+print_info: FIM PAD token         = 248063 '<|fim_pad|>'
+print_info: FIM REP token         = 248064 '<|repo_name|>'
+print_info: FIM SEP token         = 248065 '<|file_sep|>'
+print_info: EOG token             = 248044 '<|endoftext|>'
+print_info: EOG token             = 248046 '<|im_end|>'
+print_info: EOG token             = 248063 '<|fim_pad|>'
+print_info: EOG token             = 248064 '<|repo_name|>'
+print_info: EOG token             = 248065 '<|file_sep|>'
+print_info: max token length      = 256
+model      Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf (22,360,476,736 bytes)
+load       vocab-only 2.68 s · vocab 248320 ids
+scan       specials() 822 ms · every-id comparison 309 ms (1.24 µs/id)
+specials   33 CONTROL / USER_DEFINED ids · gguf-vs-attr disagreements over all 248320 ids: 0
+    248044  CONTROL      '<|endoftext|>'
+    248045  CONTROL      '<|im_start|>'
+    248046  CONTROL      '<|im_end|>'
+    248047  CONTROL      '<|object_ref_start|>'
+    248048  CONTROL      '<|object_ref_end|>'
+    248049  CONTROL      '<|box_start|>'
+    248050  CONTROL      '<|box_end|>'
+    248051  CONTROL      '<|quad_start|>'
+    248052  CONTROL      '<|quad_end|>'
+    248053  CONTROL      '<|vision_start|>'
+    248054  CONTROL      '<|vision_end|>'
+    248055  CONTROL      '<|vision_pad|>'
+    248056  CONTROL      '<|image_pad|>'
+    248057  CONTROL      '<|video_pad|>'
+    248058  USER_DEFINED '<tool_call>'
+    248059  USER_DEFINED '</tool_call>'
+    248060  CONTROL      '<|fim_prefix|>'
+    248061  CONTROL      '<|fim_middle|>'
+    248062  CONTROL      '<|fim_suffix|>'
+    248063  CONTROL      '<|fim_pad|>'
+    248064  CONTROL      '<|repo_name|>'
+    248065  CONTROL      '<|file_sep|>'
+    248066  USER_DEFINED '<tool_response>'
+    248067  USER_DEFINED '</tool_response>'
+    248068  USER_DEFINED '<think>'
+    248069  USER_DEFINED '</think>'
+    248070  CONTROL      '<|audio_start|>'
+    248071  CONTROL      '<|audio_end|>'
+    248072  CONTROL      '<tts_pad>'
+    248073  CONTROL      '<tts_text_bos>'
+    248074  CONTROL      '<tts_text_eod>'
+    248075  CONTROL      '<tts_text_bos_single>'
+    248076  CONTROL      '<|audio_pad|>'
+wrote .e3c_specials/receipts/vocab_only_Tiel-Coder-35B-A3B-UD-Q4_K_XL.json
+exit=0
+

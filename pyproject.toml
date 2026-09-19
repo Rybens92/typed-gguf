@@ -129,8 +129,13 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # kill. A bench sweep only has to restore the three bench gate files above; an E3 sweep restores
 # `compare.py` + `test_e3.py`. Card t_6952f0dd (E3b, the `qwen35moe` label policy) activates
 # `["src/ggufone/bench/labels.py"]` + `["tests/test_e3b_labels.py"]`; a later sweep restores this
-# isolation pair.
-pytest_add_cli_args_test_selection = ["tests/test_e3c_cue_refused.py", "tests/test_e3c_cue_shapes.py"]
+# isolation pair. Card t_635124bf (E3c FIX, the cue verdict classifies the vocabulary) keeps
+# `source_paths` on the same module — it is the file the fix moves — and adds the card's own gate
+# file to the selection: the map's fallbacks (`<special <id>>`, the catalogue winning a collision,
+# the session that cannot enumerate) and the dominance floor live only in
+# `tests/test_e3c_cue_specials.py`, so a two-file selection would leave those mutants alive.
+pytest_add_cli_args_test_selection = ["tests/test_e3c_cue_refused.py", "tests/test_e3c_cue_shapes.py",
+                                      "tests/test_e3c_cue_specials.py"]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
 # with `BlockingIOError: [Errno 11]`. `.e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh` does both.

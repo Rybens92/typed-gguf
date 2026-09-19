@@ -1,0 +1,577 @@
+{
+ "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+ "bytes": 4375021152,
+ "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+ "n_vocab": 131072,
+ "load_s": 2.17,
+ "scan_ms": 81.8,
+ "compare_ms": 331.5,
+ "specials": [
+  {
+   "token": 0,
+   "gguf_type": "CONTROL",
+   "text": "<｜start▁of▁sentence｜>"
+  },
+  {
+   "token": 1,
+   "gguf_type": "CONTROL",
+   "text": "<｜end▁of▁sentence｜>"
+  },
+  {
+   "token": 2,
+   "gguf_type": "CONTROL",
+   "text": "<｜▁pad▁｜>"
+  },
+  {
+   "token": 3,
+   "gguf_type": "USER_DEFINED",
+   "text": "<think>"
+  },
+  {
+   "token": 4,
+   "gguf_type": "USER_DEFINED",
+   "text": "</think>"
+  },
+  {
+   "token": 5,
+   "gguf_type": "CONTROL",
+   "text": "<unk>"
+  },
+  {
+   "token": 6,
+   "gguf_type": "CONTROL",
+   "text": "<｜start▁of▁text｜>"
+  },
+  {
+   "token": 7,
+   "gguf_type": "CONTROL",
+   "text": "<｜end▁of▁text｜>"
+  },
+  {
+   "token": 8,
+   "gguf_type": "USER_DEFINED",
+   "text": "<User>"
+  },
+  {
+   "token": 9,
+   "gguf_type": "USER_DEFINED",
+   "text": "<System>"
+  },
+  {
+   "token": 10,
+   "gguf_type": "USER_DEFINED",
+   "text": "<Bot>"
+  },
+  {
+   "token": 11,
+   "gguf_type": "CONTROL",
+   "text": "<｜fim▁begin｜>"
+  },
+  {
+   "token": 12,
+   "gguf_type": "CONTROL",
+   "text": "<｜fim▁hole｜>"
+  },
+  {
+   "token": 13,
+   "gguf_type": "CONTROL",
+   "text": "<｜fim▁end｜>"
+  },
+  {
+   "token": 130972,
+   "gguf_type": "CONTROL",
+   "text": "<|System|>"
+  },
+  {
+   "token": 130973,
+   "gguf_type": "CONTROL",
+   "text": "<|User|>"
+  },
+  {
+   "token": 130974,
+   "gguf_type": "CONTROL",
+   "text": "<|Tool|>"
+  },
+  {
+   "token": 130975,
+   "gguf_type": "CONTROL",
+   "text": "<|Developer|>"
+  },
+  {
+   "token": 130976,
+   "gguf_type": "CONTROL",
+   "text": "<|Bot|>"
+  },
+  {
+   "token": 130977,
+   "gguf_type": "USER_DEFINED",
+   "text": "<tool_call>"
+  },
+  {
+   "token": 130978,
+   "gguf_type": "USER_DEFINED",
+   "text": "<tool_response>"
+  },
+  {
+   "token": 130979,
+   "gguf_type": "USER_DEFINED",
+   "text": "</tool_response>"
+  },
+  {
+   "token": 130980,
+   "gguf_type": "USER_DEFINED",
+   "text": "<arg_key>"
+  },
+  {
+   "token": 130981,
+   "gguf_type": "USER_DEFINED",
+   "text": "</arg_key>"
+  },
+  {
+   "token": 130982,
+   "gguf_type": "USER_DEFINED",
+   "text": "<arg_value>"
+  },
+  {
+   "token": 130983,
+   "gguf_type": "USER_DEFINED",
+   "text": "</arg_value>"
+  },
+  {
+   "token": 130984,
+   "gguf_type": "USER_DEFINED",
+   "text": "</tool_call>"
+  },
+  {
+   "token": 130986,
+   "gguf_type": "CONTROL",
+   "text": "<||unused2||>"
+  },
+  {
+   "token": 130987,
+   "gguf_type": "CONTROL",
+   "text": "<||unused3||>"
+  },
+  {
+   "token": 130988,
+   "gguf_type": "CONTROL",
+   "text": "<||unused4||>"
+  },
+  {
+   "token": 130989,
+   "gguf_type": "CONTROL",
+   "text": "<||unused5||>"
+  },
+  {
+   "token": 130990,
+   "gguf_type": "CONTROL",
+   "text": "<||unused6||>"
+  },
+  {
+   "token": 130991,
+   "gguf_type": "CONTROL",
+   "text": "<||unused7||>"
+  },
+  {
+   "token": 130992,
+   "gguf_type": "CONTROL",
+   "text": "<||unused8||>"
+  },
+  {
+   "token": 130993,
+   "gguf_type": "CONTROL",
+   "text": "<||unused9||>"
+  },
+  {
+   "token": 130994,
+   "gguf_type": "CONTROL",
+   "text": "<||unused10||>"
+  },
+  {
+   "token": 130995,
+   "gguf_type": "CONTROL",
+   "text": "<||unused11||>"
+  },
+  {
+   "token": 130996,
+   "gguf_type": "CONTROL",
+   "text": "<||unused12||>"
+  },
+  {
+   "token": 130997,
+   "gguf_type": "CONTROL",
+   "text": "<||unused13||>"
+  },
+  {
+   "token": 130998,
+   "gguf_type": "CONTROL",
+   "text": "<||unused14||>"
+  },
+  {
+   "token": 130999,
+   "gguf_type": "CONTROL",
+   "text": "<||unused15||>"
+  },
+  {
+   "token": 131000,
+   "gguf_type": "CONTROL",
+   "text": "<||unused16||>"
+  },
+  {
+   "token": 131001,
+   "gguf_type": "CONTROL",
+   "text": "<||unused17||>"
+  },
+  {
+   "token": 131002,
+   "gguf_type": "CONTROL",
+   "text": "<||unused18||>"
+  },
+  {
+   "token": 131003,
+   "gguf_type": "CONTROL",
+   "text": "<||unused19||>"
+  },
+  {
+   "token": 131004,
+   "gguf_type": "CONTROL",
+   "text": "<||unused20||>"
+  },
+  {
+   "token": 131005,
+   "gguf_type": "CONTROL",
+   "text": "<||unused21||>"
+  },
+  {
+   "token": 131006,
+   "gguf_type": "CONTROL",
+   "text": "<||unused22||>"
+  },
+  {
+   "token": 131007,
+   "gguf_type": "CONTROL",
+   "text": "<||unused23||>"
+  },
+  {
+   "token": 131008,
+   "gguf_type": "CONTROL",
+   "text": "<||unused24||>"
+  },
+  {
+   "token": 131009,
+   "gguf_type": "CONTROL",
+   "text": "<||unused25||>"
+  },
+  {
+   "token": 131010,
+   "gguf_type": "CONTROL",
+   "text": "<||unused26||>"
+  },
+  {
+   "token": 131011,
+   "gguf_type": "CONTROL",
+   "text": "<||unused27||>"
+  },
+  {
+   "token": 131012,
+   "gguf_type": "CONTROL",
+   "text": "<||unused28||>"
+  },
+  {
+   "token": 131013,
+   "gguf_type": "CONTROL",
+   "text": "<||unused29||>"
+  },
+  {
+   "token": 131014,
+   "gguf_type": "CONTROL",
+   "text": "<||unused30||>"
+  },
+  {
+   "token": 131015,
+   "gguf_type": "CONTROL",
+   "text": "<||unused31||>"
+  },
+  {
+   "token": 131016,
+   "gguf_type": "CONTROL",
+   "text": "<||unused32||>"
+  },
+  {
+   "token": 131017,
+   "gguf_type": "CONTROL",
+   "text": "<||unused33||>"
+  },
+  {
+   "token": 131018,
+   "gguf_type": "CONTROL",
+   "text": "<||unused34||>"
+  },
+  {
+   "token": 131019,
+   "gguf_type": "CONTROL",
+   "text": "<||unused35||>"
+  },
+  {
+   "token": 131020,
+   "gguf_type": "CONTROL",
+   "text": "<||unused36||>"
+  },
+  {
+   "token": 131021,
+   "gguf_type": "CONTROL",
+   "text": "<||unused37||>"
+  },
+  {
+   "token": 131022,
+   "gguf_type": "CONTROL",
+   "text": "<||unused38||>"
+  },
+  {
+   "token": 131023,
+   "gguf_type": "CONTROL",
+   "text": "<||unused39||>"
+  },
+  {
+   "token": 131024,
+   "gguf_type": "CONTROL",
+   "text": "<||unused40||>"
+  },
+  {
+   "token": 131025,
+   "gguf_type": "CONTROL",
+   "text": "<||unused41||>"
+  },
+  {
+   "token": 131026,
+   "gguf_type": "CONTROL",
+   "text": "<||unused42||>"
+  },
+  {
+   "token": 131027,
+   "gguf_type": "CONTROL",
+   "text": "<||unused43||>"
+  },
+  {
+   "token": 131028,
+   "gguf_type": "CONTROL",
+   "text": "<||unused44||>"
+  },
+  {
+   "token": 131029,
+   "gguf_type": "CONTROL",
+   "text": "<||unused45||>"
+  },
+  {
+   "token": 131030,
+   "gguf_type": "CONTROL",
+   "text": "<||unused46||>"
+  },
+  {
+   "token": 131031,
+   "gguf_type": "CONTROL",
+   "text": "<||unused47||>"
+  },
+  {
+   "token": 131032,
+   "gguf_type": "CONTROL",
+   "text": "<||unused48||>"
+  },
+  {
+   "token": 131033,
+   "gguf_type": "CONTROL",
+   "text": "<||unused49||>"
+  },
+  {
+   "token": 131034,
+   "gguf_type": "CONTROL",
+   "text": "<||unused50||>"
+  },
+  {
+   "token": 131035,
+   "gguf_type": "CONTROL",
+   "text": "<||unused51||>"
+  },
+  {
+   "token": 131036,
+   "gguf_type": "CONTROL",
+   "text": "<||unused52||>"
+  },
+  {
+   "token": 131037,
+   "gguf_type": "CONTROL",
+   "text": "<||unused53||>"
+  },
+  {
+   "token": 131038,
+   "gguf_type": "CONTROL",
+   "text": "<||unused54||>"
+  },
+  {
+   "token": 131039,
+   "gguf_type": "CONTROL",
+   "text": "<||unused55||>"
+  },
+  {
+   "token": 131040,
+   "gguf_type": "CONTROL",
+   "text": "<||unused56||>"
+  },
+  {
+   "token": 131041,
+   "gguf_type": "CONTROL",
+   "text": "<||unused57||>"
+  },
+  {
+   "token": 131042,
+   "gguf_type": "CONTROL",
+   "text": "<||unused58||>"
+  },
+  {
+   "token": 131043,
+   "gguf_type": "CONTROL",
+   "text": "<||unused59||>"
+  },
+  {
+   "token": 131044,
+   "gguf_type": "CONTROL",
+   "text": "<||unused60||>"
+  },
+  {
+   "token": 131045,
+   "gguf_type": "CONTROL",
+   "text": "<||unused61||>"
+  },
+  {
+   "token": 131046,
+   "gguf_type": "CONTROL",
+   "text": "<||unused62||>"
+  },
+  {
+   "token": 131047,
+   "gguf_type": "CONTROL",
+   "text": "<||unused63||>"
+  },
+  {
+   "token": 131048,
+   "gguf_type": "CONTROL",
+   "text": "<||unused64||>"
+  },
+  {
+   "token": 131049,
+   "gguf_type": "CONTROL",
+   "text": "<||unused65||>"
+  },
+  {
+   "token": 131050,
+   "gguf_type": "CONTROL",
+   "text": "<||unused66||>"
+  },
+  {
+   "token": 131051,
+   "gguf_type": "CONTROL",
+   "text": "<||unused67||>"
+  },
+  {
+   "token": 131052,
+   "gguf_type": "CONTROL",
+   "text": "<||unused68||>"
+  },
+  {
+   "token": 131053,
+   "gguf_type": "CONTROL",
+   "text": "<||unused69||>"
+  },
+  {
+   "token": 131054,
+   "gguf_type": "CONTROL",
+   "text": "<||unused70||>"
+  },
+  {
+   "token": 131055,
+   "gguf_type": "CONTROL",
+   "text": "<||unused71||>"
+  },
+  {
+   "token": 131056,
+   "gguf_type": "CONTROL",
+   "text": "<||unused72||>"
+  },
+  {
+   "token": 131057,
+   "gguf_type": "CONTROL",
+   "text": "<||unused73||>"
+  },
+  {
+   "token": 131058,
+   "gguf_type": "CONTROL",
+   "text": "<||unused74||>"
+  },
+  {
+   "token": 131059,
+   "gguf_type": "CONTROL",
+   "text": "<||unused75||>"
+  },
+  {
+   "token": 131060,
+   "gguf_type": "CONTROL",
+   "text": "<||unused76||>"
+  },
+  {
+   "token": 131061,
+   "gguf_type": "CONTROL",
+   "text": "<||unused77||>"
+  },
+  {
+   "token": 131062,
+   "gguf_type": "CONTROL",
+   "text": "<||unused78||>"
+  },
+  {
+   "token": 131063,
+   "gguf_type": "CONTROL",
+   "text": "<||unused79||>"
+  },
+  {
+   "token": 131064,
+   "gguf_type": "CONTROL",
+   "text": "<||unused80||>"
+  },
+  {
+   "token": 131065,
+   "gguf_type": "CONTROL",
+   "text": "<||unused81||>"
+  },
+  {
+   "token": 131066,
+   "gguf_type": "CONTROL",
+   "text": "<||unused82||>"
+  },
+  {
+   "token": 131067,
+   "gguf_type": "CONTROL",
+   "text": "<||unused83||>"
+  },
+  {
+   "token": 131068,
+   "gguf_type": "CONTROL",
+   "text": "<||unused84||>"
+  },
+  {
+   "token": 131069,
+   "gguf_type": "CONTROL",
+   "text": "<||unused85||>"
+  },
+  {
+   "token": 131070,
+   "gguf_type": "CONTROL",
+   "text": "<||unused86||>"
+  },
+  {
+   "token": 131071,
+   "gguf_type": "CONTROL",
+   "text": "<||unused87||>"
+  }
+ ],
+ "disagreements": []
+}

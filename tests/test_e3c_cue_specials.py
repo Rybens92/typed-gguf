@@ -21,13 +21,19 @@ The generalised rule this file pins:
   vocabulary's own text for the token (`</think>`), the catalogue string when the catalogue names
   it, and `<special <id>>` when the vocabulary carries no text for it.
 
-Every gate here fails on the pre-fix tree: `single_token_closers` has no `special` argument and
-`cue_verdict` has no dominance floor, so `</think>` reads `refused: false`, `closer: null`.
+RED→GREEN, counted: on the pre-fix tree (the clone at HEAD, `.e3c_specials/red_prefix.txt`) 17 of
+these gates fail and **2 pass — by design**:
+`test_a_content_token_dominating_the_cue_is_not_a_refusal` (fixture (c)) and
+`test_the_dominating_catalogue_closer_still_fires_exactly_as_before` are pins on behaviour that
+already existed, so they must pass on both trees. Every *new* behaviour is in the 17:
+`single_token_closers` has no `special` argument and `cue_verdict` has no dominance floor there, so
+`</think>` reads `refused: false`, `closer: null`.
 """
 from __future__ import annotations
 
 import dataclasses
 import importlib.util
+import math
 import pathlib
 import sys
 from typing import Any
@@ -35,7 +41,7 @@ from typing import Any
 import pytest
 
 from ggufone.engine import cue as cue_module
-from ggufone.engine import decide
+from ggufone.engine import decide, readout
 from ggufone.runtime import ctypes_binding
 from ggufone.schema import OPTION_DEFAULTS, parse_request
 from tests.fake_engine import BenchModel, FakeSession, biased_row
@@ -46,6 +52,10 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 TOP = 11.0
 #: the bias whose mass lands *below* the 0.10 floor: e^0.5 / (e^0.5 + 511) ≈ 0.0032
 BELOW_FLOOR = 0.5
+#: the bias whose mass lands *between* the default floor and a stricter one:
+#: e^4.85 / (e^4.85 + 511) ≈ 0.20 — a dominating special for a 0.10 caller, a `low_mass` row for one
+#: who asks for 0.50
+MID_FLOOR = 4.85
 #: the fake slot for `</think>`; Tiel's own id is 248069 (measured,
 #: `docs/evidence/t635124bf_cue_specials.md`)
 THINK_END = 413
@@ -199,6 +209,57 @@ def test_a_catalogue_closer_below_the_floor_is_not_called_dominating():
     answer = run_row(session, {IM_END: BELOW_FLOOR})
     assert answer["cue"]["mass"] < cue_module.REFUSAL_FLOOR          # the premise of the fixture
     assert answer["cue"]["refused"] is False
+
+
+def test_a_token_holding_exactly_the_floor_is_dominating():
+    """The rule is `>=`, and the boundary is named exactly.
+
+    Four equal logits and the caller's floor at 0.25: `exp(0 - log 4)` *is* 0.25 as a double, so
+    the gate sits on the boundary instead of a hair away from it. The floor is the caller's —
+    `decide.py` passes the request's effective `coverage_floor` — so 0.25 is as legal a floor as the
+    0.10 default, and a sweep's `mass > floor` mutant has to die here.
+    """
+    row = [0.0, 0.0, 0.0, 0.0]
+    verdict = cue_module.cue_verdict(row, readout.logsumexp(row), {0: THINK_END_TEXT}, floor=0.25)
+    assert verdict["mass"] == 0.25                                   # exactly, not approx
+    assert verdict["refused"] is True
+    assert verdict["closer"] == THINK_END_TEXT
+
+
+def test_a_token_a_hair_below_the_floor_is_not_dominating():
+    """The other side of the same boundary — one ULP of floor higher and the row is `low_mass`."""
+    row = [0.0, 0.0, 0.0, 0.0]
+    floor = math.nextafter(0.25, math.inf)
+    verdict = cue_module.cue_verdict(row, readout.logsumexp(row), {0: THINK_END_TEXT}, floor=floor)
+    assert verdict["mass"] < floor
+    assert verdict["refused"] is False
+    assert verdict["closer"] is None                                 # `closer` names a refusal only
+
+
+def test_the_request_s_own_floor_decides_not_the_module_constant():
+    """One row, two floors: the caller's `coverage_floor` is the rule's number.
+
+    The same cue row (a special at ~0.20 mass) is a refusal for a caller who asked for 0.10 and a
+    plain `low_mass` row for one who asked for 0.50 — the same threshold `reliability` reads, so
+    the verdict and the reliability word cannot drift apart.
+    """
+    session = session_with({THINK_END: THINK_END_TEXT})
+    dominant = run_result(session, {THINK_END: MID_FLOOR})
+    assert dominant.answers["area"]["cue"]["mass"] >= cue_module.REFUSAL_FLOOR   # premise
+    assert dominant.answers["area"]["cue"]["refused"] is True
+    assert dominant.answers["area"]["cue"]["closer"] == THINK_END_TEXT
+    assert "W_CUE_REFUSED" in dominant.warnings
+
+    strict_payload = choice_request() | {"options": {"coverage_floor": 0.50}}
+    strict = run_result(session, {THINK_END: MID_FLOOR}, strict_payload)
+    answer = strict.answers["area"]
+    assert answer["cue"]["mass"] < 0.50                    # premise: under the strict floor
+    assert answer["reliability"] == "low_mass"
+    assert answer["cue"]["refused"] is False
+    assert answer["cue"]["closer"] is None
+    assert "hint" not in answer["cue"]
+    assert "W_CUE_REFUSED" not in strict.warnings
+    assert "W_LOW_MASS" in strict.warnings
 
 
 # --------------------------------------------------------------------- the closer map
