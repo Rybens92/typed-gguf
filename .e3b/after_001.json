@@ -1,0 +1,3482 @@
+{
+  "schema": "ggufone.e3b.label-policy/v1",
+  "generated_at": "2026-09-19T14:24:53Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "name": "Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "bytes": 24113674848,
+    "arch": "qwen35moe"
+  },
+  "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 7,
+  "placement": {
+    "note": "degraded after a backend allocation failure: 0 layer(s) offloaded, kv_type=f16",
+    "n_gpu_layers": 0,
+    "kv_type": "f16",
+    "degraded": true,
+    "attempts": [
+      "n_gpu_layers=7 -> oom",
+      "n_gpu_layers=3 -> oom"
+    ],
+    "warnings": [
+      "W_BACKEND_OOM",
+      "W_FIT_DOWNGRADE"
+    ]
+  },
+  "load_ms": 22260.9,
+  "cues": [
+    "shipped"
+  ],
+  "label_variants": [
+    "bare",
+    "space",
+    "caps",
+    "newline",
+    "long"
+  ],
+  "prefix_variants": [
+    "shipped"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [
+    "shipped=bare",
+    "shipped=newline"
+  ],
+  "counts": {
+    "choice": 4,
+    "score": 3,
+    "noul": 3
+  },
+  "devset": "docs/evidence/e3_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "expected": "technical",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 109,
+          "n_ctx": 4291,
+          "n_seq_max": 22,
+          "prefix_tail": " the database is reachable.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 53
+          },
+          "tokenized": {
+            "bare": {
+              "billing": [
+                37355
+              ],
+              "technical": [
+                69685
+              ],
+              "sales": [
+                28094
+              ],
+              "support": [
+                22637
+              ]
+            },
+            "space": {
+              " billing": [
+                32419
+              ],
+              " technical": [
+                10597
+              ],
+              " sales": [
+                6416
+              ],
+              " support": [
+                1761
+              ]
+            },
+            "caps": {
+              "Billing": [
+                79177
+              ],
+              "Technical": [
+                60130
+              ],
+              "Sales": [
+                34246
+              ],
+              "Support": [
+                7666
+              ]
+            },
+            "newline": {
+              "\nbilling": [
+                198,
+                37355
+              ],
+              "\ntechnical": [
+                198,
+                69685
+              ],
+              "\nsales": [
+                198,
+                28094
+              ],
+              "\nsupport": [
+                198,
+                22637
+              ]
+            },
+            "long": {
+              "billing: payments, invoices and refunds": [
+                37355,
+                25,
+                13767,
+                11,
+                61893,
+                321,
+                70057
+              ],
+              "technical: api, infrastructure and deploys": [
+                69685,
+                25,
+                6131,
+                11,
+                13343,
+                321,
+                2101,
+                32195
+              ],
+              "sales: contracts and pricing": [
+                28094,
+                25,
+                16577,
+                321,
+                20568
+              ],
+              "support: customer conversations": [
+                22637,
+                25,
+                5813,
+                20319
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 26.93774514485126,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 1.6574254853935424e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 8.908533546739573e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 1.4740774949223486e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 4.542207462459878e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 1.6574254853935424e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999360553134063
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 4.515152335089656e-05
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 1.212187947629939e-05
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 3.8890077752731295e-06
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 5.879491463331309e-07
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 4.568379586630475e-07
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 3.642278390312667e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 1.8331650676382917e-07
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "billing": 0.26717613548288077,
+                "technical": 0.1421044535344922,
+                "sales": 0.2818144952522952,
+                "support": 0.30890491573033185
+              },
+              "sequence_scores": {
+                "[22637]": -16.787551930434756,
+                "[28094]": -16.879336407668642,
+                "[37355]": -16.932677319533877,
+                "[69685]": -17.564023068435244
+              },
+              "got": "support",
+              "confidence": 0.07853988764044247,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 1.6574254853935424e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  37355
+                ],
+                [
+                  69685
+                ],
+                [
+                  28094
+                ],
+                [
+                  22637
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "billing": 0.6117708647894724,
+                "technical": 0.17782281196757802,
+                "sales": 0.11378642163340881,
+                "support": 0.09661990160954084
+              },
+              "sequence_scores": {
+                "[198, 22637]": -19.955883674254892,
+                "[198, 28094]": -19.792345218291757,
+                "[198, 37355]": -18.110310606589792,
+                "[198, 69685]": -19.345880798926828
+              },
+              "got": "billing",
+              "confidence": 0.4823611530526299,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 4.542207462459878e-08,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  37355
+                ],
+                [
+                  198,
+                  69685
+                ],
+                [
+                  198,
+                  28094
+                ],
+                [
+                  198,
+                  22637
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 67307.9,
+          "cue_decode_s": 61.0
+        }
+      }
+    },
+    {
+      "id": "s01",
+      "type": "score",
+      "expected": "3",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 87,
+          "n_ctx": 4263,
+          "n_seq_max": 26,
+          "prefix_tail": ", and no workaround exists.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 47
+          },
+          "tokenized": {
+            "bare": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ],
+              "4": [
+                19
+              ]
+            },
+            "space": {
+              " 0": [
+                220,
+                15
+              ],
+              " 1": [
+                220,
+                16
+              ],
+              " 2": [
+                220,
+                17
+              ],
+              " 3": [
+                220,
+                18
+              ],
+              " 4": [
+                220,
+                19
+              ]
+            },
+            "caps": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ],
+              "4": [
+                19
+              ]
+            },
+            "newline": {
+              "\n0": [
+                198,
+                15
+              ],
+              "\n1": [
+                198,
+                16
+              ],
+              "\n2": [
+                198,
+                17
+              ],
+              "\n3": [
+                198,
+                18
+              ],
+              "\n4": [
+                198,
+                19
+              ]
+            },
+            "long": {
+              "cosmetic": [
+                9128,
+                17453
+              ],
+              "annoying": [
+                985,
+                2181,
+                286
+              ],
+              "degrading": [
+                442,
+                31195
+              ],
+              "critical": [
+                40167
+              ],
+              "catastrophic": [
+                216931,
+                267,
+                40332
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 28.602604205718226,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 1.0444220244279727e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3",
+                    " 4"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 3.535822559899934e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3",
+                      " 4"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 1.0444220244279727e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3",
+                    "\n4"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.196890537567568e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3",
+                      "\n4"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "cosmetic",
+                    "annoying",
+                    "degrading",
+                    "critical",
+                    "catastrophic"
+                  ],
+                  "first_tokens": [
+                    9128,
+                    985,
+                    442,
+                    40167,
+                    216931
+                  ],
+                  "pieces": [
+                    "cos",
+                    "ann",
+                    "de",
+                    "critical",
+                    "cata"
+                  ],
+                  "coverage": 7.423590306405717e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999958919464621
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 2.476427385019617e-06
+                },
+                {
+                  "token": 19,
+                  "piece": "4",
+                  "p_full": 1.0023425710972558e-06
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 3.218418079028494e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 5.513951502242066e-08
+                },
+                {
+                  "token": 18,
+                  "piece": "3",
+                  "p_full": 2.3016191338960398e-08
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 1.896229106747096e-08
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 1.7177791110253927e-08
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "0": 0.008459911733673426,
+                "1": 0.0075295480845336375,
+                "2": 0.002262991342230138,
+                "3": 0.02203725199261889,
+                "4": 0.959710296846944
+              },
+              "sequence_scores": {
+                "[15]": -18.54446345101852,
+                "[16]": -18.660967166533656,
+                "[17]": -19.86311465035934,
+                "[18]": -17.58706789742965,
+                "[19]": -13.813170726409144
+              },
+              "got": "4",
+              "confidence": 0.94963787105868,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 1.0444220244279727e-06,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  15
+                ],
+                [
+                  16
+                ],
+                [
+                  17
+                ],
+                [
+                  18
+                ],
+                [
+                  19
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "0": 0.07661066403592966,
+                "1": 0.20860786297034828,
+                "2": 0.13067300494194423,
+                "3": 0.23494955700308487,
+                "4": 0.34915891104869307
+              },
+              "sequence_scores": {
+                "[198, 15]": -18.98221245179521,
+                "[198, 16]": -17.98049250016557,
+                "[198, 17]": -18.44825067887651,
+                "[198, 18]": -17.86157789597856,
+                "[198, 19]": -17.465421584943403
+              },
+              "got": "4",
+              "confidence": 0.18644863881086632,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 1.196890537567568e-08,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  15
+                ],
+                [
+                  198,
+                  16
+                ],
+                [
+                  198,
+                  17
+                ],
+                [
+                  198,
+                  18
+                ],
+                [
+                  198,
+                  19
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 45938.2,
+          "cue_decode_s": 36.6
+        }
+      }
+    },
+    {
+      "id": "n01",
+      "type": "noul",
+      "expected": "yes",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 84,
+          "n_ctx": 4254,
+          "n_seq_max": 14,
+          "prefix_tail": "ne thousand euros a minute.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 41
+          },
+          "tokenized": {
+            "bare": {
+              "yes": [
+                9405
+              ],
+              "no": [
+                2083
+              ]
+            },
+            "space": {
+              " yes": [
+                9542
+              ],
+              " no": [
+                874
+              ]
+            },
+            "caps": {
+              "Yes": [
+                9175
+              ],
+              "No": [
+                2665
+              ]
+            },
+            "newline": {
+              "\nyes": [
+                198,
+                9405
+              ],
+              "\nno": [
+                198,
+                2083
+              ]
+            },
+            "long": {
+              "yes, page immediately": [
+                9405,
+                11,
+                2081,
+                6849
+              ],
+              "no, handle it in business hours": [
+                2083,
+                11,
+                3579,
+                424,
+                303,
+                2478,
+                3979
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 26.051659700106303,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 3.924974029586681e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 2.1812512031217566e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 2.552409465867403e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.003346921486815e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, page immediately",
+                    "no, handle it in business hours"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 3.924974029586681e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.999951247737401
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 2.6535110425631955e-05
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 1.003953345481643e-05
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 3.815664517075295e-06
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 1.8540230502679713e-06
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 8.851415724404195e-07
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 7.507407940092097e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 5.919606071523037e-07
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "yes": 0.02784974160017473,
+                "no": 0.9721502583998253
+              },
+              "sequence_scores": {
+                "[2083]": -12.476395723055521,
+                "[9405]": -16.0290824143397
+              },
+              "got": "no",
+              "confidence": 0.9443005167996505,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 3.924974029586681e-06,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  9405
+                ],
+                [
+                  2083
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "yes": 0.21419857177615326,
+                "no": 0.7858014282238467
+              },
+              "sequence_scores": {
+                "[198, 2083]": -16.798179137602624,
+                "[198, 9405]": -18.09797977198678
+              },
+              "got": "no",
+              "confidence": 0.5716028564476934,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 1.003346921486815e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  9405
+                ],
+                [
+                  198,
+                  2083
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 53157.2,
+          "cue_decode_s": 49.4
+        }
+      }
+    },
+    {
+      "id": "c02",
+      "type": "choice",
+      "expected": "billing",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 99,
+          "n_ctx": 4280,
+          "n_seq_max": 22,
+          "prefix_tail": "ttled charges for one seat.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 51
+          },
+          "tokenized": {
+            "bare": {
+              "billing": [
+                37355
+              ],
+              "technical": [
+                69685
+              ],
+              "account": [
+                4459
+              ],
+              "escalation": [
+                78288,
+                362
+              ]
+            },
+            "space": {
+              " billing": [
+                32419
+              ],
+              " technical": [
+                10597
+              ],
+              " account": [
+                2605
+              ],
+              " escalation": [
+                67909
+              ]
+            },
+            "caps": {
+              "Billing": [
+                79177
+              ],
+              "Technical": [
+                60130
+              ],
+              "Account": [
+                7133
+              ],
+              "Escalation": [
+                34926,
+                278,
+                362
+              ]
+            },
+            "newline": {
+              "\nbilling": [
+                198,
+                37355
+              ],
+              "\ntechnical": [
+                198,
+                69685
+              ],
+              "\naccount": [
+                198,
+                4459
+              ],
+              "\nescalation": [
+                198,
+                78288,
+                362
+              ]
+            },
+            "long": {
+              "billing: duplicate charges and refunds": [
+                37355,
+                25,
+                21814,
+                9892,
+                321,
+                70057
+              ],
+              "technical: product bugs": [
+                69685,
+                25,
+                1918,
+                21851
+              ],
+              "account: plan changes and seat management": [
+                4459,
+                25,
+                3019,
+                4203,
+                321,
+                10407,
+                6044
+              ],
+              "escalation: formal complaints": [
+                78288,
+                362,
+                25,
+                15440,
+                20522
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 27.74060394433697,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 7.266370868783607e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 1.0522405792655784e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 1.4439866223497716e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.4510078851627343e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 7.266370868783607e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999928269289896
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 4.722254871412669e-06
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 5.6237250807953e-07
+                },
+                {
+                  "token": 69685,
+                  "piece": "technical",
+                  "p_full": 4.0437855337632876e-07
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 3.7346046672961074e-07
+                },
+                {
+                  "token": 78288,
+                  "piece": "escal",
+                  "p_full": 2.4759415178660877e-07
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 9.912501515026364e-08
+                },
+                {
+                  "token": 248044,
+                  "piece": "<|endoftext|>",
+                  "p_full": 9.638664452535705e-08
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "billing": 0.00010723119705965416,
+                "technical": 0.0008324635695404893,
+                "account": 4.6474723299853336e-05,
+                "escalation": 0.9990138305101
+              },
+              "sequence_scores": {
+                "[4459]": -17.606395265137753,
+                "[37355]": -16.770316621338925,
+                "[69685]": -14.720914384400448,
+                "[78288, 362]": -7.630779943096499
+              },
+              "got": "escalation",
+              "confidence": 0.9986851073467999,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 7.266370868783607e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  37355
+                ],
+                [
+                  69685
+                ],
+                [
+                  4459
+                ],
+                [
+                  78288,
+                  362
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "billing": 0.003295591387912019,
+                "technical": 0.0008991120306193087,
+                "account": 0.0007629875164217868,
+                "escalation": 0.9950423090650468
+              },
+              "sequence_scores": {
+                "[198, 4459]": -22.137502520993877,
+                "[198, 37355]": -20.674403279737163,
+                "[198, 69685]": -21.973336547330547,
+                "[198, 78288, 362]": -14.964203654057153
+              },
+              "got": "escalation",
+              "confidence": 0.9933897454200623,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 2.4510078851627343e-09,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  37355
+                ],
+                [
+                  198,
+                  69685
+                ],
+                [
+                  198,
+                  4459
+                ],
+                [
+                  198,
+                  78288,
+                  362
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 31498.6,
+          "cue_decode_s": 23.9
+        }
+      }
+    },
+    {
+      "id": "s02",
+      "type": "score",
+      "expected": "3",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 85,
+          "n_ctx": 4258,
+          "n_seq_max": 22,
+          "prefix_tail": "he answer takes one minute.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 44
+          },
+          "tokenized": {
+            "bare": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ]
+            },
+            "space": {
+              " 0": [
+                220,
+                15
+              ],
+              " 1": [
+                220,
+                16
+              ],
+              " 2": [
+                220,
+                17
+              ],
+              " 3": [
+                220,
+                18
+              ]
+            },
+            "caps": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ]
+            },
+            "newline": {
+              "\n0": [
+                198,
+                15
+              ],
+              "\n1": [
+                198,
+                16
+              ],
+              "\n2": [
+                198,
+                17
+              ],
+              "\n3": [
+                198,
+                18
+              ]
+            },
+            "long": {
+              "whenever": [
+                1266,
+                29741
+              ],
+              "this week": [
+                559,
+                1936
+              ],
+              "this quarter": [
+                559,
+                8079
+              ],
+              "today": [
+                29129
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 25.896983640416604,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 8.551028999015805e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 9.165958312444718e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 8.551028999015805e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.0720182482650672e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "whenever",
+                    "this week",
+                    "this quarter",
+                    "today"
+                  ],
+                  "first_tokens": [
+                    1266,
+                    559,
+                    559,
+                    29129
+                  ],
+                  "pieces": [
+                    "wh",
+                    "this",
+                    "this",
+                    "today"
+                  ],
+                  "coverage": 7.642694658662904e-11,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "this week",
+                      "this quarter"
+                    ]
+                  ]
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999699427987948
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.436895315575159e-05
+                },
+                {
+                  "token": 18,
+                  "piece": "3",
+                  "p_full": 7.962792688345227e-06
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 2.3612253927826946e-06
+                },
+                {
+                  "token": 248044,
+                  "piece": "<|endoftext|>",
+                  "p_full": 1.7132797246006077e-06
+                },
+                {
+                  "token": 17,
+                  "piece": "2",
+                  "p_full": 4.0572360428452086e-07
+                },
+                {
+                  "token": 332,
+                  "piece": "**",
+                  "p_full": 3.7813955818804233e-07
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 3.667337391579129e-07
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "0": 0.014986201951004268,
+                "1": 0.006357744655546019,
+                "2": 0.047447342808826676,
+                "3": 0.9312087105846231
+              },
+              "sequence_scores": {
+                "[15]": -15.87008430264805,
+                "[16]": -16.72754050992344,
+                "[17]": -14.717593686803323,
+                "[18]": -11.740730779393655
+              },
+              "got": "3",
+              "confidence": 0.9082782807794975,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 8.551028999015805e-06,
+              "reliability": "low_mass",
+              "correct": true,
+              "sequences": [
+                [
+                  15
+                ],
+                [
+                  16
+                ],
+                [
+                  17
+                ],
+                [
+                  18
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "0": 0.08234435194895343,
+                "1": 0.21846222314122352,
+                "2": 0.1990831085299989,
+                "3": 0.5001103163798242
+              },
+              "sequence_scores": {
+                "[198, 15]": -18.21686201119735,
+                "[198, 16]": -17.24115877175643,
+                "[198, 17]": -17.33404951119735,
+                "[198, 18]": -16.412943172696373
+              },
+              "got": "3",
+              "confidence": 0.33348042183976556,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 1.0720182482650672e-08,
+              "reliability": "low_mass",
+              "correct": true,
+              "sequences": [
+                [
+                  198,
+                  15
+                ],
+                [
+                  198,
+                  16
+                ],
+                [
+                  198,
+                  17
+                ],
+                [
+                  198,
+                  18
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 25230.0,
+          "cue_decode_s": 27.6
+        }
+      }
+    },
+    {
+      "id": "n02",
+      "type": "noul",
+      "expected": "yes",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 94,
+          "n_ctx": 4261,
+          "n_seq_max": 14,
+          "prefix_tail": "revious build is available.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 38
+          },
+          "tokenized": {
+            "bare": {
+              "yes": [
+                9405
+              ],
+              "no": [
+                2083
+              ]
+            },
+            "space": {
+              " yes": [
+                9542
+              ],
+              " no": [
+                874
+              ]
+            },
+            "caps": {
+              "Yes": [
+                9175
+              ],
+              "No": [
+                2665
+              ]
+            },
+            "newline": {
+              "\nyes": [
+                198,
+                9405
+              ],
+              "\nno": [
+                198,
+                2083
+              ]
+            },
+            "long": {
+              "yes, restore the previous build": [
+                9405,
+                11,
+                14519,
+                279,
+                3555,
+                1870
+              ],
+              "no, keep investigating forward": [
+                2083,
+                11,
+                2426,
+                23143,
+                4487
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 26.892495095413228,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 4.567122262943228e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 7.400319195064049e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 4.528650929781688e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 3.6429509792555285e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, restore the previous build",
+                    "no, keep investigating forward"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 4.567122262943228e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999685891621342
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 1.1618885312278991e-05
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.0986951666252326e-05
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 4.129193482901083e-06
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 8.181586729569628e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 5.984418256507441e-07
+                },
+                {
+                  "token": 9405,
+                  "piece": "yes",
+                  "p_full": 4.379287800421452e-07
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 3.412684828045756e-07
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "yes": 0.09588724689842815,
+                "no": 0.9041127531015719
+              },
+              "sequence_scores": {
+                "[2083]": -12.397428452651997,
+                "[9405]": -14.641209542434712
+              },
+              "got": "no",
+              "confidence": 0.8082255062031438,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 4.567122262943228e-06,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  9405
+                ],
+                [
+                  2083
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "yes": 0.2678367755541876,
+                "no": 0.7321632244458124
+              },
+              "sequence_scores": {
+                "[198, 2083]": -15.477801364806089,
+                "[198, 9405]": -16.48342708959857
+              },
+              "got": "no",
+              "confidence": 0.4643264488916248,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 3.6429509792555285e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  9405
+                ],
+                [
+                  198,
+                  2083
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 32306.6,
+          "cue_decode_s": 20.9
+        }
+      }
+    },
+    {
+      "id": "c03",
+      "type": "choice",
+      "expected": "mobile",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 97,
+          "n_ctx": 4277,
+          "n_seq_max": 22,
+          "prefix_tail": " all after the 4.2 release.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 51
+          },
+          "tokenized": {
+            "bare": {
+              "mobile": [
+                14501
+              ],
+              "backend": [
+                20302
+              ],
+              "design": [
+                24065
+              ],
+              "marketing": [
+                88652
+              ]
+            },
+            "space": {
+              " mobile": [
+                6170
+              ],
+              " backend": [
+                18583
+              ],
+              " design": [
+                2790
+              ],
+              " marketing": [
+                8233
+              ]
+            },
+            "caps": {
+              "Mobile": [
+                17824
+              ],
+              "Backend": [
+                28729
+              ],
+              "Design": [
+                19846
+              ],
+              "Marketing": [
+                65284
+              ]
+            },
+            "newline": {
+              "\nmobile": [
+                198,
+                14501
+              ],
+              "\nbackend": [
+                198,
+                20302
+              ],
+              "\ndesign": [
+                198,
+                24065
+              ],
+              "\nmarketing": [
+                198,
+                88652
+              ]
+            },
+            "long": {
+              "mobile: android and ios clients": [
+                14501,
+                25,
+                2035,
+                321,
+                26639,
+                7982
+              ],
+              "backend: api and database": [
+                20302,
+                25,
+                6131,
+                321,
+                4475
+              ],
+              "design: visual and interaction design": [
+                24065,
+                25,
+                8851,
+                321,
+                15752,
+                2790
+              ],
+              "marketing: campaigns and copy": [
+                88652,
+                25,
+                20060,
+                321,
+                2880
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 25.652021199552838,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "mobile",
+                    "backend",
+                    "design",
+                    "marketing"
+                  ],
+                  "first_tokens": [
+                    14501,
+                    20302,
+                    24065,
+                    88652
+                  ],
+                  "pieces": [
+                    "mobile",
+                    "backend",
+                    "design",
+                    "marketing"
+                  ],
+                  "coverage": 1.926158932346517e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " mobile",
+                    " backend",
+                    " design",
+                    " marketing"
+                  ],
+                  "first_tokens": [
+                    6170,
+                    18583,
+                    2790,
+                    8233
+                  ],
+                  "pieces": [
+                    " mobile",
+                    " backend",
+                    " design",
+                    " marketing"
+                  ],
+                  "coverage": 6.0002312326237015e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Mobile",
+                    "Backend",
+                    "Design",
+                    "Marketing"
+                  ],
+                  "first_tokens": [
+                    17824,
+                    28729,
+                    19846,
+                    65284
+                  ],
+                  "pieces": [
+                    "Mobile",
+                    "Backend",
+                    "Design",
+                    "Marketing"
+                  ],
+                  "coverage": 9.679342833875783e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nmobile",
+                    "\nbackend",
+                    "\ndesign",
+                    "\nmarketing"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.7969520860655736e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nmobile",
+                      "\nbackend",
+                      "\ndesign",
+                      "\nmarketing"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "mobile: android and ios clients",
+                    "backend: api and database",
+                    "design: visual and interaction design",
+                    "marketing: campaigns and copy"
+                  ],
+                  "first_tokens": [
+                    14501,
+                    20302,
+                    24065,
+                    88652
+                  ],
+                  "pieces": [
+                    "mobile",
+                    "backend",
+                    "design",
+                    "marketing"
+                  ],
+                  "coverage": 1.926158932346517e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9996302512673686
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.0003018520849078649
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 4.538708191406452e-05
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 1.558818699318509e-05
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 2.343222762411118e-06
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 9.012742213668377e-07
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 6.500716906326889e-07
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 5.595679944581461e-07
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "mobile": 0.35321232816990983,
+                "backend": 0.19964891828337314,
+                "design": 0.016119525999970834,
+                "marketing": 0.43101922754674626
+              },
+              "sequence_scores": {
+                "[14501]": -16.50325372823936,
+                "[20302]": -17.07376268514854,
+                "[24065]": -19.590291768400494,
+                "[88652]": -16.30417039999229
+              },
+              "got": "marketing",
+              "confidence": 0.24135897006232834,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 1.926158932346517e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  14501
+                ],
+                [
+                  20302
+                ],
+                [
+                  24065
+                ],
+                [
+                  88652
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "mobile": 0.5589844316302309,
+                "backend": 0.15121141505239907,
+                "design": 0.14474364258744318,
+                "marketing": 0.14506051072992693
+              },
+              "sequence_scores": {
+                "[198, 14501]": -18.7488823216866,
+                "[198, 20302]": -20.0563249867867,
+                "[198, 24065]": -20.100039748520707,
+                "[198, 88652]": -20.097852973313188
+              },
+              "got": "mobile",
+              "confidence": 0.41197924217364124,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 1.7969520860655736e-08,
+              "reliability": "low_mass",
+              "correct": true,
+              "sequences": [
+                [
+                  198,
+                  14501
+                ],
+                [
+                  198,
+                  20302
+                ],
+                [
+                  198,
+                  24065
+                ],
+                [
+                  198,
+                  88652
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 22974.3,
+          "cue_decode_s": 37.0
+        }
+      }
+    },
+    {
+      "id": "s03",
+      "type": "score",
+      "expected": "4",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 86,
+          "n_ctx": 4265,
+          "n_seq_max": 26,
+          "prefix_tail": "about exporting their data.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 50
+          },
+          "tokenized": {
+            "bare": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ],
+              "4": [
+                19
+              ]
+            },
+            "space": {
+              " 0": [
+                220,
+                15
+              ],
+              " 1": [
+                220,
+                16
+              ],
+              " 2": [
+                220,
+                17
+              ],
+              " 3": [
+                220,
+                18
+              ],
+              " 4": [
+                220,
+                19
+              ]
+            },
+            "caps": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ],
+              "4": [
+                19
+              ]
+            },
+            "newline": {
+              "\n0": [
+                198,
+                15
+              ],
+              "\n1": [
+                198,
+                16
+              ],
+              "\n2": [
+                198,
+                17
+              ],
+              "\n3": [
+                198,
+                18
+              ],
+              "\n4": [
+                198,
+                19
+              ]
+            },
+            "long": {
+              "very low": [
+                1164,
+                3238
+              ],
+              "low": [
+                9997
+              ],
+              "medium": [
+                25252
+              ],
+              "high": [
+                11553
+              ],
+              "very high": [
+                1164,
+                1496
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 28.197441393489395,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 2.0869565038057574e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3",
+                    " 4"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 3.023269351060755e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3",
+                      " 4"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 2.0869565038057574e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3",
+                    "\n4"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.4627427876588155e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3",
+                      "\n4"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "very low",
+                    "low",
+                    "medium",
+                    "high",
+                    "very high"
+                  ],
+                  "first_tokens": [
+                    1164,
+                    9997,
+                    25252,
+                    11553,
+                    1164
+                  ],
+                  "pieces": [
+                    "very",
+                    "low",
+                    "medium",
+                    "high",
+                    "very"
+                  ],
+                  "coverage": 1.7554684270791529e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "very low",
+                      "very high"
+                    ]
+                  ]
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.999995892895992
+                },
+                {
+                  "token": 19,
+                  "piece": "4",
+                  "p_full": 1.7981735957676565e-06
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.3183349834970045e-06
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 2.2244399906834042e-07
+                },
+                {
+                  "token": 18,
+                  "piece": "3",
+                  "p_full": 2.044225903766316e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 1.5579736560415875e-07
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 6.033265137932322e-08
+                },
+                {
+                  "token": 15,
+                  "piece": "0",
+                  "p_full": 4.4739572207144394e-08
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "0": 0.02143771186680588,
+                "1": 0.008433236351740512,
+                "2": 0.01055170434159588,
+                "3": 0.09795249206384905,
+                "4": 0.8616248553760086
+              },
+              "sequence_scores": {
+                "[15]": -16.92240744268373,
+                "[16]": -17.855378443355118,
+                "[17]": -17.631271654719864,
+                "[18]": -15.403076464290177,
+                "[19]": -13.228739077205216
+              },
+              "got": "4",
+              "confidence": 0.8270310692200108,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 2.0869565038057574e-06,
+              "reliability": "low_mass",
+              "correct": true,
+              "sequences": [
+                [
+                  15
+                ],
+                [
+                  16
+                ],
+                [
+                  17
+                ],
+                [
+                  18
+                ],
+                [
+                  19
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "0": 0.10854691788661146,
+                "1": 0.1740568452035913,
+                "2": 0.11626985323638155,
+                "3": 0.23269477383022863,
+                "4": 0.3684316098431871
+              },
+              "sequence_scores": {
+                "[198, 15]": -18.36722616983164,
+                "[198, 16]": -17.895026729829198,
+                "[198, 17]": -18.29849486184824,
+                "[198, 18]": -17.604681061036473,
+                "[198, 19]": -17.14515356851328
+              },
+              "got": "4",
+              "confidence": 0.21053951230398388,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 1.4627427876588155e-08,
+              "reliability": "low_mass",
+              "correct": true,
+              "sequences": [
+                [
+                  198,
+                  15
+                ],
+                [
+                  198,
+                  16
+                ],
+                [
+                  198,
+                  17
+                ],
+                [
+                  198,
+                  18
+                ],
+                [
+                  198,
+                  19
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 56903.4,
+          "cue_decode_s": 37.9
+        }
+      }
+    },
+    {
+      "id": "n03",
+      "type": "noul",
+      "expected": "yes",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 89,
+          "n_ctx": 4257,
+          "n_seq_max": 14,
+          "prefix_tail": "icket adds no new evidence.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 39
+          },
+          "tokenized": {
+            "bare": {
+              "yes": [
+                9405
+              ],
+              "no": [
+                2083
+              ]
+            },
+            "space": {
+              " yes": [
+                9542
+              ],
+              " no": [
+                874
+              ]
+            },
+            "caps": {
+              "Yes": [
+                9175
+              ],
+              "No": [
+                2665
+              ]
+            },
+            "newline": {
+              "\nyes": [
+                198,
+                9405
+              ],
+              "\nno": [
+                198,
+                2083
+              ]
+            },
+            "long": {
+              "yes, link it to the first": [
+                9405,
+                11,
+                2569,
+                424,
+                310,
+                279,
+                1118
+              ],
+              "no, treat it separately": [
+                2083,
+                11,
+                4089,
+                424,
+                24358
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 25.71417638376451,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 6.7831524434894e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 6.707955158584195e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 5.931605039794788e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.706126435716175e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, link it to the first",
+                    "no, treat it separately"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 6.7831524434894e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9997919148657443
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.0001233194237621732
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 4.116337589358319e-05
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 2.1817632028742955e-05
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 6.464859293005625e-06
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 5.073222969516677e-06
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 1.2632707226834903e-06
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 7.434633904432585e-07
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "yes": 0.04692407448240064,
+                "no": 0.9530759255175995
+              },
+              "sequence_scores": {
+                "[2083]": -11.949129310400252,
+                "[9405]": -14.960293021948104
+              },
+              "got": "no",
+              "confidence": 0.9061518510351989,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 6.7831524434894e-06,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  9405
+                ],
+                [
+                  2083
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "yes": 0.2968777630729391,
+                "no": 0.7031222369270608
+              },
+              "sequence_scores": {
+                "[198, 2083]": -14.737546775483093,
+                "[198, 9405]": -15.599757049225769
+              },
+              "got": "no",
+              "confidence": 0.40624447385412155,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 2.706126435716175e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  9405
+                ],
+                [
+                  198,
+                  2083
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 24584.7,
+          "cue_decode_s": 23.2
+        }
+      }
+    },
+    {
+      "id": "c04",
+      "type": "choice",
+      "expected": "restricted",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 93,
+          "n_ctx": 4280,
+          "n_seq_max": 22,
+          "prefix_tail": "ched to an external ticket.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 57
+          },
+          "tokenized": {
+            "bare": {
+              "public": [
+                860
+              ],
+              "internal": [
+                10168
+              ],
+              "confidential": [
+                5943,
+                10908
+              ],
+              "restricted": [
+                49088
+              ]
+            },
+            "space": {
+              " public": [
+                569
+              ],
+              " internal": [
+                5138
+              ],
+              " confidential": [
+                25357
+              ],
+              " restricted": [
+                21068
+              ]
+            },
+            "caps": {
+              "Public": [
+                12312
+              ],
+              "Internal": [
+                11236
+              ],
+              "Confidential": [
+                15121,
+                10908
+              ],
+              "Restricted": [
+                83418
+              ]
+            },
+            "newline": {
+              "\npublic": [
+                198,
+                860
+              ],
+              "\ninternal": [
+                198,
+                10168
+              ],
+              "\nconfidential": [
+                198,
+                5943,
+                10908
+              ],
+              "\nrestricted": [
+                198,
+                49088
+              ]
+            },
+            "long": {
+              "public: safe for anyone": [
+                860,
+                25,
+                5902,
+                364,
+                5316
+              ],
+              "internal: employees only": [
+                10168,
+                25,
+                7998,
+                1132
+              ],
+              "confidential: restricted business data under nda": [
+                5943,
+                10908,
+                25,
+                21068,
+                2478,
+                795,
+                1172,
+                15124,
+                64
+              ],
+              "restricted: personal or highly sensitive data with legal exposure": [
+                49088,
+                25,
+                4204,
+                466,
+                7309,
+                15739,
+                795,
+                440,
+                5598,
+                13926
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 27.502053816681897,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "public",
+                    "internal",
+                    "confidential",
+                    "restricted"
+                  ],
+                  "first_tokens": [
+                    860,
+                    10168,
+                    5943,
+                    49088
+                  ],
+                  "pieces": [
+                    "public",
+                    "internal",
+                    "conf",
+                    "restricted"
+                  ],
+                  "coverage": 1.303812519785714e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " public",
+                    " internal",
+                    " confidential",
+                    " restricted"
+                  ],
+                  "first_tokens": [
+                    569,
+                    5138,
+                    25357,
+                    21068
+                  ],
+                  "pieces": [
+                    " public",
+                    " internal",
+                    " confidential",
+                    " restricted"
+                  ],
+                  "coverage": 6.502557017395473e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Public",
+                    "Internal",
+                    "Confidential",
+                    "Restricted"
+                  ],
+                  "first_tokens": [
+                    12312,
+                    11236,
+                    15121,
+                    83418
+                  ],
+                  "pieces": [
+                    "Public",
+                    "Internal",
+                    "Conf",
+                    "Restricted"
+                  ],
+                  "coverage": 1.1940847113728541e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\npublic",
+                    "\ninternal",
+                    "\nconfidential",
+                    "\nrestricted"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 3.647526990755553e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\npublic",
+                      "\ninternal",
+                      "\nconfidential",
+                      "\nrestricted"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "public: safe for anyone",
+                    "internal: employees only",
+                    "confidential: restricted business data under nda",
+                    "restricted: personal or highly sensitive data with legal exposure"
+                  ],
+                  "first_tokens": [
+                    860,
+                    10168,
+                    5943,
+                    49088
+                  ],
+                  "pieces": [
+                    "public",
+                    "internal",
+                    "conf",
+                    "restricted"
+                  ],
+                  "coverage": 1.303812519785714e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999775098649549
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.4628604671435736e-05
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 6.333192291077971e-06
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 4.6040143089925144e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 1.6630072980252647e-07
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 1.0757188770663808e-07
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 8.74629155541683e-08
+                },
+                {
+                  "token": 5943,
+                  "piece": "conf",
+                  "p_full": 8.573467379928317e-08
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "public": 2.4859139355948793e-06,
+                "internal": 2.569230602983757e-07,
+                "confidential": 0.9998279023818771,
+                "restricted": 0.00016935478112720578
+              },
+              "sequence_scores": {
+                "[860]": -21.16190965927223,
+                "[5943, 10908]": -8.257211586593831,
+                "[10168]": -23.43152864730934,
+                "[49088]": -16.940554221039807
+              },
+              "got": "confidential",
+              "confidence": 0.9997705365091695,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 1.303812519785714e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  860
+                ],
+                [
+                  10168
+                ],
+                [
+                  5943,
+                  10908
+                ],
+                [
+                  49088
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "public": 0.006674940864137418,
+                "internal": 0.003307387954023695,
+                "confidential": 0.9585448401345791,
+                "restricted": 0.03147283104725978
+              },
+              "sequence_scores": {
+                "[198, 860]": -17.877630296796873,
+                "[198, 5943, 10908]": -12.910574298777489,
+                "[198, 10168]": -18.579831901640013,
+                "[198, 49088]": -16.32686597451599
+              },
+              "got": "confidential",
+              "confidence": 0.9447264535127721,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 3.647526990755553e-08,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  860
+                ],
+                [
+                  198,
+                  10168
+                ],
+                [
+                  198,
+                  5943,
+                  10908
+                ],
+                [
+                  198,
+                  49088
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 25549.4,
+          "cue_decode_s": 27.6
+        }
+      }
+    }
+  ],
+  "wall_s": 942.6,
+  "device_log_tail": ".\n.\n.\n.\n.\n"
+}

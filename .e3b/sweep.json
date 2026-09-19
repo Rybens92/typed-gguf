@@ -1,0 +1,5471 @@
+{
+  "schema": "ggufone.e3b.label-policy/v1",
+  "generated_at": "2026-09-19T13:51:15Z",
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "name": "Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+    "bytes": 24113674848,
+    "arch": "qwen35moe"
+  },
+  "model_sha256": "633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757",
+  "runtime": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "threads": 4,
+  "gpu_layers": 7,
+  "placement": {
+    "note": "degraded after a backend allocation failure: 3 layer(s) offloaded, kv_type=f16",
+    "n_gpu_layers": 3,
+    "kv_type": "f16",
+    "degraded": true,
+    "attempts": [
+      "n_gpu_layers=7 -> oom"
+    ],
+    "warnings": [
+      "W_BACKEND_OOM",
+      "W_FIT_DOWNGRADE"
+    ]
+  },
+  "load_ms": 22197.8,
+  "cues": [
+    "shipped",
+    "blank",
+    "explicit"
+  ],
+  "label_variants": [
+    "bare",
+    "space",
+    "caps",
+    "newline",
+    "long"
+  ],
+  "prefix_variants": [
+    "shipped",
+    "kept"
+  ],
+  "mass_floor": 0.1,
+  "ranked_keys": [
+    "shipped=bare",
+    "shipped=newline"
+  ],
+  "counts": {
+    "choice": 2,
+    "score": 2,
+    "noul": 2
+  },
+  "devset": "docs/evidence/e3_chunks/devset_001.jsonl",
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "expected": "technical",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 109,
+          "n_ctx": 4291,
+          "n_seq_max": 24,
+          "prefix_tail": " the database is reachable.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 53,
+            "blank": 53,
+            "explicit": 62
+          },
+          "tokenized": {
+            "bare": {
+              "billing": [
+                37355
+              ],
+              "technical": [
+                69685
+              ],
+              "sales": [
+                28094
+              ],
+              "support": [
+                22637
+              ]
+            },
+            "space": {
+              " billing": [
+                32419
+              ],
+              " technical": [
+                10597
+              ],
+              " sales": [
+                6416
+              ],
+              " support": [
+                1761
+              ]
+            },
+            "caps": {
+              "Billing": [
+                79177
+              ],
+              "Technical": [
+                60130
+              ],
+              "Sales": [
+                34246
+              ],
+              "Support": [
+                7666
+              ]
+            },
+            "newline": {
+              "\nbilling": [
+                198,
+                37355
+              ],
+              "\ntechnical": [
+                198,
+                69685
+              ],
+              "\nsales": [
+                198,
+                28094
+              ],
+              "\nsupport": [
+                198,
+                22637
+              ]
+            },
+            "long": {
+              "billing: payments, invoices and refunds": [
+                37355,
+                25,
+                13767,
+                11,
+                61893,
+                321,
+                70057
+              ],
+              "technical: api, infrastructure and deploys": [
+                69685,
+                25,
+                6131,
+                11,
+                13343,
+                321,
+                2101,
+                32195
+              ],
+              "sales: contracts and pricing": [
+                28094,
+                25,
+                16577,
+                321,
+                20568
+              ],
+              "support: customer conversations": [
+                22637,
+                25,
+                5813,
+                20319
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 27.924154922757566,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 8.068410784951816e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 5.0839477900437375e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 7.816246940925902e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 6.735285030976142e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 8.068410784951816e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999860075161109
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 9.97170320536071e-06
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 1.8438057643492569e-06
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 1.1869735906874123e-06
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 1.8704380060561017e-07
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 1.4419673124654602e-07
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 1.1180874158971125e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 8.050271470220168e-08
+                }
+              ]
+            },
+            "blank": {
+              "scale": 26.432177344758372,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 1.4911724763654887e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 5.5801977779373466e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 1.5575568548244374e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 6.240578716118486e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 1.4911724763654887e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999439336688719
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 2.4986820606992803e-05
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 2.411777385887083e-05
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 2.5745945602973484e-06
+                },
+                {
+                  "token": 69685,
+                  "piece": "technical",
+                  "p_full": 1.2300456520578971e-06
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 6.065619001470072e-07
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 4.2945197739459e-07
+                },
+                {
+                  "token": 37355,
+                  "piece": "billing",
+                  "p_full": 2.326334949866433e-07
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 24.508559844388685,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 2.564137526570591e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 2.3566763570803283e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 4.6974102532985616e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.4227563794836193e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 2.564137526570591e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.999599873134601
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 0.0002950239931857774
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 4.991632397160223e-05
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 3.0859170498038685e-05
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 6.6599985188646196e-06
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 2.0845927421806468e-06
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 1.539122685963921e-06
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 1.4835020007447668e-06
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "billing": 0.32387100218460474,
+                "technical": 0.33179525537656185,
+                "sales": 0.1456564978197784,
+                "support": 0.19867724461905495
+              },
+              "sequence_scores": {
+                "[22637]": -17.948797867093504,
+                "[28094]": -18.259228393826902,
+                "[37355]": -17.460134193692625,
+                "[69685]": -17.435961410794675
+              },
+              "got": "technical",
+              "confidence": 0.10906034050208246,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 8.068410784951816e-08,
+              "reliability": "low_mass",
+              "correct": true,
+              "sequences": [
+                [
+                  37355
+                ],
+                [
+                  69685
+                ],
+                [
+                  28094
+                ],
+                [
+                  22637
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "billing": 0.6156774570772204,
+                "technical": 0.2097309663153699,
+                "sales": 0.10839995312112514,
+                "support": 0.0661916234862845
+              },
+              "sequence_scores": {
+                "[198, 22637]": -20.332981839054476,
+                "[198, 28094]": -19.83970810400809,
+                "[198, 37355]": -18.102812542789827,
+                "[198, 69685]": -19.179710163944613
+              },
+              "got": "billing",
+              "confidence": 0.48756994276962723,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 6.735285030976142e-08,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  37355
+                ],
+                [
+                  198,
+                  69685
+                ],
+                [
+                  198,
+                  28094
+                ],
+                [
+                  198,
+                  22637
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 158201.1,
+          "cue_decode_s": 202.3
+        },
+        "kept": {
+          "prefix_variant": "kept",
+          "prefix_tokens": 113,
+          "n_ctx": 4291,
+          "n_seq_max": 24,
+          "prefix_tail": "achable.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "suffix_tokens": {
+            "shipped": 53,
+            "blank": 53,
+            "explicit": 62
+          },
+          "tokenized": {
+            "bare": {
+              "billing": [
+                37355
+              ],
+              "technical": [
+                69685
+              ],
+              "sales": [
+                28094
+              ],
+              "support": [
+                22637
+              ]
+            },
+            "space": {
+              " billing": [
+                32419
+              ],
+              " technical": [
+                10597
+              ],
+              " sales": [
+                6416
+              ],
+              " support": [
+                1761
+              ]
+            },
+            "caps": {
+              "Billing": [
+                79177
+              ],
+              "Technical": [
+                60130
+              ],
+              "Sales": [
+                34246
+              ],
+              "Support": [
+                7666
+              ]
+            },
+            "newline": {
+              "\nbilling": [
+                198,
+                37355
+              ],
+              "\ntechnical": [
+                198,
+                69685
+              ],
+              "\nsales": [
+                198,
+                28094
+              ],
+              "\nsupport": [
+                198,
+                22637
+              ]
+            },
+            "long": {
+              "billing: payments, invoices and refunds": [
+                37355,
+                25,
+                13767,
+                11,
+                61893,
+                321,
+                70057
+              ],
+              "technical: api, infrastructure and deploys": [
+                69685,
+                25,
+                6131,
+                11,
+                13343,
+                321,
+                2101,
+                32195
+              ],
+              "sales: contracts and pricing": [
+                28094,
+                25,
+                16577,
+                321,
+                20568
+              ],
+              "support: customer conversations": [
+                22637,
+                25,
+                5813,
+                20319
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 22.479533148851765,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 3.6464528520184003e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 1.7367385967035735e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 4.347904729812409e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 6.221472377429579e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 3.6464528520184003e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9988343828149427
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.0008425547169159477
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 8.2558042736948e-05
+                },
+                {
+                  "token": 32,
+                  "piece": "A",
+                  "p_full": 4.613841131742036e-05
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 3.8167552667055535e-05
+                },
+                {
+                  "token": 1448,
+                  "piece": "label",
+                  "p_full": 1.2158222888202164e-05
+                },
+                {
+                  "token": 760,
+                  "piece": "The",
+                  "p_full": 3.6176775525523836e-06
+                },
+                {
+                  "token": 37355,
+                  "piece": "billing",
+                  "p_full": 3.4628633410689373e-06
+                }
+              ]
+            },
+            "blank": {
+              "scale": 24.736666931694714,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 5.8635485355915896e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 1.0768450029901286e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 2.272853654483402e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 3.021098119743604e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 5.8635485355915896e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9997031990293332
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.00019865473382191687
+                },
+                {
+                  "token": 69685,
+                  "piece": "technical",
+                  "p_full": 4.054251294737075e-05
+                },
+                {
+                  "token": 37355,
+                  "piece": "billing",
+                  "p_full": 1.8020835911447178e-05
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 7.1376055534854585e-06
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 4.992069654911503e-06
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 3.3795754839799505e-06
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 2.9535655170822424e-06
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 19.88445167965193,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 2.512335884379027e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    6416,
+                    1761
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " sales",
+                    " support"
+                  ],
+                  "coverage": 2.079255257744304e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    34246,
+                    7666
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Sales",
+                    "Support"
+                  ],
+                  "coverage": 1.3290633095212929e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\nsales",
+                    "\nsupport"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 0.00010711811095048781,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\nsales",
+                      "\nsupport"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: payments, invoices and refunds",
+                    "technical: api, infrastructure and deploys",
+                    "sales: contracts and pricing",
+                    "support: customer conversations"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    28094,
+                    22637
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "sales",
+                    "support"
+                  ],
+                  "coverage": 2.512335884379027e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9707977233763903
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 0.019429780748505026
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 0.0014438745570990008
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.0013523040999427944
+                },
+                {
+                  "token": 2396,
+                  "piece": "Label",
+                  "p_full": 0.00047986729283880456
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 0.00042586603577376503
+                },
+                {
+                  "token": 32,
+                  "piece": "A",
+                  "p_full": 0.0003800068793912005
+                },
+                {
+                  "token": 4087,
+                  "piece": " answer",
+                  "p_full": 0.0003130544026803844
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "billing": 0.9496525751463256,
+                "technical": 0.0021052170231360165,
+                "sales": 0.015110821244279884,
+                "support": 0.033131386586258485
+              },
+              "sequence_scores": {
+                "[22637]": -15.929029894914997,
+                "[28094]": -16.714099837389362,
+                "[37355]": -12.573414755907429,
+                "[69685]": -18.68509240254439
+              },
+              "got": "billing",
+              "confidence": 0.9328701001951009,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 3.6464528520184003e-06,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  37355
+                ],
+                [
+                  69685
+                ],
+                [
+                  28094
+                ],
+                [
+                  22637
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "billing": 0.9171717707346386,
+                "technical": 0.04064639981476804,
+                "sales": 0.014912886030039796,
+                "support": 0.027268943420553398
+              },
+              "sequence_scores": {
+                "[198, 22637]": -15.53584831930763,
+                "[198, 28094]": -16.139371096865005,
+                "[198, 37355]": -12.020301997438734,
+                "[198, 69685]": -15.13668650366432
+              },
+              "got": "billing",
+              "confidence": 0.8895623609795181,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 6.221472377429579e-06,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  37355
+                ],
+                [
+                  198,
+                  69685
+                ],
+                [
+                  198,
+                  28094
+                ],
+                [
+                  198,
+                  22637
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 111085.6,
+          "cue_decode_s": 157.4
+        }
+      },
+      "cross_check": {
+        "got": "support",
+        "coverage": 1.6434799938328692e-07,
+        "reliability": "low_mass",
+        "probabilities": {
+          "billing": 0.26479339026750587,
+          "technical": 0.14328724383020564,
+          "sales": 0.28340966644781956,
+          "support": 0.3085096994544689
+        }
+      }
+    },
+    {
+      "id": "c02",
+      "type": "choice",
+      "expected": "billing",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 99,
+          "n_ctx": 4280,
+          "n_seq_max": 24,
+          "prefix_tail": "ttled charges for one seat.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 51,
+            "blank": 51,
+            "explicit": 60
+          },
+          "tokenized": {
+            "bare": {
+              "billing": [
+                37355
+              ],
+              "technical": [
+                69685
+              ],
+              "account": [
+                4459
+              ],
+              "escalation": [
+                78288,
+                362
+              ]
+            },
+            "space": {
+              " billing": [
+                32419
+              ],
+              " technical": [
+                10597
+              ],
+              " account": [
+                2605
+              ],
+              " escalation": [
+                67909
+              ]
+            },
+            "caps": {
+              "Billing": [
+                79177
+              ],
+              "Technical": [
+                60130
+              ],
+              "Account": [
+                7133
+              ],
+              "Escalation": [
+                34926,
+                278,
+                362
+              ]
+            },
+            "newline": {
+              "\nbilling": [
+                198,
+                37355
+              ],
+              "\ntechnical": [
+                198,
+                69685
+              ],
+              "\naccount": [
+                198,
+                4459
+              ],
+              "\nescalation": [
+                198,
+                78288,
+                362
+              ]
+            },
+            "long": {
+              "billing: duplicate charges and refunds": [
+                37355,
+                25,
+                21814,
+                9892,
+                321,
+                70057
+              ],
+              "technical: product bugs": [
+                69685,
+                25,
+                1918,
+                21851
+              ],
+              "account: plan changes and seat management": [
+                4459,
+                25,
+                3019,
+                4203,
+                321,
+                10407,
+                6044
+              ],
+              "escalation: formal complaints": [
+                78288,
+                362,
+                25,
+                15440,
+                20522
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 27.72693647706194,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 5.429239853597215e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 7.350272980410822e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 1.0293283795020786e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.8816513046815135e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 5.429239853597215e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.999994141241355
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 3.219786360074443e-06
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 6.87908732324505e-07
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 6.405780198862117e-07
+                },
+                {
+                  "token": 69685,
+                  "piece": "technical",
+                  "p_full": 3.32206769551588e-07
+                },
+                {
+                  "token": 78288,
+                  "piece": "escal",
+                  "p_full": 1.574756607011298e-07
+                },
+                {
+                  "token": 248044,
+                  "piece": "<|endoftext|>",
+                  "p_full": 1.0570772370752784e-07
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 7.755390024098645e-08
+                }
+              ]
+            },
+            "blank": {
+              "scale": 27.37720462902104,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 3.1835970636754744e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 1.1874794106491058e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 1.7515282980365584e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 3.487172298152714e-11,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 3.1835970636754744e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999888219691686
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 8.691429083977015e-06
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 1.5529510294404657e-06
+                },
+                {
+                  "token": 69685,
+                  "piece": "technical",
+                  "p_full": 2.3012067753081966e-07
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 7.866269490041677e-08
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 7.584414367422465e-08
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 5.077799202584984e-08
+                },
+                {
+                  "token": 78288,
+                  "piece": "escal",
+                  "p_full": 4.360611898369589e-08
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 25.2288886927856,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.316074979927002e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 1.231840404210908e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 3.0768013346744526e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.1440259249922205e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.316074979927002e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9997719167254405
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 0.00018254462020186155
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 2.4213128777002533e-05
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 4.486143193427778e-06
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 2.3362622678895443e-06
+                },
+                {
+                  "token": 4087,
+                  "piece": " answer",
+                  "p_full": 1.9627724615317427e-06
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 1.4588395703751478e-06
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 1.3542851921693492e-06
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "billing": 9.631942457454311e-05,
+                "technical": 0.0008732290236287092,
+                "account": 4.362977406857281e-05,
+                "escalation": 0.9989868217777281
+              },
+              "sequence_scores": {
+                "[4459]": -17.913966315623952,
+                "[37355]": -17.12203611695452,
+                "[69685]": -14.917508262035085,
+                "[78288, 362]": -7.8752092582656825
+              },
+              "got": "escalation",
+              "confidence": 0.9986490957036375,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 5.429239853597215e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  37355
+                ],
+                [
+                  69685
+                ],
+                [
+                  4459
+                ],
+                [
+                  78288,
+                  362
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "billing": 0.00489862432817262,
+                "technical": 0.0017115191676361627,
+                "account": 0.002046107100815444,
+                "escalation": 0.9913437494033757
+              },
+              "sequence_scores": {
+                "[198, 4459]": -20.553625696279532,
+                "[198, 37355]": -19.680610292531973,
+                "[198, 69685]": -20.73218333063317,
+                "[198, 78288, 362]": -14.370503363449908
+              },
+              "got": "escalation",
+              "confidence": 0.9884583325378342,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 1.8816513046815135e-09,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  37355
+                ],
+                [
+                  198,
+                  69685
+                ],
+                [
+                  198,
+                  4459
+                ],
+                [
+                  198,
+                  78288,
+                  362
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 49170.5,
+          "cue_decode_s": 44.0
+        },
+        "kept": {
+          "prefix_variant": "kept",
+          "prefix_tokens": 103,
+          "n_ctx": 4280,
+          "n_seq_max": 24,
+          "prefix_tail": "ne seat.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+          "suffix_tokens": {
+            "shipped": 51,
+            "blank": 51,
+            "explicit": 60
+          },
+          "tokenized": {
+            "bare": {
+              "billing": [
+                37355
+              ],
+              "technical": [
+                69685
+              ],
+              "account": [
+                4459
+              ],
+              "escalation": [
+                78288,
+                362
+              ]
+            },
+            "space": {
+              " billing": [
+                32419
+              ],
+              " technical": [
+                10597
+              ],
+              " account": [
+                2605
+              ],
+              " escalation": [
+                67909
+              ]
+            },
+            "caps": {
+              "Billing": [
+                79177
+              ],
+              "Technical": [
+                60130
+              ],
+              "Account": [
+                7133
+              ],
+              "Escalation": [
+                34926,
+                278,
+                362
+              ]
+            },
+            "newline": {
+              "\nbilling": [
+                198,
+                37355
+              ],
+              "\ntechnical": [
+                198,
+                69685
+              ],
+              "\naccount": [
+                198,
+                4459
+              ],
+              "\nescalation": [
+                198,
+                78288,
+                362
+              ]
+            },
+            "long": {
+              "billing: duplicate charges and refunds": [
+                37355,
+                25,
+                21814,
+                9892,
+                321,
+                70057
+              ],
+              "technical: product bugs": [
+                69685,
+                25,
+                1918,
+                21851
+              ],
+              "account: plan changes and seat management": [
+                4459,
+                25,
+                3019,
+                4203,
+                321,
+                10407,
+                6044
+              ],
+              "escalation: formal complaints": [
+                78288,
+                362,
+                25,
+                15440,
+                20522
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 21.430730226007054,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.3677161798426282e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 7.340053946173997e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 9.68751811299438e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 4.6130692848276216e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.3677161798426282e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9984682597077904
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.0004807868458539025
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 0.0003234688204184765
+                },
+                {
+                  "token": 32,
+                  "piece": "A",
+                  "p_full": 0.0001598904737350555
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 8.967443335967903e-05
+                },
+                {
+                  "token": 4087,
+                  "piece": " answer",
+                  "p_full": 1.6274210886305055e-05
+                },
+                {
+                  "token": 34,
+                  "piece": "C",
+                  "p_full": 1.493585000440557e-05
+                },
+                {
+                  "token": 37355,
+                  "piece": "billing",
+                  "p_full": 1.3176216333390392e-05
+                }
+              ]
+            },
+            "blank": {
+              "scale": 23.971497745940262,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 8.175570408370248e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 6.198015469733558e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 1.50770959074949e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.1496639640559922e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 8.175570408370248e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9996174395593392
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.00018699387053921774
+                },
+                {
+                  "token": 37355,
+                  "piece": "billing",
+                  "p_full": 8.16759141466321e-05
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 2.486801875195384e-05
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 2.0187750433870896e-05
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 1.02723706991263e-05
+                },
+                {
+                  "token": 32,
+                  "piece": "A",
+                  "p_full": 8.659208258559572e-06
+                },
+                {
+                  "token": 32419,
+                  "piece": " billing",
+                  "p_full": 6.194615677325304e-06
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 19.74248901873128,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escalation"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.2467354420445762e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "first_tokens": [
+                    32419,
+                    10597,
+                    2605,
+                    67909
+                  ],
+                  "pieces": [
+                    " billing",
+                    " technical",
+                    " account",
+                    " escalation"
+                  ],
+                  "coverage": 1.6141787124429248e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Escalation"
+                  ],
+                  "first_tokens": [
+                    79177,
+                    60130,
+                    7133,
+                    34926
+                  ],
+                  "pieces": [
+                    "Billing",
+                    "Technical",
+                    "Account",
+                    "Esc"
+                  ],
+                  "coverage": 5.780728541007353e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nbilling",
+                    "\ntechnical",
+                    "\naccount",
+                    "\nescalation"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 0.00014806166055036634,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nbilling",
+                      "\ntechnical",
+                      "\naccount",
+                      "\nescalation"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "billing: duplicate charges and refunds",
+                    "technical: product bugs",
+                    "account: plan changes and seat management",
+                    "escalation: formal complaints"
+                  ],
+                  "first_tokens": [
+                    37355,
+                    69685,
+                    4459,
+                    78288
+                  ],
+                  "pieces": [
+                    "billing",
+                    "technical",
+                    "account",
+                    "escal"
+                  ],
+                  "coverage": 1.2467354420445762e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9785355558641037
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 0.014203702748575733
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 0.0015398936067478734
+                },
+                {
+                  "token": 32,
+                  "piece": "A",
+                  "p_full": 0.000976864122531799
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.0005290578522457595
+                },
+                {
+                  "token": 4087,
+                  "piece": " answer",
+                  "p_full": 0.0003116845589178092
+                },
+                {
+                  "token": 7525,
+                  "piece": "Your",
+                  "p_full": 0.00024066035976248658
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 0.00023106698941356506
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "billing": 0.025034781126488652,
+                "technical": 2.3433002279520198e-05,
+                "account": 0.00042836546420224755,
+                "escalation": 0.9745134204070297
+              },
+              "sequence_scores": {
+                "[4459]": -15.305141808953831,
+                "[37355]": -11.237097146478245,
+                "[69685]": -18.21097314592893,
+                "[78288, 362]": -7.575424959086094
+              },
+              "got": "escalation",
+              "confidence": 0.9660178938760396,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 1.3677161798426282e-05,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  37355
+                ],
+                [
+                  69685
+                ],
+                [
+                  4459
+                ],
+                [
+                  78288,
+                  362
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "billing": 0.49754927931853876,
+                "technical": 0.008029980327931379,
+                "account": 0.007068239570786102,
+                "escalation": 0.4873525007827436
+              },
+              "sequence_scores": {
+                "[198, 4459]": -14.123899197077193,
+                "[198, 37355]": -9.8698160404915,
+                "[198, 69685]": -13.99632856795732,
+                "[198, 78288, 362]": -9.890522963931545
+              },
+              "got": "billing",
+              "confidence": 0.33006570575805166,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 4.6130692848276216e-05,
+              "reliability": "low_mass",
+              "correct": true,
+              "sequences": [
+                [
+                  198,
+                  37355
+                ],
+                [
+                  198,
+                  69685
+                ],
+                [
+                  198,
+                  4459
+                ],
+                [
+                  198,
+                  78288,
+                  362
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 47907.3,
+          "cue_decode_s": 41.4
+        }
+      }
+    },
+    {
+      "id": "s01",
+      "type": "score",
+      "expected": "3",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 87,
+          "n_ctx": 4263,
+          "n_seq_max": 28,
+          "prefix_tail": ", and no workaround exists.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 47,
+            "blank": 47,
+            "explicit": 63
+          },
+          "tokenized": {
+            "bare": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ],
+              "4": [
+                19
+              ]
+            },
+            "space": {
+              " 0": [
+                220,
+                15
+              ],
+              " 1": [
+                220,
+                16
+              ],
+              " 2": [
+                220,
+                17
+              ],
+              " 3": [
+                220,
+                18
+              ],
+              " 4": [
+                220,
+                19
+              ]
+            },
+            "caps": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ],
+              "4": [
+                19
+              ]
+            },
+            "newline": {
+              "\n0": [
+                198,
+                15
+              ],
+              "\n1": [
+                198,
+                16
+              ],
+              "\n2": [
+                198,
+                17
+              ],
+              "\n3": [
+                198,
+                18
+              ],
+              "\n4": [
+                198,
+                19
+              ]
+            },
+            "long": {
+              "cosmetic": [
+                9128,
+                17453
+              ],
+              "annoying": [
+                985,
+                2181,
+                286
+              ],
+              "degrading": [
+                442,
+                31195
+              ],
+              "critical": [
+                40167
+              ],
+              "catastrophic": [
+                216931,
+                267,
+                40332
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 28.904053326799325,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 7.317551264273942e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3",
+                    " 4"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 2.8548215436301775e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3",
+                      " 4"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 7.317551264273942e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3",
+                    "\n4"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 5.735271002320537e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3",
+                      "\n4"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "cosmetic",
+                    "annoying",
+                    "degrading",
+                    "critical",
+                    "catastrophic"
+                  ],
+                  "first_tokens": [
+                    9128,
+                    985,
+                    442,
+                    40167,
+                    216931
+                  ],
+                  "pieces": [
+                    "cos",
+                    "ann",
+                    "de",
+                    "critical",
+                    "cata"
+                  ],
+                  "coverage": 5.531918380624369e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999975002301669
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.5000818223758122e-06
+                },
+                {
+                  "token": 19,
+                  "piece": "4",
+                  "p_full": 6.99847785858985e-07
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 1.0270945723115513e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 3.507591599535837e-08
+                },
+                {
+                  "token": 18,
+                  "piece": "3",
+                  "p_full": 2.273576216993617e-08
+                },
+                {
+                  "token": 4303,
+                  "piece": "Level",
+                  "p_full": 9.43071933188681e-09
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 9.249238841724792e-09
+                }
+              ]
+            },
+            "blank": {
+              "scale": 28.585382911628525,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 2.4567638802411475e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3",
+                    " 4"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 6.249813361438935e-11,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3",
+                      " 4"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 2.4567638802411475e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3",
+                    "\n4"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.904022765968981e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3",
+                      "\n4"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "cosmetic",
+                    "annoying",
+                    "degrading",
+                    "critical",
+                    "catastrophic"
+                  ],
+                  "first_tokens": [
+                    9128,
+                    985,
+                    442,
+                    40167,
+                    216931
+                  ],
+                  "pieces": [
+                    "cos",
+                    "ann",
+                    "de",
+                    "critical",
+                    "cata"
+                  ],
+                  "coverage": 3.4094386325583986e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999861985741377
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.0381419590389849e-05
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 2.571400494971354e-06
+                },
+                {
+                  "token": 19,
+                  "piece": "4",
+                  "p_full": 2.3880371617332854e-07
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 2.271962922924805e-07
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 2.1888420987129709e-07
+                },
+                {
+                  "token": 69267,
+                  "piece": "Assistant",
+                  "p_full": 1.5573769264100942e-08
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 1.4574304215541926e-08
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 23.862587961365044,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 7.186432649541712e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3",
+                    " 4"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 3.5144845497059196e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3",
+                      " 4"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18,
+                    19
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "coverage": 7.186432649541712e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3",
+                    "\n4"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.2553893867186938e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3",
+                      "\n4"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "cosmetic",
+                    "annoying",
+                    "degrading",
+                    "critical",
+                    "catastrophic"
+                  ],
+                  "first_tokens": [
+                    9128,
+                    985,
+                    442,
+                    40167,
+                    216931
+                  ],
+                  "pieces": [
+                    "cos",
+                    "ann",
+                    "de",
+                    "critical",
+                    "cata"
+                  ],
+                  "coverage": 6.695153453446488e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9992249307091865
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 0.0006110332469127167
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.0001213855575066857
+                },
+                {
+                  "token": 19,
+                  "piece": "4",
+                  "p_full": 6.361130738847475e-06
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 4.874792847065479e-06
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 4.624763579114531e-06
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 2.9376075345561128e-06
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 2.188265980499929e-06
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "0": 0.005680467429182332,
+                "1": 0.00536543819786861,
+                "2": 0.001487765907647929,
+                "3": 0.03107017819053441,
+                "4": 0.9563961502747668
+              },
+              "sequence_scores": {
+                "[15]": -19.298541661455086,
+                "[16]": -19.355597134782723,
+                "[17]": -20.63829958076661,
+                "[18]": -17.599326726152352,
+                "[19]": -14.172402974321297
+              },
+              "got": "4",
+              "confidence": 0.9454951878434583,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 7.317551264273942e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  15
+                ],
+                [
+                  16
+                ],
+                [
+                  17
+                ],
+                [
+                  18
+                ],
+                [
+                  19
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "0": 0.06526270428171108,
+                "1": 0.21065612492959276,
+                "2": 0.1272395977260333,
+                "3": 0.2897687826194048,
+                "4": 0.307072790443258
+              },
+              "sequence_scores": {
+                "[198, 15]": -20.03181933888332,
+                "[198, 16]": -18.8600130034341,
+                "[198, 17]": -19.364168162430683,
+                "[198, 18]": -18.541156764115254,
+                "[198, 19]": -18.483155245865742
+              },
+              "got": "4",
+              "confidence": 0.13384098805407252,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 5.735271002320537e-09,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  15
+                ],
+                [
+                  198,
+                  16
+                ],
+                [
+                  198,
+                  17
+                ],
+                [
+                  198,
+                  18
+                ],
+                [
+                  198,
+                  19
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 47401.3,
+          "cue_decode_s": 40.9
+        }
+      }
+    },
+    {
+      "id": "s02",
+      "type": "score",
+      "expected": "3",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 85,
+          "n_ctx": 4258,
+          "n_seq_max": 24,
+          "prefix_tail": "he answer takes one minute.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 44,
+            "blank": 44,
+            "explicit": 57
+          },
+          "tokenized": {
+            "bare": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ]
+            },
+            "space": {
+              " 0": [
+                220,
+                15
+              ],
+              " 1": [
+                220,
+                16
+              ],
+              " 2": [
+                220,
+                17
+              ],
+              " 3": [
+                220,
+                18
+              ]
+            },
+            "caps": {
+              "0": [
+                15
+              ],
+              "1": [
+                16
+              ],
+              "2": [
+                17
+              ],
+              "3": [
+                18
+              ]
+            },
+            "newline": {
+              "\n0": [
+                198,
+                15
+              ],
+              "\n1": [
+                198,
+                16
+              ],
+              "\n2": [
+                198,
+                17
+              ],
+              "\n3": [
+                198,
+                18
+              ]
+            },
+            "long": {
+              "whenever": [
+                1266,
+                29741
+              ],
+              "this week": [
+                559,
+                1936
+              ],
+              "this quarter": [
+                559,
+                8079
+              ],
+              "today": [
+                29129
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 26.398475460376417,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 5.017825413684771e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 1.4327650247263003e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 5.017825413684771e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 9.91424750079331e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "whenever",
+                    "this week",
+                    "this quarter",
+                    "today"
+                  ],
+                  "first_tokens": [
+                    1266,
+                    559,
+                    559,
+                    29129
+                  ],
+                  "pieces": [
+                    "wh",
+                    "this",
+                    "this",
+                    "today"
+                  ],
+                  "coverage": 6.399775240456996e-11,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "this week",
+                      "this quarter"
+                    ]
+                  ]
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.999981113288267
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 9.118794684808017e-06
+                },
+                {
+                  "token": 18,
+                  "piece": "3",
+                  "p_full": 4.7757541446507176e-06
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 1.327007695085367e-06
+                },
+                {
+                  "token": 248044,
+                  "piece": "<|endoftext|>",
+                  "p_full": 1.2898908524650785e-06
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 2.916759258271153e-07
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 2.1965555393778923e-07
+                },
+                {
+                  "token": 332,
+                  "piece": "**",
+                  "p_full": 2.0400007844960884e-07
+                }
+              ]
+            },
+            "blank": {
+              "scale": 27.67518030075206,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 6.753967262926124e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 3.4747823594891717e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 6.753967262926124e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 4.5095848543648986e-11,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "whenever",
+                    "this week",
+                    "this quarter",
+                    "today"
+                  ],
+                  "first_tokens": [
+                    1266,
+                    559,
+                    559,
+                    29129
+                  ],
+                  "pieces": [
+                    "wh",
+                    "this",
+                    "this",
+                    "today"
+                  ],
+                  "coverage": 2.1038480697086015e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "this week",
+                      "this quarter"
+                    ]
+                  ]
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999791538109273
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.424985607829423e-05
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 3.6905432802028135e-06
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 1.3599297866240722e-06
+                },
+                {
+                  "token": 18,
+                  "piece": "3",
+                  "p_full": 6.442762373743851e-07
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 3.2157195838188475e-07
+                },
+                {
+                  "token": 510,
+                  "piece": "</",
+                  "p_full": 1.0701603945441228e-07
+                },
+                {
+                  "token": 248058,
+                  "piece": "<tool_call>",
+                  "p_full": 6.834769172060703e-08
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 24.44873753905881,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 9.869436342115404e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " 0",
+                    " 1",
+                    " 2",
+                    " 3"
+                  ],
+                  "first_tokens": [
+                    220,
+                    220,
+                    220,
+                    220
+                  ],
+                  "pieces": [
+                    " ",
+                    " ",
+                    " ",
+                    " "
+                  ],
+                  "coverage": 7.163995621520824e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      " 0",
+                      " 1",
+                      " 2",
+                      " 3"
+                    ]
+                  ]
+                },
+                "caps": {
+                  "texts": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "first_tokens": [
+                    15,
+                    16,
+                    17,
+                    18
+                  ],
+                  "pieces": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                  ],
+                  "coverage": 9.869436342115404e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\n0",
+                    "\n1",
+                    "\n2",
+                    "\n3"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198,
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n",
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 8.365644490400448e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\n0",
+                      "\n1",
+                      "\n2",
+                      "\n3"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "whenever",
+                    "this week",
+                    "this quarter",
+                    "today"
+                  ],
+                  "first_tokens": [
+                    1266,
+                    559,
+                    559,
+                    29129
+                  ],
+                  "pieces": [
+                    "wh",
+                    "this",
+                    "this",
+                    "today"
+                  ],
+                  "coverage": 6.479641206399214e-10,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "this week",
+                      "this quarter"
+                    ]
+                  ]
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9991978871759232
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 0.000729613804332756
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 2.5668423003567963e-05
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 1.0118966463823171e-05
+                },
+                {
+                  "token": 18,
+                  "piece": "3",
+                  "p_full": 9.634135395735466e-06
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 6.479165205974382e-06
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 3.1607449639794537e-06
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 3.1439997088656957e-06
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "0": 0.010063643389564976,
+                "1": 0.004327489477524481,
+                "2": 0.03385113326952607,
+                "3": 0.9517577338633845
+              },
+              "sequence_scores": {
+                "[15]": -16.801339916553175,
+                "[16]": -17.645281605090773,
+                "[17]": -15.58829670366255,
+                "[18]": -12.25195866044966
+              },
+              "got": "3",
+              "confidence": 0.9356769784845126,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 5.017825413684771e-06,
+              "reliability": "low_mass",
+              "correct": true,
+              "sequences": [
+                [
+                  15
+                ],
+                [
+                  16
+                ],
+                [
+                  17
+                ],
+                [
+                  18
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "0": 0.0677535424766749,
+                "1": 0.2212704300551396,
+                "2": 0.21139319397121625,
+                "3": 0.49958283349696914
+              },
+              "sequence_scores": {
+                "[198, 15]": -18.50007612821809,
+                "[198, 16]": -17.31656725523225,
+                "[198, 17]": -17.362232996199047,
+                "[198, 18]": -16.502179456922924
+              },
+              "got": "3",
+              "confidence": 0.33277711132929216,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 9.91424750079331e-09,
+              "reliability": "low_mass",
+              "correct": true,
+              "sequences": [
+                [
+                  198,
+                  15
+                ],
+                [
+                  198,
+                  16
+                ],
+                [
+                  198,
+                  17
+                ],
+                [
+                  198,
+                  18
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 42795.9,
+          "cue_decode_s": 116.6
+        }
+      }
+    },
+    {
+      "id": "n01",
+      "type": "noul",
+      "expected": "yes",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 84,
+          "n_ctx": 4254,
+          "n_seq_max": 16,
+          "prefix_tail": "ne thousand euros a minute.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 41,
+            "blank": 41,
+            "explicit": 43
+          },
+          "tokenized": {
+            "bare": {
+              "yes": [
+                9405
+              ],
+              "no": [
+                2083
+              ]
+            },
+            "space": {
+              " yes": [
+                9542
+              ],
+              " no": [
+                874
+              ]
+            },
+            "caps": {
+              "Yes": [
+                9175
+              ],
+              "No": [
+                2665
+              ]
+            },
+            "newline": {
+              "\nyes": [
+                198,
+                9405
+              ],
+              "\nno": [
+                198,
+                2083
+              ]
+            },
+            "long": {
+              "yes, page immediately": [
+                9405,
+                11,
+                2081,
+                6849
+              ],
+              "no, handle it in business hours": [
+                2083,
+                11,
+                3579,
+                424,
+                303,
+                2478,
+                3979
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 26.768451786581696,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 1.5219473626044745e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 7.425246121787141e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 8.718026836984401e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 6.168832694172148e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, page immediately",
+                    "no, handle it in business hours"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 1.5219473626044745e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999732015703566
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.5289128896681007e-05
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 5.645665479370984e-06
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 1.490255270846067e-06
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 9.049559032367899e-07
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 6.696434667638586e-07
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 4.696645141788834e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 2.550343243900848e-07
+                }
+              ]
+            },
+            "blank": {
+              "scale": 26.53917338259348,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 1.2428844150359672e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 4.960286363661052e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 1.903298532120978e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.693738759550875e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, page immediately",
+                    "no, handle it in business hours"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 1.2428844150359672e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9998967521314808
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 8.259400675418744e-05
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.1911226917632157e-05
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 4.0676918422169885e-06
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 1.2136746501180665e-06
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 5.166185816124796e-07
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 5.14468552666982e-07
+                },
+                {
+                  "token": 69267,
+                  "piece": "Assistant",
+                  "p_full": 3.792038960129833e-07
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 23.922109047743223,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.0001290333915240749,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 2.5190838019768824e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 2.364413793074726e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.9756728233089205e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, page immediately",
+                    "no, handle it in business hours"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 0.0001290333915240749,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9976192089369269
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 0.0020084013177500207
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 9.811975089727512e-05
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 7.170130766908477e-05
+                },
+                {
+                  "token": 9405,
+                  "piece": "yes",
+                  "p_full": 3.09136406267998e-05
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 2.2860927436318916e-05
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 2.115342954563058e-05
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 1.8796082561262806e-05
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "yes": 0.02082338229107581,
+                "no": 0.9791766177089243
+              },
+              "sequence_scores": {
+                "[2083]": -13.416563129965486,
+                "[9405]": -17.26719865852994
+              },
+              "got": "no",
+              "confidence": 0.9583532354178486,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 1.5219473626044745e-06,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  9405
+                ],
+                [
+                  2083
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "yes": 0.16692053410685154,
+                "no": 0.8330794658931485
+              },
+              "sequence_scores": {
+                "[198, 2083]": -16.586743733091208,
+                "[198, 9405]": -18.194354912443014
+              },
+              "got": "no",
+              "confidence": 0.666158931786297,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 6.168832694172148e-08,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  9405
+                ],
+                [
+                  198,
+                  2083
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 37052.1,
+          "cue_decode_s": 68.6
+        }
+      }
+    },
+    {
+      "id": "n02",
+      "type": "noul",
+      "expected": "yes",
+      "prefixes": {
+        "shipped": {
+          "prefix_variant": "shipped",
+          "prefix_tokens": 94,
+          "n_ctx": 4261,
+          "n_seq_max": 16,
+          "prefix_tail": "revious build is available.<|im_end|>\n<|im_start|>assistant\n",
+          "suffix_tokens": {
+            "shipped": 38,
+            "blank": 38,
+            "explicit": 40
+          },
+          "tokenized": {
+            "bare": {
+              "yes": [
+                9405
+              ],
+              "no": [
+                2083
+              ]
+            },
+            "space": {
+              " yes": [
+                9542
+              ],
+              " no": [
+                874
+              ]
+            },
+            "caps": {
+              "Yes": [
+                9175
+              ],
+              "No": [
+                2665
+              ]
+            },
+            "newline": {
+              "\nyes": [
+                198,
+                9405
+              ],
+              "\nno": [
+                198,
+                2083
+              ]
+            },
+            "long": {
+              "yes, restore the previous build": [
+                9405,
+                11,
+                14519,
+                279,
+                3555,
+                1870
+              ],
+              "no, keep investigating forward": [
+                2083,
+                11,
+                2426,
+                23143,
+                4487
+              ]
+            }
+          },
+          "cues": {
+            "shipped": {
+              "scale": 27.0015444995243,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 5.64526022751437e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 6.49520097015178e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 3.691302692996033e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.906797379336888e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, restore the previous build",
+                    "no, keep investigating forward"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 5.64526022751437e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999413267820014
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 2.9928825866154657e-05
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.8055408431105078e-05
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 5.286370105597629e-06
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 9.413710825786924e-07
+                },
+                {
+                  "token": 21134,
+                  "piece": " Answer",
+                  "p_full": 7.066793880760424e-07
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 6.976541259530724e-07
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 6.365566709076353e-07
+                }
+              ]
+            },
+            "blank": {
+              "scale": 27.186964291034794,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 8.350044494169258e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 2.7921046222113352e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 4.76871640051831e-09,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 1.0659948985093867e-08,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, restore the previous build",
+                    "no, keep investigating forward"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 8.350044494169258e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9999272673964827
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 4.167227402064169e-05
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 1.5192774896498247e-05
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 1.1062090038165749e-05
+                },
+                {
+                  "token": 5836,
+                  "piece": "After",
+                  "p_full": 1.3723911389056324e-06
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 7.834406181604592e-07
+                },
+                {
+                  "token": 69267,
+                  "piece": "Assistant",
+                  "p_full": 3.585990609522744e-07
+                },
+                {
+                  "token": 248045,
+                  "piece": "<|im_start|>",
+                  "p_full": 2.8897241226242726e-07
+                }
+              ]
+            },
+            "explicit": {
+              "scale": 24.43766459741936,
+              "labels": {
+                "bare": {
+                  "texts": [
+                    "yes",
+                    "no"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 5.503879724651331e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "space": {
+                  "texts": [
+                    " yes",
+                    " no"
+                  ],
+                  "first_tokens": [
+                    9542,
+                    874
+                  ],
+                  "pieces": [
+                    " yes",
+                    " no"
+                  ],
+                  "coverage": 1.0311986402787032e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "caps": {
+                  "texts": [
+                    "Yes",
+                    "No"
+                  ],
+                  "first_tokens": [
+                    9175,
+                    2665
+                  ],
+                  "pieces": [
+                    "Yes",
+                    "No"
+                  ],
+                  "coverage": 1.8471805566856923e-06,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                },
+                "newline": {
+                  "texts": [
+                    "\nyes",
+                    "\nno"
+                  ],
+                  "first_tokens": [
+                    198,
+                    198
+                  ],
+                  "pieces": [
+                    "\n",
+                    "\n"
+                  ],
+                  "coverage": 2.445827699361562e-07,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": [
+                    [
+                      "\nyes",
+                      "\nno"
+                    ]
+                  ]
+                },
+                "long": {
+                  "texts": [
+                    "yes, restore the previous build",
+                    "no, keep investigating forward"
+                  ],
+                  "first_tokens": [
+                    9405,
+                    2083
+                  ],
+                  "pieces": [
+                    "yes",
+                    "no"
+                  ],
+                  "coverage": 5.503879724651331e-05,
+                  "reliability": "low_mass",
+                  "shared_first_tokens": []
+                }
+              },
+              "top_tokens": [
+                {
+                  "token": 248046,
+                  "piece": "<|im_end|>",
+                  "p_full": 0.9976865933820931
+                },
+                {
+                  "token": 15666,
+                  "piece": "Answer",
+                  "p_full": 0.001923491829036364
+                },
+                {
+                  "token": 248069,
+                  "piece": "</think>",
+                  "p_full": 0.00024183154580644707
+                },
+                {
+                  "token": 2083,
+                  "piece": "no",
+                  "p_full": 5.256039536298621e-05
+                },
+                {
+                  "token": 8944,
+                  "piece": "answer",
+                  "p_full": 1.3355416096975826e-05
+                },
+                {
+                  "token": 248068,
+                  "piece": "<think>",
+                  "p_full": 1.2170558764155591e-05
+                },
+                {
+                  "token": 71093,
+                  "piece": "```",
+                  "p_full": 5.857602827081772e-06
+                },
+                {
+                  "token": 97632,
+                  "piece": "答案",
+                  "p_full": 4.967434762398865e-06
+                }
+              ]
+            }
+          },
+          "ranked": {
+            "shipped=bare": {
+              "probabilities": {
+                "yes": 0.06357370740281372,
+                "no": 0.9364262925971863
+              },
+              "sequence_scores": {
+                "[2083]": -12.150378728039925,
+                "[9405]": -14.840249562390511
+              },
+              "got": "no",
+              "confidence": 0.8728525851943727,
+              "label": "bare",
+              "cue": "shipped",
+              "coverage": 5.64526022751437e-06,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  9405
+                ],
+                [
+                  2083
+                ]
+              ]
+            },
+            "shipped=newline": {
+              "probabilities": {
+                "yes": 0.2045364844455386,
+                "no": 0.7954635155544615
+              },
+              "sequence_scores": {
+                "[198, 2083]": -15.495997445407639,
+                "[198, 9405]": -16.854176060977707
+              },
+              "got": "no",
+              "confidence": 0.590927031108923,
+              "label": "newline",
+              "cue": "shipped",
+              "coverage": 1.906797379336888e-07,
+              "reliability": "low_mass",
+              "correct": false,
+              "sequences": [
+                [
+                  198,
+                  9405
+                ],
+                [
+                  198,
+                  2083
+                ]
+              ]
+            }
+          },
+          "prefill_ms": 48665.8,
+          "cue_decode_s": 68.9
+        }
+      }
+    }
+  ],
+  "wall_s": 1783.6,
+  "device_log_tail": ".\n.\n.\n.\n.\n"
+}
