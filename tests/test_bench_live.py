@@ -129,6 +129,18 @@ def test_determinism_holds_on_this_box():
     row = report["backends"][0]
     assert row["identical"] is True
     assert len(set(row["digests"])) == 1
+    # Card t_55de5779: a `cpu` row claims the *compute path*, so the engine's own log must
+    # corroborate it. The load is pinned to the bundle's CPU device (`--gpu-layers`/`n_gpu_layers`
+    # only ever kept the *weights* on the host: on this box the pre-fix row measured
+    # `effective_backend: vulkan` with `Vulkan0=3 · Vulkan_Host=3` compute buffers while claiming
+    # `cpu`, and the attribution guard refused it — the live gate was RED with
+    # `W_BACKEND_MISMATCH`). A GPU-less box reports the same `cpu` here, so this stays a gate in CI.
+    assert row["effective_backend"] == harness.CPU_BACKEND, row["device_buffers"]
+    assert row["warnings"] == [], row["warnings"]
+    assert row["placement"].endswith("(cpu compute pinned)"), row["placement"]
+    print(f"\ncpu determinism row: placement {row['placement']!r} · effective backend "
+          f"{row['effective_backend']!r} · compute buffers {row['device_buffers']} · "
+          f"{len(set(row['digests']))} digest(s)")
 
 
 @pytest.mark.model
