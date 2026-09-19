@@ -1,0 +1,37 @@
+landing record — card t_a696ce02 (shared tree main)
+
+shared status before the merge:
+ M pyproject.toml
+ M state/groupchat/ggufone-e1.md
+ M tools/e3c_cue_shapes.py
+?? .e3b/logs/chain_002.log
+?? .e3b/logs/full_suite.txt
+?? .e3b/logs/mutmut.out
+?? .e3b/logs/mutmut2.out
+?? .e3b/logs/mutmut3.out
+?? .e3b/logs/sweep.log
+?? .e3b/logs/sweep2.log
+?? .e3b/merge_smoke.json
+?? .e3b/mutants_old_1446/
+?? .e3c_scratch/
+?? .e3c_tiel/
+?? docs/evidence/tiel_chunks/
+?? mutants-e1c-backup/
+?? mutants.stale-0919-1505/
+?? state/fights/
+?? tools/e3c_tiel_reproduce.py
+?? tools/e3c_tiel_table.py
+
+sibling WIP before:
+0ccb9bd821a877b440c9a11dcfd37abfca37fce2c53a01385613009096c5a4a6  pyproject.toml
+58696eebf31ed4816916e1c874fe708f0c8d3d39859ef79f30b0f2cdff3f912b  state/groupchat/ggufone-e1.md
+sibling WIP after:
+0ccb9bd821a877b440c9a11dcfd37abfca37fce2c53a01385613009096c5a4a6  pyproject.toml
+58696eebf31ed4816916e1c874fe708f0c8d3d39859ef79f30b0f2cdff3f912b  state/groupchat/ggufone-e1.md
+=> byte-identical (the landing touched no sibling WIP)
+
+landed commits:
+e0070dd test(mutation): pin the retry schedule, the errno and the empty note; evidence: the pid-pressure gate
+9cc941b test: mark the measured fork gates; docs: the pid-pressure note
+f848872 test: the pressure gates (RED) + the fix: retrying, named spawn for the probe path
+4b8862e test(E3c t_6c119626): W_CUE_REFUSED in the engine, the cue verdicts table, the shape probe

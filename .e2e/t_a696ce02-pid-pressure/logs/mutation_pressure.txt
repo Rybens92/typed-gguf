@@ -1,0 +1,49 @@
+narrowed to pressure.py
+   Building ggufone @ file:///work/t_a696ce02/repo
+      Built ggufone @ file:///work/t_a696ce02/repo
+Uninstalled 1 package in 1ms
+Installed 1 package in 2ms
+⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants⠙ Generating mutants⠹ Generating mutants⠸ Generating mutants⠼ Generating mutants⠴ Generating mutants⠦ Generating mutants⠧ Generating mutants⠇ Generating mutants⠏ Generating mutants⠋ Generating mutants
+    done in 413ms (1 files mutated, 0 ignored, 0 unmodified)
+⠏ Running stats     ⠋ Running stats⠙ Running stats⠹ Running stats⠸ Running stats⠼ Running stats⠴ Running stats⠦ Running stats⠧ Running stats⠇ Running stats⠏ Running stats⠋ Running stats⠙ Running stats⠹ Running stats⠸ Running stats⠼ Running stats⠴ Running stats⠦ Running stats⠧ Running stats⠇ Running stats⠏ Running stats⠋ Running stats⠙ Running stats⠹ Running stats⠸ Running stats⠼ Running stats⠴ Running stats⠦ Running stats⠧ Running stats⠇ Running stats⠏ Running stats⠋ Running stats⠙ Running stats⠹ Running stats⠸ Running stats⠼ Running stats⠴ Running stats⠦ Running stats⠧ Running stats⠇ Running stats⠏ Running stats⠋ Running stats⠙ Running stats⠹ Running stats⠸ Running stats⠼ Running stats⠴ Running stats⠦ Running stats⠧ Running stats⠇ Running stats⠏ Running stats⠋ Running stats⠙ Running stats⠹ Running stats⠸ Running stats⠼ Running stats⠴ Running stats⠦ Running stats⠧ Running stats⠇ Running stats⠏ Running stats⠋ Running stats⠙ Running stats⠹ Running stats⠸ Running stats⠼ Running stats⠴ Running stats⠦ Running stats⠧ Running stats⠇ Running stats⠏ Running stats⠋ Running stats
+    done
+⠙ Running clean tests⠹ Running clean tests⠸ Running clean tests⠼ Running clean tests⠴ Running clean tests⠦ Running clean tests⠧ Running clean tests⠇ Running clean tests⠏ Running clean tests⠋ Running clean tests⠙ Running clean tests⠹ Running clean tests⠸ Running clean tests⠼ Running clean tests⠴ Running clean tests⠦ Running clean tests⠧ Running clean tests⠇ Running clean tests⠏ Running clean tests⠋ Running clean tests⠙ Running clean tests⠹ Running clean tests⠸ Running clean tests⠼ Running clean tests⠴ Running clean tests⠦ Running clean tests⠧ Running clean tests⠇ Running clean tests⠏ Running clean tests⠋ Running clean tests⠙ Running clean tests⠹ Running clean tests⠸ Running clean tests⠼ Running clean tests⠴ Running clean tests⠦ Running clean tests⠧ Running clean tests⠇ Running clean tests⠏ Running clean tests⠋ Running clean tests⠙ Running clean tests⠹ Running clean tests⠸ Running clean tests⠼ Running clean tests⠴ Running clean tests⠦ Running clean tests⠧ Running clean tests⠇ Running clean tests⠏ Running clean tests⠋ Running clean tests⠙ Running clean tests⠹ Running clean tests⠸ Running clean tests⠼ Running clean tests⠴ Running clean tests⠦ Running clean tests⠧ Running clean tests⠇ Running clean tests⠏ Running clean tests⠋ Running clean tests⠙ Running clean tests⠹ Running clean tests⠸ Running clean tests⠼ Running clean tests⠴ Running clean tests⠦ Running clean tests⠧ Running clean tests⠇ Running clean tests⠏ Running clean tests⠋ Running clean tests⠙ Running clean tests⠹ Running clean tests
+    done
+⠸ Running forced fail test⠼ Running forced fail test⠴ Running forced fail test⠦ Running forced fail test⠧ Running forced fail test⠇ Running forced fail test⠏ Running forced fail test⠋ Running forced fail test⠙ Running forced fail test⠹ Running forced fail test⠸ Running forced fail test⠼ Running forced fail test⠴ Running forced fail test⠦ Running forced fail test
+    done
+Running mutation testing
+⠧ 0/61  🎉 0 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠇ 0/61  🎉 0 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠏ 0/61  🎉 0 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠋ 1/61  🎉 1 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠙ 2/61  🎉 2 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠹ 3/61  🎉 3 🫥 0  ⏰ 0  🤔 0  🙁 0  🔇 0  🧙 0⠸ 4/61  🎉 3 🫥 0  ⏰ 0  🤔 0  🙁 1  🔇 0  🧙 0⠼ 5/61  🎉 4 🫥 0  ⏰ 0  🤔 0  🙁 1  🔇 0  🧙 0⠴ 6/61  🎉 5 🫥 0  ⏰ 0  🤔 0  🙁 1  🔇 0  🧙 0⠦ 7/61  🎉 5 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠧ 8/61  🎉 6 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠇ 9/61  🎉 7 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠏ 10/61  🎉 8 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠋ 11/61  🎉 9 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠙ 12/61  🎉 10 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠹ 13/61  🎉 11 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠸ 14/61  🎉 12 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠼ 15/61  🎉 13 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠴ 16/61  🎉 14 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠦ 17/61  🎉 15 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠧ 18/61  🎉 16 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠇ 19/61  🎉 17 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠏ 20/61  🎉 18 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠋ 21/61  🎉 19 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠙ 22/61  🎉 20 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠹ 23/61  🎉 21 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠸ 24/61  🎉 22 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠼ 25/61  🎉 23 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠴ 26/61  🎉 24 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠦ 27/61  🎉 25 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠧ 28/61  🎉 26 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠇ 29/61  🎉 27 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠏ 30/61  🎉 28 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠋ 31/61  🎉 29 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠙ 32/61  🎉 30 🫥 0  ⏰ 0  🤔 0  🙁 2  🔇 0  🧙 0⠹ 33/61  🎉 30 🫥 0  ⏰ 0  🤔 0  🙁 3  🔇 0  🧙 0⠸ 34/61  🎉 30 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠼ 35/61  🎉 31 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠴ 36/61  🎉 32 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠦ 37/61  🎉 33 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠧ 38/61  🎉 34 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠇ 39/61  🎉 35 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠏ 40/61  🎉 36 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠋ 41/61  🎉 37 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠙ 42/61  🎉 38 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠹ 43/61  🎉 39 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠸ 44/61  🎉 40 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠼ 45/61  🎉 41 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠴ 46/61  🎉 42 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠦ 47/61  🎉 43 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠧ 48/61  🎉 44 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠇ 49/61  🎉 45 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠏ 50/61  🎉 46 🫥 0  ⏰ 0  🤔 0  🙁 4  🔇 0  🧙 0⠋ 51/61  🎉 46 🫥 0  ⏰ 0  🤔 0  🙁 5  🔇 0  🧙 0⠙ 52/61  🎉 46 🫥 0  ⏰ 0  🤔 0  🙁 6  🔇 0  🧙 0⠹ 53/61  🎉 46 🫥 0  ⏰ 0  🤔 0  🙁 7  🔇 0  🧙 0⠸ 54/61  🎉 46 🫥 0  ⏰ 0  🤔 0  🙁 8  🔇 0  🧙 0⠼ 55/61  🎉 46 🫥 0  ⏰ 0  🤔 0  🙁 9  🔇 0  🧙 0⠴ 56/61  🎉 47 🫥 0  ⏰ 0  🤔 0  🙁 9  🔇 0  🧙 0⠦ 57/61  🎉 48 🫥 0  ⏰ 0  🤔 0  🙁 9  🔇 0  🧙 0⠧ 58/61  🎉 48 🫥 0  ⏰ 0  🤔 0  🙁 10  🔇 0  🧙 0⠇ 61/61  🎉 49 🫥 0  ⏰ 0  🤔 0  🙁 12  🔇 0  🧙 0
+1.44 mutations/second
+exit=0
+src/ggufone/runtime/pressure.py.meta             total    61  killed    49  survived    12  score  80.3 %  not-run     0  no-tests    0
+--------------------------------------------------------------------------------------------------------------
+TOTAL total 61  {'killed': 49, 'survived': 12}
+SCORE killed/scored = 80.3 %   (scored=61, score-minus-no-tests-and-not-run)
+survivors by symbol (top 25):
+      9  ggufone.runtime.pressure.x_spawn
+      2  ggufone.runtime.pressure.x_pressure_note
+      1  ggufone.runtime.pressure.x__read_int
+survived  pressure.py ggufone.runtime.pressure.x__read_int__mutmut_3
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_pressure_note__mutmut_4
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_pressure_note__mutmut_6
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_spawn__mutmut_3
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_spawn__mutmut_19
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_spawn__mutmut_21
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_spawn__mutmut_22
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_spawn__mutmut_23
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_spawn__mutmut_24
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_spawn__mutmut_25
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_spawn__mutmut_28
+    <no span>
+survived  pressure.py ggufone.runtime.pressure.x_spawn__mutmut_30
+    <no span>

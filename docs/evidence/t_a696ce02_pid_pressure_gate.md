@@ -287,3 +287,23 @@ raw material, index in its `README.md`).
 
 * `engine.fit.backend` still falls back to `backend_requested` (`t_80f1a4c6` §7 F3).
 * `serve`/`mcp` are still stubs and must build responses through `cli.decide_payload` (§7 F4).
+
+## 8. Landing (on the shared tree, `main`)
+
+Landed as `f848872` (the fix + the RED gates) → `9cc941b` (the measured `needs_fork` marks, the
+README note) → `e0070dd` (the survivor gates, this document), rebased in the private clone onto the
+shared main's `37fc224` first and fast-forwarded. Nothing in the card touches `pyproject.toml`
+(the `[tool.mutmut]` block is a live sibling retarget — the sweep pair is recorded in §4a
+instead); the sibling WIP (`pyproject.toml`, `state/groupchat/ggufone-e1.md`) hashed
+byte-identical before and after the merge (`logs/landing_status.txt`).
+
+Verified **on the landed tree** (the shared rootdir's `pythonpath = ["src"]`, so these imports are
+the landed source):
+
+| check | result |
+|---|---|
+| `tests/test_probe_pressure.py` + `test_probe_isolation.py` + `test_capability.py` | **72 passed** |
+| `pytest -q -p no:randomly` (full) | 1182 passed, 43 skipped, 5 failed — all 5 in a *sibling's* in-flight file (`tests/test_e3c_cue_refused.py`, E3c `t_6c119626`: its `docs/TEMPLATES.md` content is not landed yet; content assertions, no fork involved) |
+| `pytest -q --randomly-seed=11` (full) | 1174 passed, 51 skipped (8 of them the pressure skips: the box ran at ~246), same 5 sibling failures |
+| starved simulation `GGUFONE_TEST_PID_HEADROOM=250/256` | 5 named skips + the one named headroom failure, exit non-zero |
+| healthy simulation `GGUFONE_TEST_PID_HEADROOM=0/256` | **17 passed** |
