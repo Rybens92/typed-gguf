@@ -1,0 +1,4 @@
+date: 2026-09-19T14:21:18Z
+tree: /work/t57cc-mid (2e7eb6c)
+mode: always (injected SIGSEGV at the isolated vulkan child's exit)
+cmd: PYTHONPATH=/work/t57cc-ggufone/.e2e/t_57cc0179-vulkan-teardown/repro/fault_inject:/work/t57cc-mid/src GGUFONE_T57_FAULT=always GGUFONE_RUNTIME_DIR=/work/t603-runtime/b11026-linux-x64-cpu GGUFONE_BENCH_RUNTIME_DIR=/var/home/rybens/.local/share/ggufone/runtime /work/t57cc-ggufone/.venv/bin/python -m ggufone bench --suite throughput --model /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf --backend all --gpu-layers 0 --kv-type q4_0 --runs 1 --threads 4 --sizes 64 --json

@@ -1,0 +1,6 @@
+run=1 exit=0 report_ok_true=1 vram_before=8192 MiB, 1192 MiB, 6699 MiB 
+run=2 exit=0 report_ok_true=1 vram_before=8192 MiB, 1372 MiB, 6519 MiB 
+run=3 exit=0 report_ok_true=1 vram_before=8192 MiB, 1303 MiB, 6588 MiB 
+run=4 exit=1 report_ok_true=0 vram_before=8192 MiB, 1351 MiB, 6540 MiB 
+run=5 exit=1 report_ok_true=0 vram_before=8192 MiB, 994 MiB, 6898 MiB 
+run=6 exit=1 report_ok_true=0 vram_before=8192 MiB, 985 MiB, 6907 MiB 

@@ -14,6 +14,30 @@ unfixed on purpose; this card closes it from the bench side:
 3. investigate the teardown ordering and publish a **minimal repro recipe** with a verdict;
 4. prove a published table can never silently lose a row.
 
+> **Status (2026-09-19) — superseded as the remedy, retained as the net.** The sibling card
+> `t_97f1bc93` (landed on `main` as `d90bdf8`; evidence `docs/evidence/e2_fix_t_97f1bc93_vulkan_teardown.md`)
+> found the root cause with a libc backtrace: the signal came from the **NVIDIA ICD's own exit
+> handler** (`libnvidia-glvkspirv → libnvidia-eglcore → __run_exit_handlers`) — a third-party
+> destructor at interpreter exit, with no ggml/llama.cpp/ggufone frame in it. ggufone now ends such a
+> process itself (`runtime/teardown.end_process` → `os._exit` after both streams are flushed, from
+> `cli.run` whenever a bundle is loaded), so the exit status of the shipped command can no longer be
+> rewritten by the vendor's handler: `vendor_a.summary` measures 4/4 clean exits at 3.5–5.7 GiB free,
+> and their live gate (`tests/test_bench_vulkan_teardown_live.py`) is green with **0/1 only**. The
+> crash shape this card was opened for therefore **cannot arise from its original cause any more**,
+> and no further GPU reproduction was run once that was known.
+>
+> What is retained — and what this card still pins — is the containment **net** for the *generic*
+> shape "a child that died on a fatal signal after answering", whatever the cause (an out-of-tree
+> bundle under `GGUFONE_RUNTIME_DIR`, another ICD, a heap fault after the report was written):
+> `tests/test_bench_teardown_crash.py` (40 gates: the shape, the starvation reading, the one-rung
+> retry, `W_BACKEND_CRASHED_AT_TEARDOWN` with both exit codes and the VRAM readings, the rendered
+> table cell, and "no backend row can disappear from the table"), the untouched
+> `tests/test_bench_isolation.py` containment (45 gates), and `suites.py`'s `verified_rows` filter
+> that keeps a crash warning from ever being re-read as `W_BACKEND_MISMATCH`. The integration check
+> on the integrated tree (`repro/integration_check.sh`, `logs/integrated_*`: exit 0, two rows
+> measured, `withheld-rows=0`) proves the two cards' changes do not fight: the verified child now
+> simply exits 0/1 and the row is published.
+
 ## The shape, from the raw that found it
 
 `.e2e/t_dd62ec29-mixed-bundle-teardown/logs/after_mixed.raw` — the parent's own record of the
@@ -63,8 +87,14 @@ What is left after it is the library's own teardown: the Vulkan backend's device
 destructors and the ICD's device destruction, which run when the process exits (`dlclose` /
 static destructors / `vkDestroyDevice`).
 
-**Verdict: upstream (llama.cpp + the Vulkan ICD), triggered by device pressure — and contained by
-this card's retry.** The evidence:
+**Verdict: upstream (the NVIDIA ICD's own exit handler), triggered by device pressure — and now fixed
+at the source by the sibling card.** The evidence:
+
+* **root cause, settled by the sibling card's libc backtrace (`t_97f1bc93`, 2026-09-19)**: the fault
+  is `libnvidia-glvkspirv → libnvidia-eglcore → __run_exit_handlers`, i.e. the vendor ICD's *own*
+  `atexit`-time destructor, not a ggml/llama.cpp/ggufone frame. That card's fix
+  (`runtime/teardown.end_process` → `os._exit`) takes the third party's vote on the exit status away
+  and is the reason this card's shape no longer occurs (see the status block above);
 
 * ordering: the crash is strictly *after* our release path (above) — there is no our-code
   destructor left to run when the signal arrives;
@@ -101,6 +131,25 @@ documents one side of it:
 4. `sh batch_teardown.sh <tree> <prefix> <runs> …` repeats (3) until a signal appears.
 5. `sh measure_footprint.sh <tree> <tag> [model]` measures what one child really takes
    (nvidia-smi `used` before / peak / after, sampled while it runs).
+6. **The confirmed-band rate driver** — `sh crashrate.sh <tree> <prefix> [runs] [keep_free|none]
+   [wait_min]`: waits for the ambient window (the E3 campaign gives GiBs back in steps), holds the
+   device **down to `keep_free`** with the dummy allocator, proves the hold landed with nvidia-smi
+   *before* the child starts (`<tag>_hold_control.txt`, `confirmed=1` only inside ±256 MiB of the
+   target), then repeats the documented single-bundle child and stops at the first fatal signal.
+   This is the recipe that fixes (2)'s failure mode (a best-effort hold that never reaches the band);
+   (3)/(4) are kept as the teardown-time variant.
+7. **The retry driver** — `sh mixed_retry_run.sh <tree> <prefix> [runs] [keep_free]`: the same hold
+   around the *two-bundle* `--backend all` command, i.e. the shape whose isolation seam owns this
+   card's retry; it stops at the first run whose report shows `RECOVERED_AFTER_TEARDOWN_CRASH` or
+   `W_BACKEND_CRASHED_AT_TEARDOWN`.
+8. `sh integration_check.sh <tree> <tag>` — the two cards' intersection: the documented
+   `--backend all` command on the integrated tree, expected to publish both rows with no withheld row
+   and no warning (the child now ends itself, see the status block).
+9. `sh fault_demo.sh <tree> retry-ok|always` — the retained net, demonstrated end to end with the
+   real CLI and real child processes plus an **injected** SIGSEGV
+   (`repro/fault_inject/sitecustomize.py` arms an `atexit` signal for the isolated `--backend vulkan`
+   child only). It is deterministic, which is exactly what a flaky shape cannot be; the *natural*
+   occurrence is the raws above and the sibling card's rate runs.
 
 **What the recipes measured here (operator box, box shared with the E3 campaign):**
 
@@ -111,17 +160,49 @@ documents one side of it:
 | `logs/pre_teardown4b` (`pre_teardown_run*`) | 5.3–5.6 GiB free, 4B model, hog started after the context marker | the placement loaded (`loaded=1`); the hold then starved the child's **own remaining** allocation (`E_BACKEND_OOM` for a 0.45 GiB graph buffer), exit 1 — again typed, again no crash. The hold has to land *after* the child's last allocation, which is what (3) refines. |
 | `logs/pre_foot_footprint.txt` | baseline 3236 MiB used | the child's own device footprint measured at **~2.78 GiB** (weights 2.45 + Vulkan0 context + graph) before the run was cut short by the box's pid cgroup (`python -m ggufone.runtime.probe_child` could not fork: `EAGAIN` → the CLI's typed exit 2). |
 
-**Honest status of my own live runs.** I did **not** land the SIGSEGV inside my own windows: the
-E3 campaign holds 7+ GiB of the 8 GiB board for long stretches, the pid cgroup sat at 245–255 of
-256 for much of the run (my first attempt died with `Cannot fork`, the last one with the probe
-child's `EAGAIN`), and the band that both lets the 4B placement through *and* leaves the device
-tight at the exit is narrow. What is *not* missing is the crash itself: it is recorded twice on this
-box — the `t_dd62ec29` raw above (one complete report, then `exit -11`, no glibc line) and the
-sibling card `t_97f1bc93`'s rate run (**2 of 5 identical single-bundle runs** exiting 139 after a
-complete `ok: true` report, with its own gdb/`LD_PRELOAD` backtrace harness). Closing paragraph of
-the verdict therefore: **upstream and contained**; the vehicle that turns my recipe into a local
-crash capture is a run of (3) on a box where the campaign leaves ≥5.4 GiB free for a minute — the
-script waits for that window and reports the trace either way (`logs/*_window.txt`).
+**Second session, 2026-09-19 — the card's last live attempt, stopped by the supersession.** The
+device sat at 0.3–1.5 GiB free for the whole window (the E3b sweep held ~5.5 GiB, and `cgroup
+memory.current` was at its 8 GiB ceiling), so the confirmed-band hold never got its window
+(`logs/band_window.txt`: `free=276MiB wanted=3856MiB`), and every attempt that did run measured the
+*refusal* side, never a signal:
+
+| raw | device at start | outcome |
+|---|---|---|
+| `logs/livep_run1.raw`, `logs/livep_run2.raw` (recipe B, pre-fix tree) | 6.8 GiB free, hog started after the context marker | complete report, exit **0** — the hold lands after the child's last allocation, which is exactly why (3) cannot hit the band |
+| `logs/mixed_run1.raw` (two-bundle, fixed tree) | 4.2 GiB free | both rows measured, exit 0, no withheld row, no warning |
+| `logs/mixed_run2.raw` | 1.5 GiB free at the vulkan child | the child's **own** fit ladder walked `-1 → 16 → 0` (`W_BACKEND_OOM`, `W_FIT_DOWNGRADE`) and measured on the host — a typed degradation, no crash: the "device too full to load" side again |
+| `logs/small_rate.txt` (0.8B model, 6 runs) | 1.0–1.4 GiB free | 3 × exit 0 with a complete report, 3 × exit 1 typed `E_BACKEND_OOM`; **no signal in any of the six** |
+| `logs/band_rate.txt` + `band_run{1..4}.*` (the confirmed-band recipe, pre-fix tree) | window opened at 14:12:41 with **4126 MiB free** — inside the operator's band | **4 attempts, all exit 0 with complete reports** (device 4103 → 1749 → 1460 → 1468 MiB free; `band_run1_hold_control.txt`: `hold=505MiB confirmed=0`, the ambient device was already in the band so the hold never had to bite). No signal — and the batch was stopped here by the supersession |
+
+**Verdict on the live half, final.** The crash itself was captured on this box from the *root-cause*
+side, not from mine: the sibling card `t_97f1bc93` reproduced it (3 signals in 12 identical single
+bundle runs — `logs/segv_bt_a-*.raw`, `crashrate_a-*.raw`, `red_parent-*.raw`) and pinned it with a
+libc backtrace to the **NVIDIA ICD's own exit handler**. My own windows, by contrast, produced 0
+signals in 12 attempts (2 recipe-B repeats, 2 two-bundle runs, 6 small-model runs, 4 confirmed-band
+runs) — the flakiness is the whole story, and it is why the shape could not be *closed* from the
+bench side by catching it, only by fixing its cause. That card owns the defect and its fix
+(`os._exit` before any exit handler runs) is what makes the shape unreachable now. This card's
+remaining live evidence is therefore about the *net*, not the bug: `logs/integrated_*` (the two
+cards' intersection, measured green) and the deterministic injection below.
+
+### The retained net, demonstrated — deterministic fault injection, three trees
+
+The natural shape is flaky *and* (after `d90bdf8`) unreachable, so the net is demonstrated with a
+fault injected **inside the child, at its own exit** (`repro/fault_inject/sitecustomize.py`: an
+`atexit` handler that raises SIGSEGV, armed only when `GGUFONE_T57_FAULT` is set, the process is the
+isolated `--backend vulkan` child, and — in `retry-ok` mode — the report is the first attempt's. The
+parent is never faulted). Same command, same harness, one tree per row; every raw and every rendered
+table is in `logs/fault_*`:
+
+| tree | injection | outcome |
+|---|---|---|
+| `f738315` (before both cards: containment, no retry) | fires | the row is withheld (`ISOLATED_CHILD_FAILED`, exit 1) — the control that the injection is real, and the behaviour `t_dd62ec29` left behind (`logs/fault_retry-ok-red.raw`) |
+| `2e7eb6c` (this card: retry, before the teardown fix) | fires | **recovered** (`logs/fault_retry-ok-mid.raw`, exit 0): attempt 1 exits `-11` after its complete `ok: true` report, the one retry measures the row, `process.attempts[0]` carries the signal, the placement and the 4.0/8.0 GiB reading, the report stays `ok: true`, and the table's note is `RECOVERED_AFTER_TEARDOWN_CRASH` (the retry's own placement travels in the row) |
+| `2e7eb6c`, mode `always` (both attempts die) | fires twice | withheld + **named**: `logs/fault_always-mid.raw` (exit 1) and its rendered table carry `W_BACKEND_CRASHED_AT_TEARDOWN: the isolated child exited -11 … after writing a complete report` **in the row's table cell**, with the stderr tail attached (`logs/fault_always-mid_rendered.md`) |
+| `d82204f` (this card + the teardown fix) | **inert** | the child ends itself (`runtime/teardown.end_process`) before `atexit` can run, so the injected signal never fires: exit 0/1 only, both rows published, no withheld row, no warning (`logs/fault_retry-ok-int.raw`) — the supersession, observed from this card's own harness |
+
+That last row is the whole story of this card in one measurement: the net is still there and still
+correct, and the thing it was built to catch is now prevented one layer below it.
 
 ## 4 — a published table can never silently lose a row
 
@@ -172,10 +253,38 @@ siblings' `56cfe5e`, landed as `ac6345d`):
   `logs/integrated_gates.txt`), and the one `test_e3b_labels.py` failure of a shared-tree run came
   from a sibling's *uncommitted* `bench/labels.py` (that file passes at the landed commit: 36 passed).
 
+**Second pass, 2026-09-19 — on the integrated tree (`d82204f`, i.e. this card + `t_97f1bc93`)**, once
+the root-cause fix had landed and the live campaign was stopped:
+
+* the gate files together with the teardown card's: `pytest -q tests/test_bench_isolation.py
+  tests/test_bench_teardown_crash.py tests/test_cli_teardown.py` → **95 passed** (85 of them this
+  card's: 45 containment + 40 new; the other 10 are `t_97f1bc93`'s);
+* the full offline suite: **1082 passed, 43 skipped, exit 0** (`logs/full_suite_integrated.txt`);
+* `ruff check src tests`: `All checks passed!` (`logs/ruff_integrated.txt`);
+* coverage over the *whole* offline suite: `bench/isolation.py` **100 %**, `bench/suites.py` **99 %**
+  (`logs/coverage_full.txt`; with only this card's two gate files selected the two modules read
+  100 %/47 % — `logs/coverage_gates.txt` — because the rest of `suites.py` is other suites'
+  functionality);
+* the two cards' intersection: `logs/integrated_*.raw`/`_rendered.md` — exit 0, `cpu` + `vulkan`
+  rows published, `withheld-rows=0`, `teardown-warnings=0`.
+
 ## How to re-run
 
 ```
 cd /work/t57cc-ggufone            # or any checkout of the card's commit
 .venv/bin/python -m pytest -q tests/test_bench_isolation.py tests/test_bench_teardown_crash.py
+.venv/bin/python -m pytest -q tests/test_bench_isolation.py tests/test_bench_teardown_crash.py \
+    tests/test_cli_teardown.py                          # with the teardown card's gates
+# the retained net, deterministically (any box, no device needed):
+sh .e2e/t_57cc0179-vulkan-teardown/repro/fault_demo.sh <tree> retry-ok    # recovered row
+sh .e2e/t_57cc0179-vulkan-teardown/repro/fault_demo.sh <tree> always      # named warning + table
+# the two cards' intersection on the documented mixed command:
+sh .e2e/t_57cc0179-vulkan-teardown/repro/integration_check.sh <tree> <tag>
+# the starved-device recipes (need a real device and a window; see the README):
+sh .e2e/t_57cc0179-vulkan-teardown/repro/crashrate.sh /work/t57cc-red band 4 3600 40
 sh .e2e/t_57cc0179-vulkan-teardown/repro/starve_and_run.sh /work/t57cc-red pre_starved auto 3272 gdb 30
+sh .e2e/t_57cc0179-vulkan-teardown/repro/mixed_retry_run.sh <tree> mixed 3 3600
 ```
+
+The three trees the fault injection was measured on: `/work/t57cc-red` (`f738315`, before both
+cards), `/work/t57cc-mid` (`2e7eb6c`, this card only) and the integrated clone (`d82204f`, both).

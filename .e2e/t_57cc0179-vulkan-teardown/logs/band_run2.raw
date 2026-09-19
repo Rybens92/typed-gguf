@@ -1,0 +1,172 @@
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "throughput",
+  "quick": false,
+  "generated_at": "2026-09-19T14:13:28Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15",
+    "cpu_count": 24,
+    "machine": "x86_64",
+    "cgroup_cpu_max": 2.0,
+    "cgroup_memory_bytes": 8589934592
+  },
+  "config": {
+    "suite": "throughput",
+    "model_path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "backend": "vulkan",
+    "runs": 1,
+    "threads": 4,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      64
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null,
+    "quick": false,
+    "items_per_type": null,
+    "determinism_repeats": 3,
+    "backend_limit": null,
+    "max_seconds": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "name": "Qwen3.5-4B-Q4_0.gguf",
+    "bytes": 2583221408,
+    "arch": "qwen35"
+  },
+  "notes": [],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite throughput --model /var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf --backend vulkan --runs 1 --threads 4 --json"
+  },
+  "backends": [
+    {
+      "backend": "vulkan",
+      "measured": true,
+      "runtime_dir": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+      "placement": "n_gpu_layers=-1",
+      "threads": 4,
+      "load_ms": {
+        "n": 1,
+        "min": 1406.3705859998663,
+        "p50": 1406.3705859998663,
+        "p95": 1406.3705859998663,
+        "max": 1406.3705859998663,
+        "mean": 1406.3705859998663
+      },
+      "placement_used": {
+        "requested": "n_gpu_layers=-1",
+        "used": {
+          "note": "degraded after a backend allocation failure: 0 layer(s) offloaded, kv_type=f16",
+          "n_gpu_layers": 0,
+          "kv_type": "f16",
+          "degraded": true,
+          "attempts": [
+            "n_gpu_layers=-1 -> oom",
+            "n_gpu_layers=16 -> oom"
+          ],
+          "warnings": [
+            "W_BACKEND_OOM",
+            "W_FIT_DOWNGRADE"
+          ]
+        }
+      },
+      "prefill": [
+        {
+          "tokens": 64,
+          "ms": {
+            "n": 1,
+            "min": 6807.487932999948,
+            "p50": 6807.487932999948,
+            "p95": 6807.487932999948,
+            "max": 6807.487932999948,
+            "mean": 6807.487932999948
+          },
+          "tok_per_s": {
+            "n": 1,
+            "min": 9.401412184625975,
+            "p50": 9.401412184625975,
+            "p95": 9.401412184625975,
+            "max": 9.401412184625975,
+            "mean": 9.401412184625975
+          },
+          "threads": 4,
+          "backend": "vulkan"
+        }
+      ],
+      "prefill_tok_per_s": {
+        "n": 1,
+        "min": 9.401412184625975,
+        "p50": 9.401412184625975,
+        "p95": 9.401412184625975,
+        "max": 9.401412184625975,
+        "mean": 9.401412184625975
+      },
+      "decision_ms": {
+        "n": 1,
+        "min": 11432.910732999972,
+        "p50": 11432.910732999972,
+        "p95": 11432.910732999972,
+        "max": 11432.910732999972,
+        "mean": 11432.910732999972
+      },
+      "decision_tok_per_s": {
+        "n": 1,
+        "min": 0.6997343184801389,
+        "p50": 0.6997343184801389,
+        "p95": 0.6997343184801389,
+        "max": 0.6997343184801389,
+        "mean": 0.6997343184801389
+      },
+      "devices": [
+        "CPU",
+        "CPU_Mapped",
+        "Vulkan0",
+        "Vulkan_Host"
+      ],
+      "device_buffers": {
+        "Vulkan0": 3,
+        "Vulkan_Host": 3
+      },
+      "effective_backend": "vulkan",
+      "warnings": []
+    }
+  ],
+  "ok": true,
+  "truncated": false,
+  "skipped": [],
+  "wall_ms": 78846.212,
+  "budget": {
+    "max_seconds": null,
+    "expired": false,
+    "skipped": 0
+  }
+}

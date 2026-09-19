@@ -1,0 +1,224 @@
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "throughput",
+  "quick": false,
+  "generated_at": "2026-09-19T13:53:36Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41",
+    "python": "3.11.15",
+    "cpu_count": 24,
+    "machine": "x86_64",
+    "cgroup_cpu_max": 2.0,
+    "cgroup_memory_bytes": 8589934592
+  },
+  "config": {
+    "suite": "throughput",
+    "model_path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "backend": "all",
+    "runs": 1,
+    "threads": 4,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      64
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null,
+    "quick": false,
+    "items_per_type": null,
+    "determinism_repeats": 3,
+    "backend_limit": null,
+    "max_seconds": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf",
+    "name": "Qwen3.5-4B-Q4_0.gguf",
+    "bytes": 2583221408,
+    "arch": "qwen35"
+  },
+  "notes": [
+    "one bundle per process: `--backend all` selected cpu, vulkan, cuda over 2 distinct local bundle directories, and two distinct local bundles cannot be dlopened into one process: the second bundle's libllama/libggml are shadowed by the first one's SONAMEs (RTLD_GLOBAL, identical names) and the process aborts at teardown with `double free or corruption` \u2014 exit 134 (card t_dd62ec29). Every row was measured by its own child process \u2014 the documented `--backend <one>` path \u2014 and carries the `process` block that produced it; a child whose answer the parent could not verify leaves no row at all."
+  ],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite throughput --model /var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf --backend all --runs 1 --threads 4 --json"
+  },
+  "isolation": {
+    "one_bundle_per_process": true,
+    "bundles": {
+      "cpu": "/work/t603-runtime/b11026-linux-x64-cpu",
+      "vulkan": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+    },
+    "reason": "two distinct local bundles cannot be dlopened into one process: the second bundle's libllama/libggml are shadowed by the first one's SONAMEs (RTLD_GLOBAL, identical names) and the process aborts at teardown with `double free or corruption` \u2014 exit 134 (card t_dd62ec29)",
+    "suite": "throughput"
+  },
+  "backends": [
+    {
+      "backend": "cpu",
+      "decision_ms": {
+        "max": 14037.274977000037,
+        "mean": 14037.274977000037,
+        "min": 14037.274977000037,
+        "n": 1,
+        "p50": 14037.274977000037,
+        "p95": 14037.274977000037
+      },
+      "decision_tok_per_s": {
+        "max": 0.5699111838378842,
+        "mean": 0.5699111838378842,
+        "min": 0.5699111838378842,
+        "n": 1,
+        "p50": 0.5699111838378842,
+        "p95": 0.5699111838378842
+      },
+      "device_buffers": {
+        "CPU": 3
+      },
+      "devices": [
+        "CPU",
+        "CPU_Mapped",
+        "CPU_REPACK"
+      ],
+      "effective_backend": "cpu",
+      "load_ms": {
+        "max": 11293.755888000022,
+        "mean": 11293.755888000022,
+        "min": 11293.755888000022,
+        "n": 1,
+        "p50": 11293.755888000022,
+        "p95": 11293.755888000022
+      },
+      "measured": true,
+      "placement": "n_gpu_layers=0",
+      "placement_used": {
+        "requested": "n_gpu_layers=0",
+        "used": {
+          "attempts": [],
+          "degraded": false,
+          "kv_type": "auto",
+          "n_gpu_layers": 0,
+          "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=auto)",
+          "warnings": []
+        }
+      },
+      "prefill": [
+        {
+          "backend": "cpu",
+          "ms": {
+            "max": 10972.281015000022,
+            "mean": 10972.281015000022,
+            "min": 10972.281015000022,
+            "n": 1,
+            "p50": 10972.281015000022,
+            "p95": 10972.281015000022
+          },
+          "threads": 4,
+          "tok_per_s": {
+            "max": 5.83288013791359,
+            "mean": 5.83288013791359,
+            "min": 5.83288013791359,
+            "n": 1,
+            "p50": 5.83288013791359,
+            "p95": 5.83288013791359
+          },
+          "tokens": 64
+        }
+      ],
+      "prefill_tok_per_s": {
+        "max": 5.83288013791359,
+        "mean": 5.83288013791359,
+        "min": 5.83288013791359,
+        "n": 1,
+        "p50": 5.83288013791359,
+        "p95": 5.83288013791359
+      },
+      "runtime_dir": "/work/t603-runtime/b11026-linux-x64-cpu",
+      "threads": 4,
+      "warnings": [],
+      "process": {
+        "isolated": true,
+        "exit_code": 0,
+        "ok": true,
+        "detail": null
+      }
+    },
+    {
+      "backend": "vulkan",
+      "load_ms": {
+        "max": 3021.1716399999204,
+        "mean": 3021.1716399999204,
+        "min": 3021.1716399999204,
+        "n": 1,
+        "p50": 3021.1716399999204,
+        "p95": 3021.1716399999204
+      },
+      "measured": false,
+      "placement": "n_gpu_layers=-1",
+      "placement_used": {
+        "requested": "n_gpu_layers=-1",
+        "used": {
+          "attempts": [
+            "n_gpu_layers=-1 -> oom"
+          ],
+          "degraded": true,
+          "kv_type": "f16",
+          "n_gpu_layers": 16,
+          "note": "degraded after a backend allocation failure: 16 layer(s) offloaded, kv_type=f16",
+          "warnings": [
+            "W_BACKEND_OOM",
+            "W_FIT_DOWNGRADE"
+          ]
+        }
+      },
+      "reason": "BackendOomError: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=16, kv_type=f16, needed ~69 MiB); the driver reports unknown free; tried 3 placement(s) down to CPU-only, none fit: ctx kv_type=f16 -> oom; ctx kv_type=q8_0 -> oom; ctx kv_type=q4_0 -> oom; the backend asked for a 69 MiB allocation; backend log: 'alloc_tensor_range: failed to allocate Vulkan0 buffer of size 72450048'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant",
+      "runtime_dir": "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+      "threads": 4,
+      "process": {
+        "isolated": true,
+        "exit_code": 1,
+        "ok": true,
+        "detail": null
+      }
+    },
+    {
+      "backend": "cuda",
+      "measured": false,
+      "reason": "no local llama.cpp bundle carries libggml-cuda.so (benchmarks never download one: run `ggufone init --backend cuda` or point GGUFONE_BENCH_RUNTIME_DIR at extracted bundles)"
+    }
+  ],
+  "ok": true,
+  "truncated": false,
+  "skipped": [],
+  "wall_ms": 215131.46,
+  "budget": {
+    "max_seconds": null,
+    "expired": false,
+    "skipped": 0
+  }
+}
