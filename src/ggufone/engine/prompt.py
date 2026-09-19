@@ -57,6 +57,22 @@ JSON_CONTRACT = {
     "score": 'Answer with JSON: {"severity": "<exactly one level number>"}',
     "noul": 'Answer with JSON: {"answer": "<yes or no>"}',
 }
+#: E3e, the amendment's second variant: the *system framing* states every contract, so the model is
+#: told the format once and each question keeps its own ask line (`{"<key>": "<one of the candidate
+#: names>"}`, key per question type from `JSON_FIELDS`). `options.json_contract` picks where the
+#: contract is stated — `question` (inline, default) or `system` — and both are measured, because
+#: "where the model hears the format" is exactly the knob the card asks about.
+JSON_SYSTEM_FRAMING = (
+    "You are a decision engine. Read the state, then answer every question with a single JSON "
+    "object and nothing else — no explanation, no code fence, no extra keys. The object's key "
+    "names the question type: {\"choice\": \"<exactly one candidate name>\"} for a choice, "
+    "{\"severity\": \"<exactly one level number>\"} for a level, {\"answer\": \"<yes or no>\"} "
+    "for a yes/no question.\n"
+)
+#: where the JSON contract is stated (`options.json_contract`); `question` is the default (the
+#: question block names its own key next to the candidates it is about)
+JSON_CONTRACTS: tuple[str, ...] = ("question", "system")
+JSON_CONTRACT_DEFAULT = JSON_CONTRACTS[0]
 #: the cue shapes whose suffix is a JSON object: the instruction is a JSON contract and the
 #: assistant turn is prefilled with the opened field (`json_field` keeps the *shipped* cue line —
 #: every E3d row was measured on those bytes).
@@ -68,9 +84,16 @@ PLAIN_USER_HEADER = "USER:\n"
 PLAIN_ASSISTANT_HEADER = "ASSISTANT:\n"
 
 
-def framing_for(cue: str) -> str:
-    """The system framing a cue shape asks for: the JSON one when the answer is a JSON object."""
-    return JSON_FRAMING if cue == "json_instructed" else SYSTEM_FRAMING
+def framing_for(cue: str, contract: str = JSON_CONTRACT_DEFAULT) -> str:
+    """The system framing a cue shape asks for: the JSON one when the answer is a JSON object.
+
+    `contract` decides which JSON framing: `question` says only that the answer is a JSON object
+    (the question block names the key), `system` states all three contracts up front. Anything
+    that is not `json_instructed` gets the shipped framing — the other cues ask for a bare label.
+    """
+    if cue != "json_instructed":
+        return SYSTEM_FRAMING
+    return JSON_SYSTEM_FRAMING if contract == "system" else JSON_FRAMING
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,12 +162,15 @@ class RoleSplitRender:
         return self.tails[index]
 
 
-def question_block(question: Question, *, cue: str = "shipped") -> str:
+def question_block(question: Question, *, cue: str = "shipped",
+                   contract: str = JSON_CONTRACT_DEFAULT) -> str:
     """The question's own bytes: instructions, rendered candidates, and the ask line (E3e).
 
     The ask line is the *whole* difference between the cue shapes' question text: the bare label
     (`shipped`, `two_step`), the shipped line plus an opened field (`json_field`, byte-frozen since
-    E3d), or the JSON contract the assistant turn then continues (`json_instructed`).
+    E3d), or the JSON contract the assistant turn then continues (`json_instructed`). With
+    `contract="system"` the contract is stated in the framing instead, and the question keeps the
+    shipped ask line — the same words, heard in the other place.
     """
     lines = [QUESTION_HEADER]
     instructions = render_instructions(question.instructions)
@@ -162,7 +188,8 @@ def question_block(question: Question, *, cue: str = "shipped") -> str:
         truth, falsity = question.descriptions
         lines.append(f"yes: {truth}" if truth else "yes")
         lines.append(f"no: {falsity}" if falsity else "no")
-    lines.append(JSON_CONTRACT[question.type] if cue == "json_instructed"
+    lines.append(JSON_CONTRACT[question.type]
+                 if cue == "json_instructed" and contract == "question"
                  else CANDIDATE_CUE[question.type])
     return "\n".join(lines) + "\n"
 
@@ -179,7 +206,7 @@ def _common_prefix(left: str, right: str) -> str:
     return left[:index]
 
 
-def _normalised(text: str) -> str:
+def normalised(text: str) -> str:
     """Whitespace-normalised bytes — what a template that trims or re-wraps a message still carries.
 
     The acceptance below is about *content*, not layout: a family template may trim a message or
@@ -192,7 +219,8 @@ def _normalised(text: str) -> str:
 
 def role_split_render(state: Any, questions: Sequence[Question], *,
                       resolution: template_module.Resolution | None = None,
-                      enable_thinking: bool = False, cue: str = "shipped"
+                      enable_thinking: bool = False, cue: str = "shipped",
+                      contract: str = JSON_CONTRACT_DEFAULT
                       ) -> RoleSplitRender:
     """Render the `role_split` shape of a whole request: `(shared prefix, one tail per question)`.
 
@@ -209,10 +237,10 @@ def role_split_render(state: Any, questions: Sequence[Question], *,
     * every question's own block must survive into its own render — a template that drops or
       rewrites the last user message is refused the same way.
     """
-    framing = framing_for(cue)
+    framing = framing_for(cue, contract)
     messages = chat_messages(state, framing=framing)
     state_text = str(messages[-1]["content"])
-    blocks = [question_block(question, cue=cue) for question in questions]
+    blocks = [question_block(question, cue=cue, contract=contract) for question in questions]
     openters = [json_opener(question.type) if cue in JSON_CUES else "" for question in questions]
     if resolution is None or resolution.is_plain:
         prefix = f"{framing}{STATE_HEADER}{render_state(state)}\n"
@@ -227,12 +255,12 @@ def role_split_render(state: Any, questions: Sequence[Question], *,
                                                add_generation_prompt=False,
                                                enable_thinking=enable_thinking)
     prefix = _common_prefix(state_only, rendered[0]) if rendered else state_only
-    if _normalised(state_text) not in _normalised(prefix):
+    if normalised(state_text) not in normalised(prefix):
         raise UserError(
-            f"E_ROLE_SPLIT_UNSUPPORTED: the template does not render this conversation's state as "
-            f"its own user turn before the question (the shared prefix does not carry the state's "
-            f"own words, so the question would not be preceded by the state the model must read). "
-            f"Fix: --chat-format answer_sheet (the published shape) or --template plain",
+            "E_ROLE_SPLIT_UNSUPPORTED: the template does not render this conversation's state as "
+            "its own user turn before the question (the shared prefix does not carry the state's "
+            "own words, so the question would not be preceded by the state the model must read). "
+            "Fix: --chat-format answer_sheet (the published shape) or --template plain",
             code="E_ROLE_SPLIT_UNSUPPORTED")
     for question, block, full in zip(questions, blocks, rendered, strict=True):
         if not full.startswith(prefix):
@@ -242,7 +270,7 @@ def role_split_render(state: Any, questions: Sequence[Question], *,
                 f"render does not extend the shared prefix). Fix: --chat-format answer_sheet (the "
                 f"published shape) or --template plain",
                 code="E_ROLE_SPLIT_UNSUPPORTED")
-        if _normalised(block) not in _normalised(full):
+        if normalised(block) not in normalised(full):
             raise UserError(
                 f"E_ROLE_SPLIT_UNSUPPORTED: question {question.id!r}: the template dropped or "
                 f"rewrote the question's user turn (its words are not in the render). Fix: "
@@ -271,13 +299,15 @@ def role_split_context(request: Any,
     if options.chat_format != schema.ROLE_SPLIT:
         return None
     return role_split_render(request.state, request.questions, resolution=resolution,
-                             enable_thinking=options.thinking, cue=options.cue)
+                             enable_thinking=options.thinking, cue=options.cue,
+                             contract=options.json_contract)
 
 
 def build_prefix(state: Any, *, resolution: template_module.Resolution | None = None,
                  enable_thinking: bool = False, chat_format: str = schema.ANSWER_SHEET,
                  cue: str = "shipped", questions: Sequence[Question] = (),
-                 role: RoleSplitRender | None = None) -> str:
+                 role: RoleSplitRender | None = None,
+                 contract: str = JSON_CONTRACT_DEFAULT) -> str:
     """`system framing + state` — the bytes every question of this request shares.
 
     With a chat-template `resolution` the bytes are that template's rendering of
@@ -288,19 +318,21 @@ def build_prefix(state: Any, *, resolution: template_module.Resolution | None = 
     that already holds that render passes it as `role` instead of paying for it twice.
     """
     if resolution is None or resolution.is_plain:
-        return f"{framing_for(cue)}{STATE_HEADER}{render_state(state)}\n"
+        return f"{framing_for(cue, contract)}{STATE_HEADER}{render_state(state)}\n"
     if chat_format == schema.ROLE_SPLIT:
         render = role if role is not None else role_split_render(
-            state, questions, resolution=resolution, enable_thinking=enable_thinking, cue=cue)
+            state, questions, resolution=resolution, enable_thinking=enable_thinking, cue=cue,
+            contract=contract)
         return render.prefix
-    return template_module.render_prompt(chat_messages(state, framing=framing_for(cue)), resolution,
-                                        add_generation_prompt=True,
-                                        enable_thinking=enable_thinking)
+    return template_module.render_prompt(
+        chat_messages(state, framing=framing_for(cue, contract)), resolution,
+        add_generation_prompt=True, enable_thinking=enable_thinking)
 
 
 def build_question(question: Question, *, readout: str = "sequence",
                    cue: str = schema.CUE_SHAPES[0], chat_format: str = schema.ANSWER_SHEET,
-                   role: RoleSplitRender | None = None, index: int = 0) -> RenderedQuestion:
+                   role: RoleSplitRender | None = None, index: int = 0,
+                   contract: str = JSON_CONTRACT_DEFAULT) -> RenderedQuestion:
     """Render one question's suffix and its candidate labels (independent of `readout`).
 
     `cue` names *where* the label will be read (E3d, card t_d90404ac) and nothing else: with
@@ -326,7 +358,7 @@ def build_question(question: Question, *, readout: str = "sequence",
                 "without it", code="E_ROLE_SPLIT_UNSUPPORTED")
         suffix = role.tail_for(index)
     else:
-        suffix = question_block(question, cue=cue)
+        suffix = question_block(question, cue=cue, contract=contract)
         if cue in JSON_CUES:
             suffix += json_opener(question.type)
     return RenderedQuestion(id=question.id, type=question.type, suffix=suffix,

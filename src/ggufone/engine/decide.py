@@ -140,6 +140,9 @@ class ContextPlan:
     #: so the executed context and the executed questions can never be rendered from two
     #: different assemblies (the seam card t_6de5fc53 closed for the template chain).
     chat_format: str = schema.ANSWER_SHEET
+    #: E3e: where the `json_instructed` contract is stated (a no-op for the other cues) — part of
+    #: the plan for the same reason `chat_format` is: the prompt bytes are a measurement decision
+    json_contract: str = schema.JSON_CONTRACT
     role: prompt.RoleSplitRender | None = None
 
     @property
@@ -199,11 +202,13 @@ def question_requirements(request: schema.Request, tokenizer: Tokenizer,
     options = request.options
     if role is None and options.chat_format == schema.ROLE_SPLIT:
         role = prompt.role_split_render(request.state, request.questions, resolution=resolution,
-                                        enable_thinking=options.thinking, cue=options.cue)
+                                        enable_thinking=options.thinking, cue=options.cue,
+                                        contract=options.json_contract)
     rendered: list[tuple[schema.Question, prompt.RenderedQuestion, list[int], list[list[int]]]] = []
     for index, question in enumerate(request.questions):
         view = prompt.build_question(question, readout=options.readout, cue=options.cue,
-                                     chat_format=options.chat_format, role=role, index=index)
+                                     chat_format=options.chat_format, role=role, index=index,
+                                     contract=options.json_contract)
         suffix_tokens = tokenizer.tokenize(view.suffix)
         candidates = [tokenizer.tokenize(text) for text in view.texts]
         for text, tokens in zip(view.texts, candidates, strict=True):
@@ -235,7 +240,7 @@ def resolve_template(request: schema.Request, tokenizer: Any) -> template_module
     user_template = options.template if options.template not in (None, "auto") else None
     return template_module.resolve_for_handle(
         tokenizer, messages=prompt.chat_messages(
-            request.state, framing=prompt.framing_for(options.cue)),
+            request.state, framing=prompt.framing_for(options.cue, options.json_contract)),
         user_template=user_template,
         explicit_user=user_template is not None,
         think_mode="on" if options.thinking else "auto")
@@ -257,7 +262,8 @@ def plan_context(request: schema.Request, tokenizer: Tokenizer, *,
     role = prompt.role_split_context(request, resolution=resolution)
     prefix_tokens = tokenizer.tokenize(prompt.build_prefix(
         request.state, resolution=resolution, enable_thinking=options.thinking,
-        chat_format=options.chat_format, cue=options.cue, role=role))
+        chat_format=options.chat_format, cue=options.cue, role=role,
+        contract=options.json_contract))
     requirements = question_requirements(request, tokenizer, resolution=resolution, role=role)
     per_question = [len(suffix) + max(len(tokens) for tokens in candidates)
                     for _, _, suffix, candidates in requirements]
@@ -274,7 +280,8 @@ def plan_context(request: schema.Request, tokenizer: Tokenizer, *,
                        n_seq_max=int(n_seq_max), threads=int(threads),
                        kv_type=options.kv_type, max_question_tokens=max_question,
                        template=resolution, enable_thinking=options.thinking,
-                       chat_format=options.chat_format, role=role)
+                       chat_format=options.chat_format, json_contract=options.json_contract,
+                       role=role)
 
 
 def _default_threads() -> int:
@@ -497,12 +504,15 @@ class DecisionEngine:
         (`assistant` = the answer-sheet shape, `user` = the role split). A role split publishes the
         bytes the state-only render carries that the shared prefix cannot (`dropped` — Spark's
         template ends a render with a newline, which cannot sit in the middle of one), so the
-        acceptance the tool measured per family is visible on every response.
+        acceptance the tool measured per family is visible on every response. `contract` names where
+        the `json_instructed` contract was stated (the amendment's two variants); it is a no-op for
+        the other cues and says so.
         """
         role = plan.role
         surface: dict[str, Any] = {
             "kind": options.chat_format,
             "question_turn": "user" if role is not None else "assistant",
+            "contract": options.json_contract if options.cue == "json_instructed" else None,
         }
         if role is not None:
             surface["prefix_chars"] = len(role.prefix)
@@ -745,7 +755,7 @@ class DecisionEngine:
                                         next_row=next_row, next_scale=next_scale, floor=floor)
 
     def _value_markers(self) -> dict[int, str]:
-        """The session's own single-token JSON punctuation (E3e) — a vocabulary fact, not a guess."""
+        """The session's own single-token JSON punctuation — a vocabulary fact, not a guess."""
         if self._value_marker_map is None:
             self._value_marker_map = cue_module.value_markers(self.session.tokenize)
         return self._value_marker_map

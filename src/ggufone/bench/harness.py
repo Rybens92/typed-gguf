@@ -50,6 +50,9 @@ DEFAULT_RUNS = 5
 #: flags against `schema.CUE_SHAPES`/`schema.CHAT_FORMATS`); `tests/test_bench.py` pins them equal.
 DEFAULT_CUE = "shipped"
 DEFAULT_CHAT_FORMAT = "answer_sheet"
+#: E3e: where the `json_instructed` contract is stated — see `schema.JSON_CONTRACTS`. Same rule:
+#: the default is what the published tables measured.
+DEFAULT_JSON_CONTRACT = "question"
 PREFILL_SIZES = (256, 2048, 8192)
 CANDIDATE_COUNTS = (2, 4, 10)
 WAVE_SCALING = tuple(range(1, 17))
@@ -671,6 +674,11 @@ class BenchConfig:
     #: published row used) or `role_split` (the question as its own user turn). Same rule as `cue`:
     #: the default is what the published tables measured, so an unset flag cannot move one.
     chat_format: str = DEFAULT_CHAT_FORMAT
+    #: E3e (card t_4c48f40a): where the `json_instructed` contract is stated — `question` (the
+    #: default: the question block names its own key) or `system` (the framing states every
+    #: contract). A no-op for the other cues; measured, because where the model hears the format is
+    #: exactly the knob the card asks about.
+    json_contract: str = DEFAULT_JSON_CONTRACT
     gpu_layers: int | None = None
     n_bins: int = N_BINS
     prefill_sizes: tuple[int, ...] = PREFILL_SIZES
@@ -790,6 +798,8 @@ def reproduce_command(config: BenchConfig) -> str:
         parts += ["--cue", config.cue]
     if config.chat_format and config.chat_format != DEFAULT_CHAT_FORMAT:
         parts += ["--chat-format", config.chat_format]
+    if config.json_contract and config.json_contract != DEFAULT_JSON_CONTRACT:
+        parts += ["--json-contract", config.json_contract]
     if config.gpu_layers is not None:
         parts += ["--gpu-layers", str(config.gpu_layers)]
     if config.max_seconds is not None:
@@ -929,7 +939,9 @@ def render_report(report: Mapping[str, Any]) -> str:
     if config.get("cue") and config.get("cue") != DEFAULT_CUE:
         policy_bits.append(f"cue={config['cue']}")
     if config.get("chat_format") and config.get("chat_format") != DEFAULT_CHAT_FORMAT:
-        policy_bits.append(f"chat_format={config['chat_format']} (the question is its own user turn)")
+        policy_bits.append(f"chat_format={config['chat_format']} (question in a user turn)")
+    if config.get("json_contract") and config.get("json_contract") != DEFAULT_JSON_CONTRACT:
+        policy_bits.append(f"json_contract={config['json_contract']} (contract in the framing)")
     policy_line = [f"- prompt policy: {' · '.join(policy_bits)}"] if policy_bits else []
     lines = [f"### {report.get('suite')} — {name}",
              "",

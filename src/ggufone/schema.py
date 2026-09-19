@@ -69,6 +69,14 @@ CHAT_FORMATS = ("answer_sheet", "role_split")
 #: the documented default of `options.chat_format` — the shape every published table measured
 ANSWER_SHEET = "answer_sheet"
 ROLE_SPLIT = "role_split"
+#: E3e (card t_4c48f40a, the amendment's "measure a user-inline variant too"): where the
+#: `json_instructed` contract is *stated* — in the question block (`question`, the default: the key
+#: is named next to the candidates it is about) or in the system framing (`system`: all three
+#: contracts up front, each question keeps its own ask line). A no-op for every other cue: those
+#: ask for a bare label and get the shipped framing.
+JSON_CONTRACTS = ("question", "system")
+#: the documented default of `options.json_contract`
+JSON_CONTRACT = JSON_CONTRACTS[0]
 #: E2.5 (SPEC 2.10): `route: "auto"` lets the registry pick the model and its sizing
 ROUTE_MODES = ("off", "auto")
 NOUL_KEYS = ("true", "false")
@@ -81,8 +89,11 @@ OPTION_DEFAULTS: dict[str, Any] = {
     #: E3d: where the label is read relative to the cue (`CUE_SHAPES` above; default = shipped)
     "cue": "shipped",
     #: E3e (card t_4c48f40a): where the question block lives (`CHAT_FORMATS` above; the default is
-    #: the answer-sheet shape every published table measured)
+    #: the shape every published table measured)
     "chat_format": ANSWER_SHEET,
+    #: E3e: where the `json_instructed` contract is stated (`JSON_CONTRACTS` above; a no-op for
+    #: every other cue)
+    "json_contract": JSON_CONTRACT,
     "confidence_mode": None,       # None = the documented default, or the calibrated statistic
     "n_ctx": None,
     "n_seq_max": None,
@@ -141,6 +152,9 @@ class Options:
     #: the answer-sheet shape every published table measured; `role_split` renders the question as
     #: its own user turn through the model's chat template.
     chat_format: str = ANSWER_SHEET
+    #: E3e: where the `json_instructed` contract is stated — `JSON_CONTRACTS` above. A no-op for
+    #: the other cues, which ask for a bare label.
+    json_contract: str = JSON_CONTRACT
     #: None = "whatever the stored calibration says for this question type, else
     #: normalized_peak" (E2.5 / A-E2p5-3: a promoted mode is only visible if the readout reports
     #: it). An explicit mode always wins over the table.
@@ -324,6 +338,7 @@ def _parse_options(raw: Any) -> tuple[Options, list[str]]:
         readout=_choice("readout", values["readout"], ("sequence", "single_token")),
         cue=_choice("cue", values["cue"], CUE_SHAPES),
         chat_format=_choice("chat_format", values["chat_format"], CHAT_FORMATS),
+        json_contract=_choice("json_contract", values["json_contract"], JSON_CONTRACTS),
         confidence_mode=_optional_choice("confidence_mode", values["confidence_mode"],
                                          tuple(CONFIDENCE_MODES)),
         n_ctx=_optional_int("n_ctx", values["n_ctx"], low=1),

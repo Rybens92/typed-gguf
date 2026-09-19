@@ -40,7 +40,8 @@ import pytest
 from ggufone import cli, errors, schema
 from ggufone.bench import harness, suites
 from ggufone.engine import cue as cue_module
-from ggufone.engine import decide, prompt, template as template_module
+from ggufone.engine import decide, prompt
+from ggufone.engine import template as template_module
 from tests.fake_engine import FakeSession, biased_row
 
 #: the bias that puts ~1.0 of a 512-slot row's mass on one token
@@ -60,7 +61,8 @@ OPENER = '{"choice": "'
 #: the generation prompt appended only when asked for. `{{-`'s whitespace control is not needed
 #: here; the E1c renderer handles both.
 CHATML = ("{% for message in messages %}"
-          "{{ '<|im_start|>' + message['role'] + '\\n' + message['content'] + '<|im_end|>' + '\\n' }}"
+          "{{ '<|im_start|>' + message['role'] + '\\n' + message['content']"
+          " + '<|im_end|>' + '\\n' }}"
           "{% endfor %}"
           "{% if add_generation_prompt %}{{ '<|im_start|>assistant\\n' }}{% endif %}")
 #: A template that renders only the *last* message: the state turn does not exist for it, so the
@@ -80,9 +82,10 @@ class JsonSession(FakeSession):
         return super().tokenize(text)
 
 
-def request_for(cue: str | None = None, chat_format: str | None = None, *, qtype: str = "choice",
+def request_for(cue: str | None = None, chat_format: str | None = None, *,
+                json_contract: str | None = None, qtype: str = "choice",
                 instructions: str = "Which area owns this?") -> dict:
-    """One dev-set-shaped request; `cue`/`chat_format` are left out unless a test names one."""
+    """One dev-set-shaped request; these options are left out unless a test names one."""
     bodies = {
         "choice": ("area", {"type": "choice", "instructions": instructions,
                             "criteria": {"billing": "payments and invoices",
@@ -99,6 +102,8 @@ def request_for(cue: str | None = None, chat_format: str | None = None, *, qtype
         options["cue"] = cue
     if chat_format is not None:
         options["chat_format"] = chat_format
+    if json_contract is not None:
+        options["json_contract"] = json_contract
     if options:
         payload["options"] = options
     return payload
@@ -124,7 +129,7 @@ def test_the_default_chat_format_is_the_answer_sheet() -> None:
     assert schema.CHAT_FORMATS == ("answer_sheet", "role_split")
     # the bench's own literals (harness never imports `schema`) must be the schema's values
     assert harness.DEFAULT_CHAT_FORMAT == schema.ANSWER_SHEET
-    assert harness.DEFAULT_CUE == schema.CUE_SHAPES[0]
+    assert schema.CUE_SHAPES[0] == harness.DEFAULT_CUE
     assert harness.BenchConfig(suite="quality").chat_format == "answer_sheet"
     assert cli.BENCH_DEFAULTS["chat-format"] == "answer_sheet"
 
@@ -465,7 +470,8 @@ def test_the_answer_sheet_default_publishes_the_assistant_turn() -> None:
     plan = chat_plan(request, session)
     scripted(request, plan=plan, session=session, value={session.tokenize("billing")[0]: TOP})
     result = decide.DecisionEngine(session).decide(request, plan=plan)
-    assert result.engine["chat_format"] == {"kind": "answer_sheet", "question_turn": "assistant"}
+    assert result.engine["chat_format"] == {"kind": "answer_sheet", "question_turn": "assistant",
+                                            "contract": None}
 
 
 def test_the_value_row_verdict_is_published_on_the_answer() -> None:
@@ -526,7 +532,8 @@ def test_a_refused_value_row_keeps_the_e3c_refusal() -> None:
     assert answer["cue"]["verdict"] == "refused"
     assert answer["cue"]["closer"] == "<|im_end|>"
     assert "W_CUE_REFUSED" in result.warnings
-    assert "W_JSON_EMPTY_VALUE" not in result.warnings and "W_JSON_WRONG_FIELD" not in result.warnings
+    assert "W_JSON_EMPTY_VALUE" not in result.warnings
+    assert "W_JSON_WRONG_FIELD" not in result.warnings
     # a refusal never walks: no token was decoded past the value row
     assert not any(len(batch.tokens) == 1 and batch.tokens[0] == QUOTE
                    for batch in session.batches)
@@ -540,7 +547,8 @@ def test_the_shipped_shape_gets_no_verdict_key() -> None:
     scripted(request, plan=plan, session=session, value={session.tokenize("billing")[0]: TOP})
     result = decide.DecisionEngine(session).decide(request, plan=plan)
     assert "verdict" not in result.answers["area"]["cue"]
-    assert "W_JSON_EMPTY_VALUE" not in result.warnings and "W_JSON_WRONG_FIELD" not in result.warnings
+    assert "W_JSON_EMPTY_VALUE" not in result.warnings
+    assert "W_JSON_WRONG_FIELD" not in result.warnings
 
 
 # ==================================================================== the surfaces (CLI/bench)
@@ -557,6 +565,62 @@ def test_the_bench_validates_the_placement_like_the_cue() -> None:
         cli._bench_chat_format("letters")
     assert caught.value.code == "E_BENCH_USAGE"
     assert "answer_sheet|role_split" in str(caught.value)
+    assert cli._bench_json_contract(None) == "question"
+    assert cli._bench_json_contract("system") == "system"
+    with pytest.raises(errors.UserError) as caught:
+        cli._bench_json_contract("everywhere")
+    assert caught.value.code == "E_BENCH_USAGE"
+    assert "question|system" in str(caught.value)
+    assert "json-contract" in cli.ENGINE_VALUE_FLAGS and "json-contract" in cli.BENCH_VALUE_FLAGS
+
+
+def test_the_contract_is_the_amendments_second_variant() -> None:
+    """Same words, heard in the other place: the framing states it, the question asks."""
+    inline = parsed(cue="json_instructed")
+    system = parsed(cue="json_instructed", json_contract="system")
+    assert prompt.framing_for("json_instructed", "question") == prompt.JSON_FRAMING
+    assert prompt.framing_for("json_instructed", "system") == prompt.JSON_SYSTEM_FRAMING
+    for key in ("choice", "severity", "answer"):
+        assert f'"{key}"' in prompt.JSON_SYSTEM_FRAMING      # all three contracts up front
+    system_block = prompt.question_block(system.questions[0], cue="json_instructed",
+                                         contract="system")
+    assert system_block.endswith(prompt.CANDIDATE_CUE["choice"] + "\n")
+    assert prompt.JSON_CONTRACT["choice"] not in system_block
+    # the inline variant is byte-frozen: the framing says JSON, the question names the key
+    assert prompt.question_block(inline.questions[0], cue="json_instructed").endswith(
+        prompt.JSON_CONTRACT["choice"] + "\n")
+    # and the location is a no-op for every other cue
+    for cue in ("shipped", "two_step", "json_field"):
+        assert prompt.framing_for(cue, "system") == prompt.framing_for(cue, "question")
+        assert prompt.question_block(inline.questions[0], cue=cue, contract="system") == \
+            prompt.question_block(inline.questions[0], cue=cue, contract="question")
+
+
+def test_the_contract_location_reaches_the_plan_and_the_answer_surface() -> None:
+    request = parsed(cue="json_instructed", chat_format="role_split", json_contract="system")
+    plan = decide.plan_context(request, FakeSession())
+    assert plan.json_contract == "system"
+    assert plan.role is not None and plan.role.prefix.startswith(prompt.JSON_SYSTEM_FRAMING)
+    view = prompt.build_question(request.questions[0], cue="json_instructed",
+                                 role=plan.role, chat_format="role_split", contract="system")
+    assert view.suffix.endswith(OPENER)                     # the field is still opened
+    assert prompt.JSON_CONTRACT["choice"] not in view.suffix  # ... and the key is not re-named
+    assert plan.role.tails[0].startswith(prompt.PLAIN_USER_HEADER) or \
+        prompt.CANDIDATE_CUE["choice"] in plan.role.tails[0]
+
+
+def test_the_default_contract_is_the_inline_one_and_the_enumeration_is_pinned() -> None:
+    assert schema.JSON_CONTRACT == "question"
+    assert schema.JSON_CONTRACTS == ("question", "system")
+    assert schema.OPTION_DEFAULTS["json_contract"] == "question"
+    assert harness.DEFAULT_JSON_CONTRACT == schema.JSON_CONTRACT
+    with pytest.raises(errors.UserError) as caught:
+        schema.parse_request({"state": "s", "model": "m",
+                              "questions": {"q1": {"type": "choice",
+                                                   "criteria": {"billing": ["b"]}}},
+                              "options": {"json_contract": "everywhere"}})
+    assert caught.value.code == "E_UNKNOWN_KEY"
+
 
 
 def test_the_bench_row_asks_for_the_placement() -> None:
@@ -622,8 +686,9 @@ def test_the_two_step_readout_is_untouched_by_e3e() -> None:
     session = JsonSession(n_vocab=512)
     plan = chat_plan(request, session)
     label = session.tokenize("billing")[0]
-    n_suffix = len(session.tokenize(prompt.build_question(
-        request.questions[0], cue="two_step", chat_format="answer_sheet", role=None, index=0).suffix))
+    suffix = prompt.build_question(request.questions[0], cue="two_step",
+                                   chat_format="answer_sheet", role=None, index=0).suffix
+    n_suffix = len(session.tokenize(suffix))
     cue_position = len(plan.prefix_tokens) + n_suffix - 1
 
     def row_fn(context) -> list[float]:

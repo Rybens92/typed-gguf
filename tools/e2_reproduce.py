@@ -55,14 +55,19 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--n-seq-max", dest="n_seq_max", type=int, default=None)
     parser.add_argument("--kv-type", dest="kv_type", default="auto")
     parser.add_argument("--cue", default="shipped",
-                        help="shipped | two_step | json_field | json_instructed — the cue shape the "
-                             "rows are read at (E3d card t_d90404ac, E3e card t_4c48f40a; "
-                             "default = the published shape)")
+                        help="the cue shape the rows are read at: shipped | two_step | json_field"
+                             " | json_instructed (E3d t_d90404ac, E3e t_4c48f40a; default = the "
+                             "published shape)")
     parser.add_argument("--chat-format", dest="chat_format", default=schema.ANSWER_SHEET,
                         choices=list(schema.CHAT_FORMATS),
                         help="answer_sheet | role_split — where the question block lives (E3e card "
                              "t_4c48f40a; default = the published shape, the question prefilled "
                              "into the assistant turn)")
+    parser.add_argument("--json-contract", dest="json_contract", default=schema.JSON_CONTRACT,
+                        choices=list(schema.JSON_CONTRACTS),
+                        help="question | system — where the json_instructed contract is stated "
+                             "(E3e, card t_4c48f40a): in the question block (default) or in the "
+                             "system framing; a no-op for the other cue shapes")
     parser.add_argument("--gpu-layers", dest="gpu_layers", type=int, default=None)
     parser.add_argument("--n-bins", dest="n_bins", type=int, default=harness.N_BINS)
     parser.add_argument("--sizes", default=None,
@@ -104,6 +109,7 @@ def build_config(args: argparse.Namespace, suite: str) -> harness.BenchConfig:
         kv_type=args.kv_type,
         cue=args.cue,
         chat_format=args.chat_format,
+        json_contract=args.json_contract,
         gpu_layers=args.gpu_layers,
         n_bins=args.n_bins,
         max_seconds=args.max_seconds,
