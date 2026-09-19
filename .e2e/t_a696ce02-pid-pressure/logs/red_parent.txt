@@ -1,0 +1,69 @@
+### tree: parent 8474802 + the new gate file (+ pressure.py, the new module)
+...FF...F....                                                            [100%]
+=================================== FAILURES ===================================
+E   AssertionError: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable
+    assert 'the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable' is None
+     +  where 'the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable' = ProbeScan(missing_llama=(), missing_ggml=(), error=None, backend_errors={}, child_error='the isolated probe could not ... (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable').child_error
+/work/t_a696ce02/red/tests/test_probe_pressure.py:113: AssertionError: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable
+E   AssertionError: assert 'E_PID_PRESSURE' in 'the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable'
+     +  where 'E_PID_PRESSURE' = pressure.E_PID_PRESSURE
+     +  and   'the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable' = ProbeScan(missing_llama=(), missing_ggml=(), error=None, backend_errors={}, child_error='the isolated probe could not ... (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable').child_error
+/work/t_a696ce02/red/tests/test_probe_pressure.py:127: AssertionError: assert 'E_PID_PRESSURE' in 'the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable'
+E   AssertionError: {'backend': 'cuda', 'variant': 'linux-x64-cuda-12.8', 'code': 'probe_failed', 'reason': 'the isolated probe could not ...nv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable); treated as unusable here'}
+    assert 'E_PID_PRESSURE' in 'the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable); treated as unusable here'
+     +  where 'E_PID_PRESSURE' = pressure.E_PID_PRESSURE
+/work/t_a696ce02/red/tests/test_probe_pressure.py:188: AssertionError: {'backend': 'cuda', 'variant': 'linux-x64-cuda-12.8', 'code': 'probe_failed', 'reason': 'the isolated probe could not ...nv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable); treated as unusable here'}
+=========================== short test summary info ============================
+FAILED tests/test_probe_pressure.py::test_a_transient_fork_failure_is_retried_until_the_probe_answers
+FAILED tests/test_probe_pressure.py::test_a_sustained_fork_block_is_named_pid_pressure_not_a_bundle
+FAILED tests/test_probe_pressure.py::test_the_install_chain_names_the_pressure_never_the_loader
+3 failed, 10 passed in 0.90s
+    exit=1
+### the 3 flaky files on the parent tree, every spawn denied (the filed flake)
+.....F.......F....FF........F...........FFF                              [100%]
+=================================== FAILURES ===================================
+E   assert False
+     +  where False = all(<generator object test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads.<locals>.<genexpr> at 0x7f0a009c7a00>)
+/work/t_a696ce02/red/tests/test_runtime_fallback.py:205: assert False
+E   AssertionError: ['the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t_a696ce02/repo...nv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable); treated as unusable here']
+    assert False
+     +  where False = any(<generator object test_install_reports_a_bundle_that_carries_no_such_backend.<locals>.<genexpr> at 0x7f0a018ddd80>)
+/work/t_a696ce02/red/tests/test_runtime_fallback.py:338: AssertionError: ['the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t_a696ce02/repo...nv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable); treated as unusable here']
+E   AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+      
+      At index 0 diff: 'probe_failed' != 'loader_error'
+      Use -v to get more diff
+/work/t_a696ce02/red/tests/test_runtime_fallback.py:459: AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+E   AssertionError: assert 'probe_failed' == 'backend_absent'
+      
+      - backend_absent
+      + probe_failed
+/work/t_a696ce02/red/tests/test_runtime_fallback.py:474: AssertionError: assert 'probe_failed' == 'backend_absent'
+E   assert None == 11026
+/work/t_a696ce02/red/tests/test_runtime_install.py:134: assert None == 11026
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+
+The above exception was the direct cause of the following exception:
+E   ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/red/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=111/256 (145 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+/work/t_a696ce02/red/src/ggufone/runtime/pressure.py:157: ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/red/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=111/256 (145 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+
+The above exception was the direct cause of the following exception:
+E   ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/red/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=111/256 (145 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+/work/t_a696ce02/red/src/ggufone/runtime/pressure.py:157: ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/red/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=111/256 (145 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+
+The above exception was the direct cause of the following exception:
+E   ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/red/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=111/256 (145 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+/work/t_a696ce02/red/src/ggufone/runtime/pressure.py:157: ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/red/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=111/256 (145 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+=========================== short test summary info ============================
+FAILED tests/test_runtime_fallback.py::test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads
+FAILED tests/test_runtime_fallback.py::test_install_reports_a_bundle_that_carries_no_such_backend
+FAILED tests/test_runtime_fallback.py::test_a_tier_this_lock_does_not_pin_is_coded_no_asset
+FAILED tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent
+FAILED tests/test_runtime_install.py::test_install_from_the_offline_cache - a...
+FAILED tests/test_runtime_contract.py::test_oracle_runs_offline_and_exits_zero
+FAILED tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+8 failed, 35 passed in 0.64s
+    exit=1

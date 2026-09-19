@@ -1,0 +1,88 @@
+### A2 starved cgroup + inject=always (5 files) pids=206
+.....s.......s....ss........s...........ssssss..s....sss......ss.s...s.. [ 73%]
+.......ss....ssss.........                                               [100%]
+=== PID PRESSURE: 25 fork gate(s) skipped — this run could not measure them ====
+  tests/test_runtime_fallback.py::test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 193, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_fallback.py::test_install_reports_a_bundle_that_carries_no_such_backend: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 327, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_fallback.py::test_a_tier_this_lock_does_not_pin_is_coded_no_asset: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 451, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 466, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_install.py::test_install_from_the_offline_cache: ('/work/t_a696ce02/repo/tests/test_runtime_install.py', 117, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_contract.py::test_oracle_runs_offline_and_exits_zero: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 55, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 64, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 86, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_deep_probe_does_not_dlopen_anything_in_this_process: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 85, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_the_child_really_loads_the_bundle: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 102, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_the_probe_child_answers_the_documented_protocol: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 120, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_a_probe_child_that_hangs_times_out: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 162, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_already_installed_reports_the_recorded_fallback_reason: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 252, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_cli_init_on_an_installed_runtime_prints_the_fallback_reason: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 287, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_init_without_a_record_names_the_backend_this_run_asked_for: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 321, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_warmup_child_answers_the_documented_protocol: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 494, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_system_lib_probe_reports_what_this_host_can_load: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 510, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_the_child_reports_symbols_and_backends_in_one_answer: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 540, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_build_number_reads_llama_cli: ('/work/t_a696ce02/repo/tests/test_capability.py', 71, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_is_deep_by_default_and_shallow_on_request: ('/work/t_a696ce02/repo/tests/test_capability.py', 135, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_deep_probe_reports_symbols_missing_from_a_real_but_wrong_library: ('/work/t_a696ce02/repo/tests/test_capability.py', 150, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_records_the_tool_checks: ('/work/t_a696ce02/repo/tests/test_capability.py', 186, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_fails_when_fit_params_help_breaks: ('/work/t_a696ce02/repo/tests/test_capability.py', 194, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_fails_when_build_is_below_the_spark2_5_floor: ('/work/t_a696ce02/repo/tests/test_capability.py', 203, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_warns_when_the_build_is_not_the_pinned_tag: ('/work/t_a696ce02/repo/tests/test_capability.py', 210, 'Skipped: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  the box, not the product: the exit status is forced non-zero so a starved cgroup can never be read as a green suite
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_runtime_fallback.py:193: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_runtime_fallback.py:327: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_runtime_fallback.py:451: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_runtime_fallback.py:466: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_runtime_install.py:117: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_runtime_contract.py:55: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_runtime_contract.py:64: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_runtime_contract.py:86: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:85: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:102: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:120: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:162: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:252: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:287: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:321: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:494: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:510: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_probe_isolation.py:540: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_capability.py:71: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_capability.py:135: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_capability.py:150: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_capability.py:186: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_capability.py:194: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_capability.py:203: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+SKIPPED [1] tests/test_capability.py:210: pid cgroup has no fork headroom (pids.current=250/256 (6 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16
+73 passed, 25 skipped in 0.99s
+    exit=1 pids=206
+### B2 healthy cgroup + inject=3 (5 files) pids=206
+........................................................................ [ 73%]
+..........................                                               [100%]
+98 passed in 35.57s
+    exit=0 pids=206
+### C2 healthy cgroup + inject=9 (5 files) pids=206
+........................................................................ [ 73%]
+..........................                                               [100%]
+98 passed in 30.17s
+    exit=0 pids=200
+### D2 healthy cgroup, full suite -p no:randomly pids=200
+........................................................................ [  6%]
+.............................sssssss.................................... [ 12%]
+..................................................s..................... [ 18%]
+........................................................................ [ 24%]
+..................................s..................................... [ 30%]
+...............................................................ss....... [ 36%]
+........................................................................ [ 43%]
+........................................................................ [ 49%]
+..............................sssssss................................... [ 55%]
+...............sssssss.ss..........................................ss... [ 61%]
+....................ssss................................................ [ 67%]
+........................................................................ [ 73%]
+........................................................................ [ 79%]
+...................................................................sssss [ 86%]
+........................................................................ [ 92%]
+........................................s............................... [ 98%]
+ssss................                                                     [100%]
+1129 passed, 43 skipped in 28.00s
+    exit=0 pids=248

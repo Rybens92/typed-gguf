@@ -1,0 +1,36 @@
+pids before=253
+.....F.......F....FF........F...........sss                              [100%]
+=================================== FAILURES ===================================
+E   assert False
+     +  where False = all(<generator object test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads.<locals>.<genexpr> at 0x7fd4c94b18c0>)
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:205: assert False
+E   AssertionError: ['the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t_a696ce02/repo..., not a bundle problem); retry when pids.current is lower, or give the container more pids); treated as unusable here']
+    assert False
+     +  where False = any(<generator object test_install_reports_a_bundle_that_carries_no_such_backend.<locals>.<genexpr> at 0x7fd4c93006c0>)
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:338: AssertionError: ['the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t_a696ce02/repo..., not a bundle problem); retry when pids.current is lower, or give the container more pids); treated as unusable here']
+E   AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+      
+      At index 0 diff: 'probe_failed' != 'loader_error'
+      Use -v to get more diff
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:459: AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+E   AssertionError: assert 'probe_failed' == 'backend_absent'
+      
+      - backend_absent
+      + probe_failed
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:474: AssertionError: assert 'probe_failed' == 'backend_absent'
+E   assert None == 11026
+/work/t_a696ce02/repo/tests/test_runtime_install.py:134: assert None == 11026
+==== PID PRESSURE: 3 fork gate(s) skipped — this run could not measure them ====
+  tests/test_runtime_contract.py::test_oracle_runs_offline_and_exits_zero: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 55, 'Skipped: pid cgroup has no fork headroom (pids.current=256/256 (0 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 64, 'Skipped: pid cgroup has no fork headroom (pids.current=256/256 (0 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 86, 'Skipped: pid cgroup has no fork headroom (pids.current=256/256 (0 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  the box, not the product: the exit status is forced non-zero so a starved cgroup can never be read as a green suite
+=========================== short test summary info ============================
+FAILED tests/test_runtime_fallback.py::test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads
+FAILED tests/test_runtime_fallback.py::test_install_reports_a_bundle_that_carries_no_such_backend
+FAILED tests/test_runtime_fallback.py::test_a_tier_this_lock_does_not_pin_is_coded_no_asset
+FAILED tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent
+FAILED tests/test_runtime_install.py::test_install_from_the_offline_cache - a...
+5 failed, 35 passed, 3 skipped in 1.22s
+exit=1
+pids after=255

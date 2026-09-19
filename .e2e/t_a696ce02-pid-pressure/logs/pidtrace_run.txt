@@ -1,0 +1,29 @@
+..................FF........F...........FFF                              [100%]
+=================================== FAILURES ===================================
+E   AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+      
+      At index 0 diff: 'probe_failed' != 'loader_error'
+      Use -v to get more diff
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:459: AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+E   AssertionError: assert 'probe_failed' == 'backend_absent'
+      
+      - backend_absent
+      + probe_failed
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:474: AssertionError: assert 'probe_failed' == 'backend_absent'
+E   assert None == 11026
+/work/t_a696ce02/repo/tests/test_runtime_install.py:134: assert None == 11026
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+/usr/local/lib/python3.11/subprocess.py:1885: BlockingIOError: [Errno 11] Resource temporarily unavailable
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+/usr/local/lib/python3.11/subprocess.py:1885: BlockingIOError: [Errno 11] Resource temporarily unavailable
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+/usr/local/lib/python3.11/subprocess.py:1885: BlockingIOError: [Errno 11] Resource temporarily unavailable
+=========================== short test summary info ============================
+FAILED tests/test_runtime_fallback.py::test_a_tier_this_lock_does_not_pin_is_coded_no_asset
+FAILED tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent
+FAILED tests/test_runtime_install.py::test_install_from_the_offline_cache - a...
+FAILED tests/test_runtime_contract.py::test_oracle_runs_offline_and_exits_zero
+FAILED tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+6 failed, 37 passed in 3.34s
+exit=1 pids=255

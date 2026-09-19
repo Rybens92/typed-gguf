@@ -1,0 +1,5 @@
+retargeted
+75:# Mutation testing (Tier M). `source_paths` lists the *files under mutation*; `also_copy` brings
+78:# e.g. source_paths = ["src/ggufone"] with also_copy = ["tests", ...] — when a milestone wants
+80:# Card t_8cb0a05e (E1c FIX) swept `source_paths = ["src/ggufone/runtime/fit.py"]` with
+84:# Card t_630f32a3 (E2.5) swept `source_paths = ["src/ggufone/calibration"]` with both calibration

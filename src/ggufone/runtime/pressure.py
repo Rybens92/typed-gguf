@@ -127,7 +127,8 @@ class SpawnBlocked(OSError):
     """A child could not be started: the box is out of fork headroom (`E_PID_PRESSURE`).
 
     An `OSError` subclass on purpose: every existing `except OSError` around a spawn keeps
-    working, while the message now names the box instead of the command.
+    working, while the message now names the box instead of the command. `.errno` is the
+    kernel's own answer (`EAGAIN` here), so a caller can still branch on it.
     """
 
 
@@ -155,6 +156,7 @@ def spawn(command: Sequence[str], *, timeout: float | None = None,
                 time.sleep(SPAWN_BACKOFF * 2 ** (attempt - 1))
     assert last is not None
     raise SpawnBlocked(
+        last.errno,
         f"{E_PID_PRESSURE}: could not start {argv[0]!r} after {SPAWN_ATTEMPTS} attempts "
         f"({' '.join(argv)}): {last.__class__.__name__}: {last}{pressure_note()} — the box has "
         f"no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); "

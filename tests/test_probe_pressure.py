@@ -149,6 +149,7 @@ def test_a_sustained_fork_block_is_named_pid_pressure_not_a_bundle(
         assert lie not in scan.child_error, scan.child_error
 
 
+@pytest.mark.needs_fork
 def test_a_child_that_ran_is_data_and_is_never_retried(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     """A probe that started and died is a finding about the bundle/box — retrying it would lie."""
@@ -178,6 +179,52 @@ def test_the_retry_budget_is_bounded_and_documented() -> None:
     assert pressure.SPAWN_BACKOFF > 0
     total = sum(pressure.SPAWN_BACKOFF * 2 ** (n - 1) for n in range(1, pressure.SPAWN_ATTEMPTS))
     assert total <= 10, f"the wait budget is too long to sit through: {total}s"
+
+
+def test_the_backoff_schedule_is_the_documented_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The wait between attempts is exponential (0.2/0.4/0.8 s), one sleep per retry, no more.
+
+    The schedule *is* the policy (bounded, spread out, short enough to sit through), so it is
+    pinned rather than left to the formula's luck: three retries sleep three times, and the last
+    attempt does not sleep at all.
+    """
+    count_spawns(monkeypatch, always=True)
+    slept: list[float] = []
+    monkeypatch.setattr(pressure.time, "sleep", slept.append)
+
+    with pytest.raises(pressure.SpawnBlocked):
+        pressure.spawn(["never-reached"])
+
+    assert slept == [pressure.SPAWN_BACKOFF * 2 ** n
+                     for n in range(pressure.SPAWN_ATTEMPTS - 1)], slept
+
+
+def test_a_sustained_block_names_the_underlying_errno(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The message carries the kernel's own words, not just the box's numbers: a reader can see
+    *why* the child did not start (`[Errno 11] Resource temporarily unavailable`)."""
+    monkeypatch.setattr(pressure, "SPAWN_BACKOFF", 0)
+    count_spawns(monkeypatch, always=True)
+
+    with pytest.raises(pressure.SpawnBlocked) as caught:
+        pressure.spawn(["never-reached"])
+
+    text = str(caught.value)
+    assert "BlockingIOError" in text and "Errno 11" in text
+    assert "Resource temporarily unavailable" in text
+    assert pressure.E_PID_PRESSURE in text
+    assert caught.value.errno == errno.EAGAIN      # the causal errno survives the wrapping
+
+
+def test_the_pressure_note_is_empty_when_there_is_no_cgroup(tmp_path: pathlib.Path) -> None:
+    """`pressure_note` is appended to messages: with nothing to read it must add nothing at all
+    (never a placeholder, never an `AttributeError` on a `None` reading)."""
+    assert pressure.pressure_note(tmp_path / "nowhere") == ""
+
+    root = tmp_path / "cgroup"
+    root.mkdir()
+    (root / "pids.current").write_text("250\n")
+    (root / "pids.max").write_text("256\n")
+    assert pressure.pressure_note(root) == "; pid cgroup: pids.current=250/256 (6 free)"
 
 
 # --------------------------------------------------------------------- the contract

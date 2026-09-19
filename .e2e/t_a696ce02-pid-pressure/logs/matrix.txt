@@ -1,0 +1,267 @@
+### A inject=always (5 files) pids=115
+.....F.......F....FF........F...........FFFFFF..F....FFF......FF.F...F.. [ 73%]
+.......FF....FFFF.........                                               [100%]
+=================================== FAILURES ===================================
+E   assert False
+     +  where False = all(<generator object test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads.<locals>.<genexpr> at 0x7fa894f90900>)
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:206: assert False
+E   AssertionError: ['the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t_a696ce02/repo..., not a bundle problem); retry when pids.current is lower, or give the container more pids); treated as unusable here']
+    assert False
+     +  where False = any(<generator object test_install_reports_a_bundle_that_carries_no_such_backend.<locals>.<genexpr> at 0x7fa894fd3c60>)
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:340: AssertionError: ['the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t_a696ce02/repo..., not a bundle problem); retry when pids.current is lower, or give the container more pids); treated as unusable here']
+E   AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+      
+      At index 0 diff: 'probe_failed' != 'loader_error'
+      Use -v to get more diff
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:462: AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+E   AssertionError: assert 'probe_failed' == 'backend_absent'
+      
+      - backend_absent
+      + probe_failed
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:478: AssertionError: assert 'probe_failed' == 'backend_absent'
+E   assert None == 11026
+/work/t_a696ce02/repo/tests/test_runtime_install.py:135: assert None == 11026
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+
+The above exception was the direct cause of the following exception:
+E   ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/repo/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=115/256 (141 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+/work/t_a696ce02/repo/src/ggufone/runtime/pressure.py:157: ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/repo/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=115/256 (141 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+
+The above exception was the direct cause of the following exception:
+E   ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/repo/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=115/256 (141 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+/work/t_a696ce02/repo/src/ggufone/runtime/pressure.py:157: ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/repo/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=115/256 (141 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+
+The above exception was the direct cause of the following exception:
+E   ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/repo/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=115/256 (141 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+/work/t_a696ce02/repo/src/ggufone/runtime/pressure.py:157: ggufone.runtime.pressure.SpawnBlocked: E_PID_PRESSURE: could not start '/work/t_a696ce02/repo/.venv/bin/python' after 4 attempts (/work/t_a696ce02/repo/.venv/bin/python /work/t_a696ce02/repo/docs/verify_runtime_contract.py): BlockingIOError: [Errno 11] Resource temporarily unavailable; pid cgroup: pids.current=115/256 (141 free) — the box has no fork headroom right now (a shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids
+E   assert ('E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' and 'cannot load' in 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids')
+     +  where 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_deep_probe_does_not_dlope0/runtime'), deep=Tru...hared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids").error
+     +  and   'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_deep_probe_does_not_dlope0/runtime'), deep=Tru...hared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids").error
+/work/t_a696ce02/repo/tests/test_probe_isolation.py:98: assert ('E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' and 'cannot load' in 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids')
+E   assert 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' is None
+     +  where 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_the_child_really_loads_th0/runtime'), deep=Tru...hared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids").error
+/work/t_a696ce02/repo/tests/test_probe_isolation.py:115: assert 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' is None
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+/work/t_a696ce02/inject.py:33: BlockingIOError: [Errno 11] Resource temporarily unavailable
+E   assert ('E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -c import time; ti...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' and 'timed out' in 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -c import time; ti...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids')
+     +  where 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -c import time; ti...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_a_probe_child_that_hangs_0/runtime'), deep=Tru...hared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids").error
+     +  and   'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -c import time; ti...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_a_probe_child_that_hangs_0/runtime'), deep=Tru...hared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids").error
+/work/t_a696ce02/repo/tests/test_probe_isolation.py:170: assert ('E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -c import time; ti...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' and 'timed out' in 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -c import time; ti...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids')
+E   socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+E   urllib.error.URLError: <urlopen error [Errno -2] Name or service not known>
+
+The above exception was the direct cause of the following exception:
+E   ggufone.errors.DownloadError: E_DOWNLOAD_FAILED: https://example.invalid/releases/download/b11026/llama-b11026-bin-ubuntu-x64.tar.gz: cannot reach huggingface.co (<urlopen error [Errno -2] Name or service not known>); this tool is offline-capable only for the pinned default model (GGUFONE_OFFLINE=1)
+/work/t_a696ce02/repo/src/ggufone/registry/hf.py:307: ggufone.errors.DownloadError: E_DOWNLOAD_FAILED: https://example.invalid/releases/download/b11026/llama-b11026-bin-ubuntu-x64.tar.gz: cannot reach huggingface.co (<urlopen error [Errno -2] Name or service not known>); this tool is offline-capable only for the pinned default model (GGUFONE_OFFLINE=1)
+E   AssertionError: assert 3 == 0
+     +  where 3 = <function main at 0x7fa894ff19e0>(['init', '--json'])
+     +    where <function main at 0x7fa894ff19e0> = cli.main
+----------------------------- Captured stderr call -----------------------------
+error: E_DOWNLOAD_FAILED: https://example.invalid/releases/download/b11026/llama-b11026-bin-ubuntu-x64.tar.gz: cannot reach huggingface.co (<urlopen error [Errno -2] Name or service not known>); this tool is offline-capable only for the pinned default model (GGUFONE_OFFLINE=1)
+/work/t_a696ce02/repo/tests/test_probe_isolation.py:312: AssertionError: assert 3 == 0
+E   AssertionError: assert 3 == 0
+     +  where 3 = <function main at 0x7fa894ff19e0>(['init', '--json'])
+     +    where <function main at 0x7fa894ff19e0> = cli.main
+----------------------------- Captured stderr call -----------------------------
+error: E_DOWNLOAD_FAILED: https://example.invalid/releases/download/b11026/llama-b11026-bin-ubuntu-x64.tar.gz: cannot reach huggingface.co (<urlopen error [Errno -2] Name or service not known>); this tool is offline-capable only for the pinned default model (GGUFONE_OFFLINE=1)
+/work/t_a696ce02/repo/tests/test_probe_isolation.py:347: AssertionError: assert 3 == 0
+E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+/work/t_a696ce02/inject.py:33: BlockingIOError: [Errno 11] Resource temporarily unavailable
+E   AssertionError: assert 'the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): E_PI...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' is None
+/work/t_a696ce02/repo/tests/test_probe_isolation.py:513: AssertionError: assert 'the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime.probe_child): E_PI...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' is None
+E   assert 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' is None
+     +  where 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_the_child_reports_symbols0/runtime'), deep=Tru...hared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids").error
+/work/t_a696ce02/repo/tests/test_probe_isolation.py:554: assert 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' is None
+E   AssertionError: assert None == 11026
+     +  where None = <function build_number at 0x7fa894f034c0>(PosixPath('/tmp/pytest-of-root/pytest-2273/test_build_number_reads_llama_0/runtime'))
+     +    where <function build_number at 0x7fa894f034c0> = capability.build_number
+/work/t_a696ce02/repo/tests/test_capability.py:74: AssertionError: assert None == 11026
+E   AssertionError: assert None == 11026
+     +  where None = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_probe_is_deep_by_default_0/runtime'), deep=Fal..._by_default_0/runtime/llama-fit-params'}, fit_params_help_exit=None, expect_backend=None, error=None, child_error=None).build
+/work/t_a696ce02/repo/tests/test_capability.py:146: AssertionError: assert None == 11026
+E   assert 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' is None
+     +  where 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_deep_probe_reports_symbol0/runtime'), deep=Tru...hared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids").error
+/work/t_a696ce02/repo/tests/test_capability.py:155: assert 'E_RUNTIME_SYMBOLS: the isolated probe could not be started (/work/t_a696ce02/repo/.venv/bin/python -m ggufone.runtime...shared pid cgroup at its cap, not a bundle problem); retry when pids.current is lower, or give the container more pids' is None
+E   AssertionError: assert None == 0
+     +  where None = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_probe_records_the_tool_ch0/runtime'), deep=Fal..._the_tool_ch0/runtime/llama-fit-params'}, fit_params_help_exit=None, expect_backend=None, error=None, child_error=None).fit_params_help_exit
+/work/t_a696ce02/repo/tests/test_capability.py:191: AssertionError: assert None == 0
+E   AssertionError: assert None == 3
+     +  where None = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_probe_fails_when_fit_para0/runtime'), deep=Fal...hen_fit_para0/runtime/llama-fit-params'}, fit_params_help_exit=None, expect_backend=None, error=None, child_error=None).fit_params_help_exit
+/work/t_a696ce02/repo/tests/test_capability.py:199: AssertionError: assert None == 3
+E   assert False
+     +  where False = any(<generator object test_probe_fails_when_build_is_below_the_spark2_5_floor.<locals>.<genexpr> at 0x7fa8950868e0>)
+/work/t_a696ce02/repo/tests/test_capability.py:207: assert False
+E   AssertionError: assert None == 12000
+     +  where None = ProbeResult(runtime_dir=PosixPath('/tmp/pytest-of-root/pytest-2273/test_probe_warns_when_the_buil0/runtime'), deep=Fal...hen_the_buil0/runtime/llama-fit-params'}, fit_params_help_exit=None, expect_backend=None, error=None, child_error=None).build
+/work/t_a696ce02/repo/tests/test_capability.py:214: AssertionError: assert None == 12000
+=========================== short test summary info ============================
+FAILED tests/test_runtime_fallback.py::test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads
+FAILED tests/test_runtime_fallback.py::test_install_reports_a_bundle_that_carries_no_such_backend
+FAILED tests/test_runtime_fallback.py::test_a_tier_this_lock_does_not_pin_is_coded_no_asset
+FAILED tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent
+FAILED tests/test_runtime_install.py::test_install_from_the_offline_cache - a...
+FAILED tests/test_runtime_contract.py::test_oracle_runs_offline_and_exits_zero
+FAILED tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+FAILED tests/test_probe_isolation.py::test_deep_probe_does_not_dlopen_anything_in_this_process
+FAILED tests/test_probe_isolation.py::test_the_child_really_loads_the_bundle
+FAILED tests/test_probe_isolation.py::test_the_probe_child_answers_the_documented_protocol
+FAILED tests/test_probe_isolation.py::test_a_probe_child_that_hangs_times_out
+FAILED tests/test_probe_isolation.py::test_already_installed_reports_the_recorded_fallback_reason
+FAILED tests/test_probe_isolation.py::test_cli_init_on_an_installed_runtime_prints_the_fallback_reason
+FAILED tests/test_probe_isolation.py::test_init_without_a_record_names_the_backend_this_run_asked_for
+FAILED tests/test_probe_isolation.py::test_warmup_child_answers_the_documented_protocol
+FAILED tests/test_probe_isolation.py::test_system_lib_probe_reports_what_this_host_can_load
+FAILED tests/test_probe_isolation.py::test_the_child_reports_symbols_and_backends_in_one_answer
+FAILED tests/test_capability.py::test_build_number_reads_llama_cli - Assertio...
+FAILED tests/test_capability.py::test_probe_is_deep_by_default_and_shallow_on_request
+FAILED tests/test_capability.py::test_deep_probe_reports_symbols_missing_from_a_real_but_wrong_library
+FAILED tests/test_capability.py::test_probe_records_the_tool_checks - Asserti...
+FAILED tests/test_capability.py::test_probe_fails_when_fit_params_help_breaks
+FAILED tests/test_capability.py::test_probe_fails_when_build_is_below_the_spark2_5_floor
+FAILED tests/test_capability.py::test_probe_warns_when_the_build_is_not_the_pinned_tag
+25 failed, 73 passed in 2.17s
+    exit=1 pids=114
+### B inject=3 (transient, 5 files) pids=114
+.....................................................sss......ss.s...s.. [ 73%]
+.......ss....ssss.........                                               [100%]
+=== PID PRESSURE: 13 fork gate(s) skipped — this run could not measure them ====
+  tests/test_probe_isolation.py::test_already_installed_reports_the_recorded_fallback_reason: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 252, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_cli_init_on_an_installed_runtime_prints_the_fallback_reason: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 287, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_init_without_a_record_names_the_backend_this_run_asked_for: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 321, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_warmup_child_answers_the_documented_protocol: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 494, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_system_lib_probe_reports_what_this_host_can_load: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 510, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_the_child_reports_symbols_and_backends_in_one_answer: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 540, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_build_number_reads_llama_cli: ('/work/t_a696ce02/repo/tests/test_capability.py', 71, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_is_deep_by_default_and_shallow_on_request: ('/work/t_a696ce02/repo/tests/test_capability.py', 135, 'Skipped: pid cgroup has no fork headroom (pids.current=243/256 (13 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_deep_probe_reports_symbols_missing_from_a_real_but_wrong_library: ('/work/t_a696ce02/repo/tests/test_capability.py', 150, 'Skipped: pid cgroup has no fork headroom (pids.current=243/256 (13 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_records_the_tool_checks: ('/work/t_a696ce02/repo/tests/test_capability.py', 186, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_fails_when_fit_params_help_breaks: ('/work/t_a696ce02/repo/tests/test_capability.py', 194, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_fails_when_build_is_below_the_spark2_5_floor: ('/work/t_a696ce02/repo/tests/test_capability.py', 203, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_warns_when_the_build_is_not_the_pinned_tag: ('/work/t_a696ce02/repo/tests/test_capability.py', 210, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  the box, not the product: the exit status is forced non-zero so a starved cgroup can never be read as a green suite
+85 passed, 13 skipped in 48.65s
+    exit=1 pids=242
+### C inject=9 (5 files) pids=242
+.....s.......s.....s........s...........ssssss..s....sss......ss.s...s.. [ 73%]
+.......ss....ssss.........                                               [100%]
+=== PID PRESSURE: 24 fork gate(s) skipped — this run could not measure them ====
+  tests/test_runtime_fallback.py::test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 193, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_fallback.py::test_install_reports_a_bundle_that_carries_no_such_backend: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 327, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 466, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_install.py::test_install_from_the_offline_cache: ('/work/t_a696ce02/repo/tests/test_runtime_install.py', 117, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_contract.py::test_oracle_runs_offline_and_exits_zero: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 55, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 64, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 86, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_deep_probe_does_not_dlopen_anything_in_this_process: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 85, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_the_child_really_loads_the_bundle: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 102, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_the_probe_child_answers_the_documented_protocol: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 120, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_a_probe_child_that_hangs_times_out: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 162, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_already_installed_reports_the_recorded_fallback_reason: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 252, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_cli_init_on_an_installed_runtime_prints_the_fallback_reason: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 287, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_init_without_a_record_names_the_backend_this_run_asked_for: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 321, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_warmup_child_answers_the_documented_protocol: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 494, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_system_lib_probe_reports_what_this_host_can_load: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 510, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_probe_isolation.py::test_the_child_reports_symbols_and_backends_in_one_answer: ('/work/t_a696ce02/repo/tests/test_probe_isolation.py', 540, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_build_number_reads_llama_cli: ('/work/t_a696ce02/repo/tests/test_capability.py', 71, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_is_deep_by_default_and_shallow_on_request: ('/work/t_a696ce02/repo/tests/test_capability.py', 135, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_deep_probe_reports_symbols_missing_from_a_real_but_wrong_library: ('/work/t_a696ce02/repo/tests/test_capability.py', 150, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_records_the_tool_checks: ('/work/t_a696ce02/repo/tests/test_capability.py', 186, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_fails_when_fit_params_help_breaks: ('/work/t_a696ce02/repo/tests/test_capability.py', 194, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_fails_when_build_is_below_the_spark2_5_floor: ('/work/t_a696ce02/repo/tests/test_capability.py', 203, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_capability.py::test_probe_warns_when_the_build_is_not_the_pinned_tag: ('/work/t_a696ce02/repo/tests/test_capability.py', 210, 'Skipped: pid cgroup has no fork headroom (pids.current=242/256 (14 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  the box, not the product: the exit status is forced non-zero so a starved cgroup can never be read as a green suite
+74 passed, 24 skipped in 5.85s
+    exit=1 pids=242
+### D full suite -p no:randomly pids=242
+........................................................................ [  6%]
+.............................sssssss.................................... [ 12%]
+..................................................s..................... [ 18%]
+........................................................................ [ 24%]
+..................................s..................................... [ 30%]
+...............................................................ss....... [ 36%]
+........................................................................ [ 43%]
+........................................................................ [ 49%]
+..............................sssssss................................... [ 55%]
+...............sssssss.ss..........................................ss... [ 61%]
+....................ssss................................................ [ 67%]
+........................................................................ [ 73%]
+........................................................................ [ 79%]
+..........................s.....s.......s....ss........s...........sssss [ 86%]
+........................................................................ [ 92%]
+........................................s............................... [ 98%]
+ssss................                                                     [100%]
+==== PID PRESSURE: 6 fork gate(s) skipped — this run could not measure them ====
+  tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips: ('/work/t_a696ce02/repo/tests/test_runtime_contract.py', 86, 'Skipped: pid cgroup has no fork headroom (pids.current=255/256 (1 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_fallback.py::test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 193, 'Skipped: pid cgroup has no fork headroom (pids.current=255/256 (1 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_fallback.py::test_install_reports_a_bundle_that_carries_no_such_backend: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 327, 'Skipped: pid cgroup has no fork headroom (pids.current=255/256 (1 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_fallback.py::test_a_tier_this_lock_does_not_pin_is_coded_no_asset: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 451, 'Skipped: pid cgroup has no fork headroom (pids.current=255/256 (1 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent: ('/work/t_a696ce02/repo/tests/test_runtime_fallback.py', 466, 'Skipped: pid cgroup has no fork headroom (pids.current=255/256 (1 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  tests/test_runtime_install.py::test_install_from_the_offline_cache: ('/work/t_a696ce02/repo/tests/test_runtime_install.py', 117, 'Skipped: pid cgroup has no fork headroom (pids.current=255/256 (1 free)): this gate spawns a real child process and the box is at its pid cap — the box, not the product; re-run when pids.current < pids.max - 16')
+  the box, not the product: the exit status is forced non-zero so a starved cgroup can never be read as a green suite
+1123 passed, 49 skipped in 46.88s
+    exit=1 pids=256
+### E full suite seed=11 pids=256
+........................................................................ [  6%]
+.............................ssssssssss................................. [ 12%]
+..s..................................................................... [ 18%]
+........................................................................ [ 24%]
+........................................................................ [ 30%]
+...........................................................ssss.sssss... [ 36%]
+.....................................................s.................. [ 43%]
+s.s..........................................................s.......... [ 49%]
+....................................................s....s.............. [ 55%]
+........................................................................ [ 61%]
+........................................................................ [ 67%]
+.................................s..ss.....s.......sss....ssssss........ [ 73%]
+....................................................s....s.s..s......... [ 79%]
+........................................................................ [ 86%]
+........................................................................ [ 92%]
+........................................................................ [ 98%]
+....................                                                     [100%]
+1129 passed, 43 skipped in 40.93s
+    exit=0 pids=206
+### E full suite seed=12 pids=206
+........................................................................ [  6%]
+........................................................................ [ 12%]
+........................................................................ [ 18%]
+........................................................................ [ 24%]
+...sssss...............................sssssssss..............s..ssss... [ 30%]
+......................ssssss............................................ [ 36%]
+........................................................................ [ 43%]
+........................................................................ [ 49%]
+.........s..s.................................................s......... [ 55%]
+......s...........................................................s..... [ 61%]
+........s.........s..s.................................................. [ 67%]
+........................................................................ [ 73%]
+........................................................................ [ 79%]
+..................s..................................................... [ 86%]
+................................................s....................... [ 92%]
+.....................s........................s.s.........s.s..s.......s [ 98%]
+....s...............                                                     [100%]
+1129 passed, 43 skipped in 48.74s
+    exit=0 pids=206
+### E full suite seed=13 pids=206
+.....s......s........................................................... [  6%]
+........................................................................ [ 12%]
+........................................................................ [ 18%]
+.....................................s..s..s.........s.................. [ 24%]
+....................................................................s... [ 30%]
+.......ssssssss.s..s.........s.s.s....s........s..s..................... [ 36%]
+........................................................................ [ 43%]
+........................................................................ [ 49%]
+........................................................................ [ 55%]
+........................................................................ [ 61%]
+.......................................ss............................... [ 67%]
+........................................................................ [ 73%]
+................................s....................................... [ 79%]
+...........s............................ssss.......................sssss [ 86%]
+.................................ssssss.............s................... [ 92%]
+........................................................................ [ 98%]
+....................                                                     [100%]
+1129 passed, 43 skipped in 63.80s (0:01:03)
+    exit=0 pids=206

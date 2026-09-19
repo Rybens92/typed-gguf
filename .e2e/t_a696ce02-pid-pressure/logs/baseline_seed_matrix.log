@@ -1,0 +1,110 @@
+=== baseline seed=1 pids=107->150 exit=0
+...........................................                              [100%]
+43 passed in 42.05s
+=== baseline seed=2 pids=151->246 exit=0
+...........................................                              [100%]
+43 passed in 37.20s
+=== baseline seed=3 pids=244->254 exit=0
+E   assert False
+     +  where False = all(<generator object test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads.<locals>.<genexpr> at 0x7f24ebd07a00>)
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:205: assert False
+E   AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+      
+      At index 0 diff: 'probe_failed' != 'loader_error'
+      Use -v to get more diff
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:459: AssertionError: assert ['probe_failed', 'no_asset'] == ['loader_error', 'no_asset']
+E   AssertionError: assert 'probe_failed' == 'backend_absent'
+      
+      - backend_absent
+      + probe_failed
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:474: AssertionError: assert 'probe_failed' == 'backend_absent'
+E   AssertionError: ['the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t_a696ce02/repo...nv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable); treated as unusable here']
+    assert False
+     +  where False = any(<generator object test_install_reports_a_bundle_that_carries_no_such_backend.<locals>.<genexpr> at 0x7f24ed3b9a40>)
+/work/t_a696ce02/repo/tests/test_runtime_fallback.py:338: AssertionError: ['the isolated probe could not verify the cuda backend (the isolated probe could not be started (/work/t_a696ce02/repo...nv/bin/python -m ggufone.runtime.probe_child): [Errno 11] Resource temporarily unavailable); treated as unusable here']
+=========================== short test summary info ============================
+FAILED tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package
+FAILED tests/test_runtime_install.py::test_install_from_the_offline_cache - a...
+FAILED tests/test_runtime_fallback.py::test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads
+FAILED tests/test_runtime_fallback.py::test_a_tier_this_lock_does_not_pin_is_coded_no_asset
+FAILED tests/test_runtime_fallback.py::test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent
+FAILED tests/test_runtime_fallback.py::test_install_reports_a_bundle_that_carries_no_such_backend
+6 failed, 36 passed, 1 skipped in 23.23s
+=== baseline seed=4 pids=254->253 exit=0
+        ok   PoC contains required call-sequence marker: 'llama_get_logits_ith'
+        ok   PoC contains required call-sequence marker: 'batched decode'
+        ok   PoC: fork vs sequential readout max |Δ| == 0.00e+00 (isomorphism)
+        ok   PoC ran on the pinned runtime with a hybrid (DeltaNet) model
+        ok   pitfall documented: ggml_backend_load_all_from_path(<dir with libs>)…
+        ok   pitfall documented: llama_context_params.kv_unified MUST be true: wi…
+        ok   pitfall documented: llama_get_logits_ith(ctx, i) takes the TOKEN IND…
+        PoC                                qwen35 fork Δ=0.0
+        llama.cpp release                  b11026 (2026-09-17T13:31:47Z)
+        assets / ubuntu-x64 bytes          33 / 16855810
+        default model pin                  XHToken/Spark-X2.5-4B-GGUF:Q8_0 4375021152 B
+      
+      [B] live runtime probes (ctypes vs pinned release)
+        runtime dir: /work/agent-home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+        ok   ctypes resolves all 32 required symbols (0 missing)
+        ok   libggml.so resolves the backend loader (2/2) — PoC pitfall 1
+      
+    assert 1 == 0
+     +  where 1 = CompletedProcess(args=['/work/t_a696ce02/repo/.venv/bin/python', '/work/t_a696ce02/repo/docs/verify_runtime_contract.p...   self.pid = _fork_exec(\n               ^^^^^^^^^^^\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n').returncode
+/work/t_a696ce02/repo/tests/test_runtime_contract.py:29: AssertionError: 04942 B
+=========================== short test summary info ============================
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+FAILED tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package
+FAILED tests/test_runtime_contract.py::test_oracle_runs_offline_and_exits_zero
+3 failed, 40 passed in 6.89s
+=== baseline seed=5 pids=253->251 exit=0
+        ok   PoC contains required call-sequence marker: 'llama_memory_seq_cp'
+        ok   PoC contains required call-sequence marker: 'llama_get_logits_ith'
+        ok   PoC contains required call-sequence marker: 'batched decode'
+        ok   PoC: fork vs sequential readout max |Δ| == 0.00e+00 (isomorphism)
+        ok   PoC ran on the pinned runtime with a hybrid (DeltaNet) model
+        ok   pitfall documented: ggml_backend_load_all_from_path(<dir with libs>)…
+        ok   pitfall documented: llama_context_params.kv_unified MUST be true: wi…
+        ok   pitfall documented: llama_get_logits_ith(ctx, i) takes the TOKEN IND…
+        PoC                                qwen35 fork Δ=0.0
+        llama.cpp release                  b11026 (2026-09-17T13:31:47Z)
+        assets / ubuntu-x64 bytes          33 / 16855810
+        default model pin                  XHToken/Spark-X2.5-4B-GGUF:Q8_0 4375021152 B
+      
+      [B] live runtime probes (ctypes vs pinned release)
+        runtime dir: /work/agent-home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+        ok   ctypes resolves all 32 required symbols (0 missing)
+        ok   libggml.so resolves the backend loader (2/2) — PoC pitfall 1
+      
+    assert 1 == 0
+     +  where 1 = CompletedProcess(args=['/work/t_a696ce02/repo/.venv/bin/python', '/work/t_a696ce02/repo/docs/verify_runtime_contract.p...   self.pid = _fork_exec(\n               ^^^^^^^^^^^\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n').returncode
+/work/t_a696ce02/repo/tests/test_runtime_contract.py:63: AssertionError: 04942 B
+=========================== short test summary info ============================
+FAILED tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+2 failed, 41 passed in 13.86s
+=== baseline seed=6 pids=251->253 exit=0
+        ok   PoC contains required call-sequence marker: 'llama_get_logits_ith'
+        ok   PoC contains required call-sequence marker: 'batched decode'
+        ok   PoC: fork vs sequential readout max |Δ| == 0.00e+00 (isomorphism)
+        ok   PoC ran on the pinned runtime with a hybrid (DeltaNet) model
+        ok   pitfall documented: ggml_backend_load_all_from_path(<dir with libs>)…
+        ok   pitfall documented: llama_context_params.kv_unified MUST be true: wi…
+        ok   pitfall documented: llama_get_logits_ith(ctx, i) takes the TOKEN IND…
+        PoC                                qwen35 fork Δ=0.0
+        llama.cpp release                  b11026 (2026-09-17T13:31:47Z)
+        assets / ubuntu-x64 bytes          33 / 16855810
+        default model pin                  XHToken/Spark-X2.5-4B-GGUF:Q8_0 4375021152 B
+      
+      [B] live runtime probes (ctypes vs pinned release)
+        runtime dir: /work/agent-home/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+        ok   ctypes resolves all 32 required symbols (0 missing)
+        ok   libggml.so resolves the backend loader (2/2) — PoC pitfall 1
+      
+    assert 1 == 0
+     +  where 1 = CompletedProcess(args=['/work/t_a696ce02/repo/.venv/bin/python', '/work/t_a696ce02/repo/docs/verify_runtime_contract.p...   self.pid = _fork_exec(\n               ^^^^^^^^^^^\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n').returncode
+/work/t_a696ce02/repo/tests/test_runtime_contract.py:29: AssertionError: 04942 B
+=========================== short test summary info ============================
+FAILED tests/test_runtime_contract.py::test_oracle_live_section_is_green_without_skips
+FAILED tests/test_runtime_contract.py::test_oracle_section_d_sees_the_package
+FAILED tests/test_runtime_contract.py::test_oracle_runs_offline_and_exits_zero
+3 failed, 40 passed in 3.93s

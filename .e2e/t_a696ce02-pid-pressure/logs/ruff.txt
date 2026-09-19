@@ -1,0 +1,13 @@
+E501 Line too long (107 > 100)
+   --> tests/test_probe_pressure.py:131:101
+    |
+129 |     assert seen["attempts"] == pressure.SPAWN_ATTEMPTS          # bounded, not endless
+130 |     head = pressure.read_pid_headroom()
+131 |     if head is not None:                                        # the box's own numbers, when there are any
+    |                                                                                                     ^^^^^^^
+132 |         assert head.describe() in scan.child_error
+133 |     for lie in ("does not load on this host", "cannot open shared object", "carries no"):
+    |
+
+Found 1 error.
+ruff exit=1
