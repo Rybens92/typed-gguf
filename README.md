@@ -110,6 +110,19 @@ python3 docs/verify_runtime_contract.py             # oracle: pinned facts + for
 GGUFONE_RUNTIME_DIR=<runtime> python3 docs/verify_runtime_contract.py   # + live ctypes probes
 ```
 
+**Pid pressure (card t_a696ce02).** The worker container runs under a small, *shared* pid cgroup
+(`pids.max = 256`, with the sibling sandboxes inside it), so a busy box answers `fork` with
+`EAGAIN`. Two things follow, and the suite enforces both:
+
+* the probe path (`ggufone.runtime.pressure.spawn`) retries a *transient* spawn failure for a
+  bounded budget and names a *sustained* one — `E_PID_PRESSURE` plus the live reading
+  (`pids.current=254/256 (2 free)`) — so a box that cannot fork is never reported as
+  "the backend does not load on this host";
+* tests that need a real child process are marked `@pytest.mark.needs_fork`. Every run's header
+  prints the cgroup reading, and under a starved cgroup those gates **skip by name** while the run
+  forces a non-zero exit: a run that could not measure them must not look green. Re-run when
+  `pids.current` is lower; nothing here is a product finding.
+
 `docs/evidence/e1a_baseline.json` records this box's measured numbers (prefill tok/s, warm
 decode ms, KV footprint vs the conservative bound, the pull/resume/SHA transcript).
 

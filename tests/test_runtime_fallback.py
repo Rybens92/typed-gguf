@@ -190,6 +190,7 @@ def test_install_falls_back_from_cuda_to_vulkan_and_records_why(
     assert "libcudart.so.12" in record["fallback_attempts"][0]["reason"]
 
 
+@pytest.mark.needs_fork
 def test_install_falls_back_all_the_way_to_cpu_when_no_gpu_backend_loads(
         tmp_path: pathlib.Path) -> None:
     """Unpatched loader: every play-ELF backend is rejected, so the chain ends at cpu."""
@@ -323,6 +324,7 @@ def test_a_fallback_tier_without_a_pinned_bundle_is_skipped(tmp_path: pathlib.Pa
     assert "E_RUNTIME_MISSING" in result["fallback_attempts"][1]["reason"]
 
 
+@pytest.mark.needs_fork
 def test_install_reports_a_bundle_that_carries_no_such_backend(tmp_path: pathlib.Path) -> None:
     """Variant says vulkan but the archive holds no libggml-vulkan: name it, then fall back."""
     cache = bundle_cache(tmp_path, ("cuda", "cpu"))
@@ -446,6 +448,7 @@ def test_the_preflight_skip_is_coded_system_libs_missing(
     assert result["fallback_reason_code"] == install.REASON_SYSTEM_LIBS_MISSING
 
 
+@pytest.mark.needs_fork
 def test_a_tier_this_lock_does_not_pin_is_coded_no_asset(tmp_path: pathlib.Path) -> None:
     """The chain continues past a variant the lock has no asset for — and says so by code."""
     cache = bundle_cache(tmp_path, ("cuda", "cpu"))
@@ -460,6 +463,7 @@ def test_a_tier_this_lock_does_not_pin_is_coded_no_asset(tmp_path: pathlib.Path)
     assert "E_RUNTIME_MISSING" in result["fallback_attempts"][1]["reason"]
 
 
+@pytest.mark.needs_fork
 def test_a_bundle_that_carries_no_such_backend_is_coded_backend_absent(
         tmp_path: pathlib.Path) -> None:
     cache = bundle_cache(tmp_path, ("cuda", "cpu"))

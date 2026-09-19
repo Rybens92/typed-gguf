@@ -94,6 +94,21 @@ def test_an_unlimited_or_absent_cgroup_is_not_pressure(tmp_path: pathlib.Path) -
     assert pressure.read_pid_headroom(tmp_path / "nowhere") is None
 
 
+def test_an_unreadable_reading_is_none_not_a_guess(tmp_path: pathlib.Path) -> None:
+    """Garbage in the files (or no `pids.max`) must never become invented numbers."""
+    root = tmp_path / "cgroup"
+    root.mkdir()
+    (root / "pids.current").write_text("not-a-number\n")
+    (root / "pids.max").write_text("256\n")
+    assert pressure.read_pid_headroom(root) is None       # no reading at all
+
+    (root / "pids.current").write_text("13\n")
+    (root / "pids.max").write_text("weird\n")
+    head = pressure.read_pid_headroom(root)
+    assert head == pressure.PidHeadroom(current=13, maximum=None)
+    assert head.starved() is False and head.describe() == "pids.current=13 (no pid limit)"
+
+
 def test_only_pressure_errnos_are_treated_as_pressure() -> None:
     assert pressure.is_spawn_pressure(EAGAIN) is True
     assert pressure.is_spawn_pressure(OSError(errno.ENOMEM, "Cannot allocate memory")) is True
@@ -102,6 +117,7 @@ def test_only_pressure_errnos_are_treated_as_pressure() -> None:
 
 
 # --------------------------------------------------------------------- the retry
+@pytest.mark.needs_fork
 def test_a_transient_fork_failure_is_retried_until_the_probe_answers(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     """Two EAGAINs then the box frees up: the probe must still answer (that is the flake)."""
@@ -127,7 +143,7 @@ def test_a_sustained_fork_block_is_named_pid_pressure_not_a_bundle(
     assert "fork headroom" in scan.child_error
     assert seen["attempts"] == pressure.SPAWN_ATTEMPTS          # bounded, not endless
     head = pressure.read_pid_headroom()
-    if head is not None:                                        # the box's own numbers, when there are any
+    if head is not None:              # the box's own numbers, when there are any
         assert head.describe() in scan.child_error
     for lie in ("does not load on this host", "cannot open shared object", "carries no"):
         assert lie not in scan.child_error, scan.child_error
@@ -209,6 +225,7 @@ def run_nested(*selection: str, headroom: str) -> subprocess.CompletedProcess[st
         capture_output=True, text=True, cwd=str(ROOT), env=env, timeout=300, check=False)
 
 
+@pytest.mark.needs_fork
 def test_the_gate_skips_fork_gates_under_a_starved_cgroup_and_refuses_to_look_green() -> None:
     """`GGUFONE_TEST_PID_HEADROOM=250/256`: the fork gate skips *loudly*, the headroom gate fails,
     and the run exits non-zero — a starved box can never be read as "the product is fine"."""
@@ -224,6 +241,7 @@ def test_the_gate_skips_fork_gates_under_a_starved_cgroup_and_refuses_to_look_gr
     assert "PID PRESSURE" in result.stdout, result.stdout[-3000:]
 
 
+@pytest.mark.needs_fork
 def test_the_gate_runs_the_fork_gates_on_a_healthy_box() -> None:
     """Same selection, no simulated starvation: the fork gate runs and the headroom gate passes."""
     result = run_nested(

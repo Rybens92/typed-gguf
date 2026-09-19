@@ -82,6 +82,7 @@ def crash_after(seconds: float = 0.0, exit_code: int = 9) -> list[str]:
 
 
 # ------------------------------------------------------------------ isolation
+@pytest.mark.needs_fork
 def test_deep_probe_does_not_dlopen_anything_in_this_process(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     """The in-process seams must stay silent: a probe that runs here can kill the command."""
@@ -98,6 +99,7 @@ def test_deep_probe_does_not_dlopen_anything_in_this_process(
     assert not got.ok()
 
 
+@pytest.mark.needs_fork
 def test_the_child_really_loads_the_bundle(tmp_path: pathlib.Path) -> None:
     """A real ELF in `libllama.so`: the child resolves (and misses) the ABI for real."""
     real = real_system_lib()
@@ -115,6 +117,7 @@ def test_the_child_really_loads_the_bundle(tmp_path: pathlib.Path) -> None:
     assert any("do not resolve" in failure for failure in got.failures())
 
 
+@pytest.mark.needs_fork
 def test_the_probe_child_answers_the_documented_protocol(tmp_path: pathlib.Path) -> None:
     """`python -m ggufone.runtime.probe_child` + one JSON request/response, nothing else."""
     import subprocess
@@ -156,6 +159,7 @@ def test_garbage_from_the_probe_child_is_recorded(
     assert got.usable("cuda") is False
 
 
+@pytest.mark.needs_fork
 def test_a_probe_child_that_hangs_times_out(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     monkeypatch.setattr(isolated, "child_command", lambda: crash_after(seconds=5.0))
@@ -245,6 +249,7 @@ def test_an_explicit_backend_skips_the_preflight(tmp_path: pathlib.Path) -> None
 
 
 # ------------------------------------------------------------------ findings 3 + 4
+@pytest.mark.needs_fork
 def test_already_installed_reports_the_recorded_fallback_reason(
         tmp_path: pathlib.Path) -> None:
     """The idempotent re-run must still say `cuda -> vulkan`, from the record (finding 3)."""
@@ -279,6 +284,7 @@ def test_already_installed_reports_the_recorded_fallback_reason(
     assert got["fallback_reason"] == got["fallback_attempts"][0]["reason"]
 
 
+@pytest.mark.needs_fork
 def test_cli_init_on_an_installed_runtime_prints_the_fallback_reason(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
     cache = bundle_cache(tmp_path, ("cuda", "vulkan", "cpu"))
@@ -312,6 +318,7 @@ def test_cli_init_on_an_installed_runtime_prints_the_fallback_reason(
     assert payload["fallback_reason"] == payload["fallback_attempts"][0]["reason"]
 
 
+@pytest.mark.needs_fork
 def test_init_without_a_record_names_the_backend_this_run_asked_for(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
     """Runtime dirs copied in without `runtime.json`: still `cuda -> vulkan`, never `None -> …`."""
@@ -484,6 +491,7 @@ def test_a_warmup_that_dies_is_recorded_not_raised(
     assert recorded == str(model)
 
 
+@pytest.mark.needs_fork
 def test_warmup_child_answers_the_documented_protocol(tmp_path: pathlib.Path) -> None:
     import subprocess
 
@@ -499,6 +507,7 @@ def test_warmup_child_answers_the_documented_protocol(tmp_path: pathlib.Path) ->
     assert payload["error"] and "RuntimeMissing" in payload["error"]
 
 
+@pytest.mark.needs_fork
 def test_system_lib_probe_reports_what_this_host_can_load() -> None:
     got = isolated.system_libs(("libc.so.6", "libggufone-not-here.so.7"))
     assert got["libc.so.6"] is None
@@ -528,6 +537,7 @@ def test_probe_child_modes_are_callable_in_process(tmp_path: pathlib.Path) -> No
     assert set(probe_child.MODES) == {"probe", "warmup", "libs"}
 
 
+@pytest.mark.needs_fork
 def test_the_child_reports_symbols_and_backends_in_one_answer(tmp_path: pathlib.Path) -> None:
     """Both halves of the deep probe: the ABI that resolves and a backend that does not."""
     real = real_system_lib()

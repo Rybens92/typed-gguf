@@ -114,6 +114,7 @@ def test_dry_run_touches_nothing(tmp_path: pathlib.Path) -> None:
 
 
 # ------------------------------------------------------------------ install
+@pytest.mark.needs_fork
 def test_install_from_the_offline_cache(tmp_path: pathlib.Path) -> None:
     lock, archive = locked(tmp_path)
     home = tmp_path / "home"

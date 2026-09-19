@@ -68,6 +68,7 @@ def test_parse_build_from_cli_banner() -> None:
     assert capability.parse_build("nothing here") is None
 
 
+@pytest.mark.needs_fork
 def test_build_number_reads_llama_cli(tmp_path: pathlib.Path) -> None:
     rt = fake_runtime(tmp_path, build=11026)
     assert capability.build_number(rt) == 11026
@@ -131,6 +132,7 @@ def test_backends_empty_when_only_llama_is_present(tmp_path: pathlib.Path) -> No
 
 
 # ------------------------------------------------------------------ probe
+@pytest.mark.needs_fork
 def test_probe_is_deep_by_default_and_shallow_on_request(tmp_path: pathlib.Path) -> None:
     rt = fake_runtime(tmp_path)
     deep = capability.probe_runtime(rt, deep=True)
@@ -145,6 +147,7 @@ def test_probe_is_deep_by_default_and_shallow_on_request(tmp_path: pathlib.Path)
     assert shallow.failures() == []
 
 
+@pytest.mark.needs_fork
 def test_deep_probe_reports_symbols_missing_from_a_real_but_wrong_library(
         tmp_path: pathlib.Path) -> None:
     rt = fake_runtime(tmp_path, real_libs=True)
@@ -180,6 +183,7 @@ def test_probe_flags_the_vulkan_warmup_risk(tmp_path: pathlib.Path) -> None:
     assert any("W_VULKAN_WARMUP" in w for w in got.warnings())
 
 
+@pytest.mark.needs_fork
 def test_probe_records_the_tool_checks(tmp_path: pathlib.Path) -> None:
     rt = fake_runtime(tmp_path)
     got = capability.probe_runtime(rt, deep=False)
@@ -187,6 +191,7 @@ def test_probe_records_the_tool_checks(tmp_path: pathlib.Path) -> None:
     assert got.fit_params_help_exit == 0
 
 
+@pytest.mark.needs_fork
 def test_probe_fails_when_fit_params_help_breaks(tmp_path: pathlib.Path) -> None:
     rt = fake_runtime(tmp_path)
     (rt / "llama-fit-params").write_text("#!/bin/sh\nexit 3\n")
@@ -195,12 +200,14 @@ def test_probe_fails_when_fit_params_help_breaks(tmp_path: pathlib.Path) -> None
     assert any("llama-fit-params" in f for f in got.failures())
 
 
+@pytest.mark.needs_fork
 def test_probe_fails_when_build_is_below_the_spark2_5_floor(tmp_path: pathlib.Path) -> None:
     rt = fake_runtime(tmp_path, build=10715)
     got = capability.probe_runtime(rt, deep=False)
     assert any("10828" in f for f in got.failures())
 
 
+@pytest.mark.needs_fork
 def test_probe_warns_when_the_build_is_not_the_pinned_tag(tmp_path: pathlib.Path) -> None:
     rt = fake_runtime(tmp_path, build=12000)
     got = capability.probe_runtime(rt, deep=False)
