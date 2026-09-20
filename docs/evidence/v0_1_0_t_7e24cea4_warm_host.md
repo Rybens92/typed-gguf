@@ -34,8 +34,11 @@ runs because the cold one did.
 Offline, the card's own gates are `tests/test_keep.py`, `tests/test_keep_host.py`,
 `tests/test_keep_client.py`, `tests/test_keep_cli.py` — 93 gates, all green — and the whole suite is
 **1485 passed, 56 skipped** (the 49-skip offline baseline plus these 7 live gates, which skip *by
-name* and make a run exit non-zero unless the live flag asked for them). Receipt:
-`.e2e/t_7e24cea4-warm-host/logs/suite_final.txt`.
+name* and make a run exit non-zero unless the live flag asked for them), and the **oracle is
+unaffected: `failures: 0 skips: 0`** with the box's models visible (without them its two
+model-dependent sections skip by name — the container's `HOME` is `/root`, the models are mounted
+under the operator's home). Receipts:
+`.e2e/t_7e24cea4-warm-host/logs/{suite_final.txt,oracle_final.txt}`.
 
 Note on the cold number: `timings.model_load_ms` (2280/3187 ms) is the session's model load; the
 cold call's wall clock (17.50/24.50 s) is that load **plus** the one-time fit plan, the process

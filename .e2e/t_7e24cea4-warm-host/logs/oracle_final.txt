@@ -1,0 +1,14 @@
+$ cd /var/home/rybens/workspace/ggufone
+$ HOME=<the box's home carrying ~/.hermes/models> \
+  TYPED_GGUF_RUNTIME_DIR=<the pinned bundle> \
+  uv run --frozen python docs/verify_runtime_contract.py
+...
+  recommend_quant huge ctx             None kv=None placement=insufficient
+  local Spark arch                     spark2_5 file_type=7 (MOSTLY_Q8_0)
+  Qwen3.5-0.8B header                  qwen35 layers=24
+
+failures: 0  skips: 0
+
+# Without that HOME the two model-dependent sections skip by name
+# ("SKIP .../models/Spark-X2.5-4B-Q8_0.gguf absent" — the container's HOME is /root, the models are
+# mounted under the operator's home), which is why this receipt names the home it ran with.
