@@ -44,3 +44,32 @@ def test_the_evidence_document_exists_and_points_at_its_instruments() -> None:
     assert "tools/e3e_roles_decision.py" in text
     assert "tools/e3e_role_render.py" in text
     assert ".e3d/bench_templated_shipped.json" in text        # the baseline cell's provenance
+
+
+def test_the_freeze_claim_counts_the_cue_refusal_verdict() -> None:
+    """F1 (audit `t_57bd3db2` §8.1): the honest re-score line, in both documents.
+
+    The freeze check compares `got` + `reliability` + `cue.refused`; on this data one item moved —
+    the refusal verdict on `n16`, not the answer — so every "60/60" / "no decision moved" sentence
+    the correction touches must read 59/60 with the item named.
+    """
+    text = EVIDENCE.read_text(encoding="utf-8")
+    assert "59/60 decisions identical" in text
+    assert "refusal verdict" in text
+    section = BENCHMARKS.split("## 9. E3e", 1)[1]
+    assert "59 of 60 decisions" in section
+    assert "on all 60 decisions" not in section, "the corrected line is back to 60/60"
+    assert "refusal verdict" in section
+
+
+def test_the_instrument_line_names_the_command_that_actually_ran() -> None:
+    """F4 (audit `t_57bd3db2` §8.3): the arms ran the harness default, not `--runs 1`.
+
+    `.e3e/run_arms.sh` passes no `--runs`, so `harness.DEFAULT_RUNS = 5` applied and the reports'
+    own reproduce lines say `--runs 5`. The quality suite decodes each item once, so no number moved
+    — the sentence was the only thing wrong.
+    """
+    head = EVIDENCE.read_text(encoding="utf-8").split("## Why this card exists", 1)[0]
+    assert "`--runs 1`" not in head
+    assert "--runs 5" in head
+    assert "harness default" in head

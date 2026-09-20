@@ -2,6 +2,7 @@
   "backend": "vulkan",
   "caveats": [
     "60 committed dev items: a single cell's 95 % interval is up to 24.5 points wide, so single-cell differences below that are noise by construction \u2014 which is what the paired columns are for.",
+    "the arm reports' *own* `overall`/`per_type` intervals use `z = 1.96` (`harness.wilson_interval`); every interval in this table is recomputed from the rows at the precise `z` (1.959963984540054), so the two differ from the 6th decimal on (0.574910530336 vs 0.574912920531) \u2014 both correct, no number depends on the choice.",
     "`score` is the type E3c/E3d found hardest: a policy that helps choice/noul and does not help score is still a policy decision, not a quality result."
   ],
   "cells": [
@@ -678,7 +679,7 @@
         "difference": 0.13333333333333333,
         "label": "json_instructed/role_split",
         "mcnemar_p": 0.057373046875,
-        "verdict": "not by more than the CI noise",
+        "verdict": "interval clears zero, exact test does not",
         "why": "11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057"
       },
       {
@@ -691,7 +692,7 @@
         "difference": 0.13333333333333333,
         "label": "json_instructed/role_split/system",
         "mcnemar_p": 0.057373046875,
-        "verdict": "not by more than the CI noise",
+        "verdict": "interval clears zero, exact test does not",
         "why": "11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057"
       },
       {
@@ -704,7 +705,7 @@
         "difference": 0.13333333333333333,
         "label": "shipped/role_split",
         "mcnemar_p": 0.076812744140625,
-        "verdict": "not by more than the CI noise",
+        "verdict": "interval clears zero, exact test does not",
         "why": "12 items only it got right, 4 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.007..+0.260), exact McNemar p=0.077"
       },
       {
@@ -743,7 +744,7 @@
         "difference": -0.23333333333333334,
         "label": "two_step/role_split",
         "mcnemar_p": 0.006610751152038574,
-        "verdict": "not by more than the CI noise",
+        "verdict": "interval clears zero below, exact test does not",
         "why": "5 items only it got right, 19 only shipped/answer_sheet did; difference -0.233 (95 % CI -0.382..-0.085), exact McNemar p=0.007"
       }
     ]
@@ -1267,9 +1268,18 @@
     "baseline": ".e3d/bench_templated_shipped.json",
     "bit_frozen": false,
     "decisions": 60,
-    "decisions_agree": 60,
-    "differences": [],
-    "frozen": true,
+    "decisions_agree": 59,
+    "differences": [
+      {
+        "id": "n16",
+        "problems": [
+          "got 'no' != 'no' (verdict 'low_mass' != 'low_mass'; refused False != True)",
+          "p(no) 0.6925871631703637 != 0.6812322310342762",
+          "p(yes) 0.30741283682963627 != 0.31876776896572384"
+        ]
+      }
+    ],
+    "frozen": false,
     "max_coverage_delta": 0.006245858641163282,
     "max_probability_delta": 0.01135493213608757,
     "n": 60,
@@ -1277,7 +1287,6 @@
       "n08",
       "n11",
       "n14",
-      "n16",
       "n17",
       "s01",
       "s05",

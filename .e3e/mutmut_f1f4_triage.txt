@@ -1,0 +1,43 @@
+mutants: 1941  killed: 1412  survived: 529  kill rate (of the mutants that ran): 72.7%
+
+x_freeze_check — this card's hunk: 22 killed, 0 survived
+    other survivors: 0 prose-only, 40 behaviour
+        behaviour x_freeze_check__mutmut_19: -def x_freeze_check__mutmut_orig(probe: Mapping[str, Any], baseline: M | +def x_freeze_check__mutmut_19(probe: Mapping[str, Any], baseline: Map
+        behaviour x_freeze_check__mutmut_29: -def x_freeze_check__mutmut_orig(probe: Mapping[str, Any], baseline: M | +def x_freeze_check__mutmut_29(probe: Mapping[str, Any], baseline: Map
+        behaviour x_freeze_check__mutmut_74: -def x_freeze_check__mutmut_orig(probe: Mapping[str, Any], baseline: M | +def x_freeze_check__mutmut_74(probe: Mapping[str, Any], baseline: Map
+        behaviour x_freeze_check__mutmut_75: -def x_freeze_check__mutmut_orig(probe: Mapping[str, Any], baseline: M | +def x_freeze_check__mutmut_75(probe: Mapping[str, Any], baseline: Map
+        behaviour x_freeze_check__mutmut_76: -def x_freeze_check__mutmut_orig(probe: Mapping[str, Any], baseline: M | +def x_freeze_check__mutmut_76(probe: Mapping[str, Any], baseline: Map
+        behaviour x_freeze_check__mutmut_77: -def x_freeze_check__mutmut_orig(probe: Mapping[str, Any], baseline: M | +def x_freeze_check__mutmut_77(probe: Mapping[str, Any], baseline: Map
+
+x_decide — this card's hunk: 14 killed, 0 survived
+    other survivors: 0 prose-only, 75 behaviour
+        behaviour x_decide__mutmut_2: -def x_decide__mutmut_orig(cells: Sequence[Mapping[str, Any]], pairs:  | +def x_decide__mutmut_2(cells: Sequence[Mapping[str, Any]], pairs: Seq
+        behaviour x_decide__mutmut_3: -def x_decide__mutmut_orig(cells: Sequence[Mapping[str, Any]], pairs:  | +def x_decide__mutmut_3(cells: Sequence[Mapping[str, Any]], pairs: Seq
+        behaviour x_decide__mutmut_4: -def x_decide__mutmut_orig(cells: Sequence[Mapping[str, Any]], pairs:  | +def x_decide__mutmut_4(cells: Sequence[Mapping[str, Any]], pairs: Seq
+        behaviour x_decide__mutmut_17: -def x_decide__mutmut_orig(cells: Sequence[Mapping[str, Any]], pairs:  | +def x_decide__mutmut_17(cells: Sequence[Mapping[str, Any]], pairs: Se
+        behaviour x_decide__mutmut_20: -def x_decide__mutmut_orig(cells: Sequence[Mapping[str, Any]], pairs:  | +def x_decide__mutmut_20(cells: Sequence[Mapping[str, Any]], pairs: Se
+        behaviour x_decide__mutmut_21: -def x_decide__mutmut_orig(cells: Sequence[Mapping[str, Any]], pairs:  | +def x_decide__mutmut_21(cells: Sequence[Mapping[str, Any]], pairs: Se
+
+x_build_caveats — this card's hunk: 1 killed, 2 survived
+    SURVIVOR x_build_caveats__mutmut_33:
+        -def x_build_caveats__mutmut_orig(cells: Sequence[Mapping[str, Any]],
+        +def x_build_caveats__mutmut_33(cells: Sequence[Mapping[str, Any]],
+        -    notes.append("the arm reports' *own* `overall`/`per_type` intervals use `z = 1.96` "
+        +    notes.append("XXthe arm reports' *own* `overall`/`per_type` intervals use `z = 1.96` XX"
+    SURVIVOR x_build_caveats__mutmut_34:
+        -def x_build_caveats__mutmut_orig(cells: Sequence[Mapping[str, Any]],
+        +def x_build_caveats__mutmut_34(cells: Sequence[Mapping[str, Any]],
+        -    notes.append("the arm reports' *own* `overall`/`per_type` intervals use `z = 1.96` "
+        +    notes.append("THE ARM REPORTS' *OWN* `OVERALL`/`PER_TYPE` INTERVALS USE `Z = 1.96` "
+    other survivors: 0 prose-only, 45 behaviour
+        behaviour x_build_caveats__mutmut_2: -def x_build_caveats__mutmut_orig(cells: Sequence[Mapping[str, Any]], | +def x_build_caveats__mutmut_2(cells: Sequence[Mapping[str, Any]],
+        behaviour x_build_caveats__mutmut_3: -def x_build_caveats__mutmut_orig(cells: Sequence[Mapping[str, Any]], | +def x_build_caveats__mutmut_3(cells: Sequence[Mapping[str, Any]],
+        behaviour x_build_caveats__mutmut_4: -def x_build_caveats__mutmut_orig(cells: Sequence[Mapping[str, Any]], | +def x_build_caveats__mutmut_4(cells: Sequence[Mapping[str, Any]],
+        behaviour x_build_caveats__mutmut_8: -def x_build_caveats__mutmut_orig(cells: Sequence[Mapping[str, Any]], | +def x_build_caveats__mutmut_8(cells: Sequence[Mapping[str, Any]],
+        behaviour x_build_caveats__mutmut_10: -def x_build_caveats__mutmut_orig(cells: Sequence[Mapping[str, Any]], | +def x_build_caveats__mutmut_10(cells: Sequence[Mapping[str, Any]],
+        behaviour x_build_caveats__mutmut_13: -def x_build_caveats__mutmut_orig(cells: Sequence[Mapping[str, Any]], | +def x_build_caveats__mutmut_13(cells: Sequence[Mapping[str, Any]],
+
+the tests mutmut attributes to the changed functions:
+  x_freeze_check: 7 node(s) — test_the_freeze_check_refuses_a_probe_that_shares_nothing, test_the_freeze_check_counting_the_cue_refusal_verdict, test_the_report_prints_the_rescore_line_when_the_instrument_was_measured, test_the_freeze_check_quantifies_a_noisy_rescore_instead_of_only_flagging_it
+  x_decide: 8 node(s) — test_decide_names_the_leg_of_the_rule_the_challenger_failed, test_the_report_prints_the_new_fallback_wording, test_decide_refuses_two_cells_that_claim_the_same_policy, test_decide_flips_the_pair_when_the_baseline_is_the_second_report
+  x_build_caveats: 4 node(s) — test_the_report_prints_the_rescore_line_when_the_instrument_was_measured, test_the_report_names_the_policy_the_pairs_and_the_comparability_cost, test_the_tool_names_the_two_wilson_conventions, test_the_report_prints_the_new_fallback_wording

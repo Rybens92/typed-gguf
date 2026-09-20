@@ -1181,7 +1181,7 @@ zero **and** exact McNemar below 0.05, the E3d unit).
 <!-- E3E-TABLE:START — spliced by `.e3e/splice_docs.py` from the tool's own report
      (`docs/evidence/e3e_roles_decision.md`); edit the tool, never this block. -->
 - probe `.e3e/probe_default.json` vs baseline `.e3d/bench_templated_shipped.json` (6 shared items): **frozen** — the prompt bytes and the decisions are the committed baseline's: 6/6 items, prefix_tokens identical on every item; numbers re-scored, not bit-identical (max |delta p| = 3.78e-02 over 6 item(s))
-- the table's own instrument, `.e3e/bench_shipped_answer_sheet.json` vs `.e3d/bench_templated_shipped.json` (60 shared items, tolerance 0.005): **decisions identical** (60/60) — the instrument moved the numbers, not the answers; max |delta p| = 1.14e-02, max |delta coverage| = 6.25e-03, prefix_tokens identical on every item
+- the table's own instrument, `.e3e/bench_shipped_answer_sheet.json` vs `.e3d/bench_templated_shipped.json` (60 shared items, tolerance 0.005): **1 decision(s) moved** — the re-score is not the same measurement: n16: got 'no' != 'no' (verdict 'low_mass' != 'low_mass'; refused False != True), p(no) 0.6925871631703637 != 0.6812322310342762, p(yes) 0.30741283682963627 != 0.31876776896572384; max |delta p| = 1.14e-02, max |delta coverage| = 6.25e-03, prefix_tokens identical on every item
 
 ### The cells
 
@@ -1234,12 +1234,12 @@ zero **and** exact McNemar below 0.05, the E3d unit).
 - best cell: `json_instructed/answer_sheet` — 51/60 correct, 0 refusals
 
 - `json_instructed/answer_sheet` vs `shipped/answer_sheet`: **wins** — 13 items only it got right, 4 only shipped/answer_sheet did; difference +0.150 (95 % CI +0.021..+0.279), exact McNemar p=0.049
-- `json_instructed/role_split` vs `shipped/answer_sheet`: **not by more than the CI noise** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
-- `json_instructed/role_split/system` vs `shipped/answer_sheet`: **not by more than the CI noise** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
-- `shipped/role_split` vs `shipped/answer_sheet`: **not by more than the CI noise** — 12 items only it got right, 4 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.007..+0.260), exact McNemar p=0.077
+- `json_instructed/role_split` vs `shipped/answer_sheet`: **interval clears zero, exact test does not** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
+- `json_instructed/role_split/system` vs `shipped/answer_sheet`: **interval clears zero, exact test does not** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
+- `shipped/role_split` vs `shipped/answer_sheet`: **interval clears zero, exact test does not** — 12 items only it got right, 4 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.007..+0.260), exact McNemar p=0.077
 - `json_instructed/answer_sheet/system` vs `shipped/answer_sheet`: **not by more than the CI noise** — 10 items only it got right, 4 only shipped/answer_sheet did; difference +0.100 (95 % CI -0.020..+0.220), exact McNemar p=0.180
 - `two_step/answer_sheet` vs `shipped/answer_sheet`: **not by more than the CI noise** — 7 items only it got right, 3 only shipped/answer_sheet did; difference +0.067 (95 % CI -0.035..+0.169), exact McNemar p=0.344
-- `two_step/role_split` vs `shipped/answer_sheet`: **not by more than the CI noise** — 5 items only it got right, 19 only shipped/answer_sheet did; difference -0.233 (95 % CI -0.382..-0.085), exact McNemar p=0.007
+- `two_step/role_split` vs `shipped/answer_sheet`: **interval clears zero below, exact test does not** — 5 items only it got right, 19 only shipped/answer_sheet did; difference -0.233 (95 % CI -0.382..-0.085), exact McNemar p=0.007
 
 The full generated report — the policy columns, the recommendation and the caveats the numbers carry — is `docs/evidence/e3e_roles_decision.md`, written by the tool itself; `.e3e/report.sh` regenerates it and `.e3e/splice_docs.py` re-splices this block.
 <!-- E3E-TABLE:END -->
@@ -1257,14 +1257,18 @@ non-zero exits if either fails. `--freeze-probe .e3e/probe_default.json` is a si
 the *baseline's own recipe* (`--backend auto`) and must reproduce the committed rows' **prompt bytes
 and decisions** (`prefix_tokens` and the answer, item for item). `--placement-probe` is the table's
 own baseline cell re-measured under the table's instrument (`--backend vulkan`, 60 items), and it
-agrees with the committed report on all 60 decisions with `prefix_tokens` identical on every item.
+agrees with the committed report on 59 of 60 decisions with `prefix_tokens` identical on every item;
+the one that moved is the cue **refusal verdict** on `n16` (the answer did not: `no`/`low_mass` on
+both sides), which the check counts as a decision and reports with a non-zero exit — `bash
+.e3e/report.sh` therefore exits 4 on this tree and still writes the report.
 The *numbers* are deliberately not required to be bit-identical: card `t_55de5779` landed after the
 committed baseline was published, and a `--backend auto` row that claims `cpu` now really computes on
 the CPU (the probe's log says `CPU compute buffer size`, which is that fix working), so the exact
 probabilities of the committed row are no longer reproducible by any flag on this tree. The drift is
-measured rather than assumed: ≤1.1e-2 in candidate probability on the re-scored 60 items, with no
-decision moved — and one cell of the E3d table (`two_step`, 47/60 published, 46/60 here) shows that
-drift can flip a near-tie item at the margin, which is why every claim below is a *paired* one.
+measured rather than assumed: ≤1.1e-2 in candidate probability on the re-scored 60 items, with one
+refusal verdict moved (`n16`) and no answer moved — and one cell of the E3d table (`two_step`,
+47/60 published, 46/60 here) shows that drift can flip a near-tie item at the margin, which is why
+every claim below is a *paired* one.
 Reproduce: `bash .e3e/run_arms.sh` (the freeze probe + the eight policy arms, one backend named) and
 `bash .e3e/report.sh` (the table, the two checks, the recommendation).
 

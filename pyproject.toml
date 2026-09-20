@@ -123,7 +123,21 @@ quote-style = "double"
 # decide.py is 44 KB of engine the E3e change touches in one method, and mutating it would multiply
 # the sweep by every wave/coverage/readout branch the E3e gates never reach on this shared box. A
 # later card that adds an engine-shaped change restores a decide.py sweep.
-source_paths = ["src/ggufone/engine/prompt.py", "src/ggufone/engine/cue.py"]
+# Card t_c8c76cc8 (E3e audit, F1-F4 applied verbatim) moves the pair to the *tool* the findings live
+# in: `tools/e3e_roles_decision.py` — the freeze check's compared field set (F1, `cue.refused`) and
+# `decide()`'s fallback verdict (F2). Its own gate file is the whole selection;
+# `tests/test_e3e_docs.py` is deliberately out (its pins are prose, and a doc edit cannot kill a
+# mutant). Restore the engine pair above when an engine card sweeps next.
+# The sweep: 1941 mutants, two rounds against the same source (the change, then the pin round 1's
+# survivors named). Round 1: 1404 killed / 537 survived (72.3 %) — the F1 hunk 22/22 killed, the F2
+# hunk 12 killed / 2 survived (the new branches' verdict dict `label` key, which nothing rendered).
+# Round 2 adds `test_the_report_prints_the_new_fallback_wording`: 1412 killed / 529 survived
+# (72.7 %), F1 22/22 and F2 14/14 killed. The two survivors on the changed surface are casing
+# mutants of the F3 caveat literal (prose; the note's `1.96` content is pinned). Receipts:
+# `.e3e/logs/f1_f4_patches.txt`, `.e3e/logs/mutmut_f1f4.log`, `.e3e/mutmut_f1f4_triage.txt`.
+# `tests/test_e3e_roles_decision.py` had to load the tool under its path-derived name for any of
+# this to run — mutmut keys a trampoline by the path, not by a bare module name (see `_tool()`).
+source_paths = ["tools/e3e_roles_decision.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -176,10 +190,10 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # that drive the changed helpers (the quality rows, the renderer's framing line and the table
 # integrity). The other bench gates spawn real files, sessions or models and cannot run per mutant
 # on this shared box.
+# Card t_c8c76cc8 (E3e audit F1-F4) selects the tool's own gate file: it drives the freeze check's
+# field set and every branch of the new verdict wording, and it is fast enough to run per mutant.
 pytest_add_cli_args_test_selection = [
-    "tests/test_e3e_roles.py",
-    "tests/test_e3d_cue_switch.py",
-    "tests/test_e3c_cue_refused.py",
+    "tests/test_e3e_roles_decision.py",
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down

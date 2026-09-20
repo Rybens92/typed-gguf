@@ -17,7 +17,12 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 def _tool():
-    spec = importlib.util.spec_from_file_location("e3e_roles_decision",
+    # the module name is the file's path under the repo root (`tools.e3e_roles_decision`), not a
+    # bare `e3e_roles_decision`: mutmut 3.8 keys a trampoline by the path it mutates, so a
+    # differently named spec makes every hit land on a key no mutant owns and the sweep stops with
+    # "none match any mutant key" (card t_c8c76cc8, the F1/F2 sweep — this file is the mutable
+    # source now).
+    spec = importlib.util.spec_from_file_location("tools.e3e_roles_decision",
                                                   ROOT / "tools" / "e3e_roles_decision.py")
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -156,12 +161,59 @@ def test_decide_calls_a_win_only_past_the_noise() -> None:
     assert same["verdicts"][0]["verdict"] == "identical on these 60 items"
     noise = tool.decide([tool.cell_stats(base_report), tool.cell_stats(weak_report)],
                         [tool.pair_stats(base_report, weak_report)])
-    assert noise["verdicts"][0]["verdict"] == "not by more than the CI noise"
+    # F2 (audit t_57bd3db2 §8.2): the fallback names *which* leg of the rule failed — the interval
+    # cleared zero here and the exact test did not, so "the CI noise" mis-described it
+    assert noise["verdicts"][0]["verdict"] == "interval clears zero, exact test does not"
     # the ranking still reports the counts — the verdict is about the *evidence*, not the order
     assert noise["best"] == "two_step/answer_sheet"
     assert noise["verdicts"][0]["challenger_only"] == 4
     assert noise["verdicts"][0]["ci"][0] > 0.0     # the interval clears zero ...
     assert noise["verdicts"][0]["mcnemar_p"] > 0.05  # ... but the exact test does not
+
+
+def test_decide_names_the_leg_of_the_rule_the_challenger_failed() -> None:
+    """F2 (audit t_57bd3db2 §8.2): a fallback verdict says which half of the rule did not clear.
+
+    "not by more than the CI noise" is false for a pair whose interval clears zero and whose exact
+    test does not, and false the other way for a pair that is significantly *worse* — so the three
+    cases are named and the phrase stays for the pair that is genuinely inside it.
+    """
+    tool = _tool()
+    base = report(dict.fromkeys("abcdefghij", False) | dict.fromkeys("abcde", True), cue="shipped")
+    worse = report(dict.fromkeys("abcdefghij", False), cue="two_step")
+    below = tool.decide([tool.cell_stats(base), tool.cell_stats(worse)],
+                        [tool.pair_stats(base, worse)])["verdicts"][0]
+    assert below["verdict"] == "interval clears zero below, exact test does not"
+    assert below["ci"][1] < 0.0 and below["mcnemar_p"] > 0.05
+    one_more = report(dict.fromkeys("abcdefghij", False) | dict.fromkeys("abcdef", True),
+                      cue="json_instructed")
+    inside = tool.decide([tool.cell_stats(base), tool.cell_stats(one_more)],
+                         [tool.pair_stats(base, one_more)])["verdicts"][0]
+    assert inside["verdict"] == "not by more than the CI noise"      # the interval spans zero
+    assert inside["ci"][0] < 0.0 < inside["ci"][1]
+
+
+def test_the_report_prints_the_new_fallback_wording() -> None:
+    """The wording must reach the report too — `render()` reads `verdict['label']`.
+
+    Round 2 of the card's Tier-M sweep (`mutants/`, `.e3e/logs/mutmut_f1f4.log`): two mutants of the
+    new branches' verdict dict renamed the `label` key and survived, because no gate rendered a
+    record whose decision carries the new wording. This is that gate — it is also the reader's view
+    of the two new dispositions.
+    """
+    tool = _tool()
+    base = report(dict.fromkeys("abcdefghij", False) | dict.fromkeys("abcd", True), cue="shipped")
+    worse = report(dict.fromkeys("abcdefghij", False), cue="two_step")
+    better = report(dict.fromkeys("abcdefghij", False) | dict.fromkeys("abcdefgh", True),
+                    cue="json_instructed")
+    record = tool.analyses([base, worse, better], baseline="shipped/answer_sheet")
+    record.update({"schema": tool.SCHEMA, "generated_at": "2026-09-19T00:00:00Z",
+                   "devset": base["devset"], "items": 10, "model": "m.gguf", "backend": "vulkan",
+                   "gpu_layers": -1, "threads": 4, "recommendation": "…",
+                   "caveats": tool.build_caveats(record["cells"], record["pairs"])})
+    text = tool.render(record)
+    assert "**interval clears zero below, exact test does not**" in text
+    assert "**interval clears zero, exact test does not**" in text
 
 
 def test_decide_refuses_two_cells_that_claim_the_same_policy() -> None:
@@ -215,6 +267,20 @@ def test_the_report_names_the_policy_the_pairs_and_the_comparability_cost() -> N
     assert "Comparability cost" in text
     assert "devset.jsonl" in text                              # the dev set is named, not dumped
     assert "prompt policy" in text or "policy each cell ran under" in text
+
+
+def test_the_tool_names_the_two_wilson_conventions() -> None:
+    """F3 (audit t_57bd3db2 §1): the note that keeps two correct intervals from looking wrong.
+
+    The arm reports' own `overall`/`per_type` blocks were computed by `harness.wilson_interval` with
+    `z = 1.96` exactly; this tool recomputes every interval from the rows at the precise `z`. They
+    differ in the 6th decimal at n = 60, and no published number depends on which is used — the
+    auditor's recommended fix is the note, not a regeneration.
+    """
+    tool = _tool()
+    assert "1.96" in (tool.__doc__ or "")
+    caveats = tool.build_caveats([tool.cell_stats(report({"a": True}))], [])
+    assert any("1.96" in note for note in caveats), "the note must reach the published report"
 
 
 def test_the_freeze_check_compares_the_probe_to_the_committed_baseline() -> None:
@@ -277,6 +343,27 @@ def test_the_freeze_check_separates_a_moved_decision_from_the_noise() -> None:
     result = tool.freeze_check(probe, baseline, tolerance=5e-3)
     assert result["decisions_agree"] == 1 and result["decisions"] == 2
     assert result["frozen"] is False                      # a moved answer is never noise
+
+
+def test_the_freeze_check_counting_the_cue_refusal_verdict() -> None:
+    """F1 (audit t_57bd3db2 §8.1): `cue.refused` is part of the compared decision.
+
+    The refusal classification is a *published* field (the cells' refusals column, the cue-verdict
+    table, the `W_CUE_REFUSED` family of claims), so a freeze check that cannot see it is not the
+    check the claim needs. Pinned here so the field cannot silently leave the set again.
+    """
+    tool = _tool()
+    baseline = report({"a": True, "b": False})
+    probe = report({"a": True, "b": False}, refusals={"b"})
+    result = tool.freeze_check(probe, baseline, tolerance=tool.PLACEMENT_TOLERANCE)
+    assert result["decisions"] == 2 and result["decisions_agree"] == 1
+    assert result["frozen"] is False
+    assert [row["id"] for row in result["differences"]] == ["b"]
+    assert any("refused" in problem for problem in result["differences"][0]["problems"])
+    # the field is compared, not merely failed: a *matching* refusal stays one decision
+    matching = tool.freeze_check(report({"a": True, "b": False}, refusals={"b"}),
+                                 report({"a": True, "b": False}, refusals={"b"}))
+    assert matching["decisions_agree"] == 2 and matching["frozen"] is True
 
 
 def test_the_freeze_check_pins_the_prompt_bytes_by_prefix_tokens() -> None:

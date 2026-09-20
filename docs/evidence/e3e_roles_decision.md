@@ -7,7 +7,7 @@
 ## The default is frozen (the probe and the table's own re-score)
 
 - probe `.e3e/probe_default.json` vs baseline `.e3d/bench_templated_shipped.json` (6 shared items): **frozen** — the prompt bytes and the decisions are the committed baseline's: 6/6 items, prefix_tokens identical on every item; numbers re-scored, not bit-identical (max |delta p| = 3.78e-02 over 6 item(s))
-- the table's own instrument, `.e3e/bench_shipped_answer_sheet.json` vs `.e3d/bench_templated_shipped.json` (60 shared items, tolerance 0.005): **decisions identical** (60/60) — the instrument moved the numbers, not the answers; max |delta p| = 1.14e-02, max |delta coverage| = 6.25e-03, prefix_tokens identical on every item
+- the table's own instrument, `.e3e/bench_shipped_answer_sheet.json` vs `.e3d/bench_templated_shipped.json` (60 shared items, tolerance 0.005): **1 decision(s) moved** — the re-score is not the same measurement: n16: got 'no' != 'no' (verdict 'low_mass' != 'low_mass'; refused False != True), p(no) 0.6925871631703637 != 0.6812322310342762, p(yes) 0.30741283682963627 != 0.31876776896572384; max |delta p| = 1.14e-02, max |delta coverage| = 6.25e-03, prefix_tokens identical on every item
 
 ## The cells
 
@@ -74,12 +74,12 @@
 - best cell: `json_instructed/answer_sheet` — 51/60 correct, 0 refusals
 
 - `json_instructed/answer_sheet` vs `shipped/answer_sheet`: **wins** — 13 items only it got right, 4 only shipped/answer_sheet did; difference +0.150 (95 % CI +0.021..+0.279), exact McNemar p=0.049
-- `json_instructed/role_split` vs `shipped/answer_sheet`: **not by more than the CI noise** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
-- `json_instructed/role_split/system` vs `shipped/answer_sheet`: **not by more than the CI noise** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
-- `shipped/role_split` vs `shipped/answer_sheet`: **not by more than the CI noise** — 12 items only it got right, 4 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.007..+0.260), exact McNemar p=0.077
+- `json_instructed/role_split` vs `shipped/answer_sheet`: **interval clears zero, exact test does not** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
+- `json_instructed/role_split/system` vs `shipped/answer_sheet`: **interval clears zero, exact test does not** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
+- `shipped/role_split` vs `shipped/answer_sheet`: **interval clears zero, exact test does not** — 12 items only it got right, 4 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.007..+0.260), exact McNemar p=0.077
 - `json_instructed/answer_sheet/system` vs `shipped/answer_sheet`: **not by more than the CI noise** — 10 items only it got right, 4 only shipped/answer_sheet did; difference +0.100 (95 % CI -0.020..+0.220), exact McNemar p=0.180
 - `two_step/answer_sheet` vs `shipped/answer_sheet`: **not by more than the CI noise** — 7 items only it got right, 3 only shipped/answer_sheet did; difference +0.067 (95 % CI -0.035..+0.169), exact McNemar p=0.344
-- `two_step/role_split` vs `shipped/answer_sheet`: **not by more than the CI noise** — 5 items only it got right, 19 only shipped/answer_sheet did; difference -0.233 (95 % CI -0.382..-0.085), exact McNemar p=0.007
+- `two_step/role_split` vs `shipped/answer_sheet`: **interval clears zero below, exact test does not** — 5 items only it got right, 19 only shipped/answer_sheet did; difference -0.233 (95 % CI -0.382..-0.085), exact McNemar p=0.007
 
 ## Recommendation
 
@@ -102,6 +102,7 @@ this table's headers are a new policy generation.
 ## Caveats the numbers carry
 
 - 60 committed dev items: a single cell's 95 % interval is up to 24.5 points wide, so single-cell differences below that are noise by construction — which is what the paired columns are for.
+- the arm reports' *own* `overall`/`per_type` intervals use `z = 1.96` (`harness.wilson_interval`); every interval in this table is recomputed from the rows at the precise `z` (1.959963984540054), so the two differ from the 6th decimal on (0.574910530336 vs 0.574912920531) — both correct, no number depends on the choice.
 - `score` is the type E3c/E3d found hardest: a policy that helps choice/noul and does not help score is still a policy decision, not a quality result.
 
 **Comparability cost.** Every cell in this table is measured under the *same* instrument (the same 60 committed dev items, temperature 0, fixed seed, `--backend vulkan`) — so the table compares itself and nothing else. What it does **not** compare against is any published row: a `role_split` placement, a `json_instructed` ask line, or a contract stated in the framing each change the bytes the model sees. A cell published as *the* quality row would carry its policy line (`- prompt policy: …`) and every other published quality row would have to be re-measured under the same policy before it could sit next to it.

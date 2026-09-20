@@ -1,0 +1,102 @@
+card t_c8c76cc8 — the E3e audit's F1-F4, applied verbatim (the tool and its docs)
+=============================================================================
+source of the patches: `state/fights/e3e-ci/scorecard.md` §8.1 (F1), §8.2 (F2), §1 (F3), §8.3 (F4)
+change-set:  tools/e3e_roles_decision.py, tests/test_e3e_roles_decision.py, tests/test_e3e_docs.py,
+             docs/evidence/e3e_roles_decision.{json,md}, docs/evidence/e3e_role_split_t_4c48f40a.md,
+             docs/BENCHMARKS.md §9, pyproject.toml [tool.mutmut]
+
+1. F1 — the freeze field set (`cue.refused`), verbatim §8.1
+   verbatim check: the §8.1 "New:" block appears in the tool token-for-token
+   (whitespace/wrap-insensitive; 72 tokens).
+   real data — `docs/evidence/e3e_roles_decision.json`, the placement block:
+       decisions 60, agreements 59, frozen False, prefix_tokens_differ []
+       moved: n16: got 'no' != 'no' (verdict 'low_mass' != 'low_mass'; refused False != True),
+              p(no) 0.6925871631703637 != 0.6812322310342762,
+              p(yes) 0.30741283682963627 != 0.31876776896572384
+     raw rows (the same item, both reports):
+       .e3d/bench_templated_shipped.json   n16: refused=true,  token 1   (<|end_of_sentence|>), mass 0.447562
+       .e3e/bench_shipped_answer_sheet.json n16: refused=false, token 198,                     mass 0.453601
+       got='no', reliability='low_mass' on both sides — the *classification* moved, not the answer.
+   the six-item freeze probe: 6/6, frozen True (unchanged — this is the placement line only).
+   exit code: `bash .e3e/report.sh` now exits **4** (the tool's own exit-4 condition biting, §8.1's
+   expected consequence); the report and the JSON are written before the exit, so the regeneration
+   and the splice still land: `uv run --frozen python .e3e/splice_docs.py` exits 0.
+
+2. F2 — the fallback verdict wording, verbatim §8.2. One deviation, named: the §8.2 text splits the
+   `"interval clears zero below, exact test does not"` literal across two source lines and the first
+   lands at 102 chars, over this repo's 100-char lint; the literal is re-wrapped (same string value —
+   the tests pin both verdict strings). E3d's card did the same for its §5 patch.
+   the four re-worded verdicts in the regenerated report (§9 and the evidence document):
+       shipped/role_split            +0.007..+0.260  p=0.077 -> "interval clears zero, exact test does not"
+       json_instructed/role_split    +0.016..+0.251  p=0.057 -> "interval clears zero, exact test does not"
+       .../role_split/system         +0.016..+0.251  p=0.057 -> "interval clears zero, exact test does not"
+       two_step/role_split           -0.382..-0.085  p=0.007 -> "interval clears zero below, exact test does not"
+   unchanged: `json_instructed/answer_sheet` **wins** (13 vs 4, +0.150, p=0.049) and the two cells
+   genuinely inside the noise (`two_step/answer_sheet`, `json_instructed/answer_sheet/system`).
+   The rule's *name* ("everything else is not by more than the CI noise") is kept — §8.2 leaves that
+   to the caller ("keep it there or re-word both together").
+
+3. F3 — the Wilson note, placed in the tool's **docstring** and emitted through `build_caveats()`, so
+   the tool's own report and the spliced evidence document carry it (the §9 splice in
+   `docs/BENCHMARKS.md` deliberately excludes the caveats section; the published place is the
+   evidence document, "### The caveats the numbers carry"). The auditor recommended the note over a
+   regeneration (6th-decimal difference).
+
+4. F4 — the instrument line, verbatim §8.3 (evidence document, head):
+       old: "`--threads 4`, `--runs 1`, no `W_BACKEND_MISMATCH` on any row."
+       new: "`--threads 4` (the quality suite decodes each item once; the reports' `--runs 5` is the
+             harness default the reproduce line names, not a repetition of the quality rows), no
+             `W_BACKEND_MISMATCH` on any row."
+   residual, flagged and NOT touched: `.e3e/run_arms.sh`'s header comment and the `campaign.log` echo
+   it writes still say `runs: 1`; §8.3 scoped the fix to the documentation line (the echo is script
+   behaviour and the log is a historical receipt).
+
+5. F5 — record only, no action (per the card).
+
+zero numbers move
+   field-level diff of the regenerated JSON against `git show HEAD:docs/evidence/e3e_roles_decision.json`
+   (14 differing fields, every one in the four intended classes): the caveats list (+1 line, F3), four
+   `decision.verdicts[*].verdict` strings (F2), the `placement` block (decisions_agree 60 -> 59,
+   differences 0 -> 1, frozen True -> False, `numeric_only` loses `n16`, F1). **Nothing under `cells`
+   or `pairs` differs**; the ranking and the single `wins` cell are identical.
+
+regeneration, and it is a fixed point
+   `bash .e3e/report.sh` (exit 4) + `uv run --frozen python .e3e/splice_docs.py` (exit 0), twice:
+   sha256 of docs/BENCHMARKS.md + the three e3e evidence files identical across the two runs
+   (e6eab840556cc1c0f820d80c7e410120247dbddee66d621d5a66d04440e7d8a4 over the four)
+   the hand-written F1/F4 prose edits live outside the E3E-TABLE markers and survive the splice
+   (`generated_at` and every measurement come from the committed arms — nothing is re-measured).
+
+gates
+   the four E3e gate files: **76 passed, 3 skipped** (was 70 + 3; +6 tests — the F1 field-set pin, the
+   two F2 wording pins, the F3 note pin, the F2 render pin, the F1/F4 doc pins)
+   full suite: **1332 passed, 47 skipped**
+   `uv run ruff check src tests tools`: **All checks passed**
+   coverage of the tool under its own gate file (`coverage run -m pytest tests/test_e3e_roles_decision.py`):
+   **82 %** (58 missed, all in `main()`'s CLI wiring and the render branches the gate file does not drive)
+
+Tier M (the card declares no tier; default M) — mutmut 3.8 on the file the findings live in
+   scope: `source_paths = ["tools/e3e_roles_decision.py"]`,
+   `pytest_add_cli_args_test_selection = ["tests/test_e3e_roles_decision.py"]`, `--max-children 2`,
+   ~3.3 min per run, 1941 mutants. Verdicts read from `mutants/tools/e3e_roles_decision.py.meta`
+   (`exit_code_by_key`), because `mutmut results` lists survivors only.
+   round 1 (the card's change): 1404 killed / 537 survived = **72.3 %** — the F1 hunk 22/22 killed;
+     the F2 hunk 12 killed / 2 survived (two mutants of the new branches' verdict dict renamed the
+     `label` key, which no gate could see because nothing rendered the new wording).
+   round 2 (+ `test_the_report_prints_the_new_fallback_wording`, the pin the survivors named):
+     1412 killed / 529 survived = **72.7 %** — the F1 hunk 22/22 and the F2 hunk 14/14 killed.
+     The two survivors on the changed surface are casing/marker mutants of the F3 caveat literal
+     (`XXthe arm…`, `THE ARM…`), which keep the note's `1.96` content: prose, no gate is meant to
+     assert the casing. Everything else is the tool's untouched surface (`render`, `main`, the
+     per-type/cell columns), which this card did not move.
+   hand-mutation replay of the round-1 survivor: renaming the below-branch's `label` key in the tool
+     makes exactly `test_the_report_prints_the_new_fallback_wording` fail (`KeyError: 'label'` in
+     `render()`'s verdict line); the file was restored byte-identical (sha256 b5c5c566…48ae2e).
+   receipts: `.e3e/logs/mutmut_f1f4.log` (both rounds), `.e3e/mutmut_f1f4_triage.txt` (per-function
+     and per-hunk triage), `.e3e/mutmut_results_f1f4.txt` (round 2's survivor list).
+
+one more thing the tool had to learn (not in F1-F4): `tests/test_e3e_roles_decision.py` loaded the
+tool through `spec_from_file_location("e3e_roles_decision", …)`, a module name mutmut cannot key its
+trampolines by (the sweep stopped with "none match any mutant key"). The spec name is now the file's
+path under the repo root (`tools.e3e_roles_decision`) — a comment in `_tool()` says why. Without it
+the file F1/F2 live in is not sweepable at all.

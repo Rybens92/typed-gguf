@@ -17,11 +17,15 @@ decides between them:
 
 Every cell is measured on the **same 60 committed dev items**, with the same instrument
 (temperature 0, fixed seed, `--backend vulkan`) — so the comparison is the **discordant pairs** and
-the numbers are read *directly* from the reports: no resampling, no invented rows. The single-cell
-interval is Wilson; the paired difference is the analytic (Wald) interval on the discordant counts
-with its caveat named, and the test is the **exact** two-sided McNemar binomial — 60 items is small
-and the chi-square approximation is not honest there. The decision rule is stated, not implied
-(`decide()`).
+the numbers are read *directly* from the reports: no resampling, no invented rows. **Two Wilson
+conventions are in play and both are correct**: the arm reports' *own* `overall`/`per_type` blocks
+were computed by `harness.wilson_interval` with `z = 1.96` exactly, while every interval here is
+recomputed from the rows at the precise `z` (`Z` below, 1.959963984540054) — the two differ in the
+6th decimal at n = 60 (e.g. `shipped/answer_sheet` ci[0]: 0.574910530336 vs 0.574912920531), and
+no published number depends on which is used. The single-cell interval is Wilson; the paired
+difference is the analytic (Wald) interval on the discordant counts with its caveat named, and the
+test is the **exact** two-sided McNemar binomial — 60 items is small and the chi-square
+approximation is not honest there. The decision rule is stated, not implied (`decide()`).
 
     python3 tools/e3e_roles_decision.py \\
         --report .e3e/bench_shipped.json --report .e3e/bench_role_split_shipped.json ... \\
@@ -284,6 +288,12 @@ def decide(cells: Sequence[Mapping[str, Any]], pairs: Sequence[Mapping[str, Any]
             verdicts.append({"label": label, "verdict": "wins", "why": why})
         elif pair["challenger_only"] == 0 and pair["baseline_only"] == 0:
             verdicts.append({"label": label, "verdict": "identical on these 60 items", "why": why})
+        elif pair["ci"][0] is not None and pair["ci"][0] > 0.0:
+            verdicts.append({"label": label, "verdict": "interval clears zero, exact test does not",
+                             "why": why})
+        elif pair["ci"][1] is not None and pair["ci"][1] < 0.0:
+            verdicts.append({"label": label, "verdict": "interval clears zero below, exact test "
+                                                        "does not", "why": why})
         else:
             verdicts.append({"label": label, "verdict": "not by more than the CI noise",
                              "why": why})
@@ -342,11 +352,15 @@ def freeze_check(probe: Mapping[str, Any], baseline: Mapping[str, Any], *,
 
     The prompt bytes themselves are compared exactly, whatever the tolerance: `prefix_tokens` is
     the count of tokens the executed plan prefills, so a prompt that moved a byte (and left the
-    tokenizer's output the same length) is still named. `frozen` is therefore about the *prompt and
-    the answer* — the bytes and the decisions — while `bit_frozen` adds the numbers: a re-score
-    under another instrument (`PLACEMENT_TOLERANCE`) may move the arithmetic without touching
-    either, and the size of that move is reported (`max_probability_delta`, `max_coverage_delta`),
-    the items whose numbers moved alone in `numeric_only`).
+    tokenizer's output the same length) is still named. The compared *decision* is the answer
+    (`got`), its `reliability` verdict and the cue **refusal verdict** (`cue.refused`) — the refusal
+    is a published field of its own (the cells' refusals column), so a row whose refusal
+    classification moved counts as a moved decision even when the answer did not. `frozen` is
+    therefore about the *prompt and the answer* — the bytes and the decisions — while `bit_frozen`
+    adds the numbers: a re-score under another instrument (`PLACEMENT_TOLERANCE`) may move the
+    arithmetic without touching either, and the size of that move is reported
+    (`max_probability_delta`, `max_coverage_delta`), the items whose numbers moved alone in
+    `numeric_only`).
     """
     probe_rows = {str(item["id"]): item for item in rows(probe)}
     base_rows = {str(item["id"]): item for item in rows(baseline)}
@@ -363,13 +377,17 @@ def freeze_check(probe: Mapping[str, Any], baseline: Mapping[str, Any], *,
         left, right = probe_rows[key], base_rows[key]
         hard: list[str] = []            # the prompt bytes and the answer: what "frozen" means
         soft: list[str] = []            # the numbers: what a re-score is allowed to move
+        left_refused = bool((left.get("cue") or {}).get("refused"))
+        right_refused = bool((right.get("cue") or {}).get("refused"))
         decision_same = (left.get("got") == right.get("got")
-                         and left.get("reliability") == right.get("reliability"))
+                         and left.get("reliability") == right.get("reliability")
+                         and left_refused == right_refused)
         decisions_agree += int(decision_same)
         if not decision_same:
             hard.append(f"got {left.get('got')!r} != {right.get('got')!r}"
                         f" (verdict {left.get('reliability')!r}"
-                        f" != {right.get('reliability')!r})")
+                        f" != {right.get('reliability')!r}; refused"
+                        f" {left_refused} != {right_refused})")
         if left.get("prefix_tokens") != right.get("prefix_tokens"):
             prefix_tokens_differ.append(key)
             hard.append(f"prefix_tokens {left.get('prefix_tokens')}"
@@ -561,6 +579,11 @@ def build_caveats(cells: Sequence[Mapping[str, Any]],
     notes.append(f"{items} committed dev items: a single cell's 95 % interval is up to "
                  f"{100 * width:.1f} points wide, so single-cell differences below that are noise "
                  f"by construction — which is what the paired columns are for.")
+    notes.append("the arm reports' *own* `overall`/`per_type` intervals use `z = 1.96` "
+                 "(`harness.wilson_interval`); every interval in this table is recomputed from the "
+                 "rows at the precise `z` (1.959963984540054), so the two differ from the 6th "
+                 "decimal on (0.574910530336 vs 0.574912920531) — both correct, no number depends "
+                 "on the choice.")
     thin = [cell["label"] for cell in cells
             if min((bucket["n"] for bucket in cell["per_type"].values()), default=0) < 10]
     if thin:
