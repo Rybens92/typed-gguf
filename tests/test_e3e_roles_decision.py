@@ -27,10 +27,14 @@ def _tool():
 
 def report(label_items: dict[str, bool], *, cue: str = "shipped", chat_format: str | None = None,
            json_contract: str | None = None, reliability: dict[str, str] | None = None,
-           verdicts: dict[str, str] | None = None, refusals: set[str] = frozenset()) -> dict:
+           verdicts: dict[str, str] | None = None, refusals: set[str] = frozenset(),
+           probabilities: dict[str, dict[str, float]] | None = None,
+           prefix_tokens: dict[str, int] | None = None) -> dict:
     """A minimal quality report: item id -> correct, with the policy the tool reads."""
     reliability = reliability or {}
     verdicts = verdicts or {}
+    probabilities = probabilities or {}
+    prefix_tokens = prefix_tokens or {}
     items = []
     for index, (key, correct) in enumerate(label_items.items()):
         cue_block: dict = {"closer": None, "mass": 0.5, "refused": key in refusals,
@@ -39,7 +43,9 @@ def report(label_items: dict[str, bool], *, cue: str = "shipped", chat_format: s
             cue_block["verdict"] = verdicts[key]
         items.append({"id": key, "type": "choice", "correct": correct, "coverage": 0.9,
                       "reliability": reliability.get(key, "ok"), "cue": cue_block,
-                      "expected": "a", "got": "a", "prefix_tokens": 100,
+                      "expected": "a", "got": "a",
+                      "prefix_tokens": prefix_tokens.get(key, 100),
+                      "probabilities": probabilities.get(key),
                       "framing": {"kind": "gguf-renderer", "renderer": "internal",
                                   "family": "spark2_5", "thinking": "suppressed", "warnings": []}})
     config = {"cue": cue, "backend": "vulkan", "gpu_layers": -1, "threads": 4}
@@ -209,6 +215,100 @@ def test_the_report_names_the_policy_the_pairs_and_the_comparability_cost() -> N
     assert "Comparability cost" in text
     assert "devset.jsonl" in text                              # the dev set is named, not dumped
     assert "prompt policy" in text or "policy each cell ran under" in text
+
+
+def test_the_freeze_check_compares_the_probe_to_the_committed_baseline() -> None:
+    tool = _tool()
+    baseline = report({"a": True, "b": False, "c": True})
+    probe = report({"a": True, "b": False, "c": True})
+    frozen = tool.freeze_check(probe, baseline)
+    assert frozen["frozen"] is True and frozen["n"] == 3 and frozen["differences"] == []
+    moved = report({"a": True, "b": True, "c": True})          # item b answered differently
+    moved["items"][1]["got"] = "b"
+    moved["items"][1]["coverage"] = 0.1234
+    result = tool.freeze_check(moved, baseline)
+    assert result["frozen"] is False
+    assert result["differences"][0]["id"] == "b"
+    assert any("got" in problem for problem in result["differences"][0]["problems"])
+    assert any("coverage" in problem for problem in result["differences"][0]["problems"])
+
+
+def test_the_freeze_check_refuses_a_probe_that_shares_nothing() -> None:
+    tool = _tool()
+    with pytest.raises(tool.DecisionError) as caught:
+        tool.freeze_check(report({"z": True}), report({"a": True}))
+    assert "share no item ids" in str(caught.value)
+
+
+def test_the_freeze_check_quantifies_a_noisy_rescore_instead_of_only_flagging_it() -> None:
+    """The card's table re-measures one cell under another instrument: decisions, then noise.
+
+    The *freeze* is about the prompt and the answer (did the default move?); the re-score is about
+    the numbers, which a different placement is entitled to move. The committed baseline's exact
+    numbers became unreproducible on this tree when card `t_55de5779` landed (a `--backend auto` row
+    that claims `cpu` now really computes on the CPU), so the two claims are separated here: the
+    bytes/answers must be identical, the numbers are quantified.
+    """
+    tool = _tool()
+    baseline = report({"a": True, "b": False},
+                      probabilities={"a": {"x": 0.5, "y": 0.5}, "b": {"x": 0.2, "y": 0.8}})
+    rescored = report({"a": True, "b": False},
+                      probabilities={"a": {"x": 0.502, "y": 0.498}, "b": {"x": 0.2, "y": 0.8}})
+    strict = tool.freeze_check(rescored, baseline)
+    assert strict["frozen"] is True                 # the prompt bytes and the answers did not move
+    assert strict["bit_frozen"] is False            # ... but a 2e-3 move is not bit-identical
+    assert strict["numeric_only"] == ["a"]
+    assert strict["max_probability_delta"] == pytest.approx(0.002)
+    assert strict["decisions_agree"] == 2 and strict["decisions"] == 2
+    assert strict["prefix_tokens_differ"] == []
+    loose = tool.freeze_check(rescored, baseline, tolerance=5e-3)
+    assert loose["frozen"] is True and loose["bit_frozen"] is True
+    assert loose["numeric_only"] == []
+    assert loose["tolerance"] == pytest.approx(5e-3)
+    assert loose["max_probability_delta"] == pytest.approx(0.002)
+
+
+def test_the_freeze_check_separates_a_moved_decision_from_the_noise() -> None:
+    tool = _tool()
+    baseline = report({"a": True, "b": False})
+    probe = report({"a": True, "b": True})
+    probe["items"][1]["got"] = "b"
+    probe["items"][1]["reliability"] = "low_mass"
+    result = tool.freeze_check(probe, baseline, tolerance=5e-3)
+    assert result["decisions_agree"] == 1 and result["decisions"] == 2
+    assert result["frozen"] is False                      # a moved answer is never noise
+
+
+def test_the_freeze_check_pins_the_prompt_bytes_by_prefix_tokens() -> None:
+    """A prompt byte that moved shows up as a token count that moved — the byte-level freeze."""
+    tool = _tool()
+    baseline = report({"a": True, "b": False})
+    probe = report({"a": True, "b": False}, prefix_tokens={"a": 100, "b": 101})
+    result = tool.freeze_check(probe, baseline, tolerance=5e-3)
+    assert result["prefix_tokens_differ"] == ["b"]
+    assert result["frozen"] is False
+    assert any("prefix_tokens" in problem for problem in result["differences"][0]["problems"])
+
+
+def test_the_report_prints_the_rescore_line_when_the_instrument_was_measured() -> None:
+    tool = _tool()
+    base = report({"a": True, "b": False}, cue="shipped")
+    challenger = report({"a": True, "b": True}, cue="json_instructed")
+    record = tool.analyses([base, challenger], baseline="shipped/answer_sheet")
+    record.update({"schema": tool.SCHEMA, "generated_at": "2026-09-19T00:00:00Z",
+                   "devset": base["devset"], "items": 2, "model": "m.gguf", "backend": "vulkan",
+                   "gpu_layers": -1, "threads": 4, "recommendation": "…",
+                   "caveats": tool.build_caveats(record["cells"], record["pairs"])})
+    record["freeze"] = tool.freeze_check(report({"a": True, "b": False}),
+                                         report({"a": True, "b": False}))
+    record["placement"] = tool.freeze_check(
+        report({"a": True, "b": False}, probabilities={"a": {"x": 0.501}}),
+        report({"a": True, "b": False}, probabilities={"a": {"x": 0.5}}),
+        tolerance=tool.PLACEMENT_TOLERANCE)
+    text = tool.render(record)
+    assert "max |delta p|" in text or "max |Δp|" in text
+    assert "decisions identical" in text
+    assert "instrument" in text
 
 
 def test_load_report_refuses_a_report_that_is_not_the_quality_suite(tmp_path) -> None:

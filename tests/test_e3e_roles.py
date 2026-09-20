@@ -302,6 +302,64 @@ def test_a_template_without_role_markers_is_still_accepted() -> None:
     assert prompt.question_block(request.questions[0]) in role.tails[0]
 
 
+def test_a_template_that_stops_extending_the_prefix_for_a_later_question_is_refused(
+        monkeypatch) -> None:
+    """The acceptance rule is per question: a template may render the *first* question correctly.
+
+    The shared prefix is derived from the state-only render and the *first* question's render, so a
+    template that keeps the state in the first question but merges or reorders a later one would
+    otherwise hand the engine a tail that does not follow the prefix it was cut from.
+    """
+    seen: list[bool] = []
+
+    def fake_render(messages, resolution, *, add_generation_prompt, enable_thinking):
+        body = "".join(f"<{m['role']}>{m['content']}</{m['role']}>" for m in messages)
+        seen.append(bool(add_generation_prompt))
+        if add_generation_prompt and seen.count(True) > 1:
+            body = body.replace(STATE, "")            # the second question drops the state turn
+        return body + ("<assistant>" if add_generation_prompt else "")
+
+    monkeypatch.setattr(template_module, "render_prompt", fake_render)
+    request = schema.parse_request({
+        "state": STATE,
+        "options": {"chat_format": "role_split"},
+        "questions": {
+            "area": {"type": "choice", "instructions": "Which area owns this?",
+                     "criteria": {"billing": "payments", "technical": "api"}},
+            "sev": {"type": "score", "instructions": "How bad?",
+                    "criteria": ["cosmetic", "blocking"]},
+        }})
+    with pytest.raises(errors.UserError) as caught:
+        prompt.role_split_render(request.state, request.questions,
+                                 resolution=template_module.Resolution(
+                                     kind="builtin", renderer="builtin", source="bridge",
+                                     template="x", family="chatml-test", thinking="n/a"))
+    assert caught.value.code == "E_ROLE_SPLIT_UNSUPPORTED"
+    assert "does not extend the shared prefix" in str(caught.value)
+    assert "sev" in str(caught.value)                 # the question that broke it is named
+    assert "--chat-format answer_sheet" in str(caught.value)
+
+
+def test_a_template_that_rewrites_the_question_turn_is_refused_too(monkeypatch) -> None:
+    """The second half of the acceptance: the question's own words have to survive its render."""
+
+    def fake_render(messages, resolution, *, add_generation_prompt, enable_thinking):
+        body = "".join(f"<{m['role']}>{str(m['content']).replace('Candidates:', '')}"
+                       f"</{m['role']}>" for m in messages)
+        return body + ("<assistant>" if add_generation_prompt else "")
+
+    monkeypatch.setattr(template_module, "render_prompt", fake_render)
+    request = parsed(chat_format="role_split")
+    with pytest.raises(errors.UserError) as caught:
+        prompt.role_split_render(request.state, request.questions,
+                                 resolution=template_module.Resolution(
+                                     kind="builtin", renderer="builtin", source="bridge",
+                                     template="x", family="chatml-test", thinking="n/a"))
+    assert caught.value.code == "E_ROLE_SPLIT_UNSUPPORTED"
+    assert "dropped or rewrote the question" in str(caught.value)
+    assert "--chat-format answer_sheet" in str(caught.value)
+
+
 def test_a_prompt_left_inside_a_thinking_block_is_refused_too(monkeypatch) -> None:
     """The guard the role split adds on top of the renderer's own guarantee.
 
@@ -354,6 +412,10 @@ def test_the_plan_carries_the_role_split_it_rendered() -> None:
     assert plan.role is not None
     assert plan.template is not None and plan.template.template == CHATML
     assert len(plan.prefix_tokens) > 0                            # token ids, not bytes
+    # ...and they are the *role-split* prefix's own tokens: the "> 0" above would also hold for a
+    # prefix that silently fell back to the answer-sheet render, and the cue position is computed
+    # from this length, so the fallback would shift both sides and stay invisible.
+    assert tuple(plan.prefix_tokens) == tuple(JsonSession(n_vocab=512).tokenize(plan.role.prefix))
     # prefix + tail bytes are what the engine will decode: the question never enters the prefix
     assert "QUESTION:" not in plan.role.prefix
 
