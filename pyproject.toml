@@ -151,6 +151,15 @@ quote-style = "double"
 # the selection: the injection points (`package_file=` / `cwd=` / `environ=`) drive every branch of
 # the new chain on a shape built on disk, so the sweep stays fast on this shared box. Restore a
 # tool/engine pair above when the next card sweeps one.
+#
+# The sweep (driver: `.e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh`, `--max-children 2`, two
+# rounds because round 1's survivors on the new surface earned six new pins): 421 mutants both
+# times, **344/421 = 81.7% killed** in round 2, and round 2's verdicts differ from round 1's in
+# exactly those six keys (survived → killed) — every other verdict is identical, which is the
+# stability check this pid-capped box needs. The 77 survivors are pre-existing host-mapping rows
+# (their gates live in other files), casing/padding in the `E_RUNTIME_MISSING` prose and type
+# mutants in the `load_lock` parse body: none on this card's surface. Receipts and the triage:
+# `docs/evidence/v0_1_0_t_eff926f9_uvx_install.md`.
 source_paths = ["src/typed_gguf/runtime/pins.py"]
 also_copy = ["src/typed_gguf", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]

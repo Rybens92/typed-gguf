@@ -72,6 +72,42 @@ pulled spark-x2.5-4b-q8_0 -> ~/.local/share/typed-gguf/models/Spark-X2.5-4B-Q8_0
 broken. A `2` is not a failed install: on this box `doctor` reports the documented CUDA→Vulkan
 pre-flight fallback (an NVIDIA card, a Vulkan bundle) and `model.present` until the pull lands.
 
+### Install without a clone: `uvx`, `uv tool install`, pip
+
+The wheel carries its own pinned `runtime.lock` (the build copies the repository's into the
+package), so an installed `typed-gguf` reads its pins from itself and works from any directory —
+no checkout, and no `cd` into one:
+
+```bash
+uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf version
+uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf init          # pinned runtime
+uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf doctor --json
+
+uv tool install --from git+https://github.com/Rybens92/typed-gguf typed-gguf   # puts it on PATH
+pip install "typed-gguf @ git+https://github.com/Rybens92/typed-gguf"          # or a plain venv
+```
+
+Before/without a published remote, the same thing works from a checkout — `uvx --from . …` builds the
+same wheel, lock included, and runs it from uv's cache instead of your source tree.
+
+`init` from such an install, run in an empty directory (measured 2026-09-20):
+
+```
+installed: True
+variant: linux-x64-cpu
+build: 11026
+asset: llama-b11026-bin-ubuntu-x64.tar.gz
+asset_verified: True
+symbols_ok: True
+rung: prebuilt
+```
+
+`$TYPED_GGUF_LOCK` still points a run at a different pin, and it is used *as-is*: a path that does
+not exist is an error — one that lists every path that was searched — never a silent fallback.
+What stays repository-root-only in v0.1.0 is the development surface: the test suite and the
+oracle (`uv run pytest`, `python3 docs/verify_runtime_contract.py`) read `tests/`, `docs/evidence/`
+and `SPEC.md`, which no wheel ships.
+
 Then ask — one state, three typed questions:
 
 ```bash
