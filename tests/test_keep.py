@@ -84,6 +84,27 @@ def test_the_key_is_the_model_plus_the_placement_options() -> None:
     assert "backend=vulkan" in key.describe() and "n_ctx=4096" in key.describe()
 
 
+def test_describe_is_the_exact_line_keep_status_prints() -> None:
+    """`describe()` is user-facing (`keep status` prints it): labels, values and order are the API.
+
+    28 mutants of this one-liner survived the Tier-M sweep, because the only gate around it was the
+    `in` check above — which cannot see a swapped `on`/`off`, a renamed label, a dropped field or a
+    reordered part (card t_7e24cea4). This pins both shapes of the whole line.
+    """
+    key = identity.KeepKey.of(_request(n_ctx=4096, threads=4, backend="vulkan"),
+                              model_path="/models/a.gguf", model_sha="deadbeef",
+                              fit={"fit_enabled": True, "fit_cache": True})
+    assert key.describe() == ("backend=vulkan n_ctx=4096 n_seq_max=fit kv_type=auto threads=4 "
+                              "fit=on")
+    # the optionals appear only when they are set, and in this order: target, ctx, cache-off
+    fitted = identity.KeepKey(**{**key.to_dict(), "fit_target_mb": 512, "fit_ctx": 2048,
+                                 "fit_cache": False})
+    assert fitted.describe() == ("backend=vulkan n_ctx=4096 n_seq_max=fit kv_type=auto threads=4 "
+                                 "fit=on fit_target=512MiB fit_ctx=2048 fit_cache=off")
+    off = identity.KeepKey(**{**key.to_dict(), "fit": False})
+    assert off.describe().endswith("fit=off"), "the fit switch reads as on/off, never as a bool"
+
+
 @pytest.mark.parametrize("changed", [
     {"n_ctx": 8192}, {"threads": 8}, {"backend": "cpu"}, {"kv_type": "q8_0"},
     {"n_seq_max": 9},

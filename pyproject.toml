@@ -160,7 +160,34 @@ quote-style = "double"
 # (their gates live in other files), casing/padding in the `E_RUNTIME_MISSING` prose and type
 # mutants in the `load_lock` parse body: none on this card's surface. Receipts and the triage:
 # `docs/evidence/v0_1_0_t_eff926f9_uvx_install.md`.
-source_paths = ["src/typed_gguf/runtime/pins.py"]
+# Card t_7e24cea4 (E4, the warm engine host — SPEC 2.12) takes the pair to the package the card
+# adds: `src/typed_gguf/keep` — identity (the key, the duration chain), state (the ledger and its
+# liveness rules), host (the socket server, the idle clock, the teardown discipline) and client
+# (spawn, reuse, swap, orphan cleanup, the reporting verbs). The selection is the card's four
+# offline gate files: test_keep.py (pure arithmetic and file bookkeeping), test_keep_host.py
+# (drives the production Server in-process), test_keep_client.py (spawns the production server
+# around a stand-in engine, tests/fake_keep_host.py, so the spawn/reuse/swap/cleanup policy is
+# measured instead of mocked) and test_keep_cli.py (the CLI's half, by injection — which is also
+# why `cli.py` is NOT in source_paths: mutating 44 KB of command surface would multiply the sweep
+# for wiring those four files already drive end to end). `tests/test_keep_live.py` is deliberately
+# not selected: it wants the real 4B, the Vulkan bundle and ~5 minutes, and it skips without
+# `--run-network` anyway.
+#
+# The sweep (driver: `.e2e/t_7e24cea4-warm-host/mutmut_sweep.sh`, `--max-children 2`): 2176 mutants.
+# Round 1 (before the new pins) 1391/2176 killed by exit code — which is 1310 *real* kills plus the
+# 75 mutants mutmut put in its own "no tests" bucket (uncovered lines), 5 timeouts and 1 suspicious.
+# Those 75 were the finding: they pointed at `host.Server._fail` (45), `state.wait_pid_gone` (15),
+# `client._listening` (14) and one `HostRecord.replace`. Six pins closed them (the exact
+# `describe()` line, the `_listening` probe, `wait_pid_gone`, stop-of-a-foreign-host + its SIGKILL
+# escalation, and the failed-record path), and one of the pins exposed a product bug: `_fail` passed
+# `state=` where `_write_record` takes `record_state=`, so the `TypeError` was swallowed and a host
+# that could not load left no diagnosis (the `record.state == "failed"` branch in `client.py` was
+# dead code). Round 2 (scoped re-run of the five named groups) 1424/2176 = 65.4% killed, 752
+# survived, 0 uncovered; the five groups went 44/210 → 151/210. Survivors are equivalent mutants on
+# reporting paths (rounding, `suppress` guards, wait constants) and cross-process wire behaviour the
+# offline selection cannot see (it is covered by `tests/test_keep_live.py`, deliberately not
+# selected). Receipts and the full triage: `docs/evidence/v0_1_0_t_7e24cea4_warm_host.md` §4.
+source_paths = ["src/typed_gguf/keep"]
 also_copy = ["src/typed_gguf", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -222,7 +249,10 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # the packaged-path mutants against that file are recorded in
 # `docs/evidence/v0_1_0_t_eff926f9_uvx_install.md`.
 pytest_add_cli_args_test_selection = [
-    "tests/test_pins.py",
+    "tests/test_keep.py",
+    "tests/test_keep_host.py",
+    "tests/test_keep_client.py",
+    "tests/test_keep_cli.py",
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down

@@ -11,6 +11,7 @@ import json
 import os
 import pathlib
 import socket
+import subprocess
 import sys
 import time
 
@@ -365,3 +366,122 @@ def test_status_of_a_host_that_cannot_answer_says_unresponsive(keep_home: pathli
     # the report *says so* instead of raising the transport error at the caller
     assert "TransportError" in status["detail"]
     assert status["pid"] == os.getpid(), "the report keeps the record's own half"
+
+
+# ------------------------------------------------------------------ the stop path
+def test_listening_probes_the_socket_without_waking_anyone(tmp_path: pathlib.Path) -> None:
+    """The probe that runs before every spawn: no file → False, dead file → False, up → True.
+
+    It exists to answer "is something *there right now*", not "does the file exist": a host that
+    died leaves its socket behind, and a spawn must not be skipped because of a corpse
+    (card t_7e24cea4 — 14 mutants of this helper were in the sweep's "no tests" bucket).
+    """
+    missing = tmp_path / "nothing.sock"
+    assert client_module._listening(missing) is False
+    dead = tmp_path / "dead.sock"
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    listener.bind(str(dead))
+    listener.close()                     # the file stays behind, nothing listens on it any more
+    assert client_module._listening(dead) is False
+    live = tmp_path / "live.sock"
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    listener.bind(str(live))
+    listener.listen(4)
+    try:
+        assert client_module._listening(live) is True
+    finally:
+        listener.close()
+
+
+@pytest.mark.needs_fork
+def test_wait_pid_gone_tells_a_live_process_from_a_gone_one() -> None:
+    """`keep stop`'s primitive: False while the pid is there, True once it is gone.
+
+    A **zombie** counts as gone: the host exited, its parent (or init) has it to reap, and between
+    those moments `os.kill(pid, 0)` would still succeed — `keep status` must not report a corpse as
+    a resident model.
+    """
+    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    try:
+        assert state.pid_alive(child.pid) is True, "the fixture process must be alive to start"
+        assert state.wait_pid_gone(child.pid, timeout=0.2) is False, "alive → not gone"
+        child.kill()
+        assert state.wait_pid_gone(child.pid, timeout=5.0) is True
+    finally:
+        child.kill()
+        child.wait(timeout=10.0)
+    assert state.wait_pid_gone(0, timeout=0.1) is True, "pid 0 is not a process to wait for"
+    assert state.wait_pid_gone(child.pid, timeout=0.1) is True, "an exited pid is gone for good"
+
+
+def _write_foreign_host(home: pathlib.Path, pid: int, key: identity.KeepKey) -> None:
+    """A record that points at a process this client has no `Popen` for (another client's host)."""
+    state.ensure_dir(home)
+    socket_file = state.socket_path(home, key.digest)
+    state.write_record(state.HostRecord(
+        digest=key.digest, pid=pid, socket=str(socket_file), key=key.to_dict(), model="a",
+        model_path=key.model_path, keep_alive=30.0, started_at=0.0, loaded_at=0.0,
+        spec=str(state.spec_path(home, key.digest)),
+        log=str(state.log_path(home, key.digest))), home)
+
+
+@pytest.mark.needs_fork
+def test_stop_of_a_host_this_client_did_not_spawn_goes_through_the_pid(keep_home) -> None:
+    """`keep stop` on a *foreign* host: no `Popen` to wait on, so the pid itself is waited for."""
+    key = _key()
+    state.ensure_dir(keep_home)
+    socket_file = state.socket_path(keep_home, key.digest)
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    listener.bind(str(socket_file))
+    listener.listen(4)
+    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    try:
+        _write_foreign_host(keep_home, child.pid, key)
+        client = client_module.Client(home=keep_home, stop_grace=5.0)
+        result = client.stop()
+    finally:
+        listener.close()
+        child.kill()
+        child.wait(timeout=10.0)
+    assert result == {"stopped": True, "pid": child.pid, "reason": "stopped (SIGTERM)",
+                      "cleaned": True}
+    assert state.read_record(keep_home) is None, "the ledger entry goes with the host"
+
+
+@pytest.mark.needs_fork
+def test_stop_escalates_to_sigkill_when_the_host_ignores_sigterm(keep_home) -> None:
+    """A wedged host is not a host: after the grace period the pid is killed and `stop` says so."""
+    key = _key()
+    state.ensure_dir(keep_home)
+    # the child prints `ready` only *after* it ignores SIGTERM: without that handshake the SIGTERM
+    # can land during interpreter start-up and kill it the default way (a flaky 0.4 s grace)
+    child = subprocess.Popen([sys.executable, "-c",
+                              "import signal, sys, time;"
+                              " signal.signal(signal.SIGTERM, signal.SIG_IGN);"
+                              " print('ready', flush=True); time.sleep(60)"],
+                             stdout=subprocess.PIPE, text=True)
+    try:
+        assert child.stdout is not None and child.stdout.readline().strip() == "ready"
+        _write_foreign_host(keep_home, child.pid, key)
+        client = client_module.Client(home=keep_home, stop_grace=0.4)
+        result = client.stop()
+    finally:
+        child.kill()
+        child.wait(timeout=10.0)
+        if child.stdout is not None:
+            child.stdout.close()          # an unclosed pipe is an unraisable warning (= error) here
+    assert result["stopped"] is True, "the escalation is what makes `stop` a verb"
+    assert result["reason"] == "killed (SIGKILL)"
+    assert state.read_record(keep_home) is None
+
+
+def test_stop_refuses_a_record_that_points_at_this_very_process(keep_home) -> None:
+    """A corrupted record must never make the CLI signal *itself* — the reason is the answer."""
+    key = _key()
+    _write_foreign_host(keep_home, os.getpid(), key)
+    client = client_module.Client(home=keep_home)
+    result = client.stop()
+    assert result["stopped"] is False
+    assert result["pid"] == os.getpid()
+    assert result["reason"] == "the record points at this very process; refusing to signal it"
+    assert os.getpid() == result["pid"], "the process under test is obviously still here"

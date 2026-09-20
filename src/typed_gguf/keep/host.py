@@ -332,7 +332,7 @@ class Server:
         if isinstance(exc, TypedGgufError):
             code = str(getattr(exc, "code", "E_INTERNAL"))
         with contextlib.suppress(Exception):
-            self.record = self._write_record(state="failed",
+            self.record = self._write_record(record_state="failed",
                                              error={"code": str(code), "message": message,
                                                     "exit_code": self.exit_code})
         return self.exit_code

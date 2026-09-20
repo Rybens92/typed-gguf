@@ -324,3 +324,41 @@ def test_a_host_whose_socket_is_taken_by_a_live_host_refuses(keep_home: pathlib.
     assert "already" in second.bind_error or "in use" in second.bind_error
     first.call({"schema": host_module.REQUEST_SCHEMA, "op": "stop", "key": spec.digest})
     first.join()
+
+
+def test_a_host_that_cannot_load_leaves_a_readable_failed_record(keep_home: pathlib.Path) -> None:
+    """`_fail`: the failure is readable in the ledger — code, message and the process exit code.
+
+    A host that dies before it binds cannot answer over its socket, so the *record* is the only
+    channel the spawning client has (`client.py` turns `state == "failed"` into a typed
+    `KeepUnavailable`): it must carry `state=failed`, the typed code, the message and the exit code
+    the process ends with. A plain crash is `E_INTERNAL` / exit 4 — never a made-up code. This
+    helper held 45 mutants in the Tier-M sweep's "no tests" bucket (card t_7e24cea4).
+    """
+    spec = _spec(keep_home)
+    refused = PrefillFailedError("E_PREFILL_FAILED: the prefix was refused (test)")
+
+    def refuse() -> host_module.Loaded:
+        raise refused
+
+    server = host_module.Server(spec, load=refuse)
+    assert server.serve() == refused.exit_code, "a typed failure keeps its own exit code"
+    record = state.read_record(keep_home)
+    assert record is not None, "the failure is written down for the client to read"
+    assert record.state == "failed"
+    assert record.error is not None
+    assert record.error["code"] == "E_PREFILL_FAILED"
+    assert "the prefix was refused (test)" in record.error["message"]
+    assert record.error["exit_code"] == refused.exit_code
+    assert not pathlib.Path(spec.socket_path).exists(), "a host that never bound leaves no socket"
+
+    def explodes() -> host_module.Loaded:
+        raise RuntimeError("the loader fell over")
+
+    server = host_module.Server(spec, load=explodes)
+    assert server.serve() == 4, "an untyped failure is E_INTERNAL, exit 4"
+    record = state.read_record(keep_home)
+    assert record is not None and record.error is not None
+    assert record.error["code"] == "E_INTERNAL"
+    assert record.error["message"] == "RuntimeError: the loader fell over"
+    assert record.error["exit_code"] == 4
