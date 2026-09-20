@@ -36,6 +36,10 @@ OLD_HOME_ENV = OLD_NAME.upper() + "_HOME"
 #: copy of the pre-rename tree).
 RECEIPT_DIRS = {"docs/evidence", ".e2e", ".gauntlet", "state"}
 SKIP_DIRS = {".git", ".venv", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache"}
+#: A linked worktree carries `.git` as a *file* — a `gitdir: <main checkout>/.git/worktrees/<id>`
+#: pointer, not the pruned directory. The path it names is the checkout, which legitimately still
+#: lives under its pre-rename directory: the pointer is plumbing, never living surface.
+WORKTREE_POINTER = ".git"
 #: the one allowance inside the living surface: the "formerly …" line README/SPEC carry so that
 #: a reader who knows the old name can still find the project.
 FORMERLY = "formerly"
@@ -51,18 +55,36 @@ def _is_frozen(rel: tuple[str, ...]) -> bool:
     return rel[:2] == ("docs", "evidence") or top.startswith((".e3", ".t"))
 
 
-def _living_files() -> list[pathlib.Path]:
+def _living_files(root: pathlib.Path = ROOT) -> list[pathlib.Path]:
     """Every file of the living surface — the walk prunes the frozen dirs *before* descending
-    (the `mutants*/` tree copies are large and are not repo content)."""
+    (the `mutants*/` tree copies are large and are not repo content). `root` is a parameter so the
+    pins below can hand the walk a shape built on disk; the gate itself always walks `ROOT`."""
     files: list[pathlib.Path] = []
-    for dirpath, dirnames, filenames in os.walk(ROOT):
-        rel = pathlib.Path(dirpath).relative_to(ROOT).parts
+    for dirpath, dirnames, filenames in os.walk(root):
+        rel = pathlib.Path(dirpath).relative_to(root).parts
         if _is_frozen(rel):
             dirnames[:] = []
             continue
         dirnames[:] = [name for name in dirnames if not _is_frozen(rel + (name,))]
-        files.extend(pathlib.Path(dirpath) / name for name in filenames)
+        # `SKIP_DIRS` prunes a `.git` *directory*; a linked worktree has `.git` as a *file* (a
+        # `gitdir:` pointer at the main checkout, `WORKTREE_POINTER`), so filter that name too.
+        files.extend(pathlib.Path(dirpath) / name for name in filenames
+                     if name != WORKTREE_POINTER)
     return sorted(files)
+
+
+def _offending_lines(root: pathlib.Path = ROOT) -> list[str]:
+    """Every living line that still carries the old name, as `path:line: text`."""
+    offenders: list[str] = []
+    for path in _living_files(root):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue                      # binary (compiled artifacts, images): not a name surface
+        for number, line in enumerate(text.splitlines(), start=1):
+            if OLD_NAME in line.lower() and FORMERLY not in line.lower():
+                offenders.append(f"{path.relative_to(root)}:{number}: {line.strip()[:120]}")
+    return offenders
 
 
 # ------------------------------------------------------------------- the surface
@@ -112,14 +134,23 @@ def test_the_default_data_home_carries_the_new_name(monkeypatch, tmp_path) -> No
     assert store.data_home() == tmp_path / "xdg" / NEW_NAME
 
 
-def test_the_cli_names_the_tool(capsys) -> None:
+def test_the_cli_names_the_tool(capsys, monkeypatch, tmp_path) -> None:
+    """The tool's own name surface. `version` echoes the data home (README, interfaces table), so
+    the home is an *input* to this gate, never part of it: it is pinned to a fresh tmp dir here.
+    An ambient `TYPED_GGUF_HOME` pointing inside a path that carries the old name — a pre-rename
+    checkout, e.g. a `$PWD/…/home` in a worktree — otherwise false-fails the last assertion with a
+    directory the operator handed the tool and the tool cannot rename (card t_2b89cce2).
+    """
     cli = importlib.import_module(f"{NEW_MODULE}.cli")
+    home = tmp_path / "home"
+    monkeypatch.setenv(NEW_HOME_ENV, str(home))
     assert cli.main(["--help"]) == 0
     out = capsys.readouterr().out
     assert out.startswith(f"{NEW_NAME} ")
     assert f"usage: {NEW_NAME} <command> [options]" in out
     assert cli.main(["version"]) == 0
     version_out = capsys.readouterr().out
+    assert str(home) in version_out          # the pin is live: `version` prints this home
     assert OLD_NAME not in (out + version_out).lower()
 
 
@@ -140,18 +171,38 @@ def test_the_runtime_lock_schema_is_renamed() -> None:
 
 def test_the_living_surface_carries_no_old_name() -> None:
     """The sweep's grep proof, executable: every living file, every line, one allowance."""
-    offenders = []
-    for path in _living_files():
-        try:
-            text = path.read_text(encoding="utf-8")
-        except (UnicodeDecodeError, OSError):
-            continue                      # binary (compiled artifacts, images): not a name surface
-        for number, line in enumerate(text.splitlines(), start=1):
-            if OLD_NAME in line.lower() and FORMERLY not in line.lower():
-                offenders.append(f"{path.relative_to(ROOT)}:{number}: {line.strip()[:120]}")
+    offenders = _offending_lines()
     assert offenders == [], (
         f"the old name survives in {len(offenders)} living line(s) of the "
         f"{NEW_NAME} tree:\n" + "\n".join(offenders[:40]))
+
+
+def test_the_worktree_pointer_file_is_not_living_surface(tmp_path) -> None:
+    """A linked worktree has `.git` as a *file*: `gitdir: <checkout>/.git/worktrees/<id>`. That
+    line names the main checkout, and a checkout of this repo legitimately still lives at a
+    pre-rename path — so the pointer is plumbing, not a name surface, and the walk must prune it
+    exactly like the `.git` directory `SKIP_DIRS` covers (card t_2b89cce2: without this, every
+    reviewer who runs the suite inside a worktree gets a red rename gate on every commit).
+    """
+    worktree = tmp_path / "wt"
+    (worktree / "src").mkdir(parents=True)
+    (worktree / "src" / "living.py").write_text("x = 1\n", encoding="utf-8")
+    (worktree / WORKTREE_POINTER).write_text(
+        f"gitdir: /somewhere/workspace/{OLD_NAME}/.git/worktrees/pin\n", encoding="utf-8")
+    checkout = tmp_path / "checkout"
+    (checkout / WORKTREE_POINTER).mkdir(parents=True)
+    (checkout / WORKTREE_POINTER / "config").write_text(f"worktree = {OLD_NAME}\n",
+                                                       encoding="utf-8")
+    (checkout / "living.py").write_text("x = 1\n", encoding="utf-8")
+
+    assert worktree / "src" / "living.py" in _living_files(worktree)   # the walk still walks
+    assert all(path.name != WORKTREE_POINTER for path in _living_files(worktree))
+    assert _offending_lines(worktree) == []            # …and the gate agrees about that tree
+    assert _living_files(checkout) == [checkout / "living.py"]         # a real `.git` dir: pruned
+    assert _offending_lines(checkout) == []
+    # …and the scan still *finds* an offender: a green gate above is not "the walk came back empty"
+    (worktree / "src" / "offender.py").write_text(f"# {OLD_NAME} lives here\n", encoding="utf-8")
+    assert _offending_lines(worktree) == [f"src/offender.py:1: # {OLD_NAME} lives here"]
 
 
 def test_the_receipts_keep_their_history() -> None:
