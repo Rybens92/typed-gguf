@@ -1,0 +1,330 @@
+pure rename: 103 files; real edits: 51
+
+=== README.md  (2 changed lines)
+    +
+    +**Formerly `ggufone`** — the public name changed on 2026-09-20 (card t_5f9c15fe): the import package is `typed_gguf
+
+=== SPEC.md  (6 changed lines)
+    -- Task: t_7bcff796 (code-spec) | Tier: L | Repo: `/home/rybens/workspace/typed-gguf` (MIT) | Date: 2026-09-17
+    +- Task: t_7bcff796 (code-spec) | Tier: L | Repo: `Rybens92/typed-gguf` (MIT; this box's checkout is the dir formerl
+    +- Renamed: the public name is `typed-gguf` (card t_5f9c15fe, 2026-09-20) — distribution, import
+    +  package (`typed_gguf`), console script, env vars (`TYPED_GGUF_*`) and the default data home were
+    +  formerly `ggufone`; `docs/evidence/` keeps the pre-rename spelling on purpose (receipts are
+    +  records of the runs that produced them).
+
+=== docs/verify_runtime_contract.py  (2 changed lines)
+    -    check(isinstance(getattr(typed-gguf, "__version__", None), str), "typed_gguf.__version__ is a str")
+    +    check(isinstance(getattr(typed_gguf, "__version__", None), str), "typed_gguf.__version__ is a str")
+
+=== src/typed_gguf/__main__.py  (2 changed lines)
+    -"""`python -m typed_gguf` entry point -> `typed_gguf.cli.run` (the process entry point, card t_97f1bc93).
+    +"""`python -m typed_gguf` -> `typed_gguf.cli.run`, the process entry point (card t_97f1bc93).
+
+=== src/typed_gguf/bench/harness.py  (2 changed lines)
+    -    """The device-evidence parser, imported lazily (A-E2-7: no `typed_gguf.runtime` at import time)."""
+    +    """The device-evidence parser, imported lazily (A-E2-7: not at import time)."""
+
+=== src/typed_gguf/bench/isolation.py  (4 changed lines)
+    -    parts = [python, "-m", "typed-gguf", "bench", "--suite", str(config.suite)]
+    +    parts = [python, "-m", "typed_gguf", "bench", "--suite", str(config.suite)]
+    -                         "one that resolved `TYPED_GGUF_BENCH_MODEL` on its own could measure a model "
+    +                         "one that resolved `TYPED_GGUF_BENCH_MODEL` alone could measure a model "
+
+=== src/typed_gguf/bench/suites.py  (4 changed lines)
+    -Every suite returns one JSON report (`typed_gguf.bench/v1`) whose tables `bench.harness.render_report`
+    -renders as the markdown published in `docs/BENCHMARKS.md`. The suites only talk to
+    +Every suite returns one JSON report (`typed_gguf.bench/v1`); its tables are rendered as the markdown
+    +published in `docs/BENCHMARKS.md` by `bench.harness.render_report`. The suites only talk to
+
+=== src/typed_gguf/cli.py  (8 changed lines)
+    -from typed_gguf.errors import TypedGgufError, ModelNotFoundError, Sha256MismatchError, UserError
+    +from typed_gguf.errors import ModelNotFoundError, Sha256MismatchError, TypedGgufError, UserError
+    -        "typed-gguf": __version__,
+    +        "typed_gguf": __version__,
+    -    callers that also report it (`typed-gguf fit --json`), and re-read here otherwise — the plan must
+    +    callers that also report it (`typed-gguf fit --json`), re-read here otherwise — the plan must
+    -    caller, `tests/` included. This is the other half — what `python -m typed_gguf` and the installed
+    +    caller, `tests/` included. This is the other half — what `python -m typed_gguf` and the
+
+=== src/typed_gguf/registry/store.py  (3 changed lines)
+    -    """Base data dir: `$TYPED_GGUF_HOME` > `$XDG_DATA_HOME/typed-gguf` > `~/.local/share/typed-gguf`."""
+    +    """Base data dir: `$TYPED_GGUF_HOME` > `$XDG_DATA_HOME/typed-gguf` >
+    +    `~/.local/share/typed-gguf`."""
+
+=== src/typed_gguf/runtime/ctypes_binding.py  (4 changed lines)
+    -    vocabulary's own answer to "which of your tokens are not content" — typed-gguf never decides that
+    -    from a string (card t_635124bf; measured cost and cross-check in
+    +    vocabulary's own answer to "which of your tokens are not content" — typed-gguf never decides
+    +    that from a string (card t_635124bf; measured cost and cross-check in
+
+=== src/typed_gguf/runtime/fit.py  (2 changed lines)
+    -    Not every caller of `session.open_model` holds a fit plan: `typed-gguf bench` names its placement
+    +    Not every caller of `session.open_model` holds a fit plan: `typed-gguf bench` names it
+
+=== src/typed_gguf/runtime/isolated.py  (2 changed lines)
+    -    if (source_root / "typed-gguf" / "runtime").is_dir():
+    +    if (source_root / "typed_gguf" / "runtime").is_dir():
+
+=== src/typed_gguf/runtime/probe_child.py  (2 changed lines)
+    -if (_SOURCE_ROOT / "typed-gguf" / "runtime").is_dir():
+    +if (_SOURCE_ROOT / "typed_gguf" / "runtime").is_dir():
+
+=== src/typed_gguf/runtime/teardown.py  (5 changed lines)
+    -Measured on the operator's box (`typed-gguf bench --backend vulkan`, one bundle, a 4B model, a device
+    -that is nearly full): the whole report reaches stdout, and then the process dies with **SIGSEGV** —
+    +Measured on the operator's box (`typed-gguf bench --backend vulkan`, one bundle, a 4B model, a
+    +device that is nearly full): the whole report reaches stdout, then the process dies with
+    +**SIGSEGV** —
+
+=== tests/test_bench.py  (10 changed lines)
+    +from tests.fake_engine import BenchModel
+    -from tests.fake_engine import BenchModel
+    -        path = root / "src" / "typed-gguf" / "bench" / f"{module}.py"
+    +        path = root / "src" / "typed_gguf" / "bench" / f"{module}.py"
+    -                assert not (node.module or "").startswith(("typed_gguf.registry", "typed_gguf.runtime"))
+    +                assert not (node.module or "").startswith(
+    +                    ("typed_gguf.registry", "typed_gguf.runtime"))
+    -                    assert not alias.name.startswith(("typed_gguf.registry", "typed_gguf.runtime")), \
+    +                    assert not alias.name.startswith(
+    +                        ("typed_gguf.registry", "typed_gguf.runtime")), \
+
+=== tests/test_bench_attribution.py  (6 changed lines)
+    +from tests.fake_engine import BenchModel
+    -from tests.fake_engine import BenchModel
+    +    from tests.test_fit import write_gguf
+    +    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    -    from tests.test_fit import write_gguf
+    -    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+
+=== tests/test_bench_cpu_force.py  (2 changed lines)
+    +from tests.test_fit import write_gguf
+    -from tests.test_fit import write_gguf
+
+=== tests/test_bench_isolation.py  (6 changed lines)
+    +from tests.test_bench import bench_factory
+    -from tests.test_bench import bench_factory
+    -        "/usr/bin/python3", "-m", "typed-gguf", "bench",
+    +        "/usr/bin/python3", "-m", "typed_gguf", "bench",
+    -    """A child resolves `TYPED_GGUF_BENCH_MODEL` on its own: never let it measure an unnamed model."""
+    +    """A child resolves `TYPED_GGUF_BENCH_MODEL` alone: never let it measure an unnamed model."""
+
+=== tests/test_bench_isolation_live.py  (2 changed lines)
+    -    command = [sys.executable, "-m", "typed-gguf", "bench", "--suite", "throughput",
+    +    command = [sys.executable, "-m", "typed_gguf", "bench", "--suite", "throughput",
+
+=== tests/test_bench_placement.py  (10 changed lines)
+    -`typed-gguf bench` names its placement explicitly (``--gpu-layers``, the minimal ``harness.Placement``)
+    -instead of consuming a fit plan, and ``session.open_model`` builds the degradation ladder *before*
+    -its first load attempt. On the parent tree that combination died with
+    +`typed-gguf bench` names its placement explicitly (``--gpu-layers``, the minimal
+    +``harness.Placement``) instead of consuming a fit plan, and ``session.open_model`` builds the
+    +degradation ladder *before* its first load attempt. On the parent tree that combination died with
+    +from tests.test_fit import GIB, MIB, write_gguf
+    +from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    -from tests.test_fit import GIB, MIB, write_gguf
+    -from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+
+=== tests/test_bench_prompt_parity.py  (2 changed lines)
+    +    from tests.fake_engine import BenchModel
+    -    from tests.fake_engine import BenchModel
+
+=== tests/test_bench_quick.py  (5 changed lines)
+    +from tests.test_bench import bench_factory, devset_script
+    -from tests.test_bench import bench_factory, devset_script
+    -    assert json.loads((tmp_path / "typed-gguf-bench-throughput_quick.json").read_text())["truncated"]
+    +    quick_report = tmp_path / "typed-gguf-bench-throughput_quick.json"
+    +    assert json.loads(quick_report.read_text())["truncated"]
+
+=== tests/test_bench_teardown_crash.py  (4 changed lines)
+    -can die with **exit -11 (SIGSEGV)** *after* writing a complete `typed_gguf.bench/v1` report, while its
+    +can die with **exit -11 (SIGSEGV)** *after* writing a complete `typed_gguf.bench/v1` report, while
+    -from typed_gguf.bench import harness, isolation, suites
+    +from typed_gguf.bench import harness, isolation, suites
+
+=== tests/test_bench_vulkan_teardown_live.py  (6 changed lines)
+    -    VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json \\
+    -    TYPED_GGUF_RUNTIME_DIR=/var/home/rybens/.local/share/typed-gguf/runtime/b11026-linux-x64-vulkan \\
+    +    RT=/var/home/rybens/.local/share/typed-gguf/runtime/b11026-linux-x64-vulkan
+    +    VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json TYPED_GGUF_RUNTIME_DIR=$RT \\
+    -    command = [sys.executable, "-m", "typed-gguf", "bench", "--suite", "throughput",
+    +    command = [sys.executable, "-m", "typed_gguf", "bench", "--suite", "throughput",
+
+=== tests/test_calibration.py  (2 changed lines)
+    +    from tests.fake_engine import FakeSession, biased_row
+    -    from tests.fake_engine import FakeSession, biased_row
+
+=== tests/test_cli.py  (12 changed lines)
+    +from tests.fake_engine import FakeSession, biased_row
+    -from tests.fake_engine import FakeSession, biased_row
+    -    run = subprocess.run([sys.executable, "-m", "typed-gguf", "run", "--questions", str(questions),
+    +    run = subprocess.run([sys.executable, "-m", "typed_gguf", "run", "--questions", str(questions),
+    -    ask = subprocess.run([sys.executable, "-m", "typed-gguf", "ask", "--state", "Billing is down.",
+    +    ask = subprocess.run([sys.executable, "-m", "typed_gguf", "ask", "--state", "Billing is down.",
+    -    bad = subprocess.run([sys.executable, "-m", "typed-gguf", "ask", "--state", "S",
+    +    bad = subprocess.run([sys.executable, "-m", "typed_gguf", "ask", "--state", "S",
+    -    missing = subprocess.run([sys.executable, "-m", "typed-gguf", "run", "--questions",
+    +    missing = subprocess.run([sys.executable, "-m", "typed_gguf", "run", "--questions",
+    -    no_runtime = subprocess.run([sys.executable, "-m", "typed-gguf", "run", "--questions",
+    +    no_runtime = subprocess.run([sys.executable, "-m", "typed_gguf", "run", "--questions",
+
+=== tests/test_cli_e1c.py  (2 changed lines)
+    +from tests.test_fit import write_gguf
+    -from tests.test_fit import write_gguf
+
+=== tests/test_cli_teardown.py  (2 changed lines)
+    -runpy.run_module("typed-gguf", run_name="__main__", alter_sys=True)
+    +runpy.run_module("typed_gguf", run_name="__main__", alter_sys=True)
+
+=== tests/test_e3.py  (24 changed lines)
+    +    from tests.fake_engine import BenchModel
+    -    from tests.fake_engine import BenchModel
+    +#: the pre-rename name, assembled at run time: this file is *living surface* (card t_5f9c15fe
+    +#: swept it) while the receipts it compares against are frozen history.
+    +OLD_NAME = "gguf" + "one"
+    +
+    +
+    +def same_modulo_the_rename(rendered: str, published: str) -> bool:
+    +    """Do these two renders differ only by the t_5f9c15fe rename?
+    +
+    +    The E3 evidence doc is a receipt (`docs/evidence/**`), so it keeps the command lines it was
+    +    *produced with* — the pre-rename env prefix and command name — while the generator
+    +    (`tools/e3_build_evidence.py`, living) renders today's spelling. A region that differs only
+    +    by that pair is the same render; a number that moved still fails, which is what this gate is
+    +    for.
+    +    """
+    … 8 more
+
+=== tests/test_e3c_cue_refused.py  (2 changed lines)
+    +from tests.fake_engine import BenchModel, FakeSession, biased_row
+    -from tests.fake_engine import BenchModel, FakeSession, biased_row
+
+=== tests/test_e3c_cue_specials.py  (2 changed lines)
+    +from tests.fake_engine import BenchModel, FakeSession, biased_row
+    -from tests.fake_engine import BenchModel, FakeSession, biased_row
+
+=== tests/test_e3d_cue_switch.py  (2 changed lines)
+    +from tests.fake_engine import BenchModel, FakeSession, biased_row
+    -from tests.fake_engine import BenchModel, FakeSession, biased_row
+
+=== tests/test_e3e_roles.py  (2 changed lines)
+    +from tests.fake_engine import FakeSession, biased_row
+    -from tests.fake_engine import FakeSession, biased_row
+
+=== tests/test_engine_fork.py  (7 changed lines)
+    +from tests.fake_engine import FakeSession, biased_row
+    -from tests.fake_engine import FakeSession, biased_row
+    -    root = pathlib.Path(__file__).resolve().parents[1] / "src" / "typed-gguf"
+    +    root = pathlib.Path(__file__).resolve().parents[1] / "src" / "typed_gguf"
+    -    pytest.skip("no llama.cpp runtime on this box (set TYPED_GGUF_RUNTIME_DIR or run `typed-gguf init`)")
+    +    pytest.skip("no llama.cpp runtime on this box "
+    +                "(set TYPED_GGUF_RUNTIME_DIR or run `typed-gguf init`)")
+
+=== tests/test_fit.py  (2 changed lines)
+    -`typed-gguf fit` CLI test here pins its host world through `pin_host_facts` (card t_e29734e6), so the
+    +`typed-gguf fit` CLI test here pins its host world through `pin_host_facts` (card t_e29734e6), so
+
+=== tests/test_fit_free_vram.py  (2 changed lines)
+    +from tests.test_fit import GIB, MIB, tiny_model, write_gguf
+    -from tests.test_fit import GIB, MIB, tiny_model, write_gguf
+
+=== tests/test_fit_oom_recovery.py  (4 changed lines)
+    +from tests.fake_engine import FakeSession, biased_row
+    +from tests.test_fit import GIB, MIB, write_gguf
+    -from tests.fake_engine import FakeSession, biased_row
+    -from tests.test_fit import GIB, MIB, write_gguf
+
+=== tests/test_policy_v2.py  (2 changed lines)
+    +from tests.fake_engine import FakeSession, biased_row
+    -from tests.fake_engine import FakeSession, biased_row
+
+=== tests/test_probe_isolation.py  (4 changed lines)
+    -from typed_gguf import cli
+    -from typed_gguf.runtime import capability, install, isolated, pins
+    +from typed_gguf import cli
+    +from typed_gguf.runtime import capability, install, isolated, pins
+
+=== tests/test_probe_pressure.py  (6 changed lines)
+    -from typed_gguf.runtime import install, isolated, pins, pressure
+    +from typed_gguf.runtime import install, isolated, pins, pressure
+    -    """`TYPED_GGUF_TEST_PID_HEADROOM=250/256`: the fork gate skips *loudly*, the headroom gate fails,
+    -    and the run exits non-zero — a starved box can never be read as "the product is fine"."""
+    +    """`TYPED_GGUF_TEST_PID_HEADROOM=250/256`: the fork gate skips *loudly*, the headroom gate
+    +    fails, and the run exits non-zero — a starved box can never read as "the product is fine"."""
+
+=== tests/test_registry_store.py  (4 changed lines)
+    -def test_data_home_honours_ggufone_home(monkeypatch: pytest.MonkeyPatch,
+    -                                        tmp_path: pathlib.Path) -> None:
+    +def test_data_home_honours_typed_gguf_home(monkeypatch: pytest.MonkeyPatch,
+    +                                          tmp_path: pathlib.Path) -> None:
+
+=== tests/test_runtime_install.py  (2 changed lines)
+    -    for path in sorted((ROOT / "src" / "typed-gguf").rglob("*.py")):
+    +    for path in sorted((ROOT / "src" / "typed_gguf").rglob("*.py")):
+
+=== tests/test_scaffold.py  (2 changed lines)
+    -    "typed-gguf", "typed_gguf.errors", "typed_gguf.schema", "typed_gguf.cli",
+    +    "typed_gguf", "typed_gguf.errors", "typed_gguf.schema", "typed_gguf.cli",
+
+=== tests/test_serving_attribution.py  (14 changed lines)
+    +from tests.fake_engine import FakeSession
+    -from tests.fake_engine import FakeSession
+    +    from tests.test_fit import write_gguf
+    +    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    -    from tests.test_fit import write_gguf
+    -    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    +    from tests.test_fit import write_gguf
+    +    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    -    from tests.test_fit import write_gguf
+    -    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    +    from tests.test_fit import write_gguf
+    +    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    -    from tests.test_fit import write_gguf
+    -    from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+
+=== tests/test_templates.py  (2 changed lines)
+    +    from tests.fake_engine import FakeSession, biased_row
+    -    from tests.fake_engine import FakeSession, biased_row
+
+=== tests/test_typed_gguf_surface.py  (163 changed lines)
+    +"""The public name is `typed-gguf` (card t_5f9c15fe): no trace of the old one in the living surface.
+    +
+    +A receipt is a record, not a name. `docs/evidence/**` and the dev-run dirs (`.e2e/`, `.e3*/`,
+    +`.t*/`, `.gauntlet/`, `state/`) keep the exact commands, paths and schema strings they were
+    +produced with — `test_the_receipts_keep_their_history` pins that — while everything a *reader or
+    +an operator* touches (the distribution, the import package, the console script, the env vars, the
+    +default data home, the schema strings, the workflows, the living docs) takes the new name. The
+    +gate that keeps it that way is `test_the_living_surface_carries_no_old_name`: a later card that
+    +re-introduces the old name fails here instead of in someone's shell.
+    +
+    +`OLD_NAME` is assembled at run time on purpose: this file *is* living surface, and a literal
+    +would make the gate trip on the very test that runs it.
+    +"""
+    +from __future__ import annotations
+    +
+    +import importlib
+    … 147 more
+
+=== tools/e2p5_reproduce.py  (5 changed lines)
+    -`calibrate` and `route` drive the shipped CLI (`typed-gguf calibrate`, `typed-gguf run --route auto`) in
+    -process, so the evidence exercises the real code path; `escalate` measures the policy the CLI
+    +`calibrate` and `route` drive the shipped CLI (`typed-gguf calibrate`, `typed-gguf run
+    +--route auto`) in process, so the evidence exercises the real code path; `escalate` measures the
+    +policy the CLI
+
+=== tools/e3_reproduce.py  (2 changed lines)
+    -    command = [sys.executable, "-m", "typed-gguf", "run",
+    +    command = [sys.executable, "-m", "typed_gguf", "run",
+
+=== tools/e3e_role_render.py  (3 changed lines)
+    -                        help="hide the Vulkan ICD (`TYPED_GGUF_HIDDEN_ICD`) for a CPU-only live check")
+    +                        help="hide the Vulkan ICD (`TYPED_GGUF_HIDDEN_ICD`) for a CPU-only "
+    +                             "live check")
+
+=== tools/live_probe.py  (3 changed lines)
+    -        raise SystemExit("no runtime installed (run `typed-gguf init` or set TYPED_GGUF_RUNTIME_DIR)")
+    +        raise SystemExit("no runtime installed "
+    +                         "(run `typed-gguf init` or set TYPED_GGUF_RUNTIME_DIR)")
+
+=== tools/t80_span_check.py  (2 changed lines)
+    -    start = parts.index("typed-gguf")
+    +    start = parts.index("typed_gguf")
