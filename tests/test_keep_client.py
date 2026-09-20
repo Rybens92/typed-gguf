@@ -47,15 +47,6 @@ class Inline:
 
 
 @pytest.fixture
-def keep_home(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> pathlib.Path:
-    home = tmp_path / "home"
-    home.mkdir()
-    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
-    monkeypatch.delenv("TYPED_GGUF_KEEP_FAKE", raising=False)
-    return home
-
-
-@pytest.fixture
 def make_client(keep_home: pathlib.Path):
     """A client whose "host" is the fake script — the real spawn path, a fake engine."""
     clients: list[client_module.Client] = []
@@ -369,21 +360,23 @@ def test_status_of_a_host_that_cannot_answer_says_unresponsive(keep_home: pathli
 
 
 # ------------------------------------------------------------------ the stop path
-def test_listening_probes_the_socket_without_waking_anyone(tmp_path: pathlib.Path) -> None:
+def test_listening_probes_the_socket_without_waking_anyone(keep_home: pathlib.Path) -> None:
     """The probe that runs before every spawn: no file → False, dead file → False, up → True.
 
     It exists to answer "is something *there right now*", not "does the file exist": a host that
     died leaves its socket behind, and a spawn must not be skipped because of a corpse
-    (card t_7e24cea4 — 14 mutants of this helper were in the sweep's "no tests" bucket).
+    (card t_7e24cea4 — 14 mutants of this helper were in the sweep's "no tests" bucket). The three
+    paths are real sockets in the gate home, which binds whatever `TMPDIR` the session runs under
+    (card t_c3195a5c).
     """
-    missing = tmp_path / "nothing.sock"
+    missing = keep_home / "nothing.sock"
     assert client_module._listening(missing) is False
-    dead = tmp_path / "dead.sock"
+    dead = keep_home / "dead.sock"
     listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     listener.bind(str(dead))
     listener.close()                     # the file stays behind, nothing listens on it any more
     assert client_module._listening(dead) is False
-    live = tmp_path / "live.sock"
+    live = keep_home / "live.sock"
     listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     listener.bind(str(live))
     listener.listen(4)

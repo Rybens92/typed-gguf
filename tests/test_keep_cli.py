@@ -23,15 +23,6 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from fake_engine import FakeSession, biased_row  # noqa: E402
 
 
-@pytest.fixture
-def keep_home(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> pathlib.Path:
-    home = tmp_path / "home"
-    home.mkdir()
-    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
-    monkeypatch.delenv(identity.KEEP_ALIVE_ENV, raising=False)
-    return home
-
-
 def _payload(*, model: str | None = None, **options: object) -> dict:
     body: dict = {"state": "Billing is down.",
                   "questions": {"q": {"type": "choice",

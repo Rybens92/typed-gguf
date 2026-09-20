@@ -33,6 +33,7 @@ from typing import Any
 import pytest
 
 import typed_gguf
+from tests.conftest import keep_home_that_binds
 from typed_gguf.runtime import finder, pressure
 
 #: The 4B of the card's measurements, and the second model the swap gate loads instead.
@@ -219,15 +220,19 @@ def _keep_dir(home: pathlib.Path) -> pathlib.Path:
 
 @pytest.fixture()
 def keep_home(tmp_path: pathlib.Path) -> Iterator[pathlib.Path]:
-    """A throwaway data home, and no resident host left behind whatever a gate asserted."""
-    home = tmp_path / "h"
-    home.mkdir(parents=True, exist_ok=True)
-    try:
-        yield home
-    finally:
-        with contextlib.suppress(Exception):
-            _stop(home)
-    assert _status(home)["state"] == "stopped", "a gate left a host resident"
+    """A throwaway data home, and no resident host left behind whatever a gate asserted.
+
+    `name="h"`: the gate's question files live beside the home (`keep_home.parent / "q"`), one
+    directory per gate — and the home itself has to stay short enough to bind its socket, whatever
+    `TMPDIR` the session was started with (card t_c3195a5c).
+    """
+    with keep_home_that_binds(tmp_path, name="h") as home:
+        try:
+            yield home
+        finally:
+            with contextlib.suppress(Exception):
+                _stop(home)
+        assert _status(home)["state"] == "stopped", "a gate left a host resident"
 
 
 # ------------------------------------------------------------------ A-E4-1

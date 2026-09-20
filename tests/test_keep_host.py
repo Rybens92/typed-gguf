@@ -13,19 +13,9 @@ import stat
 import threading
 import time
 
-import pytest
-
 from typed_gguf.errors import PrefillFailedError
 from typed_gguf.keep import host as host_module
 from typed_gguf.keep import identity, state
-
-
-@pytest.fixture
-def keep_home(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> pathlib.Path:
-    home = tmp_path / "home"
-    home.mkdir()
-    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
-    return home
 
 
 def _spec(home: pathlib.Path, *, keep_alive: float = 30.0, model: str = "a",

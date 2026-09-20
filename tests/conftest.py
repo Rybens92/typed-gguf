@@ -14,8 +14,12 @@ to name its own failures).
 """
 from __future__ import annotations
 
+import contextlib
 import os
-from collections.abc import Callable
+import pathlib
+import shutil
+import tempfile
+from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING
 
 import pytest
@@ -30,6 +34,103 @@ if TYPE_CHECKING:
 FORK_GATE_MARKER = "needs_fork"
 #: Prefix of the skip reason the gate writes (the terminal summary counts these).
 PID_PRESSURE_SKIP_PREFIX = "pid cgroup has no fork headroom"
+#: The mode knob `tests/fake_keep_host.py` reads: a keep gate must not inherit a session's mode.
+FAKE_HOST_MODE_ENV = "TYPED_GGUF_KEEP_FAKE"
+
+# --------------------------------------------------------------------- the keep gates' home
+#: A keep home binds a unix socket under `<home>/keep/`, and that path has to fit in `sun_path`
+#: (108 bytes including the NUL — `typed_gguf.keep.state.SUN_PATH_MAX`). pytest's `tmp_path`
+#: inherits the *ambient* `TMPDIR`, and agent/session environments point that at a long
+#: profile-scratch path: a home built from it overflows the limit and every keep gate goes red on a
+#: box where the product is right (card t_c3195a5c measured 35 red of 93 — all of them the
+#: product's own `E_UNKNOWN_KEY`). The gates therefore build their home under a short base; a path
+#: whose length does not matter still uses `tmp_path`.
+SHORT_SOCKET_BASES: tuple[pathlib.Path, ...] = (pathlib.Path("/tmp"),)
+KEEP_HOME_PREFIX = "tg-keep-"
+#: The skip a keep gate raises when no short base is writable *and* the ambient one is too long:
+#: the box cannot host the gate, and saying so by name is the honest answer.
+SHORT_BASE_SKIP_REASON = (
+    "no short writable base for the keep socket (tried {tried}) and the ambient base {ambient} "
+    "cannot carry one either — `sun_path` is {limit} bytes including the NUL: run with a shorter "
+    "TMPDIR or a writable /tmp")
+
+
+def socket_fits(home: pathlib.Path) -> bool:
+    """Would the product accept a socket path under this `home`? Its own rule is the oracle."""
+    from typed_gguf.errors import UserError
+    from typed_gguf.keep import identity, state
+
+    digest = identity.KeepKey.of(None, model_path="/models/socket-fit-check.gguf").digest
+    try:
+        state.socket_path(home, digest)
+    except UserError:
+        return False
+    return True
+
+
+def short_socket_base() -> pathlib.Path | None:
+    """The first writable base of `SHORT_SOCKET_BASES`, or None when none of them is."""
+    for candidate in SHORT_SOCKET_BASES:
+        try:
+            candidate.mkdir(parents=True, exist_ok=True)
+            probe = tempfile.mkdtemp(prefix=KEEP_HOME_PREFIX, dir=str(candidate))
+        except OSError:                      # not writable, not a dir, or no such base at all
+            continue
+        with contextlib.suppress(OSError):
+            os.rmdir(probe)                  # a probe: the home itself is the caller's to make
+        return candidate
+    return None
+
+
+@contextlib.contextmanager
+def keep_home_that_binds(ambient_base: pathlib.Path,
+                         *, name: str = "home") -> Iterator[pathlib.Path]:
+    """A throwaway data home whose `keep/` socket fits in `sun_path`.
+
+    The home goes under `short_socket_base()` — never under `ambient_base`, whose length is the
+    ambient `TMPDIR`'s business and not the gate's. With no short base to pin it to, the ambient
+    base is the fallback: a short one hosts the gate exactly as before, and one that genuinely
+    cannot carry the socket skips **by name** (`SHORT_BASE_SKIP_REASON`) instead of failing — a box
+    that cannot host a gate must never read as a product failure.
+    """
+    from typed_gguf.keep import state
+
+    base = short_socket_base()
+    if base is None:
+        home = ambient_base / name
+        if not socket_fits(home):
+            pytest.skip(SHORT_BASE_SKIP_REASON.format(
+                tried=", ".join(str(candidate) for candidate in SHORT_SOCKET_BASES),
+                ambient=ambient_base, limit=state.SUN_PATH_MAX))
+        home.mkdir(parents=True, exist_ok=True)
+        yield home
+        return
+    root = pathlib.Path(tempfile.mkdtemp(prefix=KEEP_HOME_PREFIX, dir=str(base)))
+    home = root / name
+    home.mkdir()
+    try:
+        yield home
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.fixture
+def keep_home(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> Iterator[pathlib.Path]:
+    """The data home every keep gate runs against, with the two knobs it must not inherit.
+
+    `TYPED_GGUF_HOME` points at it (the product and the fake host child both read that home), the
+    keep-alive env is cleared (the precedence chain is exercised by name in
+    `tests/test_keep_cli.py`) and so is the fake host's mode. One fixture, because four gate files
+    ask the same three questions of their home — and the home is *short enough to bind its socket*
+    whatever `TMPDIR` the session was started with (`keep_home_that_binds`).
+    """
+    from typed_gguf.keep import identity
+
+    with keep_home_that_binds(tmp_path) as home:
+        monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+        monkeypatch.delenv(identity.KEEP_ALIVE_ENV, raising=False)
+        monkeypatch.delenv(FAKE_HOST_MODE_ENV, raising=False)
+        yield home
 
 
 def parse_headroom(text: str) -> pressure.PidHeadroom | None:
