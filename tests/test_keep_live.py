@@ -5,10 +5,10 @@ the network — the flag means "needs real assets"). Each gate drives the **real
 process against its own throwaway data home, so the pids it asserts are real pids and the operator's
 `$TYPED_GGUF_HOME` is never touched.
 
-Run::
+Run (this box's recipe; the paths are whatever the shell already exports)::
 
-    VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json \\
-    TYPED_GGUF_RUNTIME_DIR=/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan \\
+    VK_DRIVER_FILES=<vulkan icd json> \
+    TYPED_GGUF_RUNTIME_DIR=<$TYPED_GGUF_HOME>/runtime/b11026-linux-x64-vulkan \
       uv run --frozen pytest -q --run-network tests/test_keep_live.py -s
 
 The 4B (Spark-X2.5-4B-Q8_0) is the model the card's numbers are about; `TYPED_GGUF_KEEP_MODEL` and
