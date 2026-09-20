@@ -1,0 +1,25 @@
+downloading runtime:   3.5%  1.05 MB / 30.29 MBdownloading runtime: 100.0%  30.29 MB / 30.29 MB
+warning: W_VULKAN_WARMUP: the first Vulkan decode pays the shader compilation (23-30 s measured); `typed-gguf init`/`serve` warm up before serving
+installed: True
+variant: linux-x64-vulkan
+dir: /home/rybens/workspace/ggufone/.t07b5/home/runtime/b11026-linux-x64-vulkan
+backend: vulkan
+working_backend: vulkan
+source: url
+asset: llama-b11026-bin-ubuntu-vulkan-x64.tar.gz
+asset_sha256: 1b40310bf4d47c2c84853ebb4ccaf4dcbd992596cd1c2f610be6a0532a874708
+asset_verified: True
+libllama_sha256: 8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975
+bytes_fetched: 30294625
+resumed_from: 0
+build: 11026
+backends:   - cpu
+  - rpc
+  - vulkan
+backend_errors: 
+fallback_attempts:   -
+fallback_reason: None
+fallback_reason_code: None
+symbols_ok: True
+warmup_ms: None
+rung: prebuilt

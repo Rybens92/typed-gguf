@@ -1,0 +1,179 @@
+{
+  "model": "spark-x2.5-4b-q8_0",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "vulkan",
+    "backend_source": "bundle",
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan",
+    "readout": "sequence",
+    "cue": "json_instructed",
+    "chat_format": {
+      "kind": "role_split",
+      "question_turn": "user",
+      "contract": "question",
+      "prefix_chars": 507,
+      "dropped": "\n"
+    },
+    "kv_unified": true,
+    "n_ctx": 256,
+    "n_seq_max": 8,
+    "prefix_tokens": 104,
+    "state_id": "sha256:a5b7481f9d1e23d563eb1b256404de476ba7bcfcc908c9d7a91a76453c3c6c92",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "spark2_5",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "f16",
+    "n_gpu_layers": 36,
+    "placement": {
+      "note": "fit plan: 36 layer(s) offloaded, kv_type=f16",
+      "n_gpu_layers": 36,
+      "kv_type": "f16",
+      "degraded": false,
+      "attempts": [],
+      "warnings": [],
+      "cpu_only": false
+    },
+    "fit": {
+      "n_gpu_layers": 36,
+      "n_ctx": 4096,
+      "kv_type": "f16",
+      "n_seq_max": 8,
+      "est_weights_bytes": 4724883456,
+      "est_kv_bytes": 264241152,
+      "est_total_bytes": 5287968768,
+      "backend": "vulkan",
+      "source": "llama-fit-params",
+      "warnings": [],
+      "notes": [
+        "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 4506 MiB, context 252 MiB, compute 285 MiB)"
+      ],
+      "arch": "spark2_5",
+      "model_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+      "host_fingerprint": "b07db2467dfc6dbc",
+      "budget_bytes": 5921308672,
+      "created_at": "2026-09-20T13:16:54Z",
+      "schema": "typed_gguf.fit/v1"
+    },
+    "escalations": {
+      "enabled": false,
+      "limit": 0,
+      "threshold": 0.5,
+      "target": null,
+      "count": 0,
+      "decisions": [],
+      "skipped": []
+    }
+  },
+  "answers": {
+    "area": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": {
+        "billing": 0.73758,
+        "technical": 0.171766,
+        "platform": 0.0906544
+      },
+      "confidence": 0.606369,
+      "coverage": 0.999454,
+      "reliability": "ok",
+      "cue": {
+        "refused": false,
+        "token": 79,
+        "closer": null,
+        "mass": 0.841117,
+        "verdict": "answered",
+        "next": null
+      },
+      "decode_steps": 5
+    },
+    "severity": {
+      "type": "score",
+      "score": 0.683022,
+      "probabilities": {
+        "0": 0.42261,
+        "1": 0.471758,
+        "2": 0.105632
+      },
+      "confidence": 0.207637,
+      "legend": {
+        "0": "cosmetic",
+        "1": "annoying",
+        "2": "critical"
+      },
+      "coverage": 0.999991,
+      "reliability": "ok",
+      "cue": {
+        "refused": false,
+        "token": 30,
+        "closer": null,
+        "mass": 0.471754,
+        "verdict": "answered",
+        "next": null
+      },
+      "decode_steps": 3
+    },
+    "page": {
+      "type": "noul",
+      "noul": 0.00470045,
+      "probabilities": {
+        "yes": 0.00470045,
+        "no": 0.9953
+      },
+      "coverage": 0.999993,
+      "reliability": "ok",
+      "cue": {
+        "refused": false,
+        "token": 1643,
+        "closer": null,
+        "mass": 0.995293,
+        "verdict": "answered",
+        "next": null
+      },
+      "decode_steps": 2
+    }
+  },
+  "usage": {
+    "input_tokens": 255,
+    "output_tokens": 10,
+    "questions": 3,
+    "forks": 8,
+    "prefill_tokens": 104,
+    "decode_steps": 10,
+    "waves": 4
+  },
+  "timings": {
+    "model_load_ms": 6332.95,
+    "prefill_ms": 783.573,
+    "questions_ms": 473.311,
+    "total_ms": 1273.17
+  },
+  "warnings": [],
+  "calibrated": false,
+  "calibration": {
+    "source": "",
+    "applied": false,
+    "model": null,
+    "params_hash": "",
+    "temperatures": {},
+    "confidence_modes": {},
+    "accepted_types": []
+  }
+}

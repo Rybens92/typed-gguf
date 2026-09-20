@@ -1,0 +1,1 @@
+The billing page is blank for every user since 09:12. The incident channel is quiet, no deploy in the last 24h, and the API is healthy on synthetic traffic.

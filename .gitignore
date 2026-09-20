@@ -58,6 +58,29 @@ mutants_*/
 !.t5b75/logs/red_pre_v2_full.txt
 !.t5b75/logs/oracle_after_flip.txt
 !.t5b75/logs/identity_default_vs_arm.txt
+# public docs pass (t_07b5cc01) — the quickstart's raw run logs; the receipts the card cites stay
+.t07b5/logs/*
+!.t07b5/logs/suite_after.txt
+!.t07b5/logs/suite_baseline_no_new_file.txt
+!.t07b5/logs/red_public_docs.txt
+!.t07b5/logs/init.txt
+!.t07b5/logs/pull.txt
+!.t07b5/logs/ask_clean.json
+!.t07b5/logs/run_1.json
+!.t07b5/logs/run_2_reuse.json
+!.t07b5/logs/run_typesafe.json
+!.t07b5/logs/det_1.json
+!.t07b5/logs/det_2.json
+!.t07b5/logs/fit.txt
+!.t07b5/logs/models_ls.txt
+!.t07b5/logs/pip_install.txt
+!.t07b5/logs/oracle.txt
+!.t07b5/logs/markdown_check.txt
+!.t07b5/logs/citations.txt
+# …and the isolated run that produced them: a fresh data home (pinned runtime + the 4.4 GB model)
+# plus a throwaway venv the pip-install check used. Both are data, never repo content.
+.t07b5/home/
+.t07b5/venv/
 # the E1 coordination thread is dev chatter, not product (file stays on disk)
 state/groupchat/
 # the `--quick` bench preset's default report lands in the cwd (the `DEFAULT_OUT_NAME`

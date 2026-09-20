@@ -1,0 +1,19 @@
+{
+  "state": "The billing page is blank for every user since 09:12. The incident channel is quiet, no deploy in the last 24h, and the API is healthy on synthetic traffic.",
+  "questions": {
+    "area": {
+      "type": "choice",
+      "instructions": "Which team owns this incident?",
+      "criteria": {"billing": "Payments, invoices, refunds", "technical": "Bugs, crashes, API errors", "platform": "Infra, deploys, capacity"}
+    },
+    "severity": {
+      "type": "score",
+      "instructions": "How severe is it for the customer?",
+      "criteria": ["cosmetic", "annoying", "critical"]
+    },
+    "page": {
+      "type": "noul",
+      "instructions": "Should we page the on-call engineer now?"
+    }
+  }
+}

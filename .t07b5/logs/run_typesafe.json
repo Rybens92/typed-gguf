@@ -1,0 +1,42 @@
+{
+  "model": "spark-x2.5-4b-q8_0",
+  "answers": {
+    "area": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": {
+        "billing": 0.766797,
+        "technical": 0.220731,
+        "platform": 0.0124716
+      },
+      "confidence": 0.650196
+    },
+    "severity": {
+      "type": "score",
+      "score": 1.14801,
+      "probabilities": {
+        "0": 0.0825367,
+        "1": 0.686919,
+        "2": 0.230545
+      },
+      "confidence": 0.530378,
+      "legend": {
+        "0": "cosmetic",
+        "1": "annoying",
+        "2": "critical"
+      }
+    },
+    "page": {
+      "type": "noul",
+      "noul": 0.000165299,
+      "probabilities": {
+        "yes": 0.000165299,
+        "no": 0.999835
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 287,
+    "output_tokens": 10
+  }
+}

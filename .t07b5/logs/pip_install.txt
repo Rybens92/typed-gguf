@@ -1,0 +1,9 @@
+
+[notice] A new release of pip is available: 24.0 -> 26.2.1
+[notice] To update, run: python3.11 -m pip install --upgrade pip
+venv_pip_exit=0
+typed-gguf 0.1.0
+  runtime  b11026 (linux-x64-vulkan) at /home/rybens/.local/share/typed-gguf/runtime/b11026-linux-x64-vulkan
+  backends cpu, rpc, vulkan
+  home     /home/rybens/.local/share/typed-gguf
+typed_gguf_cli_exit=0

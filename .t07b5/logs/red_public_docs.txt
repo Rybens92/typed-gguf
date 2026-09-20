@@ -1,0 +1,49 @@
+FF....FF                                                                 [100%]
+=================================== FAILURES ===================================
+____________ test_the_quickstart_quotes_the_defaults_the_code_ships ____________
+
+    def test_the_quickstart_quotes_the_defaults_the_code_ships() -> None:
+        options = schema.Options()
+        assert options.cue == "json_instructed" and options.chat_format == "role_split", (
+            "policy v2 moved: update this file together with the public docs")
+        # the quoted response is the request a reader gets with no policy flag at all
+>       assert f'"cue": "{options.cue}"' in README, "README no longer quotes the default cue"
+E       AssertionError: README no longer quotes the default cue
+E       assert '"cue": "json_instructed"' in "# typed-gguf\n\n**Formerly `ggufone`** — the public name changed on 2026-09-20 (card t_5f9c15fe): the import package ...el authors'.\n`typed-gguf` is not affiliated with TypeSafe; the `typesafe` output format is a compatibility adapter.\n"
+
+tests/test_public_docs.py:48: AssertionError
+____ test_the_default_cue_and_chat_format_are_named_in_the_quickstart_prose ____
+
+    def test_the_default_cue_and_chat_format_are_named_in_the_quickstart_prose() -> None:
+        """The quoted block can be right while the sentence above it still describes the old cell."""
+        quickstart = README.split("## Quickstart", 1)[1].split("\n## ", 1)[0]
+>       assert "`role_split`" in quickstart and "`json_instructed`" in quickstart
+E       assert ('`role_split`' in ' (decide)\n\n```bash\ntyped-gguf models pull XHToken/Spark-X2.5-4B-GGUF:Q8_0      # once (4.4 GB, SHA-256 verified)\n... answering" are different verdicts, and only one of them is a prompt\nshape you can change (`docs/TEMPLATES.md` §4).\n')
+
+tests/test_public_docs.py:57: AssertionError
+___________ test_the_readme_marks_the_serving_surface_as_not_shipped ___________
+
+    def test_the_readme_marks_the_serving_surface_as_not_shipped() -> None:
+>       interfaces = README.split("## Interfaces", 1)[1].split("\n## ", 1)[0]
+E       IndexError: list index out of range
+
+tests/test_public_docs.py:97: IndexError
+_________________ test_the_readme_keeps_the_deduplicated_shape _________________
+
+    def test_the_readme_keeps_the_deduplicated_shape() -> None:
+        """The rewrite removed the duplicated developer scaffolding — a later paste must not bring it
+        back (one `## Verification`, one `## License`, one quickstart)."""
+        for title in ("## Quickstart", "## Verification", "## License"):
+>           assert README.count(title) == 1, f"{title} appears {README.count(title)} times"
+E           AssertionError: ## Quickstart appears 2 times
+E           assert 2 == 1
+E            +  where 2 = <built-in method count of str object at 0x564edb7dcf10>('## Quickstart')
+E            +    where <built-in method count of str object at 0x564edb7dcf10> = "# typed-gguf\n\n**Formerly `ggufone`** — the public name changed on 2026-09-20 (card t_5f9c15fe): the import package ...el authors'.\n`typed-gguf` is not affiliated with TypeSafe; the `typesafe` output format is a compatibility adapter.\n".count
+
+tests/test_public_docs.py:107: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_public_docs.py::test_the_quickstart_quotes_the_defaults_the_code_ships
+FAILED tests/test_public_docs.py::test_the_default_cue_and_chat_format_are_named_in_the_quickstart_prose
+FAILED tests/test_public_docs.py::test_the_readme_marks_the_serving_surface_as_not_shipped
+FAILED tests/test_public_docs.py::test_the_readme_keeps_the_deduplicated_shape
+4 failed, 4 passed in 0.10s

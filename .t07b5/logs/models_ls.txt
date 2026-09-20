@@ -1,0 +1,1 @@
+ * spark-x2.5-4b-q8_0         Q8_0       spark2_5        4.38 GB apache-2.0   [ok] /home/rybens/workspace/ggufone/.t07b5/home/models/Spark-X2.5-4B-Q8_0.gguf

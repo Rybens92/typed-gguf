@@ -1,0 +1,7 @@
+checked 75 path citations in 3 documents
+missing:
+SPEC.md: tools/call
+SPEC.md: tools/list
+missing:
+SPEC.md: tools/call
+SPEC.md: tools/list

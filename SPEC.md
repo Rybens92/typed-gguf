@@ -462,7 +462,7 @@ typed_gguf/
     ci.yml                    # lint + unit gate + oracle (offline and live per platform)
     runtime-matrix.yml        # downloads each pinned asset, runs the oracle live section (per OS)
     wheels-fallback.yml       # fallback publisher: our own wheels for platforms without an asset
-  state/groupchat/typed-gguf-e1.md  # coordination thread
+  state/fights/<fight>/     # committed receipts of an evidence fight (scorecard + logs + scripts)
 ```
 
 Nothing in this layout is aspirational: E1a owns `runtime/`, `registry/`, `cli.py init|doctor|models`,
@@ -747,7 +747,8 @@ the vendor's public eval; frozen Qwen3.5-4B ≈ 0.845 vs 0.883 modal agreement o
 Done when: `SPEC.md` committed; scaffold committed (`pyproject.toml`, `README.md`, `LICENSE`,
 `src/typed_gguf/*` stubs, `tests/test_scaffold.py`, workflows, `docs/evidence/*`,
 `docs/verify_runtime_contract.py`); `uv run pytest -q` green; the oracle exits 0 (offline and live);
-`state/groupchat/typed-gguf-e1.md` carries this milestone list.
+the project's coordination thread (live during development, deliberately not part of this
+repository) carries this milestone list.
 
 **E1a entry conditions for code-tdd:** S-1..S-12 ratified (or defaults accepted); the oracle is the
 first test to make green; `docs/evidence/poc-ctypes-20260917.py` is transplanted into
