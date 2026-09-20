@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import tomllib
 
 import pytest
 
@@ -267,3 +268,127 @@ def test_current_host_is_the_only_reader_of_the_real_machine(monkeypatch: pytest
     assert faux.detect_backend() == "cpu"  # no ICD at that path -> no Vulkan claim
     assert (tmp_path / "icd.d").mkdir() is None
     assert faux.detect_backend() == "vulkan"
+
+
+# ------------------------------------------------ the packaged lock (card t_eff926f9)
+def test_the_wheel_copies_the_root_lock_into_the_package() -> None:
+    """Single source of truth for the pin: `runtime.lock` stays the one committed file (data, at
+    the repo root) and the *build* puts a copy inside the wheel. Requirement 2's "no drift" is
+    structural here — there is no second copy in the tree that could fall behind."""
+    wheel = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))[
+        "tool"]["hatch"]["build"]["targets"]["wheel"]
+    assert wheel["force-include"] == {"runtime.lock": pins.PACKAGED_LOCK_RELATIVE}
+
+
+def test_the_packaged_lock_path_is_inside_the_distribution() -> None:
+    """`<pkg>/data/runtime.lock`, next to the module that reads it, and the same destination the
+    wheel build maps the root file to — the two spellings cannot drift apart."""
+    package_root = pathlib.Path(pins.__file__).resolve().parents[1]
+    assert pins.packaged_lock_path() == package_root / "data" / "runtime.lock"
+    # the wheel root (site-packages) is where force-include's destination starts
+    assert pins.packaged_lock_path().relative_to(package_root.parent).as_posix() == \
+        pins.PACKAGED_LOCK_RELATIVE
+
+
+def test_the_lookup_order_is_override_checkout_package_then_cwd(tmp_path: pathlib.Path) -> None:
+    """Requirement 1's precedence as one list: a dev checkout keeps winning over the packaged
+    copy, and the packaged copy wins over the cwd a wheel user happens to stand in."""
+    package_file = tmp_path / "site-packages" / "typed_gguf" / "runtime" / "pins.py"
+    package_file.parent.mkdir(parents=True)
+    override = tmp_path / "override.lock"
+    cwd = tmp_path / "neutral"
+    cwd.mkdir()
+    candidates = pins.lock_candidates(environ={"TYPED_GGUF_LOCK": str(override)},
+                                      package_file=package_file, cwd=cwd)
+    packaged = pins.packaged_lock_path(package_file)
+    assert candidates[0] == override                                    # the explicit override
+    assert candidates[1] == package_file.parent / "runtime.lock"        # nearest above, first hop
+    assert packaged in candidates and candidates[-1] == cwd / "runtime.lock"
+    assert candidates.index(packaged) < candidates.index(cwd / "runtime.lock")
+    assert len(set(candidates)) == len(candidates), "a path must not be searched twice"
+
+
+def test_an_installed_package_reads_the_copy_it_ships(tmp_path: pathlib.Path) -> None:
+    """The uvx case: no repository above the package and a cwd with no lock of its own, so the
+    only lock left is the one inside the distribution."""
+    package_file = tmp_path / "site-packages" / "typed_gguf" / "runtime" / "pins.py"
+    package_file.parent.mkdir(parents=True)
+    packaged = pins.packaged_lock_path(package_file)
+    packaged.parent.mkdir(parents=True)
+    packaged.write_text((ROOT / "runtime.lock").read_text(encoding="utf-8"), encoding="utf-8")
+    neutral = tmp_path / "neutral"
+    neutral.mkdir()
+    assert pins.located_lock(environ={}, package_file=package_file, cwd=neutral) == packaged
+
+
+def test_a_broken_install_lists_every_path_it_searched(tmp_path: pathlib.Path,
+                                                       monkeypatch: pytest.MonkeyPatch) -> None:
+    """The old text ("run from the repository root or set TYPED_GGUF_LOCK") sent a uvx user to the
+    one thing an installed package cannot be — a checkout — and named no path, so the install that
+    was actually broken stayed invisible. The text lists what was searched now (requirement 1)."""
+    neutral = tmp_path / "neutral"
+    neutral.mkdir()
+    package_file = tmp_path / "site-packages" / "typed_gguf" / "runtime" / "pins.py"
+    package_file.parent.mkdir(parents=True)
+    monkeypatch.chdir(neutral)
+    monkeypatch.setattr(pins, "__file__", str(package_file))
+    monkeypatch.delenv("TYPED_GGUF_LOCK", raising=False)
+    with pytest.raises(TypedGgufError) as exc:
+        pins.load_lock()
+    message = str(exc.value)
+    assert message.startswith("E_RUNTIME_MISSING")
+    assert str(package_file.parent / "runtime.lock") in message      # nearest above the package
+    assert str(pins.packaged_lock_path(package_file)) in message     # the copy a wheel ships
+    assert str(neutral / "runtime.lock") in message                  # the historical last resort
+    assert "run from the repository root" not in message
+
+
+def test_a_missing_override_is_named_and_never_silently_skipped(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`$TYPED_GGUF_LOCK` is authoritative: a typo fails loudly instead of quietly reading the
+    packaged copy, which would leave the caller's pin looking effective when it is not in use."""
+    typo = tmp_path / "typo.lock"
+    monkeypatch.setenv("TYPED_GGUF_LOCK", str(typo))
+    with pytest.raises(TypedGgufError) as exc:
+        pins.load_lock()
+    message = str(exc.value)
+    assert "TYPED_GGUF_LOCK" in message and str(typo) in message
+    assert str(pins.packaged_lock_path()) in message, "the message says what was NOT searched"
+
+
+def test_the_override_still_wins_over_the_packaged_copy(tmp_path: pathlib.Path,
+                                                        monkeypatch: pytest.MonkeyPatch) -> None:
+    """Dev runs keep winning: with the override set, the packaged copy is not consulted at all."""
+    custom = tmp_path / "runtime.lock"
+    payload = json.loads((ROOT / "runtime.lock").read_text(encoding="utf-8"))
+    payload["llama_cpp"]["tag"] = "b00042"
+    custom.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setenv("TYPED_GGUF_LOCK", str(custom))
+    assert pins.default_lock_path() == custom
+    assert pins.load_lock().tag == "b00042"
+
+
+def test_load_lock_without_arguments_reads_the_lock_above_the_package(
+        monkeypatch: pytest.MonkeyPatch) -> None:
+    """The plain `load_lock()` is the production path (every command calls it with no argument):
+    in a checkout it is the repo's own lock, found by the walk-up, not by the cwd."""
+    monkeypatch.delenv("TYPED_GGUF_LOCK", raising=False)
+    assert pins.load_lock().source_path == ROOT / "runtime.lock"
+
+
+def test_default_lock_path_names_the_packaged_copy_when_nothing_exists(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Nothing on disk: the accessor still names a file — the packaged copy a healthy install has,
+    or the override the caller gave — because `load_lock`'s error is what reports the search."""
+    neutral = tmp_path / "neutral"
+    neutral.mkdir()
+    package_file = tmp_path / "site-packages" / "typed_gguf" / "runtime" / "pins.py"
+    monkeypatch.chdir(neutral)
+    monkeypatch.setattr(pins, "__file__", str(package_file))
+    monkeypatch.delenv("TYPED_GGUF_LOCK", raising=False)
+    packaged = pins.packaged_lock_path()
+    assert not packaged.exists()
+    assert pins.default_lock_path() == packaged
+    override = tmp_path / "override.lock"
+    monkeypatch.setenv("TYPED_GGUF_LOCK", str(override))
+    assert pins.default_lock_path() == override
