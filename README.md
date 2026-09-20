@@ -396,7 +396,7 @@ estimate is cross-checked against measured load RSS within ±20 % on this box
 
 ## Status
 
-`SPEC.md` is the contract (milestones E1a → E3 with numbered acceptance criteria); every number in
+`SPEC.md` is the contract (milestones E1a → E4 with numbered acceptance criteria); every number in
 it carries a `[executed]` / `[recon]` / `[target]` / `[UNVERIFIED]` tag. `docs/BENCHMARKS.md`
 carries the measured tables and `docs/TEMPLATES.md` the template/family contract.
 
@@ -420,6 +420,12 @@ carries the measured tables and `docs/TEMPLATES.md` the template/family contract
 - **E3e + policy v2 (done, 2026-09-20)** — the two switches that fix the question's placement and
   the ask line (`role_split`, `json_instructed`) are the defaults; measured grounds in
   `docs/BENCHMARKS.md` §9 and §7.4.2.
+- **E4 (done, 2026-09-20)** — the warm engine host (SPEC §2.12): a model used by `run`/`ask` stays
+  resident for `--keep-alive` (600 s default) and the next call skips the cold start. Measured on
+  the 4B with the pinned Vulkan bundle: cold **17.50 s** (load 2280 ms) → warm **2.58 s** (load
+  0 ms) on the same host pid; with `--keep-alive 5s` the host was gone 5.3 s after the window and
+  the device went 2314 → 6409 MiB free; A → B → A kept one host at a time. Gates:
+  `tests/test_keep_live.py` (7, `--run-network`) over the offline pins in `tests/test_keep*.py`.
 - **Not in v0.1.0** — the HTTP/MCP serving surface (SPEC §2.9) and the optional E2-v2 re-measurement
   of the pre-v2 tables.
 
@@ -432,6 +438,8 @@ uv run pytest -q --run-network tests/test_engine_fork.py tests/test_cli.py   # f
                                                     # waves, determinism, state save/load, CLI e2e
 uv run pytest -q --run-network tests/test_templates.py tests/test_fit_live.py  # E1c: the real
                                                     # templates + the real fit plan (RSS ±20%)
+uv run pytest -q --run-network tests/test_keep_live.py -s   # E4: cold vs warm, idle unload, the
+                                                    # A→B→A swap, orphan cleanup (real 4B, ~5 min)
 uv run python tools/e1c_offline_gate.py             # every E1c test with the network disabled
 python3 docs/verify_runtime_contract.py             # oracle: pinned facts + formulas
 TYPED_GGUF_RUNTIME_DIR=<runtime> python3 docs/verify_runtime_contract.py   # + live ctypes probes

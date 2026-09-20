@@ -524,6 +524,8 @@ typed_gguf/
     test_gguf_header.py test_registry_store.py test_recommend_quant.py      (E1a)
     test_readout_math.py test_schema.py test_typesafe_adapter.py test_engine_fork.py test_cli.py (E1b)
     test_templates.py test_fit.py (E1c) | test_bench.py (E2) | test_calibration.py test_routing.py (E2.5)
+    test_keep.py test_keep_host.py test_keep_client.py test_keep_cli.py (E4, offline)
+    test_keep_live.py              # E4 live: cold vs warm, idle unload, swap, orphans (--run-network)
   .github/workflows/
     ci.yml                    # lint + unit gate + oracle (offline and live per platform)
     runtime-matrix.yml        # downloads each pinned asset, runs the oracle live section (per OS)
