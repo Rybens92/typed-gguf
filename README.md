@@ -268,8 +268,10 @@ exits itself and frees the device.
   swap, never a wrong answer; `keep status` prints the key it is holding.
 - **Who answered** is in the response: `engine.keep.served_by` is `"host"` or `"inline"`, with the
   host's pid, its one-time `model_load_ms`, the idle time left, and — when a host could not be had —
-  the named reason it fell back (`engine.keep.fallback`). A warm answer reports
-  `timings.model_load_ms: 0.0`: the load it did not pay.
+  the named reason it fell back (`engine.keep.fallback`). The call that **spawned** the host reports
+  that load in its own `timings.model_load_ms` (it waited for it); a warm answer reports `0.0`. With
+  `--keep-alive 0` the keep path never runs, so the response is the pre-E4 one verbatim — no
+  `engine.keep` block at all.
 - **`keep status` / `keep stop`** are the control surface. `status` reports the pid, the model, the
   key, idle seconds left, the placement, and the device the *engine's own log* proved.
 - **Fallback policy.** If the host cannot be reached, spawns but never becomes ready, or dies with a
@@ -381,6 +383,16 @@ estimate is cross-checked against measured load RSS within ±20 % on this box
   measured); each table says `measured: false` with the reason instead of omitting the backend.
 - **`typed-gguf` is not affiliated with TypeSafe** and makes no parity claim; the `typesafe` output
   format is a compatibility adapter (§2.6).
+- **The warm host keeps one model at a time.** A request for a different model — or for the same
+  model with placement-affecting options that differ — stops the resident host *before* the new one
+  loads, so the swap costs a full cold load and there is no set of per-model hosts. That is
+  deliberate on an 8 GB-VRAM box, where two resident models do not fit; `--keep-alive 0` turns the
+  host off entirely and `typed-gguf keep stop` frees the device right now. While a host is resident
+  its model stays in RAM/VRAM (and stays out of reach of the next call that wants a different one).
+- **The window belongs to the call that spawned the host.** A later call that merely *reuses* the
+  host does not change its `--keep-alive` (though every request does restart its countdown): the
+  resident host answers for the window it was started with until it ages out, is stopped, or a
+  different key evicts it. Nothing supervises a host that dies: the next call just pays a cold load.
 
 ## Status
 

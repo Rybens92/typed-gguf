@@ -396,14 +396,15 @@ typed-gguf models use <alias> | ls [--json] | rm <alias> | verify [<alias>] | re
 typed-gguf run --questions q.json [--state s.txt|--state-json f] [--model alias] [--format native|typesafe]
               [--out r.json] [--state-id ID]
               [--cue shipped|two_step|json_field|json_instructed] [--chat-format answer_sheet|role_split]
-              [--json-contract question|system] [--thinking]
+              [--json-contract question|system] [--thinking] [--keep-alive <dur|0>]
 typed-gguf ask --state <text|@file> --choice "id=instr:opt1|opt2" --score "id=instr:l0|l1|l2"
-              --noul "id=instr"
+              --noul "id=instr" [--keep-alive <dur|0>]
 typed-gguf serve [--host 127.0.0.1] [--port 8088] [--format native|typesafe]
 typed-gguf mcp                                  # stdio JSON-RPC for MCP clients
 typed-gguf bench --suite latency|throughput|quality|calibration|determinism [--model alias] [--json]
 typed-gguf fit [<model>] [--print] [--no-cache]
 typed-gguf calibrate [--model alias] [--dry-run]
+typed-gguf keep status [--json] | stop [--json]   # the warm engine host (§2.12)
 typed-gguf version [--json]
 ```
 
@@ -445,6 +446,48 @@ Enforced by: the oracle §D dependency scan, `tests/test_no_finetune.py` (no `to
 bitsandbytes|deepseed|accelerate|lightning` in `pyproject`), a repo-wide grep gate for `llama_sampler_`
 in `src/`, and the absence of any training entry point in the CLI.
 
+### 2.12 Warm engine host — keep-alive, idle unload, swap (E4)
+
+`run`/`ask` do not unload the model when the call returns: the call that pays the load leaves a
+**keep host** behind — a detached child process (own session, `setsid`, survives its parent) holding
+the loaded model and answering later decisions over a **unix socket** in the data home
+(`$TYPED_GGUF_HOME/keep/`, mode 0600, never TCP). A later call with the same identity skips the cold
+start. This host is the warm core the `serve`/`mcp` surfaces (§2.9) reuse.
+
+- **One host, one model, one data home.** At most one host is alive per data home, and it holds at
+  most one model. A request whose key differs from the resident host's **stops that host before the
+  new model loads**, so a swap never keeps two models in RAM/VRAM.
+- **The key** is the identity: the resolved model path plus its SHA (the registry's recorded sha256,
+  else the file's own size+mtime) plus the placement-affecting options (`backend`, `n_ctx`,
+  `kv_type`, `n_seq_max`, `threads`, fit flags). `keep status` prints the key it holds; a differing
+  key is a swap, never a wrong answer.
+- **The window.** The host exits itself after `keep_alive` seconds without a request — the countdown
+  restarts on every request. Default **600 s**. Configured by `--keep-alive <dur|0>` on `run`/`ask`
+  or `$TYPED_GGUF_KEEP_ALIVE`, spelled as bare seconds (`600`) or with a unit (`10m`, `90m`, `2.5s`);
+  precedence **flag > env > default**; `--keep-alive 0` reproduces the pre-E4 behaviour exactly
+  (answer inline, nothing resident). No settings file: the window belongs to the call that starts the
+  host, so it travels with the request that pays for it.
+- **Requests are serialized** inside the host: one decision at a time, in arrival order. Two clients
+  sharing a host never run concurrently against one model handle.
+- **Exit discipline** follows `runtime/teardown.py`: the host closes the handle and ends through
+  `os._exit`, so the NVIDIA ICD teardown SIGSEGV of t_57cc0179 cannot take the device down with it.
+  The socket is unlinked and the ledger entry removed on the way out; debris a `kill -9` left behind
+  (a socket where nothing answers, a stale pid) is probed and replaced on the next call.
+- **Fallback.** If a host cannot be had — no `AF_UNIX` on this platform, a spawn that never becomes
+  ready, a host that dies mid-request — the client cleans up its ledger entry and answers **inline on
+  that same call**, naming the reason in `engine.keep.fallback`. A crash *inside* the host is a typed
+  error on the wire, rebuilt as the product's own exception type. The CLI never wedges on a host.
+- **Who answered** is in the response of every call that went through the keep path:
+  `engine.keep.served_by` (`"host"` / `"inline"`), the host pid, the load *that call paid* — the
+  spawning call waited for it, so it reports the host's one-time `model_load_ms` in its own
+  `timings.model_load_ms`, and a warm answer reports `0.0` — the idle seconds left, and the fallback
+  reason when there was one. `--keep-alive 0` never enters the keep path: its response is the pre-E4
+  one verbatim, with no `engine.keep` block. `keep status` reports the pid, the model, the key,
+  loaded/idle seconds, the placement, and the device the **engine's own log** proved (the t_603a35a
+  / t_80f1a4c6 honesty rule).
+- **Platforms.** The host needs `AF_UNIX`, i.e. Linux/macOS. Where it is missing (Windows), `run`/
+  `ask` answer inline with the named warning `W_KEEP_UNAVAILABLE`; no daemon is attempted.
+
 ---
 
 ## 3. Repo layout & scaffold (created with this SPEC)
@@ -473,6 +516,7 @@ typed_gguf/
     calibration/{stats,calibrate,routing}.py
     api/{http,mcp}.py
     bench/{harness,suites}.py
+    keep/{identity,state,host,client}.py        # (E4) the warm host: key, ledger, server, client
   tests/
     test_scaffold.py               # E0: package imports, layout, version
     test_runtime_contract.py       # thin wrapper: oracle sections as pytest cases (E1a)
@@ -678,6 +722,30 @@ Deliverable: measured runs + docs. No new source required (config only).
 - **A-E3-5** All artifacts are stock GGUFs; SHA-256 recorded; no fine-tuning anywhere (A2 gate re-run).
 - **A-E3-6** Long-context smoke: a 32k-token state completes a decision on the 27B/35B hybrid models
   (CPU acceptable) with a recorded time.
+
+### E4 — warm engine host (keep-alive, idle unload, swap)
+
+Deliverable: `src/typed_gguf/keep/`, the `ask`/`run` auto-spawn, `keep status|stop`, `--keep-alive`,
+plus the offline pins and the real-model gates.
+
+- **A-E4-1** A second `ask` on the same model inside the window pays **no** model load: the response
+  reports `engine.keep.served_by = "host"` and `timings.model_load_ms = 0.0`, and the warm call's
+  engine log carries no load line. Cold vs warm wall-clock quoted on the 4B (the warm one ≈
+  decision-only).
+- **A-E4-2** Idle unload: with `--keep-alive 5s` the host process is gone after the window (asserted
+  by pid), and the next ask is cold again.
+- **A-E4-3** Model switch A → B → A: B's host is stopped before A loads, `keep status` shows one host
+  at a time, and the device is freed between swaps (no two models resident).
+- **A-E4-4** No orphans: a `kill -9` of the client mid-request leaves no host behind; a socket left by
+  a dead host is cleaned up on the next call rather than blocking it.
+- **A-E4-5** The key is honored: a request differing in any placement-affecting option
+  (backend/`n_ctx`/`kv_type`/`n_seq_max`/threads/fit) gets a swap, never an answer from the resident
+  host.
+- **A-E4-6** `--keep-alive 0` reproduces the pre-E4 behaviour (inline answer, nothing resident), and
+  the precedence chain is flag > env > default in both spellings of `0`.
+- **A-E4-7** Both exit paths (idle timer, `keep stop`) close the handle and end through `os._exit`
+  (the `runtime/teardown.py` discipline); `keep status` reports placement and the device the engine's
+  own log proved.
 
 ---
 
