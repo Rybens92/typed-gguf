@@ -18,6 +18,7 @@ import contextlib
 import os
 import pathlib
 import shutil
+import socket
 import tempfile
 from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING
@@ -278,24 +279,67 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
             item.add_marker(pytest.mark.skip(reason="live test: pass --run-network to run"))
 
 
+# --------------------------------------------------------------------- the net-off flag
+#: The knob `tools/e1c_offline_gate.py` and `.github/workflows/ci.yml` set on a whole run.
+NET_BLOCK_ENV = "TYPED_GGUF_TEST_BLOCK_NET"
+#: The families the flag forbids: the ones that can leave the box. `AF_UNIX` is a *file*, not a
+#: network — the E4 keep host binds one in-process and the CI runs this whole suite with the flag
+#: on, so forbidding every family turned the first push of that tree red (card t_a4ebcd36: 24
+#: failed / 11 errors, all of them the hook's own `AssertionError`).
+NETWORK_FAMILIES: tuple[int, ...] = (socket.AF_INET, socket.AF_INET6)
+#: The real constructor, captured at import time: installing the block twice (a gate that pins the
+#: helper *inside* a run the flag already governs) must keep one base class instead of nesting.
+_REAL_SOCKET: type = socket.socket
+
+
+def _network_forbidden(*_args: object, **_kwargs: object) -> None:
+    """The flag's own raiser: the message is what a failing decision path reads."""
+    raise AssertionError(
+        f"network disabled for this run ({NET_BLOCK_ENV}=1): a decision path must never need it")
+
+
+class _NoNetworkSocket(_REAL_SOCKET):
+    """`socket.socket`, minus the families that could reach a network.
+
+    A *subclass*, not a stand-in raiser: everything about it is the stdlib's own class, so
+    `isinstance`, `socketpair`, timeouts and every method keep working — only building a socket in
+    `NETWORK_FAMILIES` (or in the default family, which *is* `AF_INET`) raises. `AF_UNIX` and the
+    other local families are deliberately allowed: the flag's subject is the network.
+    """
+
+    def __init__(self, family: int = -1, type: int = -1, proto: int = -1,
+                 fileno: int | None = None) -> None:
+        if fileno is None and family == -1:
+            family = socket.AF_INET          # `socket.py`'s own default, spelled out here
+        if family in NETWORK_FAMILIES:
+            _network_forbidden()
+        super().__init__(family, type, proto, fileno)
+
+
+def block_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Install the net-off block a run under `TYPED_GGUF_TEST_BLOCK_NET=1` gets.
+
+    One place owns what the flag means, so the gates can pin it directly instead of only through a
+    whole session (`tests/test_net_block_scope.py`): the network families cannot be built,
+    `create_connection`/`getaddrinfo` raise, and local IPC is untouched.
+    """
+    monkeypatch.setattr(socket, "socket", _NoNetworkSocket)
+    monkeypatch.setattr(socket, "create_connection", _network_forbidden)
+    monkeypatch.setattr(socket, "getaddrinfo", _network_forbidden)
+
+
 @pytest.fixture(autouse=True)
 def _network_disabled_for_this_run(monkeypatch: pytest.MonkeyPatch) -> None:
-    """A-E1c-10: with `TYPED_GGUF_TEST_BLOCK_NET=1` every socket call raises.
+    """A-E1c-10: with `TYPED_GGUF_TEST_BLOCK_NET=1` no *network* socket call can be built.
 
     Used by `tools/e1c_offline_gate.py` to run the whole E1c surface (offline *and* the live
-    model/runtime tests) with the network switched off at the Python level: no decision path may
-    touch it. The flag is off by default so the `network`-marked download tests still work.
+    model/runtime tests) with the network switched off at the Python level, and by the CI's
+    offline-suite step: no decision path may touch it. The block is scoped to the network families
+    (`block_network`) — the keep host's `AF_UNIX` socket is local IPC and stays available, or the
+    CI step would fail the feature as well as the download path it was written to guard. The flag
+    is off by default so the `network`-marked download tests still work.
     """
-    import os
-    import socket
-    if os.environ.get("TYPED_GGUF_TEST_BLOCK_NET") not in ("1", "true", "yes"):
+    if os.environ.get(NET_BLOCK_ENV) not in ("1", "true", "yes"):
         return
+    block_network(monkeypatch)
 
-    def forbidden(*args: object, **kwargs: object) -> None:
-        raise AssertionError(
-            "network disabled for this run (TYPED_GGUF_TEST_BLOCK_NET=1): a decision path must "
-            "never need it")
-
-    monkeypatch.setattr(socket, "socket", forbidden)
-    monkeypatch.setattr(socket, "create_connection", forbidden)
-    monkeypatch.setattr(socket, "getaddrinfo", forbidden)

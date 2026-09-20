@@ -3,8 +3,10 @@
 
 Every decision path (chain resolution, template rendering, fit planning, the engine) must work
 with no network at all. This gate runs the E1c tests — offline *and* the live model/runtime
-tests — with `TYPED_GGUF_TEST_BLOCK_NET=1`, which makes `tests/conftest.py` replace
-`socket.socket`, `socket.create_connection` and `socket.getaddrinfo` with a function that raises.
+tests — with `TYPED_GGUF_TEST_BLOCK_NET=1`, which makes `tests/conftest.py` build `AF_INET`/
+`AF_INET6` sockets through a class that raises and replace `socket.create_connection` /
+`socket.getaddrinfo` with a function that raises. Local IPC (`AF_UNIX`) is not the network and
+stays available: the warm keep host answers on one.
 
 Usage::
 

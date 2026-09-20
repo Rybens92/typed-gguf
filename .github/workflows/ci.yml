@@ -3,9 +3,11 @@ name: ci
 # The public gate: ruff + the whole offline suite + the engine oracle, on a runner with no model,
 # no GPU and no runtime bundle. The dev extra is the only thing installed; nothing here downloads
 # a model or a bundle, and the suite runs with the network switched off at the Python level
-# (`TYPED_GGUF_TEST_BLOCK_NET=1` — `tests/conftest.py` replaces `socket.socket`,
-# `socket.create_connection` and `socket.getaddrinfo` with a function that raises, so a decision
-# path that reaches for the network fails this job instead of quietly passing).
+# (`TYPED_GGUF_TEST_BLOCK_NET=1` — `tests/conftest.py` builds `AF_INET`/`AF_INET6` sockets through a
+# class that raises, and replaces `socket.create_connection` / `socket.getaddrinfo` with a function
+# that raises, so a decision path that reaches for the network fails this job instead of quietly
+# passing. Local IPC is deliberately *not* blocked: the E4 keep host answers on an `AF_UNIX`
+# socket and its gates bind one in-process).
 #
 # The live acceptance harness (`runtime-matrix.yml`) is manual/scheduled and deliberately NOT part
 # of this trigger surface: it is the one workflow that downloads the pinned bundle and a small GGUF.
