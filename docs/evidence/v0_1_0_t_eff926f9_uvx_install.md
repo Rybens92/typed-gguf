@@ -92,8 +92,8 @@ AFTER  (t_eff926f9) wheel: 50 members  →  + typed_gguf/data/runtime.lock
 
 | gate | command | result |
 |------|---------|--------|
-| full suite | `uv run --extra dev pytest -q` | **1390 passed, 48 skipped**, exit 0, 36.5 s |
-| the new wheel gate | `pytest -q tests/test_wheel_install.py` | 6 passed (0 skipped — the fork gate needs headroom) |
+| full suite | `uv run --extra dev pytest -q` | **1392 passed, 48 skipped**, exit 0, 62.8 s, 0 pid-pressure skips |
+| the new wheel gate | `pytest -q tests/test_wheel_install.py` | 8 passed (6 artifact gates + 2 harness pins) |
 | the new unit pins | `pytest -q tests/test_pins.py` | 43 passed |
 | oracle | `python docs/verify_runtime_contract.py` | `failures: 0  skips: 0`, exit 0 |
 | lint | `ruff check src tests tools docs .github` | clean |
@@ -103,6 +103,27 @@ Run the suite with `HOME=/work/agent-home UV_CACHE_DIR=/work/.uv-cache` and **no
 (or one whose home carries a bundle): the bench gates resolve runtimes from the data home, and a
 `TYPED_GGUF_HOME` pointing at an empty home makes `tests/test_bench_prompt_parity.py` fail for a
 reason that has nothing to do with this card (measured: same tree, one env var, red → green).
+
+### The box this gate runs on
+
+`tests/test_wheel_install.py` spawns `uv` and the installed CLI, and this box's pid cgroup fills
+*while* a run is in flight (measured at the start of this card: 6 ERRORS in one suite run, `uv`
+panicking with `OS can't spawn worker thread: Resource temporarily unavailable (os error 11)`).
+Both of its fixtures now classify a `uv` failure: a full cgroup skips through the conftest's
+pressure path (the `pid cgroup has no fork headroom` prefix plus the counter the session-finish hook
+reads, so the run prints the banner and cannot exit 0), and only a real build error fails the gate.
+
+```
+$ TYPED_GGUF_TEST_PID_HEADROOM=250/256 pytest -q tests/test_wheel_install.py
+2 passed, 6 skipped … PID PRESSURE: 6 fork gate(s) skipped        exit=1
+$ pytest -q tests/test_wheel_install.py                            # roomy box
+8 passed                                                          exit=0
+```
+
+The two harness pins spawn nothing (only the six artifact gates carry `needs_fork`), so the path
+they guard stays measurable on the starved box that motivated them — and both were shown to be
+load-bearing by hand probes on a clone (the classification returns `None` → the first fails; the
+skip loses its prefix/counter → the second fails; baseline green in both cases).
 
 `tests/test_wheel_install.py` builds the real wheel (`uv build --wheel --offline`), installs it with
 `uv tool install --offline` into a temp tool env, and runs `version` / `init --dry-run` /
