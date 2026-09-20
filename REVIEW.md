@@ -25,7 +25,7 @@ REVIEW.md`) is that each review overwrites `REVIEW.md` and git keeps the predece
 | 9 | doc gates | ✅ | `pytest -q -k doc` → **96 passed** (91 before the notes catch-up landed); `tests/test_public_docs.py` alone → 17 passed |
 | 10 | red path (no bundle, no model) | ✅ | `pytest -q -m "model or network"` with the runtime vars unset → **55 skipped, 1491 deselected, 0 failed** (49 baseline + the 7 E4 live gates, which skip by name) |
 | 11 | **uvx / out-of-tree install** | ✅ artifact half | `pytest -q tests/test_wheel_install.py` → **8 passed in 3.75 s** (real `uv build --wheel --offline` + `uv tool install` + three CLI runs from a neutral cwd carrying a decoy lock) |
-| 12 | citations ledger | ✅ no new dangling | hygiene checker at `ed48acb`: 1763 tracked files, 262 citations, 245 resolved, **0 cited-but-untracked**, 17 missing (16 pre-existing receipts + `mutants/**/*.py.meta`, a mutation-workbench glob the E4 evidence doc cites) |
+| 12 | citations ledger | ✅ no new dangling | hygiene checker at `ed48acb`: 1763 tracked files, 262 citations, 245 resolved, **0 cited-but-untracked**, 17 missing = 16 pre-existing receipts + one mutation-scratch glob (`mutants/…`) the E4 evidence doc names |
 | 13 | `--help` / exit-code surface | ✅ | re-probed every command: root `--help` exit 0 with `serve`/`mcp` reading *“(specified in SPEC §2.9, not implemented in v0.1.0; exits 3)”* (F1 closed), `models <sub> --help` no longer repeats the subcommand (F2 closed), `serve`/`mcp` exit **3** with the milestone pointer, an unknown command exits **2**, `keep` with no subcommand exits 2, `version` and every `--help` exit 0 |
 | 14 | secrets | ✅ | `git grep` for AWS/`ghp_`/`github_pat_`/`hf_`/`sk-`/`xox*`/`AIza`/private-key shapes over the tracked tree → **0 hits**; no `.env`/`.pem`/`.key`/`id_rsa` tracked |
 | 15 | hygiene at the certified sha | ✅ | the clean clone of `ed48acb` is clean; the *shared* checkout is dirty only with the in-flight tests-only card named at the bottom (not part of this certification) |
@@ -177,9 +177,10 @@ gate's own output, so nothing measured changes — it is a receipt line to corre
 into that file.
 
 **⚪ N2 — one new citation only resolves while the sweep's scratch dir exists.**
-The E4 evidence doc cites `mutants/**/*.py.meta` (the census tool's own input). That is dev scratch,
-never tracked, and consistent with two pre-existing mutation receipts that cite the same shape; the
-hygiene ledger's *cited-but-untracked* count stays **0**, which is the number the gate cares about.
+The E4 evidence doc's census sentence names the meta-file glob the sweep writes into its own scratch
+tree (`mutants/…`). That tree is dev scratch, never tracked, and consistent with two pre-existing
+mutation receipts that cite the same shape; the hygiene ledger's *cited-but-untracked* count stays
+**0** in a clean clone, which is the number the gate cares about.
 
 **⚪ N3 — `typed-gguf models` with no subcommand exits 0** and prints the usage line (every other
 missing-argument path in the CLI is exit 2). Untouched by E4 and not documented either way; noted
