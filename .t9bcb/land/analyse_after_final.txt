@@ -1,0 +1,82 @@
+{
+ "written": ".t9bcb/stats.json",
+ "challenger": {
+  "label": "challenger: role_split + json_instructed",
+  "correct": 53,
+  "items": 60,
+  "agreement": 0.8833333333333333,
+  "ci": [
+   0.7782121197582914,
+   0.9423227935994396
+  ],
+  "low_mass": 0,
+  "measured": 60,
+  "refusals": 0,
+  "verdicts": {
+   "answered": 60
+  },
+  "prefix_tokens": {
+   "min": 76,
+   "max": 111
+  }
+ },
+ "baseline": {
+  "label": "baseline: corrected instrument, shipped cue",
+  "correct": 22,
+  "items": 60,
+  "agreement": 0.36666666666666664,
+  "ci": [
+   0.25620916687225426,
+   0.49316999369896963
+  ],
+  "low_mass": 57,
+  "measured": 3,
+  "refusals": 59,
+  "verdicts": {},
+  "prefix_tokens": {
+   "min": 74,
+   "max": 109
+  }
+ },
+ "paired": {
+  "baseline": "shipped/answer_sheet",
+  "challenger": "json_instructed/role_split",
+  "n": 60,
+  "both_correct": 17,
+  "neither_correct": 2,
+  "baseline_only": 5,
+  "challenger_only": 36,
+  "difference": 0.5166666666666667,
+  "ci": [
+   0.3533907871426104,
+   0.679942546190723
+  ],
+  "mcnemar_p": 7.84157236921601e-07,
+  "challenger_wins": true
+ },
+ "devset_identical": true,
+ "sha_identical": true,
+ "memory_max": "max",
+ "aux": {
+  "role_split_only": {
+   "label": "aux: role_split + the shipped cue (the placement alone)",
+   "correct": 35,
+   "items": 60,
+   "agreement": 0.5833333333333334,
+   "low_mass": 60,
+   "refusals": 60,
+   "difference": 0.21666666666666667,
+   "mcnemar_p": 0.007197380065917969
+  },
+  "two_step_role_split": {
+   "label": "aux: role_split + two_step (the 4B's collapse cell)",
+   "correct": 35,
+   "items": 60,
+   "agreement": 0.5833333333333334,
+   "low_mass": 60,
+   "refusals": 60,
+   "difference": 0.21666666666666667,
+   "mcnemar_p": 0.007197380065917969
+  }
+ }
+}

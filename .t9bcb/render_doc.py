@@ -261,19 +261,34 @@ def render_benchmarks(stats: dict[str, Any]) -> str:
 
 
 def splice_benchmarks(block: str) -> str:
-    """Put the §7.4.2 block into `docs/BENCHMARKS.md` (replace between markers, else insert)."""
+    """Put the §7.4.2 block into `docs/BENCHMARKS.md` (replace between markers, else insert).
+
+    Idempotent by construction — a second render leaves the file byte-identical (the receipt is
+    the `sha256sum docs/BENCHMARKS.md` pair in `.t9bcb/land/`): the block's own closing marker is
+    dropped from the body and re-added exactly once, and the end-marker run a previous render left
+    in the tail is eaten before the tail goes back. The first renders of this block (commits
+    `d170db0`, `5486f8e`) each appended one marker instead, so 24 had accumulated by the time the
+    landing re-render (card `t_22544707`) fixed this — `.t9bcb/land/marker_cleanup.txt`.
+    """
     path = ROOT / "docs/BENCHMARKS.md"
     text = path.read_text(encoding="utf-8")
     start = "<!-- @@T9BCBECFF_TIEL_E3E_START@@"
     end = "<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->"
-    body = block.split("<!-- @@T9BCBECFF_TIEL_E3E_START@@", 1)[1].split("-->", 1)[1].strip("\n")
+    body = block.split(start, 1)[1].split("-->", 1)[1].split(end, 1)[0].strip("\n")
     if start in text and end in text:
         head = text.split(start, 1)[0]
         tail = text.split(end, 1)[1]
+        eaten = 0
+        while True:
+            rest = tail.lstrip("\n")
+            if not rest.startswith(end):
+                break
+            tail = rest[len(end):]
+            eaten += 1
         path.write_text(head + start + " — rendered by `.t9bcb/render_doc.py` from "
                         "`.t9bcb/stats.json`; edit the tool, never this block. -->\n\n" + body
                         + "\n" + end + tail, encoding="utf-8")
-        return "replaced"
+        return f"replaced ({eaten} duplicate end marker(s) eaten)"
     anchor = "<!-- @@T7C926398_TIEL_CORRECTED_END@@ -->"
     if anchor not in text:
         raise SystemExit("docs/BENCHMARKS.md: neither this card's markers nor §7.4.1's end anchor")

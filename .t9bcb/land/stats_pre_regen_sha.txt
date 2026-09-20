@@ -1,0 +1,4 @@
+# stats.json identity across the regeneration (the pre-copy is not kept: 148 KB duplicate)
+pre-regeneration copy:   51827957fbb2f072846a2a36eb72702328a949052ecb5f971b09de19aede50cc
+git HEAD .t9bcb/stats.json: 51827957fbb2f072846a2a36eb72702328a949052ecb5f971b09de19aede50cc
+diff -u (pre-copy vs regenerated): 0 line(s)

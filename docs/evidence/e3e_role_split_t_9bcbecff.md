@@ -276,9 +276,9 @@ Occamy (`Accio-Lab_occamy-1.0-Q4_K_L.gguf`, `/var/home/rybens/.hermes/models/Acc
 | 6-item smokes exit 0 | `.t9bcb/smoke.sh` (unit `t9bcb-smoke`) | see §7 |
 | the two auxiliary arms exit 0 | `TAG=… bash .t9bcb/run_arm.sh` (unit `t9bcb-aux`) | role_split_only 35/60, two_step_role_split 35/60 — raw log `.t9bcb/logs/campaign_aux.log` |
 | oracle | `python3 docs/verify_runtime_contract.py` | failures: 0  skips: 0 (`.t9bcb/oracle.txt`) |
-| test suite | `uv run --frozen --offline --extra dev pytest -q -rs` | 1325 passed, 48 skipped in 37.02s (`.t9bcb/gates.txt`) |
+| test suite | `uv run --frozen --offline --extra dev pytest -q -rs` | 1331 passed, 48 skipped in 33.71s (`.t9bcb/gates.txt`) |
 | ruff (the paths this card touches) | `uv run --frozen --offline --extra dev ruff check .t9bcb` | All checks passed! (`.t9bcb/logs/gates_run.log`) |
-| the suite again, after this document's render | `uv run --frozen --offline --extra dev pytest -q -rs -p no:cacheprovider` | 1325 passed, 48 skipped in 37.20s (`.t9bcb/logs/final_suite.txt`) — the only tree change after that run is this section's own text |
+| the suite again, after this document's render | `uv run --frozen --offline --extra dev pytest -q -rs -p no:cacheprovider` | 1331 passed, 48 skipped in 33.06s (`.t9bcb/logs/final_suite.txt`) — the only tree change after that run is this section's own text |
 | the optional Occamy pass exits 0 | `bash .t9bcb/run_occamy.sh` (unit `t9bcb-occamy2`) | 12 chunk(s), all exit 0 — `True` — log `.t9bcb/logs/occamy.log` |
 
 The suite's skip count is this host's, not a container's: the worker scope carries no container pid cgroup, so `test_probe_pressure.py` skips — the same skip the baseline card recorded on this box.

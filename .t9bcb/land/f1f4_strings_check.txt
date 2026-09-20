@@ -1,0 +1,38 @@
+== F1-F4 strings in the re-rendered block + evidence doc (card t_22544707)
+block: the §7.4.2 block of docs/BENCHMARKS.md; evidence: docs/evidence/e3e_role_split_t_9bcbecff.md
+
+-- pattern: interval clears zero
+   block hits:    0
+   evidence hits: 0
+-- pattern: refusal verdict
+   block hits:    0
+   evidence hits: 0
+-- pattern: z = 1.96
+   block hits:    0
+   evidence hits: 0
+-- pattern: --
+   block hits:    5
+   evidence hits: 27
+-- pattern: --runs 1
+   block hits:    0
+   evidence hits: 1
+-- pattern: --runs 5
+   block hits:    0
+   evidence hits: 0
+-- pattern: 59/60
+   block hits:    2
+   evidence hits: 4
+-- pattern: 60/60 decisions
+   block hits:    0
+   evidence hits: 0
+
+the tool surface this card's stats use (no decide(), so F2's wording cannot reach the block):
+   103:    cell = e3e.cell_stats(report)
+   164:                      "mcnemar_p": e3e.mcnemar_exact(b, c)}
+   264:        out[name] = {"cell": e3e.cell_label(report), "items": len(rows),
+   398:    if not (merged_base.exists() and merged_e3e.exists()):
+   413:        "paired": e3e.pair_stats(base, chall),
+   425:                   "challenger": str(merged_e3e.relative_to(ROOT))},
+   487:            "vs_baseline": e3e.pair_stats(baseline, report),
+   488:            "vs_challenger": e3e.pair_stats(report, challenger),
+   509:        "paired": e3e.pair_stats(baseline, challenger),

@@ -1029,29 +1029,6 @@ The collapse cell reproduces §9's **non-additivity** on this family as well, wi
 
 Full detail (per-chunk placement ledger, refusal breakdown, the item flips, the two auxiliary arms, the render path receipts): `docs/evidence/e3e_role_split_t_9bcbecff.md`; raw `docs/evidence/t9bcbecff_tiel_challenger_quality.json` + `docs/evidence/t9bcbecff_tiel_chunks/`.
 <!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
-<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
 ### 7.5 The 20-question batch (deliverable 4)
 
 | what | value |
