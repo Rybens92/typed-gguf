@@ -145,7 +145,13 @@ quote-style = "double"
 # `.e3e/logs/f1_f4_patches.txt`, `.e3e/logs/mutmut_f1f4.log`, `.e3e/mutmut_f1f4_triage.txt`.
 # `tests/test_e3e_roles_decision.py` had to load the tool under its path-derived name for any of
 # this to run — mutmut keys a trampoline by the path, not by a bare module name (see `_tool()`).
-source_paths = ["tools/e3e_roles_decision.py"]
+# Card t_eff926f9 (v0.1.0 FIX, the packaged lock) takes the pair to the module the fix moves:
+# `src/typed_gguf/runtime/pins.py` — the lookup order (`lock_candidates` / `located_lock`), the
+# packaged-copy path and the search list the `E_RUNTIME_MISSING` text renders. Its own gate file is
+# the selection: the injection points (`package_file=` / `cwd=` / `environ=`) drive every branch of
+# the new chain on a shape built on disk, so the sweep stays fast on this shared box. Restore a
+# tool/engine pair above when the next card sweeps one.
+source_paths = ["src/typed_gguf/runtime/pins.py"]
 also_copy = ["src/typed_gguf", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -200,8 +206,14 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # on this shared box.
 # Card t_c8c76cc8 (E3e audit F1-F4) selects the tool's own gate file: it drives the freeze check's
 # field set and every branch of the new verdict wording, and it is fast enough to run per mutant.
+# Card t_eff926f9 selects `tests/test_pins.py` alone — see its paragraph at `source_paths`.
+# **Deliberately not selected: `tests/test_wheel_install.py`** — the artifact gate (uv build +
+# uv tool install + three CLI runs ≈ 7 s per run) would multiply the sweep by a build per mutant;
+# the surface it guards is the one `test_pins.py` drives through injection, and two hand probes of
+# the packaged-path mutants against that file are recorded in
+# `docs/evidence/v0_1_0_t_eff926f9_uvx_install.md`.
 pytest_add_cli_args_test_selection = [
-    "tests/test_e3e_roles_decision.py",
+    "tests/test_pins.py",
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
