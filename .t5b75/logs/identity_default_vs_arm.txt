@@ -1,0 +1,13 @@
+# default-run row vs the published v2 arm (e2_quality_v2_t_5b754458.json vs bench_json_instructed_role_split.json)
+
+- default row config: cue=json_instructed chat_format=role_split json_contract=question backend=vulkan threads=4 items=60 runs=5
+- arm config:         cue=json_instructed chat_format=role_split json_contract=question backend=vulkan threads=4 items=60 runs=5
+- reproduce (default row): uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend vulkan --runs 5 --threads 4 --items 60 --json
+
+- items compared: 60 (arm: 60)
+- item-level identity on prefix_tokens, got, correct, cue: **60/60**
+- agreement: default row 50/60 = 0.8333333333333334 vs arm 50/60 = 0.8333333333333334
+- per type: {"choice": {"agreement": 0.875, "ci": [0.6899571185214243, 0.9565574496068442], "correct": 21, "n": 24}, "noul": {"agreement": 1.0, "ci": [0.8241154494176252, 1.0], "correct": 18, "n": 18}, "score": {"agreement": 0.6111111111111112, "ci": [0.3861866858065617, 0.7969500807306884], "correct": 11, "n": 18}}
+
+## every item is identical
+

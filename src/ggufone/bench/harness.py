@@ -45,13 +45,18 @@ SUITES = ("latency", "throughput", "quality", "calibration", "determinism")
 DEFAULT_BACKENDS = ("cpu", "vulkan", "cuda")
 CPU_BACKEND = "cpu"
 DEFAULT_RUNS = 5
-#: E3d/E3e: the shipped cue shape and question placement — the values every published table used.
+#: Policy v2 (card t_5b754458): the cue shape and question placement a row that names nothing is
+#: measured with — the cell the E3e table (`docs/evidence/e3e_roles_decision.md`) and the [host]
+#: probes (card t_9bcbecff) read as the measured-good policy. `"shipped"` / `"answer_sheet"` are
+#: still spelled by `--cue`/`--chat-format`, and the report prints those flags whenever a row used
+#: them (a row may never sit next to another from a different policy generation unmarked).
 #: Kept as literals so `bench/harness.py` never imports `ggufone.schema` (the CLI validates the
-#: flags against `schema.CUE_SHAPES`/`schema.CHAT_FORMATS`); `tests/test_bench.py` pins them equal.
-DEFAULT_CUE = "shipped"
-DEFAULT_CHAT_FORMAT = "answer_sheet"
-#: E3e: where the `json_instructed` contract is stated — see `schema.JSON_CONTRACTS`. Same rule:
-#: the default is what the published tables measured.
+#: flags against `schema.CUE_SHAPES`/`schema.CHAT_FORMATS`); `tests/test_policy_v2.py` and
+#: `tests/test_e3e_roles.py` pin them equal.
+DEFAULT_CUE = "json_instructed"
+DEFAULT_CHAT_FORMAT = "role_split"
+#: E3e: where the `json_instructed` contract is stated — see `schema.JSON_CONTRACTS`. Policy v2
+#: keeps the inline one (the question block names its own key), so this literal did not move.
 DEFAULT_JSON_CONTRACT = "question"
 PREFILL_SIZES = (256, 2048, 8192)
 CANDIDATE_COUNTS = (2, 4, 10)
@@ -698,12 +703,13 @@ class BenchConfig:
     items: int | None = None
     n_seq_max: int | None = None
     kv_type: str = "auto"
-    #: E3d (card t_d90404ac): which cue shape the quality rows are measured with. The default is
-    #: the shape every published row used, so an unset `--cue` cannot move a table.
-    cue: str = "shipped"
-    #: E3e (card t_4c48f40a): where the question block lives — `answer_sheet` (the shape every
-    #: published row used) or `role_split` (the question as its own user turn). Same rule as `cue`:
-    #: the default is what the published tables measured, so an unset flag cannot move one.
+    #: E3d + policy v2 (card t_5b754458): which cue shape the quality rows are measured with. The
+    #: default is the measured-good cell; `shipped` is spelled with `--cue shipped` and is then
+    #: printed back by the report (the E3e comparability rule).
+    cue: str = DEFAULT_CUE
+    #: E3e + policy v2: where the question block lives — `role_split` (the default: the question as
+    #: its own user turn) or `answer_sheet` (the pre-v2 shape, prefilled into the assistant turn).
+    #: Same rule as `cue`: a row that is not the default names its policy in the report.
     chat_format: str = DEFAULT_CHAT_FORMAT
     #: E3e (card t_4c48f40a): where the `json_instructed` contract is stated — `question` (the
     #: default: the question block names its own key) or `system` (the framing states every
@@ -822,9 +828,11 @@ def reproduce_command(config: BenchConfig) -> str:
         parts += ["--n-seq-max", str(config.n_seq_max)]
     if config.devset:
         parts += ["--devset", config.devset]
-    # E3d/E3e: a report whose rows were measured under a non-default cue shape or prompt placement
-    # prints the flags back — the line has to reproduce the *measurement condition*, not just the
-    # scale. Both defaults are silent, so every published line stays byte-identical.
+    # E3d/E3e + policy v2: a report whose rows were measured under a non-default cue shape or
+    # prompt placement prints the flags back — the line has to reproduce the *measurement
+    # condition*, not just the scale. The v2 cell is silent; every pre-v2 row (the E3d/E3e tables,
+    # the E2 campaigns) now names `--cue` / `--chat-format` in its own line, which is what keeps
+    # those tables reproducible.
     if config.cue and config.cue != DEFAULT_CUE:
         parts += ["--cue", config.cue]
     if config.chat_format and config.chat_format != DEFAULT_CHAT_FORMAT:
@@ -965,10 +973,12 @@ def render_report(report: Mapping[str, Any]) -> str:
                         else "")
                      + (f" · prefix tokens: {framed_prefixes}" if framed_prefixes else "")]
                     if framing_labels else [])
-    # card t_d90404ac / t_4c48f40a: the *policy* these rows were measured under — where the label is
-    # read (the cue shape) and where the question block lives (the chat format). Printed only when
-    # it is not the shipped shape, so every published line keeps its bytes, and a table whose rows
-    # answered a different question than the default one always says so.
+    # card t_d90404ac / t_4c48f40a / t_5b754458 (policy v2): the *policy* these rows were measured
+    # under — where the label is read (the cue shape) and where the question block lives (the chat
+    # format). Printed whenever it is not the current default, so a table whose rows answered a
+    # different question than the default one always says so (the comparability rule) and a v2 row
+    # stays quiet. The E3d/E3e tables are pre-v2: their rows now print `cue=shipped` /
+    # `chat_format=answer_sheet`, which is exactly the policy they were measured under.
     policy_bits = []
     if config.get("cue") and config.get("cue") != DEFAULT_CUE:
         policy_bits.append(f"cue={config['cue']}")

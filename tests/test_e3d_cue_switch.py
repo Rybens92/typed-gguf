@@ -52,8 +52,14 @@ class CloserSession(FakeSession):
         return super().tokenize(text)
 
 
-def choice_request(cue: str | None = None, *, qtype: str = "choice") -> dict:
-    """One dev-set-shaped request; `cue` is left out entirely unless a test names one."""
+def choice_request(cue: str | None = None, *, qtype: str = "choice",
+                   chat_format: str | None = None) -> dict:
+    """One dev-set-shaped request; `cue` is left out entirely unless a test names one.
+
+    After policy v2 (card t_5b754458) a request that names nothing is the instructed/role-split
+    cell; this file's byte and readout pins are the *shipped* ones, so they name `cue` (and, where
+    the placement matters, `chat_format=answer_sheet`).
+    """
     bodies = {
         "choice": ("area", {"type": "choice", "instructions": "Which area owns this?",
                             "criteria": {"billing": "payments and invoices",
@@ -66,8 +72,13 @@ def choice_request(cue: str | None = None, *, qtype: str = "choice") -> dict:
     qid, body = bodies[qtype]
     payload: dict = {"state": "The billing dashboard is blank for every user after login.",
                      "questions": {qid: body}}
+    options: dict = {}
     if cue is not None:
-        payload["options"] = {"cue": cue}
+        options["cue"] = cue
+    if chat_format is not None:
+        options["chat_format"] = chat_format
+    if options:
+        payload["options"] = options
     return payload
 
 
@@ -103,12 +114,15 @@ def scripted(request: schema.Request, *, cue: str, cue_text: str | None = "unrel
 
 
 # ------------------------------------------------------------------ the frozen enumeration
-def test_the_default_cue_is_the_shipped_one() -> None:
-    assert schema.OPTION_DEFAULTS["cue"] == "shipped"
-    assert schema.Options().cue == "shipped"
+def test_the_default_cue_is_the_instructed_one() -> None:
+    """Policy v2 (card t_5b754458) moved the default; the enumeration itself did not move."""
+    assert schema.DEFAULT_CUE == "json_instructed"
+    assert schema.OPTION_DEFAULTS["cue"] == schema.DEFAULT_CUE
+    assert schema.Options().cue == schema.DEFAULT_CUE
     # E3e (card t_4c48f40a) grew the enumeration by one: `json_instructed` says the answer is a
     # JSON object instead of a bare label, which needed the question *and* the assistant turn to
-    # change (see tests/test_e3e_roles.py). The default is the part that must never move.
+    # change (see tests/test_e3e_roles.py). E3d's `shipped` — the shape this file's bytes were
+    # measured on — is `CUE_SHAPES[0]` and stays reachable by `--cue shipped`.
     assert schema.CUE_SHAPES == ("shipped", "two_step", "json_field", "json_instructed")
 
 
@@ -214,9 +228,13 @@ def test_json_field_reads_the_field_row_without_advancing() -> None:
     assert result.engine["cue"] == "json_field"
 
 
-def test_the_default_request_publishes_no_advance_key() -> None:
-    """A `shipped` request's payload is the published one, key for key."""
-    request = schema.parse_request(choice_request())
+def test_the_pre_v2_request_publishes_no_advance_key() -> None:
+    """The `shipped`/`answer_sheet` cell's payload is the published one, key for key.
+
+    It is the *pre-v2* cell now (policy v2, card t_5b754458), so the request spells it out; a
+    request that names nothing is the instructed/role-split cell (tests/test_policy_v2.py).
+    """
+    request = schema.parse_request(choice_request("shipped", chat_format="answer_sheet"))
     session, plan, _ = scripted(request, cue="shipped", cue_text=None)
     result = decide.DecisionEngine(session).decide(request, plan=plan)
     assert set(result.answers["area"]) == {
@@ -250,8 +268,10 @@ def test_an_unknown_cue_on_the_bench_cli_is_a_named_usage_error() -> None:
     assert caught.value.code == "E_BENCH_USAGE"
 
 
-def test_bench_config_default_is_the_shipped_cue() -> None:
-    assert harness.BenchConfig(suite="quality").cue == "shipped"
+def test_bench_config_default_is_the_instructed_cue() -> None:
+    """Policy v2 (card t_5b754458): the bench's own default is the measured-good cell."""
+    assert harness.BenchConfig(suite="quality").cue == schema.DEFAULT_CUE
+    assert schema.CUE_SHAPES[0] == "shipped"          # the pre-v2 switch is still in the set
 
 
 def test_the_cli_passes_cue_through(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:

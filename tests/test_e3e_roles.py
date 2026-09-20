@@ -82,10 +82,18 @@ class JsonSession(FakeSession):
         return super().tokenize(text)
 
 
+#: The pre-v2 cell, spelled out. Policy v2 (card t_5b754458) flipped the *defaults* to
+#: `json_instructed` + `role_split`; this file measures the cells the E3d/E3e tables published —
+#: their bytes, their readouts, their per-family acceptance — so every request it builds names the
+#: cell it means. What a request that names *nothing* renders is pinned in
+#: `tests/test_policy_v2.py` (the default-parity pin), not here.
+PRE_V2: dict[str, str] = {"cue": "shipped", "chat_format": "answer_sheet"}
+
+
 def request_for(cue: str | None = None, chat_format: str | None = None, *,
                 json_contract: str | None = None, qtype: str = "choice",
                 instructions: str = "Which area owns this?") -> dict:
-    """One dev-set-shaped request; these options are left out unless a test names one."""
+    """One dev-set-shaped request; the unset options are the pre-v2 cell (`PRE_V2`)."""
     bodies = {
         "choice": ("area", {"type": "choice", "instructions": instructions,
                             "criteria": {"billing": "payments and invoices",
@@ -97,15 +105,14 @@ def request_for(cue: str | None = None, chat_format: str | None = None, *,
     }
     qid, body = bodies[qtype]
     payload: dict = {"state": STATE, "questions": {qid: body}}
-    options: dict = {}
+    options: dict = dict(PRE_V2)
     if cue is not None:
         options["cue"] = cue
     if chat_format is not None:
         options["chat_format"] = chat_format
     if json_contract is not None:
         options["json_contract"] = json_contract
-    if options:
-        payload["options"] = options
+    payload["options"] = options
     return payload
 
 
@@ -122,16 +129,21 @@ def chat_plan(request: schema.Request, session: FakeSession,
     return decide.plan_context(request, session, template=resolution, resolve=False)
 
 
-# ==================================================================== the frozen default
-def test_the_default_chat_format_is_the_answer_sheet() -> None:
-    assert schema.OPTION_DEFAULTS["chat_format"] == "answer_sheet"
-    assert schema.Options().chat_format == "answer_sheet"
+# ==================================================================== the frozen defaults
+def test_the_default_chat_format_is_the_role_split() -> None:
+    """Policy v2 (card t_5b754458): the measured-good placement *is* the default now."""
+    assert schema.DEFAULT_CHAT_FORMAT == "role_split"
+    assert schema.OPTION_DEFAULTS["chat_format"] == "role_split"
+    assert schema.Options().chat_format == "role_split"
     assert schema.CHAT_FORMATS == ("answer_sheet", "role_split")
     # the bench's own literals (harness never imports `schema`) must be the schema's values
-    assert harness.DEFAULT_CHAT_FORMAT == schema.ANSWER_SHEET
-    assert schema.CUE_SHAPES[0] == harness.DEFAULT_CUE
-    assert harness.BenchConfig(suite="quality").chat_format == "answer_sheet"
-    assert cli.BENCH_DEFAULTS["chat-format"] == "answer_sheet"
+    assert harness.DEFAULT_CHAT_FORMAT == schema.DEFAULT_CHAT_FORMAT
+    assert harness.DEFAULT_CUE == schema.DEFAULT_CUE
+    assert harness.BenchConfig(suite="quality").chat_format == "role_split"
+    assert cli.BENCH_DEFAULTS["chat-format"] == "role_split"
+    # the pre-v2 cell this file measures is still spelled out by the flags (see PRE_V2)
+    assert PRE_V2 == {"cue": "shipped", "chat_format": "answer_sheet"}
+    assert parsed(**PRE_V2).options.chat_format == "answer_sheet"
 
 
 def test_an_unknown_chat_format_is_a_named_option_error() -> None:
@@ -145,7 +157,7 @@ def test_an_explicit_chat_format_survives_parsing() -> None:
     assert parsed(chat_format="role_split").options.chat_format == "role_split"
 
 
-def test_the_default_cue_line_is_still_the_shipped_one_for_every_type() -> None:
+def test_the_shipped_cue_line_is_still_the_shipped_one_for_every_type() -> None:
     """`shipped` and `two_step` ask for a bare label — the question text may not grow a byte."""
     request = parsed()
     question = request.questions[0]
@@ -526,8 +538,9 @@ def test_the_role_split_engine_reads_the_question_in_a_user_turn() -> None:
     assert answer["cue"]["refused"] is False and "verdict" not in answer["cue"]
 
 
-def test_the_answer_sheet_default_publishes_the_assistant_turn() -> None:
-    request = parsed()
+def test_the_answer_sheet_cell_publishes_the_assistant_turn() -> None:
+    """The pre-v2 placement, spelled by `--chat-format answer_sheet` (`PRE_V2`)."""
+    request = parsed(**PRE_V2)
     session = JsonSession(n_vocab=512)
     plan = chat_plan(request, session)
     scripted(request, plan=plan, session=session, value={session.tokenize("billing")[0]: TOP})
@@ -621,8 +634,9 @@ def test_the_cli_forwards_the_chat_format_to_the_engine_options() -> None:
 
 
 def test_the_bench_validates_the_placement_like_the_cue() -> None:
-    assert cli._bench_chat_format(None) == "answer_sheet"
+    assert cli._bench_chat_format(None) == "role_split"
     assert cli._bench_chat_format("role_split") == "role_split"
+    assert cli._bench_chat_format("answer_sheet") == "answer_sheet"      # the pre-v2 switch
     with pytest.raises(errors.UserError) as caught:
         cli._bench_chat_format("letters")
     assert caught.value.code == "E_BENCH_USAGE"
@@ -697,27 +711,27 @@ def test_the_bench_row_asks_for_the_placement() -> None:
 
 
 def test_the_reproduce_line_names_a_non_default_policy() -> None:
+    """Policy v2: the *pre-v2* cell is the one that has to name its flags now."""
     base = harness.BenchConfig(suite="quality", model_path="/m.gguf", backend="vulkan", runs=1,
                                threads=4, items=60)
     plain = harness.reproduce_command(base)
     assert "--cue" not in plain and "--chat-format" not in plain
     shaped = harness.reproduce_command(
         harness.BenchConfig(suite="quality", model_path="/m.gguf", backend="vulkan", runs=1,
-                            threads=4, items=60, cue="json_instructed",
-                            chat_format="role_split"))
-    assert "--cue json_instructed" in shaped
-    assert "--chat-format role_split" in shaped
+                            threads=4, items=60, cue="shipped", chat_format="answer_sheet"))
+    assert "--cue shipped" in shaped
+    assert "--chat-format answer_sheet" in shaped
 
 
 def test_the_report_says_which_policy_measured_the_rows() -> None:
     report = {"suite": "quality", "generated_at": "2026-09-19T00:00:00Z",
-              "config": {"backend": "vulkan", "runs": 1, "threads": 4, "cue": "json_instructed",
-                         "chat_format": "role_split"},
+              "config": {"backend": "vulkan", "runs": 1, "threads": 4, "cue": "shipped",
+                         "chat_format": "answer_sheet"},
               "model": {"path": "/m.gguf"}, "overall": {}, "per_type": {},
               "commands": {"reproduce": "uv run ggufone bench --suite quality"}}
     text = harness.render_report(report)
-    assert "- prompt policy: cue=json_instructed · chat_format=role_split" in text
-    report["config"].update({"cue": "shipped", "chat_format": "answer_sheet"})
+    assert "- prompt policy: cue=shipped · chat_format=answer_sheet" in text
+    report["config"].update({"cue": "json_instructed", "chat_format": "role_split"})
     assert "- prompt policy:" not in harness.render_report(report)
 
 

@@ -1,0 +1,66 @@
+........................................................................ [  5%]
+........................................ssssssss........................ [ 10%]
+................................................................s....... [ 15%]
+........................................................................ [ 20%]
+................................................s....................... [ 25%]
+........................................................................ [ 31%]
+.....ss................................................................. [ 36%]
+........................................................................ [ 41%]
+........................................................................ [ 46%]
+........................................................................ [ 51%]
+....................................sss................................. [ 56%]
+.................sssssss................................................ [ 62%]
+..sssssss.ss..........................................ss................ [ 67%]
+.......ssss............................................................. [ 72%]
+..............s......................................................... [ 77%]
+........................................................................ [ 82%]
+........................................................................ [ 87%]
+sssss................................................................... [ 93%]
+.............................................s.......................... [ 98%]
+.....ssss................                                                [100%]
+=========================== short test summary info ============================
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_isolation_live.py:75: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:90: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:106: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:122: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:146: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:161: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:235: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:272: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_vulkan_teardown_live.py:156: live test: pass --run-network to run
+SKIPPED [1] tests/test_cli.py:239: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:131: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:157: live test: pass --run-network to run
+SKIPPED [3] tests/test_e3e_roles.py:814: live test: pass --run-network to run
+SKIPPED [2] tests/test_engine_fork.py:572: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:592: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:636: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:662: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:714: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:754: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_fit_live.py:81: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_fit_live.py:102: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_fit_live.py:118: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_fit_live.py:133: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_fit_live.py:150: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_fit_live.py:178: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_fit_live.py:195: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_fit_live.py:232: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_fit_live.py:252: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:219: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:235: pinned Qwen3.5 GGUF not present
+SKIPPED [1] tests/test_hf_network.py:33: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:40: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:51: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:80: live test: pass --run-network to run
+SKIPPED [1] tests/test_policy_v2.py:337: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:42: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:50: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:59: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:83: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:90: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_serving_attribution.py:546: live test: pass --run-network to run
+SKIPPED [2] tests/test_templates.py:423: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:442: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:478: live test: pass --run-network to run
+1345 passed, 48 skipped in 32.12s

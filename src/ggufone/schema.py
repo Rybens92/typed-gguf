@@ -42,13 +42,13 @@ KV_TYPES = ("auto", "f16", "q8_0", "q4_0")
 BACKENDS = ("auto", "cpu", "vulkan", "cuda", "metal")
 #: E3d (card t_d90404ac, SPEC 2.5 `options.cue`): where the label is read relative to the cue.
 #:
-#: * `shipped` — the frozen default, and the shape every published table measured: the row the
-#:   suffix ends on.
+#: * `shipped` — the pre-v2 default: the row the suffix ends on. It is the shape the E3d table and
+#:   every earlier published table measured, and it stays reachable by `--cue shipped`.
 #: * `two_step` — the same prompt bytes plus one decoded token: the row's own most likely
 #:   *content* token, then the label. 44/60 `low_mass` at the cue became 2/60 on the 4B dev run;
 #:   a cue the model closes stays a refusal (`engine/cue.py`).
 #: * `json_field` — the shipped cue line plus a per-type JSON opener, read at the field row. The
-#:   agreement winner of the 60-item run and *not* the default: the opener is part of the prompt,
+#:   agreement winner of the E3d 60-item run and *not* a default: the opener is part of the prompt,
 #:   so the at-the-cue refusal verdict is gone.
 #: * `json_instructed` — E3e (card t_4c48f40a): the cue line becomes the **JSON contract** the
 #:   instruction names (`Answer with JSON: {"choice": "<one candidate name>"}`), the assistant turn
@@ -57,40 +57,54 @@ BACKENDS = ("auto", "cpu", "vulkan", "cuda", "metal")
 #:   into named verdicts — `refused` / `empty_value` / `wrong_field` / `answered` — instead of
 #:   reading as anonymous `low_mass` (`engine/cue.py`).
 CUE_SHAPES = ("shipped", "two_step", "json_field", "json_instructed")
+#: policy v2 (card t_5b754458): the cue a request that names nothing is read with. The measured
+#: ground is the E3e table (`docs/evidence/e3e_roles_decision.md`) plus the [host] probes
+#: (card t_9bcbecff): the pre-v2 `shipped` cue collapses on both 35B models (Tiel 22/60, Occamy
+#: 26/60 under the corrected instrument) while the instructed cell reads 53/60 and 54/60 on the
+#: same items; on the 4B it is 50/60, inside the noise of the table's best (51/60).
+DEFAULT_CUE = "json_instructed"
 #: E3e (card t_4c48f40a, `options.chat_format`): where the question block lives.
 #:
-#: * `answer_sheet` — the frozen default: the question (instructions, candidates, ask) is
-#:   prefilled **inside the assistant turn**, right after the template's generation prompt.
+#: * `answer_sheet` — the pre-v2 default: the question (instructions, candidates, ask) is prefilled
+#:   **inside the assistant turn**, right after the template's generation prompt. Every table
+#:   published before policy v2 measured this shape; `--chat-format answer_sheet` still does.
 #: * `role_split` — the question is rendered as its own **user** message through the model's own
 #:   chat template, and the assistant turn carries only what the readout measures (nothing for
 #:   `shipped`/`two_step`, the opened field for `json_instructed`). A family whose template cannot
 #:   render a second user turn is `E_ROLE_SPLIT_UNSUPPORTED`, never a silent fallback.
 CHAT_FORMATS = ("answer_sheet", "role_split")
-#: the documented default of `options.chat_format` — the shape every published table measured
+#: the two placements by name — `ANSWER_SHEET` is the shape the pre-v2 tables measured
 ANSWER_SHEET = "answer_sheet"
 ROLE_SPLIT = "role_split"
+#: policy v2 (card t_5b754458): the placement a request that names nothing uses. The same
+#: measurement that moved `cue` (E3e table + the [host] probes) is what moved this one: the
+#: collapse on Tiel/Occamy is the *answer-sheet* shape's, and the role split is half of the fix.
+DEFAULT_CHAT_FORMAT = ROLE_SPLIT
 #: E3e (card t_4c48f40a, the amendment's "measure a user-inline variant too"): where the
 #: `json_instructed` contract is *stated* — in the question block (`question`, the default: the key
 #: is named next to the candidates it is about) or in the system framing (`system`: all three
 #: contracts up front, each question keeps its own ask line). A no-op for every other cue: those
 #: ask for a bare label and get the shipped framing.
 JSON_CONTRACTS = ("question", "system")
-#: the documented default of `options.json_contract`
+#: the documented default of `options.json_contract` (policy v2 keeps the inline one)
 JSON_CONTRACT = JSON_CONTRACTS[0]
 #: E2.5 (SPEC 2.10): `route: "auto"` lets the registry pick the model and its sizing
 ROUTE_MODES = ("off", "auto")
 NOUL_KEYS = ("true", "false")
 
 # SPEC 2.5 defaults. Keep this table the single source of truth for the wire defaults.
+#: Policy v2 (card t_5b754458) moved `cue` and `chat_format` to the measured-good cell; everything
+#: else is unchanged, and every pre-v2 cell stays reachable by its own flag.
 OPTION_DEFAULTS: dict[str, Any] = {
     "temperature": 1.0,
     "length_norm": 1.0,
     "readout": "sequence",
-    #: E3d: where the label is read relative to the cue (`CUE_SHAPES` above; default = shipped)
-    "cue": "shipped",
-    #: E3e (card t_4c48f40a): where the question block lives (`CHAT_FORMATS` above; the default is
-    #: the shape every published table measured)
-    "chat_format": ANSWER_SHEET,
+    #: E3d + policy v2: where the label is read relative to the cue (`CUE_SHAPES` above;
+    #: default = `DEFAULT_CUE`, the instructed cell the E3e table measured at 50/60 on the 4B)
+    "cue": DEFAULT_CUE,
+    #: E3e + policy v2: where the question block lives (`CHAT_FORMATS` above; default =
+    #: `DEFAULT_CHAT_FORMAT`, the role split — the shape the [host] probes read at 53/60 and 54/60)
+    "chat_format": DEFAULT_CHAT_FORMAT,
     #: E3e: where the `json_instructed` contract is stated (`JSON_CONTRACTS` above; a no-op for
     #: every other cue)
     "json_contract": JSON_CONTRACT,
@@ -145,13 +159,14 @@ class Options:
     temperature: float = 1.0
     length_norm: float = 1.0
     readout: str = "sequence"
-    #: E3d: where the label is read relative to the cue — `CUE_SHAPES` above. The default is the
-    #: shape every published table measured, so a request that never sets it cannot move.
-    cue: str = "shipped"
-    #: E3e (card t_4c48f40a): where the question block lives — `CHAT_FORMATS` above. The default is
-    #: the answer-sheet shape every published table measured; `role_split` renders the question as
-    #: its own user turn through the model's chat template.
-    chat_format: str = ANSWER_SHEET
+    #: E3d + policy v2: where the label is read relative to the cue — `CUE_SHAPES` above. The
+    #: default is `DEFAULT_CUE` (the instructed cell); a request that names `shipped` gets the
+    #: pre-v2 readout row, byte for byte.
+    cue: str = DEFAULT_CUE
+    #: E3e + policy v2: where the question block lives — `CHAT_FORMATS` above. The default is
+    #: `DEFAULT_CHAT_FORMAT` (`role_split`): the question renders as its own user turn through the
+    #: model's chat template; `answer_sheet` prefills it into the assistant turn (the pre-v2 shape).
+    chat_format: str = DEFAULT_CHAT_FORMAT
     #: E3e: where the `json_instructed` contract is stated — `JSON_CONTRACTS` above. A no-op for
     #: the other cues, which ask for a bare label.
     json_contract: str = JSON_CONTRACT

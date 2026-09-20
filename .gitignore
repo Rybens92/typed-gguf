@@ -52,6 +52,12 @@ mutants_*/
 .e3c_tiel/extras_logs/run_*.log
 .t7c9/*.log
 .t9bcb/logs/occ_*_run_*.log
+# policy v2 (t_5b754458) — the default-row run's raw logs, with the three receipts the card cites
+.t5b75/logs/*
+!.t5b75/logs/suite_green_final.txt
+!.t5b75/logs/red_pre_v2_full.txt
+!.t5b75/logs/oracle_after_flip.txt
+!.t5b75/logs/identity_default_vs_arm.txt
 # the E1 coordination thread is dev chatter, not product (file stays on disk)
 state/groupchat/
 # the `--quick` bench preset's default report lands in the cwd (the `DEFAULT_OUT_NAME`

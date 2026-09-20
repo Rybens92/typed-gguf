@@ -273,19 +273,26 @@ kind of change, and the difference decides the default:
   a re-run, because the bytes changed. It is measured, documented and available for models that
   answer.
 
-`options.cue` / `--cue shipped|two_step|json_field` (the bench takes the same flag) ships the
-mechanism with **`shipped` still the frozen default**, so no published row moves by itself; the
-engine publishes `engine.cue` and, on a shape that advanced, the answer's `advance` block (`token`,
-`rule`, and the cue row's verdict). The card's numbers, the CI readings and the explicit
-invalidation list are in `docs/evidence/e3d_cue_decision_4b.md` §5.
+`options.cue` / `--cue shipped|two_step|json_field|json_instructed` (the bench takes the same flag)
+ships the mechanism with **`json_instructed` as the default** — policy v2, card `t_5b754458`, the flip
+that took E3e's measured cell out of the switch and into the product (§4 below and
+`docs/BENCHMARKS.md` §2.3/§9). `shipped` — the cell every table in this section was measured under —
+is one flag away and did not move a byte; a row that is not the default says so in its own report
+(`- prompt policy: cue=shipped · chat_format=answer_sheet`) and in its `reproduce:` line. The engine
+publishes `engine.cue` and, on a shape that advanced, the answer's `advance` block (`token`, `rule`,
+and the cue row's verdict). The card's numbers, the CI readings and the explicit invalidation list are
+in `docs/evidence/e3d_cue_decision_4b.md` §5.
 
 ### The question's placement and the instructed JSON (E3e)
 
 Everything above keeps the question where the answer sheet put it: **prefilled inside the
 assistant turn**, after the template's generation prompt. That is a choice, and E3e (card
-`t_4c48f40a`) measured what happens when it moves. Two options carry it, both off by default:
+`t_4c48f40a`) measured what happens when it moves. Two options carry it — and since **policy v2
+(card `t_5b754458`)** they are what a request that names nothing gets, on the strength of the E3e
+table and the [host] probes on the two 35B models (`docs/BENCHMARKS.md` §9):
 
-* `options.chat_format = role_split` — the question is rendered as its **own user message**
+* `options.chat_format = role_split` (`--chat-format answer_sheet` is the pre-v2 cell) — the question
+  is rendered as its **own user message**
   through the model's own `tokenizer.chat_template`, so the conversation the model sees is
   `[system, user(state), assistant(question…)]` rendered by the template instead of a question
   smuggled into an assistant turn. The prompt is split once: a **shared prefix** (the state turn
@@ -334,16 +341,19 @@ Two things worth knowing before reading the E3e table:
 
 The 60-item table, the paired comparisons, and the decision (`tools/e3e_roles_decision.py`) are in
 `docs/evidence/e3e_role_split_t_4c48f40a.md`; the tool's per-family record is
-`.e3e/role_render.json`, its report `.e3e/role_render.md`. **Nothing moves by default**: the
-`shipped`/`answer_sheet` cell is the committed `.e3d/bench_templated_shipped.json`, and two arms on
-the current tree must agree with it — a six-item probe run with the baseline's own recipe
-(`--backend auto`, `.e3e/probe_default.json`) has to reproduce its **prompt bytes and decisions**
-item for item, and the table's own re-score of that cell (`--backend vulkan`, 60 items) has to agree
-decision for decision; `tools/e3e_roles_decision.py` exits non-zero if either stops holding. The
-numbers themselves are measured, not assumed to be bit-identical: card `t_55de5779` landed after the
-committed baseline and a `--backend auto` row that claims `cpu` now computes on the CPU, which moved
-the probabilities by ≤1.1e-2 and no decision. The E3e options are switches, and the published tables
-stay where they were.
+`.e3e/role_render.json`, its report `.e3e/role_render.md`. **Policy v2 (card `t_5b754458`) promotes
+this cell and nothing else moves**: the `shipped`/`answer_sheet` cell is still the committed
+`.e3d/bench_templated_shipped.json`, unchanged and still one flag away
+(`--cue shipped --chat-format answer_sheet`), and two arms on the current tree must agree with it — a
+six-item probe run with the baseline's own recipe (`--backend auto`, `.e3e/probe_default.json`; its
+stored command predates the flip, so re-running it means adding those two flags) has to reproduce its
+**prompt bytes and decisions** item for item, and the table's own re-score of that cell
+(`--backend vulkan`, 60 items) has to agree decision for decision; `tools/e3e_roles_decision.py` exits
+non-zero if either stops holding. The numbers themselves are measured, not assumed to be
+bit-identical: card `t_55de5779` landed after the committed baseline and a `--backend auto` row that
+claims `cpu` now computes on the CPU, which moved the probabilities by ≤1.1e-2 and no decision. The
+E3e *options* are still options — what changed is which cell they default to; the published tables
+stay where they were, each under the policy its own report names.
 
 ---
 

@@ -24,9 +24,19 @@ from ggufone.runtime import finder
 from ggufone.schema import Question
 from tests.fake_engine import FakeSession, biased_row
 
-
 # --------------------------------------------------------------------- helpers
+#: The pre-v2 cell, spelled out. Policy v2 (card t_5b754458) moved the *product defaults* to
+#: `json_instructed` + `role_split`; this file pins the E1b **assembly** — the fork/wave/readout
+#: invariants, the decode-spy contract and the ctx guards — against the shipped/answer-sheet shape
+#: its numbers were written on. What a request that names *nothing* renders is pinned in
+#: `tests/test_policy_v2.py` (the default-parity pin).
+PRE_V2: dict[str, str] = {"cue": "shipped", "chat_format": "answer_sheet"}
+
+
 def choice_request(options: dict | None = None) -> dict:
+    """One dev-set-shaped request; `options` is merged *over* the pre-v2 cell (`PRE_V2`)."""
+    merged: dict = dict(PRE_V2)
+    merged.update(options or {})
     return {
         "state": "The billing dashboard is blank for every user after login.",
         "questions": {
@@ -34,7 +44,7 @@ def choice_request(options: dict | None = None) -> dict:
                      "criteria": {"billing": "payments and invoices",
                                   "technical": "api and infrastructure"}},
         },
-        "options": options,
+        "options": merged,
     }
 
 
@@ -236,6 +246,7 @@ def test_sequence_readout_uses_every_token_of_a_multi_token_candidate() -> None:
     session = FakeSession(n_vocab=64)
     payload = {
         "state": "Pick a queue.",
+        "options": dict(PRE_V2),        # the assembly this file's numbers were written on
         "questions": {"area": {"type": "choice",
                                "criteria": {"billing issue": None, "technical": None}}},
     }

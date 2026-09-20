@@ -54,15 +54,16 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--items", type=int, default=None, help="cap the dev-set items")
     parser.add_argument("--n-seq-max", dest="n_seq_max", type=int, default=None)
     parser.add_argument("--kv-type", dest="kv_type", default="auto")
-    parser.add_argument("--cue", default="shipped",
+    parser.add_argument("--cue", default=schema.DEFAULT_CUE,
                         help="the cue shape the rows are read at: shipped | two_step | json_field"
-                             " | json_instructed (E3d t_d90404ac, E3e t_4c48f40a; default = the "
-                             "published shape)")
-    parser.add_argument("--chat-format", dest="chat_format", default=schema.ANSWER_SHEET,
+                             " | json_instructed (E3d t_d90404ac, E3e t_4c48f40a; default = the"
+                             " measured-good cell every v2 row names, policy v2 t_5b754458; pass"
+                             " `--cue shipped` for the pre-v2 shape)")
+    parser.add_argument("--chat-format", dest="chat_format", default=schema.DEFAULT_CHAT_FORMAT,
                         choices=list(schema.CHAT_FORMATS),
-                        help="answer_sheet | role_split — where the question block lives (E3e card "
-                             "t_4c48f40a; default = the published shape, the question prefilled "
-                             "into the assistant turn)")
+                        help="answer_sheet | role_split — where the question block lives (E3e card"
+                             " t_4c48f40a; default = role_split, the question as its own user turn;"
+                             " pass `--chat-format answer_sheet` for the pre-v2 shape)")
     parser.add_argument("--json-contract", dest="json_contract", default=schema.JSON_CONTRACT,
                         choices=list(schema.JSON_CONTRACTS),
                         help="question | system — where the json_instructed contract is stated "

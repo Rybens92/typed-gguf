@@ -1,0 +1,139 @@
+FF.FFFFF..FF.s                                                           [100%]
+=================================== FAILURES ===================================
+__________________ test_the_default_cue_is_the_instructed_one __________________
+
+    def test_the_default_cue_is_the_instructed_one() -> None:
+>       assert schema.DEFAULT_CUE == "json_instructed"
+               ^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.schema' has no attribute 'DEFAULT_CUE'
+
+tests/test_policy_v2.py:125: AttributeError
+________________ test_the_default_chat_format_is_the_role_split ________________
+
+    def test_the_default_chat_format_is_the_role_split() -> None:
+>       assert schema.DEFAULT_CHAT_FORMAT == schema.ROLE_SPLIT
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.schema' has no attribute 'DEFAULT_CHAT_FORMAT'
+
+tests/test_policy_v2.py:135: AttributeError
+__________ test_the_bench_and_the_cli_ask_for_the_v2_cell_by_default ___________
+
+    def test_the_bench_and_the_cli_ask_for_the_v2_cell_by_default() -> None:
+        """The bench's own literals (it never imports `schema`) must be the schema's defaults."""
+>       assert harness.DEFAULT_CUE == schema.DEFAULT_CUE
+                                      ^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.schema' has no attribute 'DEFAULT_CUE'
+
+tests/test_policy_v2.py:151: AttributeError
+_______________ test_the_reproduce_tool_defaults_to_the_v2_cell ________________
+
+    def test_the_reproduce_tool_defaults_to_the_v2_cell() -> None:
+        """The tool that regenerates every published row: no flags means the product's own policy."""
+        import importlib.util
+    
+        path = ROOT / "tools" / "e2_reproduce.py"
+        spec = importlib.util.spec_from_file_location("e2_reproduce_policy_v2", path)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        args = module.make_parser().parse_args(["--suite", "quality", "--model", "m.gguf"])
+>       assert args.cue == schema.DEFAULT_CUE
+                           ^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.schema' has no attribute 'DEFAULT_CUE'
+
+tests/test_policy_v2.py:178: AttributeError
+_______ test_a_no_flags_request_renders_the_v2_cell_byte_for_byte_plain ________
+
+    def test_a_no_flags_request_renders_the_v2_cell_byte_for_byte_plain() -> None:
+        """The card's parity pin, plain assembly: no options == the explicitly flagged v2 cell."""
+        default = rendered(parsed())
+        flagged = rendered(parsed(**V2))
+>       assert default["prefix"] == flagged["prefix"]
+E       AssertionError: assert 'You are a de...fter login.\n' == 'You are a de...fter login.\n'
+E         
+E         Skipping 120 identical leading characters in diff, use -v to show
+E         - eply with a single JSON object and nothing else — no explanation, no code fence, no extra keys.
+E         + eply with the label alone — no explanation, no punctuation, no extra words.
+E           STATE:
+E           The billing dashboard is blank for every user after login.
+
+tests/test_policy_v2.py:191: AssertionError
+___ test_a_no_flags_request_renders_the_v2_cell_byte_for_byte_chat_template ____
+
+    def test_a_no_flags_request_renders_the_v2_cell_byte_for_byte_chat_template() -> None:
+        """The same pin through a family chat template: prefix + tail + opener, and the token ids."""
+        default = rendered(parsed(), chat=True)
+        flagged = rendered(parsed(**V2), chat=True)
+>       assert default["prefix"] == flagged["prefix"]
+E       AssertionError: assert '<|im_start|>...|>assistant\n' == '<|im_start|>....<|im_end|>\n'
+E         
+E         Skipping 139 identical leading characters in diff, use -v to show
+E         - eply with a single JSON object and nothing else — no explanation, no code fence, no extra keys.<|im_end|>
+E         + eply with the label alone — no explanation, no punctuation, no extra words.<|im_end|>
+E           <|im_start|>user
+E           STATE:
+E           The billing dashboard is blank for every user after login.<|im_end|>
+E         + <|im_start|>assistant
+
+tests/test_policy_v2.py:210: AssertionError
+__ test_the_no_flags_engine_publishes_the_v2_policy_and_the_value_row_verdict __
+
+    def test_the_no_flags_engine_publishes_the_v2_policy_and_the_value_row_verdict() -> None:
+        """The engine surface: the response names the v2 policy and reads the instructed value row."""
+        request = parsed()
+        session = JsonSession(n_vocab=512)
+        plan = decide.plan_context(request, session, template=resolution(), resolve=False)
+        view = prompt.build_question(request.questions[0], readout=request.options.readout,
+                                    cue=request.options.cue, chat_format=request.options.chat_format,
+                                    role=plan.role, index=0, contract=request.options.json_contract)
+        value_position = len(plan.prefix_tokens) + len(session.tokenize(view.suffix)) - 1
+        label = session.tokenize("billing")[0]
+        session.row_fn = (lambda ctx, position=value_position, label=label:
+                          biased_row(session.n_vocab, {label: TOP})
+                          if ctx.position == position
+                          else biased_row(session.n_vocab, {label: TOP}))
+        result = decide.DecisionEngine(session).decide(request, plan=plan)
+>       assert result.engine["cue"] == schema.DEFAULT_CUE
+                                       ^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.schema' has no attribute 'DEFAULT_CUE'
+
+tests/test_policy_v2.py:238: AttributeError
+____ test_the_reproduce_line_names_the_pre_v2_cell_and_stays_silent_for_v2 _____
+
+    def test_the_reproduce_line_names_the_pre_v2_cell_and_stays_silent_for_v2() -> None:
+        """A row that is *not* the default must name its policy; the default row must not (E3e rule)."""
+        default = harness.reproduce_command(harness.BenchConfig(suite="quality", model_path="/m.gguf",
+                                                                backend="vulkan", runs=1, threads=4,
+                                                                items=60))
+        assert "--cue" not in default and "--chat-format" not in default
+        pre_v2 = harness.reproduce_command(
+            harness.BenchConfig(suite="quality", model_path="/m.gguf", backend="vulkan", runs=1,
+                                threads=4, items=60, cue="shipped", chat_format="answer_sheet"))
+>       assert "--cue shipped" in pre_v2
+E       AssertionError: assert '--cue shipped' in 'uv run ggufone bench --suite quality --model /m.gguf --backend vulkan --runs 1 --threads 4 --items 60 --json'
+
+tests/test_policy_v2.py:289: AssertionError
+_________ test_the_report_marks_the_pre_v2_policy_and_not_the_default __________
+
+    def test_the_report_marks_the_pre_v2_policy_and_not_the_default() -> None:
+        report = {"suite": "quality", "generated_at": "2026-09-20T00:00:00Z",
+                  "config": {"backend": "vulkan", "runs": 1, "threads": 4,
+                             "cue": "shipped", "chat_format": "answer_sheet"},
+                  "model": {"path": "/m.gguf"}, "overall": {}, "per_type": {},
+                  "commands": {"reproduce": "uv run ggufone bench --suite quality"}}
+        text = harness.render_report(report)
+>       assert "- prompt policy: cue=shipped · chat_format=answer_sheet" in text
+E       AssertionError: assert '- prompt policy: cue=shipped · chat_format=answer_sheet' in '### quality — m.gguf\n\n- generated: 2026-09-20T00:00:00Z\n- host: None · cpus None · cgroup quota n/a\n- config: bac...ement**\n\n| type | n | correct | agreement | 95% CI |\n|---|---|---|---|---|\n| overall | None | None | — | — – — |\n'
+
+tests/test_policy_v2.py:304: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_policy_v2.py::test_the_default_cue_is_the_instructed_one - ...
+FAILED tests/test_policy_v2.py::test_the_default_chat_format_is_the_role_split
+FAILED tests/test_policy_v2.py::test_the_bench_and_the_cli_ask_for_the_v2_cell_by_default
+FAILED tests/test_policy_v2.py::test_the_reproduce_tool_defaults_to_the_v2_cell
+FAILED tests/test_policy_v2.py::test_a_no_flags_request_renders_the_v2_cell_byte_for_byte_plain
+FAILED tests/test_policy_v2.py::test_a_no_flags_request_renders_the_v2_cell_byte_for_byte_chat_template
+FAILED tests/test_policy_v2.py::test_the_no_flags_engine_publishes_the_v2_policy_and_the_value_row_verdict
+FAILED tests/test_policy_v2.py::test_the_reproduce_line_names_the_pre_v2_cell_and_stays_silent_for_v2
+FAILED tests/test_policy_v2.py::test_the_report_marks_the_pre_v2_policy_and_not_the_default
+9 failed, 4 passed, 1 skipped in 0.17s

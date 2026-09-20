@@ -84,6 +84,14 @@ def render_occamy(stats: dict[str, Any]) -> list[str]:
         cell_line("Occamy, shipped placement + shipped cue (measured here)", base),
         cell_line("Occamy, role_split + json_instructed (measured here)", chall),
         "",
+        "**Policy v2 (card `t_5b754458`).** The challenger cell above is what the product now "
+        "renders by default (`cue=json_instructed`, `chat_format=role_split`, "
+        "`json_contract=question`) — it is the closest published stand-in for a default "
+        "`ggufone bench` run on this model, and the reason the defaults moved. The baseline cell "
+        "is the pre-v2 policy and is still reproducible with "
+        "`--cue shipped --chat-format answer_sheet`. No bytes of either cell changed when the "
+        "default moved: only which one a flagless request names.",
+        "",
         f"* paired risk difference (challenger \u2212 its own baseline): "
         f"**{_num(pair['difference'])} ({_interval(pair['ci'])}, exact McNemar p = "
         f"{_num(pair['mcnemar_p'])})** \u2014 discordant {pair['challenger_only']} challenger-only "
@@ -246,10 +254,13 @@ def render_benchmarks(stats: dict[str, Any]) -> str:
            f"the readout row (`low_mass` {aux_role['low_mass']}/{aux_role['items']} → "
            f"{chall['low_mass']}/{chall['items']})." if aux_role and chall else "."),
         "",
-        "**No default moves.** The two switches keep the frozen defaults §9 published "
-        "(`cue=shipped`, `chat_format=answer_sheet`, `json_contract=question`); this subsection is "
-        "a policy measurement on one model's row, and a row measured under it is not comparable "
-        "with the rows measured on the shipped prompt bytes.",
+        "**Policy v2 (card `t_5b754458`).** The two switches this row was measured with are the "
+        "product's **defaults** now (`cue=json_instructed`, `chat_format=role_split`, "
+        "`json_contract=question`): this row is the shape a user with no flags gets, and the "
+        "`shipped`/`answer_sheet` rows it is compared against (above) are the ones that now need "
+        "their flags spelled out. The pre-v2 cell stays published and unchanged — "
+        "`--cue shipped --chat-format answer_sheet` — and a row measured under one policy is never "
+        "mixed with a row measured under the other without its marker.",
         "",
         "Full detail (per-chunk placement ledger, refusal breakdown, the item flips, the two "
         "auxiliary arms, the render path receipts): `docs/evidence/e3e_role_split_t_9bcbecff.md`; "

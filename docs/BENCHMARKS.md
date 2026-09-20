@@ -26,6 +26,31 @@ GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all \
 The same suites are reachable through the CLI (`uv run ggufone bench --suite <name> ...`); the
 `reproduce:` line inside every rendered table *is* the exact command for that report.
 
+> **Policy v2 (card `t_5b754458`, 2026-09-20): the measured-good prompt policy is the default.**
+> `options.chat_format` is now **`role_split`** and `options.cue` is now **`json_instructed`**
+> (the contract stated in the question turn, `json_contract = question`). The grounds are E3e
+> (§9, card `t_4c48f40a`), its audit (`t_57bd3db2`) and the [host] probes (card `t_9bcbecff`):
+> the pre-v2 defaults — `answer_sheet` + the `shipped` cue — collapse on both 35B models
+> (Tiel 22/60, Occamy 26/60 under the corrected instrument) while the instructed/role-split cell
+> reads 53/60 and 54/60 on the very same items; on the 4B it is 50/60, inside the noise of the
+> table's best (51/60).
+>
+> What that means for the tables below:
+>
+> * **re-measured under v2:** §2.3 (the 4B quality row, no policy flag at all, reproduced item for
+>   item against the E3e arm), §7.4.2 (Tiel, [host]) and the Occamy pair in
+>   `docs/evidence/e3e_role_split_t_9bcbecff.md` §9 — those rows were measured with what are now
+>   the default flags.
+> * **still pre-v2 (declared, never silently mixed):** every *other* row — latency (§3.1),
+>   throughput (§3.2), determinism (§3.3), the recon numbers (§3.4/§3.5), calibration and routing
+>   (§5), the E3 batch/threads rows (§6.3/§6.5, §7.5/§7.6) and the quick-preset numbers — was
+>   measured under `shipped` + `answer_sheet`. Those rows stay readable as that policy until the
+>   optional E2-v2 campaign (option C) re-measures them; the reports now name the policy they used
+>   (`- prompt policy: cue=shipped · chat_format=answer_sheet` and the same flags in their
+>   `reproduce:` line), which is what keeps them reproducible by the flags alone.
+> * the pre-v2 switches are unchanged: `--chat-format answer_sheet`, `--cue shipped|two_step|
+>   json_field`, `--json-contract system` all still work, byte for byte (`docs/TEMPLATES.md` §4).
+
 **A benchmark never touches the registry and never opens a socket** (A-E2-7): `--model` takes a
 path on disk (an alias is a hard `E_BENCH_MODEL` error that says so), the runtime is a local
 llama.cpp bundle, and the dev set ships inside the package. `tests/test_bench.py` asserts it with
@@ -162,6 +187,10 @@ frozen wire shape of SPEC §2.5).
 > no chat template, so these rows are the **plain E1b framing** while `ggufone ask`/`run` sends the
 > model's chat template. **§2.2 carries the same row re-measured with the corrected instrument**;
 > the two must not be mixed.
+>
+> **Policy v2 (card `t_5b754458`).** §2.2's corrected row is the **pre-v2** cell (`--cue shipped
+> --chat-format answer_sheet`) and stays published as that; **§2.3 is the row the product now
+> measures by default** (no policy flag), and it is the one a new user reproduces.
 
 **Provenance (S-10).** The dev set is `src/ggufone/bench/devset.jsonl`: **60 items authored for
 this repository** (24 `choice`, 18 `score`, 18 `noul`), each one state of ≤ 200 tokens with a
@@ -274,7 +303,116 @@ is the thing E3d's `--cue two_step` changes (§8, `docs/evidence/e3d_cue_decisio
 the reason the corrected instrument's `low_mass` column and the pre-fix one are not the same
 measurement.
 
+<!-- QUALITY-V2:START — spliced from docs/evidence/e2_quality_v2_t_5b754458.json by
+     `.t5b75/splice_benchmarks.py`; edit the tool and the report, never this block. -->
+
+### 2.3 The same row under the product's defaults (policy v2, card `t_5b754458`)
+
+`tools/e2_reproduce.py` on the same box, the same 4B and the same 60 committed items — **with no policy flag at all**, i.e. the recipe a new user's `ggufone bench` runs. The row is therefore measured under the defaults (`cue=json_instructed`, `chat_format=role_split`, `json_contract=question`), which are the cell §9's table read as the measured-good one.
+
+- reproduce: `uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend vulkan --runs 5 --threads 4 --items 60 --json`
+- report: `docs/evidence/e2_quality_v2_t_5b754458.json` · measured with backend `vulkan` · threads 4 · items 60 · runs 5
+- **item-level identity with the published E3e arm** (`json_instructed/role_split`, `.e3e/bench_json_instructed_role_split.json`): **60/60** items identical on `prefix_tokens`, `got`, `correct`, `cue`; agreement 50/60 = 0.833 on both sides. The check is `.t5b75/compare_default_row.py`.
+
+### quality — Spark-X2.5-4B-Q8_0.gguf
+
+- generated: 2026-09-20T12:40:33Z
+- host: Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41 · cpus 24 · cgroup quota 2.0
+- config: backend=vulkan runs=5 threads=4
+- reproduce: `uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend vulkan --runs 5 --threads 4 --items 60 --json`
+- wall: 29.8 s
+- engine devices: Vulkan0=60 · Vulkan_Host=60 (compute buffers) · effective backend: vulkan
+- framing: chat-template: spark2_5 / internal · prefix tokens: 82, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 105, 107, 111, 119
+
+**exact-match agreement**
+
+| type | n | correct | agreement | 95% CI |
+|---|---|---|---|---|
+| choice | 24 | 21 | 0.8750 | 0.6900 – 0.9566 |
+| noul | 18 | 18 | 1.000 | 0.8241 – 1.000 |
+| score | 18 | 11 | 0.6111 | 0.3862 – 0.7970 |
+| overall | 60 | 50 | 0.8333 | 0.7197 – 0.9069 |
+
+**cue verdicts**
+
+| item | type | cue top token | top-token mass | verdict |
+|---|---|---|---|---|
+| c01 | choice | `token 97` | 0.8700 | ok |
+| c02 | choice | `token 79` | 0.9954 | ok |
+| c03 | choice | `token 76495` | 1.0000 | ok |
+| c04 | choice | `token 33850` | 0.8582 | ok |
+| c05 | choice | `token 113210` | 0.9955 | ok |
+| c06 | choice | `token 80395` | 0.9931 | ok |
+| c07 | choice | `token 29361` | 0.9997 | ok |
+| c08 | choice | `token 93058` | 0.9785 | ok |
+| c09 | choice | `token 1117` | 1.0000 | ok |
+| c10 | choice | `token 9914` | 0.9999 | ok |
+| c11 | choice | `token 1301` | 1.0000 | ok |
+| c12 | choice | `token 13008` | 0.9996 | ok |
+| c13 | choice | `token 16972` | 0.9999 | ok |
+| c14 | choice | `token 16989` | 0.9999 | ok |
+| c15 | choice | `token 21219` | 0.9998 | ok |
+| c16 | choice | `token 625` | 1.0000 | ok |
+| c17 | choice | `token 27075` | 0.8061 | ok |
+| c18 | choice | `token 2297` | 0.5303 | ok |
+| c19 | choice | `token 60672` | 0.9994 | ok |
+| c20 | choice | `token 82613` | 0.9998 | ok |
+| c21 | choice | `token 100` | 0.8992 | ok |
+| c22 | choice | `token 96` | 1.0000 | ok |
+| c23 | choice | `token 64686` | 1.0000 | ok |
+| c24 | choice | `token 6693` | 1.0000 | ok |
+| s01 | score | `token 33` | 0.9226 | ok |
+| s02 | score | `token 30` | 0.7854 | ok |
+| s03 | score | `token 33` | 0.8885 | ok |
+| s04 | score | `token 32` | 0.5414 | ok |
+| s05 | score | `token 29` | 0.8892 | ok |
+| s06 | score | `token 32` | 0.8977 | ok |
+| s07 | score | `token 30` | 0.5965 | ok |
+| s08 | score | `token 30` | 0.6209 | ok |
+| s09 | score | `token 30` | 0.9977 | ok |
+| s10 | score | `token 32` | 0.7818 | ok |
+| s11 | score | `token 31` | 0.5342 | ok |
+| s12 | score | `token 32` | 0.9192 | ok |
+| s13 | score | `token 29` | 0.6987 | ok |
+| s14 | score | `token 29` | 0.5063 | ok |
+| s15 | score | `token 31` | 0.5626 | ok |
+| s16 | score | `token 29` | 0.9563 | ok |
+| s17 | score | `token 31` | 0.6999 | ok |
+| s18 | score | `token 29` | 0.9995 | ok |
+| n01 | noul | `token 4244` | 0.9991 | ok |
+| n02 | noul | `token 4244` | 0.9835 | ok |
+| n03 | noul | `token 4244` | 0.9973 | ok |
+| n04 | noul | `token 4244` | 1.0000 | ok |
+| n05 | noul | `token 4244` | 0.9994 | ok |
+| n06 | noul | `token 1643` | 1.0000 | ok |
+| n07 | noul | `token 4244` | 0.9936 | ok |
+| n08 | noul | `token 1643` | 0.9535 | ok |
+| n09 | noul | `token 1643` | 1.0000 | ok |
+| n10 | noul | `token 4244` | 0.9865 | ok |
+| n11 | noul | `token 4244` | 0.5949 | ok |
+| n12 | noul | `token 1643` | 1.0000 | ok |
+| n13 | noul | `token 4244` | 0.9991 | ok |
+| n14 | noul | `token 1643` | 1.0000 | ok |
+| n15 | noul | `token 4244` | 0.8819 | ok |
+| n16 | noul | `token 1643` | 1.0000 | ok |
+| n17 | noul | `token 1643` | 0.9999 | ok |
+| n18 | noul | `token 4244` | 0.9998 | ok |
+
+- agreement = the highest-probability candidate equals the gold candidate (the discrete decision), measured per question type and overall with 95% Wilson intervals; report-only in v1 (SPEC S-11).
+
+**Read the row's own words:** every one of the 60 rows carries `engine.chat_format = {kind: role_split, question_turn: user}` and `engine.cue = json_instructed` with a named value-row verdict (`answered` on every item here), so the row is comparable with the E3e table's `json_instructed/role_split` cell and **not** with §2.2's pre-v2 row above.
+
+The old cell is unchanged and still one flag away: `--cue shipped --chat-format answer_sheet` reproduces §2.2 byte for byte (`tests/test_policy_v2.py::test_the_pre_v2_cell_stays_reachable_and_its_bytes_are_frozen`).
+
+<!-- QUALITY-V2:END -->
+
 ## 3. The measurements
+
+> **Pre-v2 policy (card `t_5b754458`).** Every row in §3 — latency, throughput, determinism and the
+> recon numbers — was measured under `--cue shipped --chat-format answer_sheet`, i.e. the prompt
+> policy this repository shipped before policy v2. The rows stay published as that policy (their
+> reports name it), and they are **not** comparable with §2.3's default row; the optional E2-v2
+> campaign (option C) is what would re-measure them under the defaults.
 
 ### 3.0 Which suite ran on which model
 
@@ -662,6 +800,11 @@ a *working* bench path; the Vulkan rows of the E2 tables above were produced on 
 
 ## 5. E2.5 — calibration, routing and escalation (measured)
 
+> **Pre-v2 policy (card `t_5b754458`).** This whole section — the calibration fits, the confidence
+> statistics, `--route auto` and the escalation rows — was measured under `--cue shipped
+> --chat-format answer_sheet`, the pre-v2 prompt policy. Nothing here is a statement about the
+> defaults: an E2-v2 campaign (option C) re-measures it.
+
 Same box, same pinned runtime and the same 60-item dev set as §3/§4 (container: cpu, threads=2,
 runtime `b11026-linux-x64-cpu`, 2 CPU-seconds/s quota). One command per table —
 `tools/e2p5_reproduce.py <calibrate|route|escalate>` — and the raw JSON plus the live logs sit in
@@ -731,6 +874,11 @@ nothing on the 20 held-out items. Every re-ask is logged with its trigger and it
 * **No GPU on the measuring box**, so the router's device-budget branch is exercised offline
   (injected VRAM numbers, the free-VRAM margin, the KV-floor fallback) and only its CPU branch live.
 ## 6. E3 — the 23 GB MoE on this box (Occamy 1.0, `qwen35moe`)
+
+> **Pre-v2 policy (card `t_5b754458`).** No row in this section is policy v2: §6's Occamy cells were
+> measured under the pre-v2 placement and cue, in a container, before the E3e framing fix. The
+> policy-v2 Occamy pair (the same 60 items, `role_split` + `json_instructed` vs the pre-v2 cell, both
+> re-measured [host]) is `docs/evidence/e3e_role_split_t_9bcbecff.md` §9.
 
 > **Pre-fix rows (plain framing).** Every row below was measured with the pre-fix bench (card
 > `t_6de5fc53`), i.e. the plain E1b framing, while `ggufone ask`/`run` send Occamy's chat template
@@ -1025,7 +1173,7 @@ Paired by item (exact McNemar + the closed-form interval, `tools/e3e_roles_decis
 
 The collapse cell reproduces §9's **non-additivity** on this family as well, with the opposite branch of the same rule: under the role split every cue row closes the turn (`<think>`), and `decide._advance_token` never advances past a cue the model closed — so `two_step` is *inert* here and the two auxiliary arms are decision-identical item by item (60/60 refusals, `low_mass` 60/60, 0.583). Neither auxiliary cell is readable as accuracy — both are `measured` 0/60 with median coverage 2.488e-08: the placement moves the question out of the assistant turn, and it is the instructed contract that puts the answer's mass on the readout row (`low_mass` 60/60 → 0/60).
 
-**No default moves.** The two switches keep the frozen defaults §9 published (`cue=shipped`, `chat_format=answer_sheet`, `json_contract=question`); this subsection is a policy measurement on one model's row, and a row measured under it is not comparable with the rows measured on the shipped prompt bytes.
+**Policy v2 (card `t_5b754458`).** The two switches this row was measured with are the product's **defaults** now (`cue=json_instructed`, `chat_format=role_split`, `json_contract=question`): this row is the shape a user with no flags gets, and the `shipped`/`answer_sheet` rows it is compared against (above) are the ones that now need their flags spelled out. The pre-v2 cell stays published and unchanged — `--cue shipped --chat-format answer_sheet` — and a row measured under one policy is never mixed with a row measured under the other without its marker.
 
 Full detail (per-chunk placement ledger, refusal breakdown, the item flips, the two auxiliary arms, the render path receipts): `docs/evidence/e3e_role_split_t_9bcbecff.md`; raw `docs/evidence/t9bcbecff_tiel_challenger_quality.json` + `docs/evidence/t9bcbecff_tiel_chunks/`.
 <!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
@@ -1124,13 +1272,20 @@ table — which is why §7.4.1 (the full 60 on the host) is where the reading is
 
 ## 8. E3d — the cue switch, measured through the bench (card `t_d90404ac`)
 
+> **Pre-v2 policy (card `t_5b754458`).** This section is the E3d card's record: every row in it was
+> measured under `shipped` + `answer_sheet`, and its prose says "the default stays `shipped`" because
+> that was the tree's state when it was written. Policy v2 later moved the shipped default to
+> `json_instructed` + `role_split`; the rows below are unchanged and still reproducible by naming
+> their own flags (`--cue shipped`, `--cue two_step`, `--cue json_field`, and
+> `--chat-format answer_sheet` for the pre-v2 placement).
+
 E3d asked whether a different cue shape beats the shipped one, decided it on the full dev set
 (`docs/evidence/e3d_cue_decision_4b.md`: `--cue two_step` moves the readout for 44 of 60 rows off a
 row the engine itself calls `low_mass`, and `--cue json_field` is the only shape that clears the
 paired CI on agreement) and shipped the mechanism as `--cue shipped|two_step|json_field` with
-**`shipped` still the default**. This section is the same switch through the *bench* — the engine's
-own quality path, the instrument every other table in this document comes from — and it is the
-reason the default did not move.
+**`shipped` still the default at the time**. This section is the same switch through the *bench* — the
+engine's own quality path, the instrument every other table in this document comes from — and it is
+the reason the default did not move *on that card* (policy v2, §9, is the card that moved it).
 
 Same box, same model (`Spark-X2.5-4B-Q8_0.gguf`), same 60 committed dev items, same context, same
 placement (the Vulkan bundle, the device visible — the rows carry `effective_backend: vulkan` and
@@ -1139,7 +1294,7 @@ E3c). Only `--cue` moves, and every row names its framing:
 
 | `--cue` | framing | agreement | Wilson 95 % | `low_mass` | refused at the cue | coverage median | above the 0.10 floor | choice · noul · score |
 |---|---|---|---|---|---|---|---|---|
-| `shipped` (the default), **pre-fix** | plain (prompt.py E1b framing) | 36/60 = 0.600 | 0.474–0.714 | 13/60 | 0/60 | 0.2711 | 47/60 | 16/24 · 16/18 · 4/18 |
+| `shipped` (the pre-v2 default), **pre-fix** | plain (prompt.py E1b framing) | 36/60 = 0.600 | 0.474–0.714 | 13/60 | 0/60 | 0.2711 | 47/60 | 16/24 · 16/18 · 4/18 |
 | `two_step`, **pre-fix** | plain (prompt.py E1b framing) | 27/60 = 0.450 | 0.331–0.575 | 29/60 | 8/60 | 0.1103 | 31/60 | 15/24 · 7/18 · 5/18 |
 | `json_field`, **pre-fix** | plain (prompt.py E1b framing) | 46/60 = 0.767 | 0.646–0.856 | 0/60 | 0/60 | 0.8544 | 60/60 | 21/24 · 17/18 · 8/18 |
 | `shipped`, **post-fix** | chat-template: spark2_5 / internal | 42/60 = 0.700 | 0.575–0.801 | 45/60 | 1/60 | 0.03847 | 15/60 | 20/24 · 16/18 · 6/18 |
@@ -1173,13 +1328,17 @@ same-framing comparison, i.e. it says nothing about this card. The post-fix `shi
 lands exactly on the probe's `bare` row for the same shape, and the comparison this section makes is
 between its own arms, which ran under one plan and one box.
 
-**What this changes for the cue default.** The default stays `shipped` — the E3d card's decision is
-that the *mechanism* ships and the *default* moves only with its own evidence, and this card's job
-was the instrument, not the default. What changed is the reason: the bench no longer contradicts
+**What this changes for the cue default (as of this card; policy v2 moved it later).** The default
+stayed `shipped` here — the E3d card's decision is that the *mechanism* ships and the *default* moves
+only with its own evidence, and this card's job was the instrument, not the default; policy v2 (card
+`t_5b754458`, §2.3/§9) is that later decision, taken on E3e's table and the 35B [host] probes, and it
+moves the default to `json_instructed` (and the placement to `role_split`). What changed in E3d is the
+reason: the bench no longer contradicts
 the probe, so `--cue two_step`'s case is now the probe's case (a readout-position fix that takes the
 engine's own coverage verdict from 15/60 usable rows to 57/60, with the agreement difference inside
 the paired CI), and `--cue json_field`'s 51/60 is the number the *bench* now measures for it too.
-The mechanism, the flag and the frozen default are unchanged by this card.
+The mechanism, the flag and the default are unchanged by this card; policy v2 moved the default later
+(§9).
 
 ## 9. E3e — where the question lives and what the ask line says (card `t_4c48f40a`)
 
@@ -1198,11 +1357,14 @@ asked** instead of where the readout sits:
 * `--json-contract question|system` — where that contract is stated: in the question block
   (default) or once in the system framing.
 
-Both main switches are off by default, in the E3d manner (`answer_sheet`, `shipped`,
-`json_contract=question`): the published rows above were measured on those bytes and stay comparable.
-The card's own question — does *either* lever beat the shipped cell on the 60 committed items — is
-what the table below answers, and the decision rule is printed with it (paired interval excluding
-zero **and** exact McNemar below 0.05, the E3d unit).
+The pre-v2 defaults were `answer_sheet`, `shipped` and `json_contract=question` — the shapes every
+row above was measured on, and the reason they stay comparable with each other. **Policy v2 (card
+`t_5b754458`) promotes the measured-good cell to the default**: `chat_format=role_split` +
+`cue=json_instructed` (contract in the question turn) is what a request that names nothing renders
+now, and the pre-v2 cell is one flag away (`--cue shipped --chat-format answer_sheet`, §2.3 and
+`docs/TEMPLATES.md` §4 carry the details). The card's own question — does *either* lever beat the
+shipped cell on the 60 committed items — is what the table below answers, and the decision rule is
+printed with it (paired interval excluding zero **and** exact McNemar below 0.05, the E3d unit).
 
 <!-- E3E-TABLE:START — spliced by `.e3e/splice_docs.py` from the tool's own report
      (`docs/evidence/e3e_roles_decision.md`); edit the tool, never this block. -->
@@ -1277,11 +1439,15 @@ five checks green; **Tiel's own template is outside the internal renderer's subs
 records it with its fallback rather than guessing. The per-family bytes and the Spark residual are in
 `docs/TEMPLATES.md` (E3e section) and `.e3e/role_render.md`.
 
-**The defaults did not move, and the freeze is checked twice.** The `shipped`/`answer_sheet` cell is
-the committed `.e3d/bench_templated_shipped.json`; two checks on this tree compare against it, both
+**The freeze is checked twice, and policy v2 does not touch it.** The `shipped`/`answer_sheet` cell
+is the committed `.e3d/bench_templated_shipped.json`; two checks on this tree compare against it, both
 non-zero exits if either fails. `--freeze-probe .e3e/probe_default.json` is a six-item arm run with
-the *baseline's own recipe* (`--backend auto`) and must reproduce the committed rows' **prompt bytes
-and decisions** (`prefix_tokens` and the answer, item for item). `--placement-probe` is the table's
+the *baseline's own recipe* (`--backend auto`, run under what are now the pre-v2 switches) and must
+reproduce the committed rows' **prompt bytes and decisions** (`prefix_tokens` and the answer, item for
+item). Its stored `reproduce:` line predates policy v2 (card `t_5b754458`), so re-running it today
+means adding `--cue shipped --chat-format answer_sheet`; run without them it renders v2 and the freeze
+fails, correctly (`tests/test_policy_v2.py` pins both halves of that statement). `--placement-probe`
+is the table's
 own baseline cell re-measured under the table's instrument (`--backend vulkan`, 60 items), and it
 agrees with the committed report on 59 of 60 decisions with `prefix_tokens` identical on every item;
 the one that moved is the cue **refusal verdict** on `n16` (the answer did not: `no`/`low_mass` on
@@ -1300,6 +1466,8 @@ Reproduce: `bash .e3e/run_arms.sh` (the freeze probe + the eight policy arms, on
 
 **Comparability**: the cells compare with *each other*; none of them is a quality row to publish,
 because each changes the prompt bytes and the whole document would have to be re-measured under it
-first. That is why the switches ship frozen.
+first. That is why the switches shipped frozen **at the time of this table** — policy v2 (card
+`t_5b754458`, §2.3) is the card that paid that price for one cell: it re-measured the 4B quality row
+under the new defaults, item for item, instead of moving the document by implication.
 
 

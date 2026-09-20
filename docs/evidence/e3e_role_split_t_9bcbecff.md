@@ -231,6 +231,8 @@ Occamy (`Accio-Lab_occamy-1.0-Q4_K_L.gguf`, `/var/home/rybens/.hermes/models/Acc
 - **Occamy, shipped placement + shipped cue (measured here)** — 26/60 = 0.433 [0.316 – 0.559]; `low_mass` 60/60, `measured` 0/60, refusals 60/60
 - **Occamy, role_split + json_instructed (measured here)** — 54/60 = 0.900 [0.799 – 0.953]; `low_mass` 0/60, `measured` 60/60, refusals 0/60
 
+**Policy v2 (card `t_5b754458`).** The challenger cell above is what the product now renders by default (`cue=json_instructed`, `chat_format=role_split`, `json_contract=question`) — it is the closest published stand-in for a default `ggufone bench` run on this model, and the reason the defaults moved. The baseline cell is the pre-v2 policy and is still reproducible with `--cue shipped --chat-format answer_sheet`. No bytes of either cell changed when the default moved: only which one a flagless request names.
+
 * paired risk difference (challenger − its own baseline): **0.467 (0.332 – 0.601, exact McNemar p = 5.774e-08)** — discordant 29 challenger-only against 1 baseline-only, both correct 25, neither correct 5; the pair clears the card's E3e unit rule.
 * refusals at the cue 60/60 → 0/60, `low_mass` 60/60 → 0/60, `measured` 0/60 → 60/60.
 

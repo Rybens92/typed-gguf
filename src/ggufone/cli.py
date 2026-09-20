@@ -1275,8 +1275,10 @@ BENCH_VALUE_FLAGS = ("suite", "model", "backend", "runs", "threads", "devset", "
                      "max-seconds")
 BENCH_BOOL_FLAGS = ("json", "quick")
 BENCH_DEFAULTS = {"backend": "auto", "runs": harness.DEFAULT_RUNS, "kv-type": "auto",
-                  "cue": "shipped", "chat-format": schema.ANSWER_SHEET,
-                  "json-contract": schema.JSON_CONTRACT}
+                  # policy v2 (card t_5b754458): the CLI mirrors the bench's own literals, so an
+                  # unset flag can never disagree with `harness.BenchConfig`'s default
+                  "cue": harness.DEFAULT_CUE, "chat-format": harness.DEFAULT_CHAT_FORMAT,
+                  "json-contract": harness.DEFAULT_JSON_CONTRACT}
 
 
 def _bench_sizes(value: str | None) -> tuple[int, ...]:
@@ -1298,11 +1300,12 @@ def _bench_sizes(value: str | None) -> tuple[int, ...]:
 
 
 def _bench_cue(value: str | None) -> str:
-    """`--cue shipped|two_step|json_field` -> the config's cue (E3d; a bad value is a usage error).
+    """`--cue shipped|two_step|json_field|json_instructed` -> the config's cue (E3d).
 
-    The shape is a *measurement condition*, not scale: a `two_step` quality row is not comparable
-    to a `shipped` one, so the value is validated here (the CLI's own exit code 2) rather than
-    reaching the engine as a schema error halfway through a run.
+    A bad value is a usage error, and no value at all is the measured-good cell (`json_instructed`
+    since policy v2, card t_5b754458). The shape is a *measurement condition*, not scale: a
+    `two_step` quality row is not comparable to a `shipped` one, so the value is validated here
+    (the CLI's own exit code 2) rather than reaching the engine as a schema error mid-run.
     """
     if value is None:
         return str(BENCH_DEFAULTS["cue"])
@@ -1317,7 +1320,9 @@ def _bench_chat_format(value: str | None) -> str:
 
     Same reasoning as `--cue`: the placement is a *measurement condition* — a `role_split` row and
     an `answer_sheet` row are the same instrument on two different prompt shapes, so the value is
-    checked here (the CLI's exit code 2) instead of surfacing as a schema error mid-run.
+    checked here (the CLI's exit code 2) instead of surfacing as a schema error mid-run. No flag
+    means the default, which since policy v2 (card t_5b754458) is `role_split`; `answer_sheet` is
+    the pre-v2 shape and a row that used it says so in the report.
     """
     if value is None:
         return str(BENCH_DEFAULTS["chat-format"])
