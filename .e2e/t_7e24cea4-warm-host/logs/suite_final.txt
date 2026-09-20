@@ -1,0 +1,12 @@
+$ cd /var/home/rybens/workspace/ggufone
+$ TYPED_GGUF_HOME=<the box's data home> uv run --extra dev pytest -q
+........................................................................ [ 93%]
+...............................s...............................ssss..... [ 98%]
+.............................                                            [100%]
+1485 passed, 56 skipped in 45.76s
+
+# 56 skips = the 49-skip offline baseline + the card's 7 live keep gates, which skip *by name*
+# without --run-network (a run that skipped one exits non-zero unless the live flag asked for it).
+# The one red this file saw on the way was `test_the_living_surface_carries_no_old_name`: the live
+# gate's docstring carried this box's absolute data-home path, which happens to spell the pre-rename
+# name. Frozen-receipt dirs (.e2e, docs/evidence, state) are exempt from that sweep; tests/ is not.

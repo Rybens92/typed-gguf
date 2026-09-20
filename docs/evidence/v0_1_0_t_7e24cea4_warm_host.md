@@ -31,6 +31,12 @@ An earlier full run of the same file measured cold 24.50 s (load 3187 ms) → wa
 not the product: the *warm* number is the one the feature owns, and it moved 4.01 → 2.58 s between
 runs because the cold one did.
 
+Offline, the card's own gates are `tests/test_keep.py`, `tests/test_keep_host.py`,
+`tests/test_keep_client.py`, `tests/test_keep_cli.py` — 93 gates, all green — and the whole suite is
+**1485 passed, 56 skipped** (the 49-skip offline baseline plus these 7 live gates, which skip *by
+name* and make a run exit non-zero unless the live flag asked for them). Receipt:
+`.e2e/t_7e24cea4-warm-host/logs/suite_final.txt`.
+
 Note on the cold number: `timings.model_load_ms` (2280/3187 ms) is the session's model load; the
 cold call's wall clock (17.50/24.50 s) is that load **plus** the one-time fit plan, the process
 spawn and the first read of a 2.5 GB file. Only the warm call is decision-only.
