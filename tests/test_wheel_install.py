@@ -28,6 +28,7 @@ from dataclasses import dataclass
 
 import pytest
 
+from tests.conftest import PID_PRESSURE_SKIP_PREFIX, pid_headroom
 from typed_gguf.runtime import pressure
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -41,9 +42,46 @@ DECOY_TAG = "b00042"
 #: is exactly what SPEC A7 forbids the offline gate, so that box skips instead of guessing.
 NO_BACKEND_TOKENS = ("network was disabled", "not found in the cache",
                      "no solution found when resolving")
+#: what a full pid cgroup answers instead: `uv` panics on the thread it cannot spawn. Measured on
+#: this box (card t_eff926f9) — the fixture, not just the tests, has to recognise it.
+STARVATION_TOKENS = ("resource temporarily unavailable", "os error 11", "cannot allocate memory")
 
-#: every test here starts real children: `uv build`, `uv tool install`, the installed CLI
-pytestmark = pytest.mark.needs_fork
+#: the artifact gates start real children: `uv build`, `uv tool install`, the installed CLI. The
+#: two harness pins at the end of this file spawn nothing and stay measurable on a starved box.
+FORK = pytest.mark.needs_fork
+
+
+def pressure_skip(session: pytest.Session, detail: str) -> None:
+    """Skip the way the conftest's fork gate does: named, counted, and non-zero at the end.
+
+    `_gg_pid_pressure_skips` is what `pytest_sessionfinish` reads to refuse a green status, and the
+    message carries `PID_PRESSURE_SKIP_PREFIX` so `pytest_terminal_summary` prints it in full.
+    """
+    session.__dict__["_gg_pid_pressure_skips"] = \
+        int(session.__dict__.get("_gg_pid_pressure_skips", 0)) + 1
+    pytest.skip(f"{PID_PRESSURE_SKIP_PREFIX} ({detail}): this gate spawns real children "
+                f"(`uv build`, `uv tool install`, the installed CLI) and the box is at its pid "
+                f"cap — the box, not the product; re-run when pids.current < "
+                f"pids.max - {pressure.PID_HEADROOM_FLOOR}")
+
+
+def starved_detail() -> str | None:
+    """The live reading when the cgroup has no fork headroom, else None (honours the test knob)."""
+    headroom = pid_headroom()
+    if headroom is None or not headroom.starved():
+        return None
+    return f"starved before it started: {headroom.describe()}"
+
+
+def starvation(blob: str) -> str | None:
+    """The token that says a `uv` failure was the box's pid cgroup rather than the artifact.
+
+    The cgroup can fill *during* a build the box was roomy enough to start (`uv` panics on the
+    thread it cannot spawn: "OS can't spawn worker thread: Resource temporarily unavailable
+    (os error 11)"), so the failure has to be classified, not asserted away.
+    """
+    lowered = blob.lower()
+    return next((token for token in STARVATION_TOKENS if token in lowered), None)
 
 
 def decoy_lock() -> str:
@@ -77,10 +115,15 @@ class Installed:
 
 
 @pytest.fixture(scope="module")
-def wheel(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+def wheel(request: pytest.FixtureRequest,
+          tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     """The distribution this tree builds — the artifact the `uvx` one-liner installs."""
     if UV is None:
         pytest.skip("uv is not on PATH: this gate installs the wheel the way `uvx` does")
+    if (detail := starved_detail()) is not None:
+        # the conftest's autouse fork gate cannot see this: a fixture is not a test, and `uv build`
+        # answers a full cgroup by panicking — which would read as a product failure below
+        pressure_skip(request.session, detail)
     dist = tmp_path_factory.mktemp("dist")
     result = pressure.spawn([UV, "build", "--wheel", "--offline", "-o", str(dist), str(ROOT)],
                             capture_output=True, text=True, check=False, timeout=600)
@@ -89,6 +132,8 @@ def wheel(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
         if any(token in blob.lower() for token in NO_BACKEND_TOKENS):
             pytest.skip("the build backend is not in the local uv cache and this gate builds "
                         f"offline (SPEC A7): {blob.strip()[-300:]}")
+        if starvation(blob):
+            pressure_skip(request.session, f"`uv build` hit a full cgroup: {blob.strip()[-200:]}")
         pytest.fail(f"`uv build` failed:\n{blob[-2000:]}")
     built = sorted(dist.glob("typed_gguf-*.whl"))
     assert len(built) == 1, f"expected exactly one wheel, found {[p.name for p in built]}"
@@ -96,14 +141,21 @@ def wheel(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
 
 
 @pytest.fixture()
-def installed(wheel: pathlib.Path, tmp_path: pathlib.Path) -> Installed:
+def installed(wheel: pathlib.Path, request: pytest.FixtureRequest,
+              tmp_path: pathlib.Path) -> Installed:
     """A fresh `uv tool install` of the built wheel, in its own temp dir."""
     root = tmp_path / "tool"
     env = {**os.environ, "UV_TOOL_DIR": str(root / "tools"), "UV_TOOL_BIN_DIR": str(root / "bin")}
+    if (detail := starved_detail()) is not None:
+        pressure_skip(request.session, detail)
     result = pressure.spawn([UV, "tool", "install", "--offline", "--from", str(wheel), TOOL],
                             capture_output=True, text=True, check=False, timeout=600, env=env)
     blob = (result.stdout or "") + (result.stderr or "")
-    assert result.returncode == 0, f"`uv tool install` failed:\n{blob[-2000:]}"
+    if result.returncode != 0:
+        if starvation(blob):
+            pressure_skip(request.session,
+                          f"`uv tool install` hit a full cgroup: {blob.strip()[-200:]}")
+        raise AssertionError(f"`uv tool install` failed:\n{blob[-2000:]}")
     site_packages = next((root / "tools" / TOOL).glob("lib/python*/site-packages"))
     return Installed(bin=root / "bin" / TOOL, site_packages=site_packages, home=root / "home")
 
@@ -117,6 +169,7 @@ def neutral(tmp_path: pathlib.Path) -> pathlib.Path:
     return cwd
 
 
+@FORK
 def test_the_wheel_carries_the_root_lock_verbatim(installed: Installed) -> None:
     """Requirement 2, measured on the artifact: one source (the repo root) and one copy inside the
     distribution — byte-identical, so neither can drift away from the other."""
@@ -127,6 +180,7 @@ def test_the_wheel_carries_the_root_lock_verbatim(installed: Installed) -> None:
     assert packaged.read_bytes() == (ROOT / "runtime.lock").read_bytes()
 
 
+@FORK
 def test_version_reads_the_packaged_pin_from_a_neutral_cwd(installed: Installed,
                                                            neutral: pathlib.Path) -> None:
     result = installed.run("version", "--json", cwd=neutral)
@@ -137,6 +191,7 @@ def test_version_reads_the_packaged_pin_from_a_neutral_cwd(installed: Installed,
         "the answer came from the decoy in the cwd, not from the lock inside the wheel")
 
 
+@FORK
 def test_init_dry_run_plans_from_the_packaged_pin(installed: Installed,
                                                   neutral: pathlib.Path) -> None:
     result = installed.run("init", "--dry-run", "--json", cwd=neutral)
@@ -150,6 +205,7 @@ def test_init_dry_run_plans_from_the_packaged_pin(installed: Installed,
     assert not pathlib.Path(payload["destination"]).exists(), "a dry run writes nothing"
 
 
+@FORK
 def test_doctor_reports_an_empty_home_instead_of_a_missing_lock(installed: Installed,
                                                                neutral: pathlib.Path) -> None:
     result = installed.run("doctor", "--json", cwd=neutral)
@@ -163,6 +219,7 @@ def test_doctor_reports_an_empty_home_instead_of_a_missing_lock(installed: Insta
     assert "run `typed-gguf init`" in checks, checks   # the honest message for an empty home
 
 
+@FORK
 def test_a_broken_install_names_every_path_it_searched(installed: Installed,
                                                        tmp_path: pathlib.Path) -> None:
     """Requirement 3, on the artifact: with no lock left to read, the error lists what it searched
@@ -179,6 +236,7 @@ def test_a_broken_install_names_every_path_it_searched(installed: Installed,
     assert "run from the repository root" not in result.stderr
 
 
+@FORK
 def test_a_missing_override_is_reported_not_skipped(installed: Installed,
                                                     tmp_path: pathlib.Path) -> None:
     """`$TYPED_GGUF_LOCK` stays authoritative for an installed tool too: a typo is an error, never
@@ -189,3 +247,32 @@ def test_a_missing_override_is_reported_not_skipped(installed: Installed,
     result = installed.run("version", cwd=elsewhere, TYPED_GGUF_LOCK=str(typo))
     assert result.returncode == 3, result.stdout + result.stderr
     assert "TYPED_GGUF_LOCK" in result.stderr and str(typo) in result.stderr
+
+
+#: the exact panic this box produced while a sibling held the cgroup (card t_eff926f9) — the
+#: reason the fixtures classify their `uv` failures instead of asserting them away
+CGROUP_PANIC = ("thread 'main2' (233252) panicked at crates/uv-fs/src/locked_file.rs:205:34:\n"
+                "OS can't spawn worker thread: Resource temporarily unavailable (os error 11)")
+
+
+def test_a_full_cgroup_is_never_read_as_a_product_failure() -> None:
+    """The fixture's classification, pinned against the real thing: `uv` panics with the cgroup's
+    error, a build failure does not — and only the second one may fail this gate."""
+    assert starvation(CGROUP_PANIC) == "resource temporarily unavailable"
+    assert starvation("error: failed to build wheel: no such file or directory") is None
+    assert starvation("") is None
+
+
+def test_the_pressure_skip_is_the_one_the_conftest_counts(request: pytest.FixtureRequest) -> None:
+    """A skip raised from a *fixture* has to reach the conftest's summary and its exit-status gate,
+    or a starved box would look like a green suite with this whole file silently unmeasured."""
+    session = request.session
+    before = int(session.__dict__.get("_gg_pid_pressure_skips", 0))
+    try:
+        with pytest.raises(pytest.skip.Exception) as excinfo:
+            pressure_skip(session, "unit probe")
+        assert PID_PRESSURE_SKIP_PREFIX in str(excinfo.value)
+        assert int(session.__dict__["_gg_pid_pressure_skips"]) == before + 1
+    finally:
+        # the probe measured the counter, it did not starve the box
+        session.__dict__["_gg_pid_pressure_skips"] = before
