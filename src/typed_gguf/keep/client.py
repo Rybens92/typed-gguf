@@ -107,6 +107,23 @@ def typed_error_from_wire(error: Mapping[str, Any]) -> TypedGgufError:
     return factory(message, code=code)
 
 
+def _credit_the_spawn(body: dict[str, Any], keep: Mapping[str, Any]) -> dict[str, Any]:
+    """Charge the host's one-time load to the call that waited for it (SPEC 2.12, A-E4-1).
+
+    A host answers `timings.model_load_ms: 0.0` on every request — the session *it* opens pays no
+    load, because the model has been resident since before that request. True about the host, and
+    false about the call that **spawned** it: that call sat and waited for exactly that load. So
+    the client writes the host's number into the answer it asked for, and only for that call: a
+    later call that found the host already resident keeps 0.0. The host's own figure stays in
+    `engine.keep.model_load_ms` on every answer, warm or cold.
+    """
+    load_ms = float(keep.get("model_load_ms") or 0.0)
+    timings = body.get("timings")
+    if load_ms > 0.0 and isinstance(timings, dict):
+        timings["model_load_ms"] = load_ms
+    return body
+
+
 class Client:
     """One CLI invocation's view of the ledger. Cheap to build; holds the children it spawned."""
 
@@ -143,6 +160,7 @@ class Client:
             self.events.append(("inline", "keep-alive 0"))
             return self._mark(inline(), served_by="inline", keep_alive_s=0.0,
                               stopped=bool(report.get("stopped")))
+        spawns_before = len(self.spawns)
         try:
             record = self.ensure(key, keep_alive=keep_alive, fit=fit, payload=payload,
                                  model=model)
@@ -154,7 +172,11 @@ class Client:
         if not reply.get("ok"):
             raise typed_error_from_wire(reply.get("error") or {})
         keep = dict(reply.get("keep") or {})
-        return self._mark(reply.get("response") or {}, served_by="host", keep=keep,
+        body = reply.get("response") or {}
+        if len(self.spawns) > spawns_before:
+            # this call paid the load by waiting for the spawn: say so in its own timings
+            body = _credit_the_spawn(body, keep)
+        return self._mark(body, served_by="host", keep=keep,
                           keep_alive_s=keep.get("keep_alive_s", keep_alive))
 
     def ensure(self, key: identity.KeepKey, *, keep_alive: float,
@@ -328,7 +350,11 @@ class Client:
         try:
             reply = self._call(record, {"schema": host_module.REQUEST_SCHEMA, "op": "ping",
                                         "key": record.digest}, timeout=self.ping_timeout)
-        except (KeepUnavailable, OSError, ValueError, json.JSONDecodeError) as exc:
+        except (KeepUnavailable, TransportError, OSError, ValueError,
+                json.JSONDecodeError) as exc:
+            # a host that is alive but cannot answer *now* is a state, not a crash (card
+            # t_7e24cea4: the live gates caught a `kill -9` mid-request turning `keep status`
+            # into `E_INTERNAL: TransportError` instead of a report)
             return {**base, "state": "unresponsive",
                     "detail": f"{exc.__class__.__name__}: {exc}"}
         return {**base, **dict(reply.get("keep") or {}), "state": "running"}

@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import socket
 import sys
 import time
 
@@ -301,3 +302,66 @@ def test_host_errors_are_typed_errors_again(keep_home: pathlib.Path) -> None:
     generic = client_module.typed_error_from_wire({"code": "E_INTERNAL", "exit_code": 4,
                                                    "message": "boom"})
     assert generic.exit_code == 4 and generic.code == "E_INTERNAL"
+
+
+# ------------------------------------------------------------------ who paid the load
+@pytest.mark.needs_fork
+def test_the_spawning_call_reports_the_load_it_waited_for(make_client, keep_home) -> None:
+    """A-E4-1 (card t_7e24cea4): the cold answer carries the load the host paid for it.
+
+    A host answers `timings.model_load_ms: 0.0` — the session *it* opened paid no load (the model
+    has been resident since before this request). But the call that **spawned** that host waited
+    for exactly that load, so its own timings must report it; the call that found the host already
+    resident keeps reporting 0.0. That difference is the card's cold-vs-warm claim.
+    """
+    client = make_client()
+    inline = Inline()
+    key = _key()
+    cold = client.decide(key, PAYLOAD, keep_alive=30.0, inline=inline)
+    warm = client.decide(key, PAYLOAD, keep_alive=30.0, inline=inline)
+    host_load = cold["engine"]["keep"]["model_load_ms"]
+    assert host_load == 12.5, "the fake host's one-time load (tests/fake_keep_host.py)"
+    assert cold["timings"]["model_load_ms"] == host_load
+    assert warm["timings"]["model_load_ms"] == 0.0
+    assert warm["engine"]["keep"]["model_load_ms"] == host_load, "the host still remembers it"
+
+
+def test_an_inline_answer_keeps_its_own_load_number(make_client, keep_home, monkeypatch) -> None:
+    """No host, no credit: an inline answer reports the load it paid itself (5.0 in the fake)."""
+    monkeypatch.setenv("TYPED_GGUF_KEEP_FAKE", "slowstart")
+    client = make_client(spawn_timeout=0.5)
+    body = client.decide(_key(), PAYLOAD, keep_alive=30.0, inline=Inline())
+    assert body["engine"]["keep"]["served_by"] == "inline"
+    assert body["timings"]["model_load_ms"] == 5.0
+
+
+# ------------------------------------------------------------------ the reporting verb
+def test_status_of_a_host_that_cannot_answer_says_unresponsive(keep_home: pathlib.Path) -> None:
+    """A host alive but not answering *now* is a state to report — never a crash.
+
+    `keep status` is a health check, and a host serves one request at a time (SPEC 2.12): a ping
+    that lands while the host is busy waits and then gives up. That give-up has to come back as
+    `unresponsive` with its reason; it must not escape `status()` as `E_INTERNAL: TransportError`
+    (card t_7e24cea4 — the live gates hit it right after a `kill -9` mid-request).
+    """
+    client = client_module.Client(home=keep_home, ping_timeout=0.2)
+    key = _key()
+    state.ensure_dir(keep_home)
+    socket_file = state.socket_path(keep_home, key.digest)
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)   # accepts, never answers
+    listener.bind(str(socket_file))
+    listener.listen(4)
+    try:
+        state.write_record(state.HostRecord(
+            digest=key.digest, pid=os.getpid(), socket=str(socket_file), key=key.to_dict(),
+            model="a", model_path=key.model_path, keep_alive=30.0, started_at=0.0, loaded_at=0.0,
+            spec=str(state.spec_path(keep_home, key.digest)),
+            log=str(state.log_path(keep_home, key.digest))), keep_home)
+        status = client.status()
+    finally:
+        listener.close()
+    assert status["state"] == "unresponsive"
+    # whichever way the host failed to answer (a read that gave up reads as an empty stream),
+    # the report *says so* instead of raising the transport error at the caller
+    assert "TransportError" in status["detail"]
+    assert status["pid"] == os.getpid(), "the report keeps the record's own half"
