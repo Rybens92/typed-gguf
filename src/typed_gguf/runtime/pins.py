@@ -8,14 +8,19 @@ Mirrors docs/verify_runtime_contract.py — if these drift, the oracle fails.
 implicitly, the asset table carries name + size + (where known) SHA-256, and
 `min_build_for_spark2_5` gates the arch pre-flight. This module is the typed accessor; the
 oracle asserts both it and the lock against `docs/evidence/`.
+
+`runtime.lock` is data, so a wheel cannot carry the *repo* file — the build copies it into the
+package (`<pkg>/data/runtime.lock`, hatchling `force-include`) and `locate` reads that copy when
+no checkout is above the package (card t_eff926f9).
 """
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import platform
 import shutil
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -23,6 +28,11 @@ from typed_gguf.errors import RuntimeMissingError
 
 REQUIRED_SYMBOL_COUNT = 34  # 32 libllama.so + 2 libggml.so (SPEC 2.2)
 LOCK_NAME = "runtime.lock"
+ENV_LOCK = "TYPED_GGUF_LOCK"
+#: Where a built wheel carries the lock, relative to the package root. `pyproject.toml` maps the
+#: repo-root file there at build time; `tests/test_pins.py` pins the two spellings together, so a
+#: rename on either side fails a fast gate instead of the install (card t_eff926f9).
+PACKAGED_LOCK_RELATIVE = f"typed_gguf/data/{LOCK_NAME}"
 NVIDIA_SMI = "nvidia-smi"
 DRI_DIR = pathlib.Path("/dev/dri")
 ICD_DIR = pathlib.Path("/usr/share/vulkan/icd.d")
@@ -80,26 +90,119 @@ class RuntimeLock:
         return self.required_symbols_llama + self.required_symbols_ggml
 
 
+def packaged_lock_path(package_file: pathlib.Path | None = None) -> pathlib.Path:
+    """`<pkg>/data/runtime.lock` — the lock a built wheel carries (card t_eff926f9).
+
+    A checkout keeps `runtime.lock` at the repo root, above `src/typed_gguf/`; an installed
+    distribution has no repo above it, so the build copies the root file in here (see
+    `PACKAGED_LOCK_RELATIVE`). `package_file` is the module the package root is read from —
+    `__file__` in production, a shape built on disk in tests.
+    """
+    here = pathlib.Path(__file__) if package_file is None else pathlib.Path(package_file)
+    return here.resolve().parents[1] / "data" / LOCK_NAME
+
+
+def lock_candidates(*, environ: Mapping[str, str] | None = None,
+                    package_file: pathlib.Path | None = None,
+                    cwd: pathlib.Path | None = None) -> tuple[pathlib.Path, ...]:
+    """Every path a default lookup searches, in precedence order (card t_eff926f9).
+
+    1. `$TYPED_GGUF_LOCK` — an explicit override, used as-is: a path that does not exist is an
+       error, never a silent fallback (a quiet one would leave the caller's pin looking in use);
+    2. the nearest `runtime.lock` above the package — a dev run from a checkout keeps winning;
+    3. `packaged_lock_path()` — the copy the wheel ships, the only lock an out-of-tree install
+       (`uvx --from …`, `uv tool install`, pip into a plain venv) has at all;
+    4. `<cwd>/runtime.lock` — the last resort the old error text meant by "run from the
+       repository root". The packaged copy wins over it, so a stray lock in the cwd cannot
+       hijack an installed tool.
+    """
+    source: Mapping[str, str] = os.environ if environ is None else environ
+    override = source.get(ENV_LOCK)
+    here = pathlib.Path(__file__) if package_file is None else pathlib.Path(package_file)
+    here = here.resolve()
+    start = pathlib.Path.cwd() if cwd is None else pathlib.Path(cwd)
+    ordered: list[pathlib.Path] = []
+    if override:
+        ordered.append(pathlib.Path(override).expanduser())
+    ordered.extend(parent / LOCK_NAME for parent in here.parents)
+    ordered.append(packaged_lock_path(here))
+    ordered.append(start / LOCK_NAME)
+    unique: list[pathlib.Path] = []
+    for candidate in ordered:
+        if candidate not in unique:
+            unique.append(candidate)
+    return tuple(unique)
+
+
+def located_lock(*, environ: Mapping[str, str] | None = None,
+                 package_file: pathlib.Path | None = None,
+                 cwd: pathlib.Path | None = None) -> pathlib.Path | None:
+    """The first candidate that exists, or `None` when this installation has no lock at all."""
+    return next((path for path in lock_candidates(environ=environ, package_file=package_file,
+                                                  cwd=cwd) if path.exists()), None)
+
+
+def missing_lock_message(searched: Sequence[pathlib.Path], *,
+                         override: str | None = None) -> str:
+    """The `E_RUNTIME_MISSING` text: it names every path that was (or would have been) searched.
+
+    The text it replaces — "run from the repository root or set TYPED_GGUF_LOCK" — sent a
+    `uvx`/`uv tool install` user to the one thing an installed package cannot be: a checkout.
+    It also named no path, so the install that was actually broken stayed invisible.
+    """
+    if override is not None:
+        head = (f"E_RUNTIME_MISSING: {ENV_LOCK}={override} does not exist; the override is used "
+                f"as-is, so nothing else was searched, and a package without its lock cannot "
+                f"answer")
+        rows = [f"  {override} (named by {ENV_LOCK})"]
+    else:
+        head = ("E_RUNTIME_MISSING: no runtime.lock found — this installation cannot answer "
+                "without one. Searched, in precedence order:")
+        rows = [f"  {path}" for path in searched]
+    return "\n".join([head, *rows,
+                      f"set {ENV_LOCK} to a readable lock file, or reinstall typed-gguf "
+                      f"(the packaged copy belongs at {packaged_lock_path()})"])
+
+
 def default_lock_path() -> pathlib.Path:
-    """`$TYPED_GGUF_LOCK`, else the nearest `runtime.lock` above this package."""
-    env = __import__("os").environ.get("TYPED_GGUF_LOCK")
-    if env:
-        return pathlib.Path(env).expanduser()
-    here = pathlib.Path(__file__).resolve()
-    for parent in here.parents:
-        candidate = parent / LOCK_NAME
-        if candidate.exists():
-            return candidate
-    return pathlib.Path.cwd() / LOCK_NAME
+    """`$TYPED_GGUF_LOCK`, else the nearest `runtime.lock` above this package, else the copy the
+    wheel ships, else `./runtime.lock` — the order `load_lock()` searches.
+
+    Nothing found still names a file rather than raising: the override if one was given (the
+    caller's own precedence), otherwise the packaged copy, which is what a healthy install has.
+    `load_lock()` is where the list of searched paths is reported.
+    """
+    found = located_lock()
+    if found is not None:
+        return found
+    override = os.environ.get(ENV_LOCK)
+    return pathlib.Path(override).expanduser() if override else packaged_lock_path()
 
 
 def load_lock(path: pathlib.Path | None = None) -> RuntimeLock:
-    """Parse the lock file into typed pins (never downloads anything)."""
-    path = pathlib.Path(path) if path else default_lock_path()
+    """Parse the lock file into typed pins (never downloads anything).
+
+    With no `path` the lock is located (`lock_candidates` order); the error for a lookup that
+    found nothing lists every path that was searched, because that list is the diagnosis.
+    """
+    if path is None:
+        candidates = lock_candidates()
+        override = os.environ.get(ENV_LOCK)
+        if override:
+            named = pathlib.Path(override).expanduser()
+            if not named.exists():
+                raise RuntimeMissingError(missing_lock_message(candidates, override=override))
+            path = named
+        else:
+            found = next((candidate for candidate in candidates if candidate.exists()), None)
+            if found is None:
+                raise RuntimeMissingError(missing_lock_message(candidates))
+            path = found
+    path = pathlib.Path(path)
     if not path.exists():
         raise RuntimeMissingError(
-            f"E_RUNTIME_MISSING: {path} not found; run from the repository root or set "
-            f"TYPED_GGUF_LOCK")
+            f"E_RUNTIME_MISSING: {path} not found (this lock was named by the caller; the copy "
+            f"this installation ships is {packaged_lock_path()})")
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
         llama = payload["llama_cpp"]

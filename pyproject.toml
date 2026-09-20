@@ -40,6 +40,14 @@ Homepage = "https://github.com/Rybens92/typed-gguf"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/typed_gguf"]
+# `runtime.lock` is data (repo root, the one committed copy — SPEC 4) and a wheel has to carry it:
+# an out-of-tree install (`uvx --from …`, `uv tool install`, pip into a plain venv) has no
+# repository above `typed_gguf/`, so `pins.load_lock()` would find nothing and every command would
+# answer E_RUNTIME_MISSING (card t_eff926f9). force-include puts the root file inside the wheel at
+# build time — same source, no second copy in the tree, nothing that can drift. The destination is
+# `pins.PACKAGED_LOCK_RELATIVE`; `tests/test_pins.py` and `tests/test_wheel_install.py` pin the two
+# together (the second one byte-for-byte, on the artifact).
+force-include = { "runtime.lock" = "typed_gguf/data/runtime.lock" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
