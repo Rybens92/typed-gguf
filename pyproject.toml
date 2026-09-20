@@ -111,7 +111,19 @@ quote-style = "double"
 # framing into every row and into the rendered report. `suites.py` is deliberately *not* added: its
 # change is three dict entries that the same gate nodes read, while mutating the whole module would
 # multiply the sweep by suite bodies the parity pair never reaches.
-source_paths = ["src/ggufone/bench/harness.py"]
+# Card t_4c48f40a (E3e, the question's placement + the instructed JSON) is the current sweep. It
+# takes `source_paths` to the two modules the card's *prompt* half lives in: `engine/prompt.py`
+# (the role split, the two framings, the contract lines, the acceptance) and `engine/cue.py` (the
+# value row's verdict vocabulary: `value_markers`, `value_verdict`). The card's gate files are the
+# selection — `tests/test_e3e_roles.py` drives every new branch (including the model-marked family
+# checks, which skip without `--run-network` and therefore do not slow the sweep), the E3d pin file
+# keeps the frozen cue bytes honest, and the E3c doc gate reads the same closer vocabulary that
+# `value_verdict` composes. **Deliberately not swept: `engine/decide.py`** — the value-row walk
+# (`_score_group`, the one-token continuation, the two new warnings) is gated by the same file, but
+# decide.py is 44 KB of engine the E3e change touches in one method, and mutating it would multiply
+# the sweep by every wave/coverage/readout branch the E3e gates never reach on this shared box. A
+# later card that adds an engine-shaped change restores a decide.py sweep.
+source_paths = ["src/ggufone/engine/prompt.py", "src/ggufone/engine/cue.py"]
 also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -165,12 +177,9 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # integrity). The other bench gates spawn real files, sessions or models and cannot run per mutant
 # on this shared box.
 pytest_add_cli_args_test_selection = [
-    "tests/test_bench_prompt_parity.py",
-    "tests/test_bench.py::test_quality_reports_exact_match_per_type_and_overall_with_wilson_cis",
-    "tests/test_bench.py::test_quality_honestly_reports_disagreement",
-    "tests/test_bench.py::test_render_report_produces_a_markdown_table_per_section",
-    "tests/test_bench.py::test_every_rendered_table_has_columns_that_line_up",
-    "tests/test_bench.py::test_render_report_covers_the_other_four_suites",
+    "tests/test_e3e_roles.py",
+    "tests/test_e3d_cue_switch.py",
+    "tests/test_e3c_cue_refused.py",
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down

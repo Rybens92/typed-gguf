@@ -1,0 +1,196 @@
+{
+  "schema": "ggufone.e3e-role-render/v1",
+  "generated_at": "2026-09-19T21:06:05Z",
+  "cue": "json_instructed",
+  "chat_format": "role_split",
+  "models_dir": "/var/home/rybens/.hermes/models",
+  "dev_items": 2,
+  "families": [
+    {
+      "file": "Accio-Lab_occamy-1.0-Q4_K_L.gguf",
+      "arch": "qwen35moe",
+      "template_chars": 7764,
+      "template_sha256": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+      "cue": "json_instructed",
+      "json_contract": "question",
+      "family": "qwen35moe",
+      "resolution": {
+        "kind": "gguf-renderer",
+        "renderer": "internal",
+        "source": "gguf:tokenizer.chat_template",
+        "family": "qwen35moe",
+        "thinking": "suppressed",
+        "warnings": [],
+        "notes": [],
+        "explicit": false
+      },
+      "status": "rendered",
+      "checks": {
+        "state_words_in_prefix": true,
+        "question_words_in_its_own_tail": true,
+        "question_absent_from_prefix": true,
+        "prefix_plus_tail_is_the_render_plus_opener": true,
+        "no_open_think": true
+      },
+      "question_id": "c01",
+      "prefix_chars": 481,
+      "tail_chars": [
+        327,
+        323
+      ],
+      "distinct_tails": true,
+      "dropped": "",
+      "opener": "{\"choice\": \"",
+      "prefix_excerpt": "<|im_start|>system\nYou are a decision engine. Read the state… the last 24 hours and the database is reachable.<|im_end|>\n",
+      "prefix_tail_excerpt": "o deploy happened in the last 24 hours and the database is reachable.<|im_end|>\n",
+      "tail_head_excerpt": "<|im_start|>user\nQUESTION:\nWhich team owns this incident?\nCandidates:\n- billing:",
+      "tail_tail_excerpt": "e\": \"<exactly one candidate name>\"}<|im_end|>\n<|im_start|>assistant\n{\"choice\": \"",
+      "prompt_chars": 808,
+      "full_render_chars": 796
+    },
+    {
+      "file": "Ling-3.0-tiny-Q5_K_M.gguf",
+      "arch": "bailingmoe3",
+      "template_chars": 6041,
+      "template_sha256": "eb6226c94ae38058f875d159f86a206b3a165828c0e7d6bda664ae14667f798a",
+      "cue": "json_instructed",
+      "json_contract": "question",
+      "family": null,
+      "resolution": {
+        "kind": "gguf-renderer",
+        "renderer": "internal",
+        "source": "gguf:tokenizer.chat_template",
+        "family": null,
+        "thinking": "suppressed",
+        "warnings": [],
+        "notes": [],
+        "explicit": false
+      },
+      "status": "rendered",
+      "checks": {
+        "state_words_in_prefix": true,
+        "question_words_in_its_own_tail": true,
+        "question_absent_from_prefix": true,
+        "prefix_plus_tail_is_the_render_plus_opener": true,
+        "no_open_think": true
+      },
+      "question_id": "c01",
+      "prefix_chars": 511,
+      "tail_chars": [
+        346,
+        342
+      ],
+      "distinct_tails": true,
+      "dropped": "",
+      "opener": "{\"choice\": \"",
+      "prefix_excerpt": "<role>SYSTEM</role>You are a decision engine. Read the state…the last 24 hours and the database is reachable.<|role_end|>",
+      "prefix_tail_excerpt": " deploy happened in the last 24 hours and the database is reachable.<|role_end|>",
+      "tail_head_excerpt": "<role>HUMAN</role>QUESTION:\nWhich team owns this incident?\nCandidates:\n- billing",
+      "tail_tail_excerpt": "candidate name>\"}\n<|role_end|><role>ASSISTANT</role>\n<think></think>{\"choice\": \"",
+      "prompt_chars": 857,
+      "full_render_chars": 845
+    },
+    {
+      "file": "Spark-X2.5-4B-Q8_0.gguf",
+      "arch": "spark2_5",
+      "template_chars": 4556,
+      "template_sha256": "705345721970da40e6aa56db548a46ecd1d8d94a5418808fa180ac19ee77a9ba",
+      "cue": "json_instructed",
+      "json_contract": "question",
+      "family": "spark2_5",
+      "resolution": {
+        "kind": "gguf-renderer",
+        "renderer": "internal",
+        "source": "gguf:tokenizer.chat_template",
+        "family": "spark2_5",
+        "thinking": "suppressed",
+        "warnings": [],
+        "notes": [],
+        "explicit": false
+      },
+      "status": "rendered",
+      "checks": {
+        "state_words_in_prefix": true,
+        "question_words_in_its_own_tail": true,
+        "question_absent_from_prefix": true,
+        "prefix_plus_tail_is_the_render_plus_opener": true,
+        "no_open_think": true
+      },
+      "question_id": "c01",
+      "prefix_chars": 552,
+      "tail_chars": [
+        363,
+        359
+      ],
+      "distinct_tails": true,
+      "dropped": "\n",
+      "opener": "{\"choice\": \"",
+      "prefix_excerpt": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.…t 24 hours and the database is reachable.<｜end▁of▁sentence｜>",
+      "prefix_tail_excerpt": " happened in the last 24 hours and the database is reachable.<｜end▁of▁sentence｜>",
+      "tail_head_excerpt": "<｜start▁of▁sentence｜><|User|>QUESTION:\nWhich team owns this incident?\nCandidates",
+      "tail_tail_excerpt": "ate name>\"}\n<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think>\n{\"choice\": \"",
+      "prompt_chars": 915,
+      "full_render_chars": 903
+    },
+    {
+      "file": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "arch": "qwen35",
+      "template_chars": 8952,
+      "template_sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+      "cue": "json_instructed",
+      "json_contract": "question",
+      "family": "qwen35",
+      "resolution": {
+        "kind": "gguf-renderer",
+        "renderer": "internal",
+        "source": "gguf:tokenizer.chat_template",
+        "family": "qwen35",
+        "thinking": "suppressed",
+        "warnings": [],
+        "notes": [],
+        "explicit": false
+      },
+      "status": "rendered",
+      "checks": {
+        "state_words_in_prefix": true,
+        "question_words_in_its_own_tail": true,
+        "question_absent_from_prefix": true,
+        "prefix_plus_tail_is_the_render_plus_opener": true,
+        "no_open_think": true
+      },
+      "question_id": "c01",
+      "prefix_chars": 481,
+      "tail_chars": [
+        327,
+        323
+      ],
+      "distinct_tails": true,
+      "dropped": "",
+      "opener": "{\"choice\": \"",
+      "prefix_excerpt": "<|im_start|>system\nYou are a decision engine. Read the state… the last 24 hours and the database is reachable.<|im_end|>\n",
+      "prefix_tail_excerpt": "o deploy happened in the last 24 hours and the database is reachable.<|im_end|>\n",
+      "tail_head_excerpt": "<|im_start|>user\nQUESTION:\nWhich team owns this incident?\nCandidates:\n- billing:",
+      "tail_tail_excerpt": "e\": \"<exactly one candidate name>\"}<|im_end|>\n<|im_start|>assistant\n{\"choice\": \"",
+      "prompt_chars": 808,
+      "full_render_chars": 796
+    },
+    {
+      "file": "Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+      "arch": "qwen35moe",
+      "template_chars": 29157,
+      "template_sha256": "71d9c4155712970a54ef287354ea251e4516559eddfb48497368dc612de8d766",
+      "cue": "json_instructed",
+      "json_contract": "question",
+      "status": "not-renderable",
+      "family": "qwen35moe",
+      "reason": "E_TEMPLATE_UNRESOLVED: no template could render this prompt. The GGUF tokenizer.chat_template uses unsupported template construct '`set` without a value' at line 172 (_terse_core); libllama's built-in templates (llama_chat_apply_template) do not match it either. Fix: pass --template <builtin-name|path-to-jinja|plain> (options.template in a request), or use a model whose template is inside the supported subset (27 filters, if/for/set/macro, `is` tests).",
+      "fallback": "--template plain (role_split keeps the plain USER:/ASSISTANT: framing), or a live run, where the builtin bridge may render it"
+    }
+  ],
+  "counts": {
+    "rendered": 4,
+    "refused": 0,
+    "not-renderable": 1,
+    "checks-failed": 0
+  }
+}

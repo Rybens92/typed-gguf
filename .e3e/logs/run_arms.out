@@ -1,0 +1,19 @@
+=== freeze probe: the default cell, six items, --backend vulkan ===
+probe ok
+=== arm shipped_answer_sheet (redo: no report yet) 2026-09-20T10:55:14+00:00 ===
+arm ok: shipped_answer_sheet (2026-09-20T10:55:43+00:00)
+=== arm shipped_role_split (redo: measured with --backend 'auto') 2026-09-20T10:55:43+00:00 ===
+arm ok: shipped_role_split (2026-09-20T10:56:11+00:00)
+=== arm two_step_answer_sheet (redo: no report yet) 2026-09-20T10:56:11+00:00 ===
+arm ok: two_step_answer_sheet (2026-09-20T10:56:43+00:00)
+=== arm two_step_role_split (redo: no report yet) 2026-09-20T10:56:43+00:00 ===
+arm ok: two_step_role_split (2026-09-20T10:57:10+00:00)
+=== arm json_instructed_answer_sheet (redo: no report yet) 2026-09-20T10:57:10+00:00 ===
+arm ok: json_instructed_answer_sheet (2026-09-20T10:57:34+00:00)
+=== arm json_instructed_role_split (redo: no report yet) 2026-09-20T10:57:34+00:00 ===
+arm ok: json_instructed_role_split (2026-09-20T10:58:01+00:00)
+=== arm json_instructed_answer_sheet_system (redo: no report yet) 2026-09-20T10:58:01+00:00 ===
+arm ok: json_instructed_answer_sheet_system (2026-09-20T10:58:40+00:00)
+=== arm json_instructed_role_split_system (redo: no report yet) 2026-09-20T10:58:40+00:00 ===
+arm ok: json_instructed_role_split_system (2026-09-20T10:59:14+00:00)
+=== arms done 2026-09-20T10:59:14+00:00 ===

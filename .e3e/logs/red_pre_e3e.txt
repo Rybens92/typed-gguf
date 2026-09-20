@@ -1,0 +1,1437 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFsssFFFFFFFFFFFFFFFFFFFFFFFF [ 98%]
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________ test_the_default_chat_format_is_the_answer_sheet _______________
+
+    def test_the_default_chat_format_is_the_answer_sheet() -> None:
+>       assert schema.OPTION_DEFAULTS["chat_format"] == "answer_sheet"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'chat_format'
+
+tests/test_e3e_roles.py:127: KeyError
+_____________ test_an_unknown_chat_format_is_a_named_option_error ______________
+
+    def test_an_unknown_chat_format_is_a_named_option_error() -> None:
+>       with pytest.raises(errors.UserError) as caught:
+E       Failed: DID NOT RAISE UserError
+
+tests/test_e3e_roles.py:138: Failed
+________________ test_an_explicit_chat_format_survives_parsing _________________
+
+    def test_an_explicit_chat_format_survives_parsing() -> None:
+>       assert parsed(chat_format="role_split").options.chat_format == "role_split"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'Options' object has no attribute 'chat_format'
+
+tests/test_e3e_roles.py:145: AttributeError
+______ test_the_default_cue_line_is_still_the_shipped_one_for_every_type _______
+
+    def test_the_default_cue_line_is_still_the_shipped_one_for_every_type() -> None:
+        """`shipped` and `two_step` ask for a bare label — the question text may not grow a byte."""
+        request = parsed()
+        question = request.questions[0]
+>       assert prompt.question_block(question) == (
+               ^^^^^^^^^^^^^^^^^^^^^
+            "QUESTION:\nWhich area owns this?\nCandidates:\n- billing: payments and invoices\n"
+            "- technical: api and infrastructure\nAnswer with exactly one candidate name:\n")
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'question_block'
+
+tests/test_e3e_roles.py:152: AttributeError
+_____________________ test_json_field_keeps_the_e3d_bytes ______________________
+
+    def test_json_field_keeps_the_e3d_bytes() -> None:
+        """E3d's `json_field` is the shipped cue line plus the opener — E3e may not restyle it."""
+        request = parsed()
+        question = request.questions[0]
+>       block = prompt.question_block(question, cue="json_field")
+                ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'question_block'
+
+tests/test_e3e_roles.py:162: AttributeError
+_________ test_json_instructed_replaces_the_cue_line_with_the_contract _________
+
+    def test_json_instructed_replaces_the_cue_line_with_the_contract() -> None:
+        request = parsed()
+        choice, score, noul = (schema.parse_request(request_for(qtype=qtype)).questions[0]
+                               for qtype in ("choice", "score", "noul"))
+>       assert prompt.JSON_CUES == ("json_field", "json_instructed")
+               ^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'JSON_CUES'
+
+tests/test_e3e_roles.py:171: AttributeError
+_________ test_the_json_framing_asks_for_the_object_the_cue_instructs __________
+
+    def test_the_json_framing_asks_for_the_object_the_cue_instructs() -> None:
+>       assert prompt.framing_for("json_instructed") == prompt.JSON_FRAMING
+               ^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'framing_for'
+
+tests/test_e3e_roles.py:184: AttributeError
+_____ test_the_answer_sheet_question_suffix_carries_the_opener_at_its_end ______
+
+    def test_the_answer_sheet_question_suffix_carries_the_opener_at_its_end() -> None:
+>       request = parsed(cue="json_instructed")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:192: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles.py:113: in parsed
+    return schema.parse_request(request_for(**kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+_________ test_the_plain_role_split_prefix_is_the_answer_sheet_prefix __________
+
+    def test_the_plain_role_split_prefix_is_the_answer_sheet_prefix() -> None:
+        """The escape hatch (`--template plain`) adds a user turn without moving the state bytes."""
+        request = parsed(chat_format="role_split")
+>       role = prompt.role_split_render(request.state, request.questions)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'role_split_render'
+
+tests/test_e3e_roles.py:203: AttributeError
+__________ test_role_split_renders_the_question_as_its_own_user_turn ___________
+
+    def test_role_split_renders_the_question_as_its_own_user_turn() -> None:
+        request = parsed(chat_format="role_split")
+        question = request.questions[0]
+        role = chat_plan(request, JsonSession(n_vocab=512))
+>       block = prompt.question_block(question)
+                ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'question_block'
+
+tests/test_e3e_roles.py:217: AttributeError
+_____ test_role_split_carries_the_json_opener_after_the_generation_prompt ______
+
+    def test_role_split_carries_the_json_opener_after_the_generation_prompt() -> None:
+>       request = parsed(cue="json_instructed", chat_format="role_split")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:239: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles.py:113: in parsed
+    return schema.parse_request(request_for(**kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+_____ test_the_prefix_is_shared_by_every_question_and_each_tail_is_its_own _____
+
+    def test_the_prefix_is_shared_by_every_question_and_each_tail_is_its_own() -> None:
+        request = schema.parse_request({
+            "state": STATE,
+            "options": {"chat_format": "role_split"},
+            "questions": {
+                "area": {"type": "choice", "instructions": "Which area owns this?",
+                         "criteria": {"billing": "payments", "technical": "api"}},
+                "sev": {"type": "score", "instructions": "How bad?",
+                        "criteria": ["cosmetic", "blocking"]},
+            }})
+>       role = prompt.role_split_render(request.state, request.questions,
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+                                        resolution=template_module.Resolution(
+                                            kind="gguf-renderer", renderer="internal", source="gguf",
+                                            template=CHATML, family="chatml-test",
+                                            thinking="suppressed"))
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'role_split_render'
+
+tests/test_e3e_roles.py:259: AttributeError
+_____________ test_the_role_split_context_is_none_unless_asked_for _____________
+
+    def test_the_role_split_context_is_none_unless_asked_for() -> None:
+        """The one place that decides *whether* a request is role-split (plan and questions agree)."""
+>       assert prompt.role_split_context(parsed()) is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'role_split_context'
+
+tests/test_e3e_roles.py:273: AttributeError
+_________ test_a_merged_or_state_dropping_template_is_refused_by_name __________
+
+    def test_a_merged_or_state_dropping_template_is_refused_by_name() -> None:
+        request = parsed(chat_format="role_split")
+        with pytest.raises(errors.UserError) as caught:
+>           prompt.role_split_render(
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+                request.state, request.questions,
+                resolution=template_module.Resolution(
+                    kind="gguf-renderer", renderer="internal", source="gguf", template=LAST_ONLY,
+                    family="chatml-test", thinking="suppressed"))
+E           AttributeError: module 'ggufone.engine.prompt' has no attribute 'role_split_render'
+
+tests/test_e3e_roles.py:282: AttributeError
+____________ test_a_template_without_role_markers_is_still_accepted ____________
+
+    def test_a_template_without_role_markers_is_still_accepted() -> None:
+        """The acceptance is about *turns*, not markers: a bare concatenation carries both turns."""
+        template = "{% for m in messages %}{{ m['content'] }}{% endfor %}"
+        request = parsed(chat_format="role_split")
+>       role = prompt.role_split_render(
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+            request.state, request.questions,
+            resolution=template_module.Resolution(
+                kind="gguf-renderer", renderer="internal", source="gguf", template=template,
+                family="chatml-test", thinking="suppressed"))
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'role_split_render'
+
+tests/test_e3e_roles.py:296: AttributeError
+_ test_a_template_that_stops_extending_the_prefix_for_a_later_question_is_refused _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd5776f85d0>
+
+    def test_a_template_that_stops_extending_the_prefix_for_a_later_question_is_refused(monkeypatch) -> None:
+        """The acceptance rule is per question: a template may render the *first* question correctly.
+    
+        The shared prefix is derived from the state-only render and the *first* question's render, so a
+        template that keeps the state in the first question but merges or reorders a later one would
+        otherwise hand the engine a tail that does not follow the prefix it was cut from.
+        """
+        seen: list[bool] = []
+    
+        def fake_render(messages, resolution, *, add_generation_prompt, enable_thinking):
+            body = "".join(f"<{m['role']}>{m['content']}</{m['role']}>" for m in messages)
+            seen.append(bool(add_generation_prompt))
+            if add_generation_prompt and seen.count(True) > 1:
+                body = body.replace(STATE, "")            # the second question drops the state turn
+            return body + ("<assistant>" if add_generation_prompt else "")
+    
+        monkeypatch.setattr(template_module, "render_prompt", fake_render)
+        request = schema.parse_request({
+            "state": STATE,
+            "options": {"chat_format": "role_split"},
+            "questions": {
+                "area": {"type": "choice", "instructions": "Which area owns this?",
+                         "criteria": {"billing": "payments", "technical": "api"}},
+                "sev": {"type": "score", "instructions": "How bad?", "criteria": ["cosmetic", "blocking"]},
+            }})
+        with pytest.raises(errors.UserError) as caught:
+>           prompt.role_split_render(request.state, request.questions,
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+                                     resolution=template_module.Resolution(
+                                         kind="builtin", renderer="builtin", source="bridge",
+                                         template="x", family="chatml-test", thinking="n/a"))
+E           AttributeError: module 'ggufone.engine.prompt' has no attribute 'role_split_render'
+
+tests/test_e3e_roles.py:331: AttributeError
+________ test_a_template_that_rewrites_the_question_turn_is_refused_too ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd5787535d0>
+
+    def test_a_template_that_rewrites_the_question_turn_is_refused_too(monkeypatch) -> None:
+        """The second half of the acceptance: the question's own words have to survive its render."""
+    
+        def fake_render(messages, resolution, *, add_generation_prompt, enable_thinking):
+            body = "".join(f"<{m['role']}>{str(m['content']).replace('Candidates:', '')}"
+                           f"</{m['role']}>" for m in messages)
+            return body + ("<assistant>" if add_generation_prompt else "")
+    
+        monkeypatch.setattr(template_module, "render_prompt", fake_render)
+        request = parsed(chat_format="role_split")
+        with pytest.raises(errors.UserError) as caught:
+>           prompt.role_split_render(request.state, request.questions,
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+                                     resolution=template_module.Resolution(
+                                         kind="builtin", renderer="builtin", source="bridge",
+                                         template="x", family="chatml-test", thinking="n/a"))
+E           AttributeError: module 'ggufone.engine.prompt' has no attribute 'role_split_render'
+
+tests/test_e3e_roles.py:352: AttributeError
+__________ test_a_prompt_left_inside_a_thinking_block_is_refused_too ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd57781b6d0>
+
+    def test_a_prompt_left_inside_a_thinking_block_is_refused_too(monkeypatch) -> None:
+        """The guard the role split adds on top of the renderer's own guarantee.
+    
+        `template_module._render_raw` drops generation-prompt markers when thinking is off, so on the
+        internal renderer no open block can survive — but the *contract* the readout depends on
+        (`no_open_think`) is checked here rather than assumed, because a fallback path that skipped
+        suppression would otherwise put the label row inside a thinking block, silently.
+        """
+        def fake_render(messages, resolution, *, add_generation_prompt, enable_thinking):
+            body = "".join(f"<{m['role']}>{m['content']}</{m['role']}>" for m in messages)
+            return body + ("<assistant><think>" if add_generation_prompt else "")
+    
+        monkeypatch.setattr(template_module, "render_prompt", fake_render)
+        request = parsed(chat_format="role_split")
+        with pytest.raises(errors.UserError) as caught:
+>           prompt.role_split_render(request.state, request.questions,
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+                                     resolution=template_module.Resolution(
+                                         kind="builtin", renderer="builtin", source="bridge",
+                                         template="x", family="chatml-test", thinking="n/a"))
+E           AttributeError: module 'ggufone.engine.prompt' has no attribute 'role_split_render'
+
+tests/test_e3e_roles.py:376: AttributeError
+_______ test_the_engine_refuses_a_role_split_question_without_its_render _______
+
+    def test_the_engine_refuses_a_role_split_question_without_its_render() -> None:
+        request = parsed(chat_format="role_split")
+        with pytest.raises(errors.UserError) as caught:
+>           prompt.build_question(request.questions[0], chat_format="role_split")
+E           TypeError: build_question() got an unexpected keyword argument 'chat_format'
+
+tests/test_e3e_roles.py:393: TypeError
+____________________ test_the_tail_lookup_is_bounds_checked ____________________
+
+    def test_the_tail_lookup_is_bounds_checked() -> None:
+>       role = prompt.RoleSplitRender(prefix="p", tails=("t",))
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.prompt' has no attribute 'RoleSplitRender'
+
+tests/test_e3e_roles.py:398: AttributeError
+_______________ test_the_plan_carries_the_role_split_it_rendered _______________
+
+    def test_the_plan_carries_the_role_split_it_rendered() -> None:
+        """The executed questions come from the plan's own render (the t_6de5fc53 seam, one step on)."""
+>       request = parsed(chat_format="role_split", cue="json_instructed")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:407: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles.py:113: in parsed
+    return schema.parse_request(request_for(**kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+___________________ test_the_marker_map_is_a_vocabulary_fact ___________________
+
+    def test_the_marker_map_is_a_vocabulary_fact() -> None:
+>       markers = cue_module.value_markers(JsonSession(n_vocab=512).tokenize)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'value_markers'
+
+tests/test_e3e_roles.py:419: AttributeError
+__________ test_a_candidate_token_at_the_value_row_is_an_answered_row __________
+
+    def test_a_candidate_token_at_the_value_row_is_an_answered_row() -> None:
+        session = JsonSession(n_vocab=512)
+        row = biased_row(512, {session.tokenize("billing")[0]: TOP})
+>       verdict = cue_module.value_verdict(row, _scale(row), {}, cue_module.value_markers(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+            session.tokenize))
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'value_verdict'
+
+tests/test_e3e_roles.py:429: AttributeError
+_______________ test_a_closed_empty_value_is_named_not_low_mass ________________
+
+    def test_a_closed_empty_value_is_named_not_low_mass() -> None:
+        session = JsonSession(n_vocab=512)
+        row = biased_row(512, {QUOTE: TOP})
+        closer_row = biased_row(512, {CLOSE: TOP})
+>       verdict = cue_module.value_verdict(row, _scale(row), {}, cue_module.value_markers(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+            session.tokenize), next_row=closer_row, next_scale=_scale(closer_row))
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'value_verdict'
+
+tests/test_e3e_roles.py:439: AttributeError
+_________ test_a_closed_value_that_leads_to_another_key_is_wrong_field _________
+
+    def test_a_closed_value_that_leads_to_another_key_is_wrong_field() -> None:
+        session = JsonSession(n_vocab=512)
+        row = biased_row(512, {QUOTE: TOP})
+        other = biased_row(512, {session.tokenize("severity")[0]: TOP})
+>       verdict = cue_module.value_verdict(row, _scale(row), {}, cue_module.value_markers(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+            session.tokenize), next_row=other, next_scale=_scale(other))
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'value_verdict'
+
+tests/test_e3e_roles.py:450: AttributeError
+_____________ test_a_closed_value_without_the_next_row_reads_empty _____________
+
+    def test_a_closed_value_without_the_next_row_reads_empty() -> None:
+        """`empty_value` is what the object holds up to the closing quote (the walk refines it)."""
+        session = JsonSession(n_vocab=512)
+        row = biased_row(512, {QUOTE: TOP})
+>       verdict = cue_module.value_verdict(row, _scale(row), {}, cue_module.value_markers(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+            session.tokenize))
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'value_verdict'
+
+tests/test_e3e_roles.py:461: AttributeError
+______ test_a_turn_closer_at_the_value_row_is_a_refusal_with_its_own_hint ______
+
+    def test_a_turn_closer_at_the_value_row_is_a_refusal_with_its_own_hint() -> None:
+        session = JsonSession(n_vocab=512)
+        row = biased_row(512, {IM_END: TOP})
+>       verdict = cue_module.value_verdict(row, _scale(row), {IM_END: "<|im_end|>"},
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+                                           cue_module.value_markers(session.tokenize))
+E       AttributeError: module 'ggufone.engine.cue' has no attribute 'value_verdict'
+
+tests/test_e3e_roles.py:469: AttributeError
+_________ test_the_role_split_engine_reads_the_question_in_a_user_turn _________
+
+    def test_the_role_split_engine_reads_the_question_in_a_user_turn() -> None:
+        request = parsed(chat_format="role_split")
+        session = JsonSession(n_vocab=512)
+        plan = chat_plan(request, session)
+>       scripted(request, plan=plan, session=session, value={session.tokenize("billing")[0]: TOP})
+
+tests/test_e3e_roles.py:511: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+request = Request(state='The billing dashboard is blank for every user after login.', model=None, questions=(Question(id='area',...None, thinking=False, route='off', escalate=False, max_escalations=1), format='native', warnings=('W_UNKNOWN_OPTION',))
+plan = ContextPlan(prefix_tokens=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 10, 21, 22, 23, 24, ...test', thinking='suppressed', warnings=(), notes=(), explicit=False, policy=None, builtin=None), enable_thinking=False)
+session = JsonSession(n_ctx=4096, n_seq_max=5, n_vocab=512, threads=1, runtime='llama.cpp b11026 (fake)', backend='cpu', device_..._ids=None, prefill_ms_per_token=0.0, batches=[], forks=[], released=[], prefill_calls=[], decoded=[], loaded_states=[])
+value = {35: 11.0}, after = None, choice = 'billing'
+
+    def scripted(request: schema.Request, *, plan: decide.ContextPlan, session: JsonSession,
+                 value: dict[int, float], after: dict[int, float] | None = None,
+                 choice: str = "billing"):
+        """A fake row function for the value-row shape: the row the suffix ends on is biased `value`,
+        the row after it (only decoded when the value closes) is biased `after`, and every row a step
+        further on prefers `choice` (so the candidate sequences are scoreable)."""
+        n_suffix = len(session.tokenize(
+            prompt.build_question(request.questions[0], cue=request.options.cue,
+>                                 chat_format=request.options.chat_format,
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  role=plan.role, index=0).suffix))
+E       AttributeError: 'Options' object has no attribute 'chat_format'
+
+tests/test_e3e_roles.py:491: AttributeError
+__________ test_the_answer_sheet_default_publishes_the_assistant_turn __________
+
+    def test_the_answer_sheet_default_publishes_the_assistant_turn() -> None:
+        request = parsed()
+        session = JsonSession(n_vocab=512)
+        plan = chat_plan(request, session)
+>       scripted(request, plan=plan, session=session, value={session.tokenize("billing")[0]: TOP})
+
+tests/test_e3e_roles.py:527: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+request = Request(state='The billing dashboard is blank for every user after login.', model=None, questions=(Question(id='area',...ct=False, template=None, thinking=False, route='off', escalate=False, max_escalations=1), format='native', warnings=())
+plan = ContextPlan(prefix_tokens=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 10, 21, 22, 23, 24, ...test', thinking='suppressed', warnings=(), notes=(), explicit=False, policy=None, builtin=None), enable_thinking=False)
+session = JsonSession(n_ctx=4096, n_seq_max=5, n_vocab=512, threads=1, runtime='llama.cpp b11026 (fake)', backend='cpu', device_..._ids=None, prefill_ms_per_token=0.0, batches=[], forks=[], released=[], prefill_calls=[], decoded=[], loaded_states=[])
+value = {35: 11.0}, after = None, choice = 'billing'
+
+    def scripted(request: schema.Request, *, plan: decide.ContextPlan, session: JsonSession,
+                 value: dict[int, float], after: dict[int, float] | None = None,
+                 choice: str = "billing"):
+        """A fake row function for the value-row shape: the row the suffix ends on is biased `value`,
+        the row after it (only decoded when the value closes) is biased `after`, and every row a step
+        further on prefers `choice` (so the candidate sequences are scoreable)."""
+        n_suffix = len(session.tokenize(
+            prompt.build_question(request.questions[0], cue=request.options.cue,
+>                                 chat_format=request.options.chat_format,
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  role=plan.role, index=0).suffix))
+E       AttributeError: 'Options' object has no attribute 'chat_format'
+
+tests/test_e3e_roles.py:491: AttributeError
+____________ test_the_value_row_verdict_is_published_on_the_answer _____________
+
+    def test_the_value_row_verdict_is_published_on_the_answer() -> None:
+>       request = parsed(cue="json_instructed", chat_format="role_split")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles.py:113: in parsed
+    return schema.parse_request(request_for(**kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+________ test_an_empty_value_is_named_on_the_answer_and_in_the_warnings ________
+
+    def test_an_empty_value_is_named_on_the_answer_and_in_the_warnings() -> None:
+>       request = parsed(cue="json_instructed", chat_format="role_split")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:549: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles.py:113: in parsed
+    return schema.parse_request(request_for(**kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+_______________________ test_a_wrong_field_is_named_too ________________________
+
+    def test_a_wrong_field_is_named_too() -> None:
+>       request = parsed(cue="json_instructed", chat_format="role_split")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:568: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles.py:113: in parsed
+    return schema.parse_request(request_for(**kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+________________ test_a_refused_value_row_keeps_the_e3c_refusal ________________
+
+    def test_a_refused_value_row_keeps_the_e3c_refusal() -> None:
+>       request = parsed(cue="json_instructed", chat_format="role_split")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:582: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles.py:113: in parsed
+    return schema.parse_request(request_for(**kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+__________________ test_the_shipped_shape_gets_no_verdict_key __________________
+
+    def test_the_shipped_shape_gets_no_verdict_key() -> None:
+        """Adding the value verdict may not change any other shape's `cue` block."""
+        request = parsed()
+        session = JsonSession(n_vocab=512)
+        plan = chat_plan(request, session)
+>       scripted(request, plan=plan, session=session, value={session.tokenize("billing")[0]: TOP})
+
+tests/test_e3e_roles.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+request = Request(state='The billing dashboard is blank for every user after login.', model=None, questions=(Question(id='area',...ct=False, template=None, thinking=False, route='off', escalate=False, max_escalations=1), format='native', warnings=())
+plan = ContextPlan(prefix_tokens=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 10, 21, 22, 23, 24, ...test', thinking='suppressed', warnings=(), notes=(), explicit=False, policy=None, builtin=None), enable_thinking=False)
+session = JsonSession(n_ctx=4096, n_seq_max=5, n_vocab=512, threads=1, runtime='llama.cpp b11026 (fake)', backend='cpu', device_..._ids=None, prefill_ms_per_token=0.0, batches=[], forks=[], released=[], prefill_calls=[], decoded=[], loaded_states=[])
+value = {35: 11.0}, after = None, choice = 'billing'
+
+    def scripted(request: schema.Request, *, plan: decide.ContextPlan, session: JsonSession,
+                 value: dict[int, float], after: dict[int, float] | None = None,
+                 choice: str = "billing"):
+        """A fake row function for the value-row shape: the row the suffix ends on is biased `value`,
+        the row after it (only decoded when the value closes) is biased `after`, and every row a step
+        further on prefers `choice` (so the candidate sequences are scoreable)."""
+        n_suffix = len(session.tokenize(
+            prompt.build_question(request.questions[0], cue=request.options.cue,
+>                                 chat_format=request.options.chat_format,
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  role=plan.role, index=0).suffix))
+E       AttributeError: 'Options' object has no attribute 'chat_format'
+
+tests/test_e3e_roles.py:491: AttributeError
+_________ test_the_cli_forwards_the_chat_format_to_the_engine_options __________
+
+    def test_the_cli_forwards_the_chat_format_to_the_engine_options() -> None:
+        options = cli._engine_options({"chat_format": "role_split", "cue": "json_instructed"})
+>       assert options == {"chat_format": "role_split", "cue": "json_instructed"}
+E       AssertionError: assert {'cue': 'json_instructed'} == {'chat_format...n_instructed'}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Right contains 1 more item:
+E         {'chat_format': 'role_split'}
+E         Use -v to get more diff
+
+tests/test_e3e_roles.py:613: AssertionError
+_____________ test_the_bench_validates_the_placement_like_the_cue ______________
+
+    def test_the_bench_validates_the_placement_like_the_cue() -> None:
+>       assert cli._bench_chat_format(None) == "answer_sheet"
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.cli' has no attribute '_bench_chat_format'
+
+tests/test_e3e_roles.py:618: AttributeError
+______________ test_the_contract_is_the_amendments_second_variant ______________
+
+    def test_the_contract_is_the_amendments_second_variant() -> None:
+        """Same words, heard in the other place: the framing states it, the question asks."""
+>       inline = parsed(cue="json_instructed")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:635: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles.py:113: in parsed
+    return schema.parse_request(request_for(**kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+______ test_the_contract_location_reaches_the_plan_and_the_answer_surface ______
+
+    def test_the_contract_location_reaches_the_plan_and_the_answer_surface() -> None:
+>       request = parsed(cue="json_instructed", chat_format="role_split", json_contract="system")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:656: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles.py:113: in parsed
+    return schema.parse_request(request_for(**kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+__ test_the_default_contract_is_the_inline_one_and_the_enumeration_is_pinned ___
+
+    def test_the_default_contract_is_the_inline_one_and_the_enumeration_is_pinned() -> None:
+>       assert schema.JSON_CONTRACT == "question"
+               ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'ggufone.schema' has no attribute 'JSON_CONTRACT'
+
+tests/test_e3e_roles.py:669: AttributeError
+__________________ test_the_bench_row_asks_for_the_placement ___________________
+
+    def test_the_bench_row_asks_for_the_placement() -> None:
+        item = suites.devset_module.DevItem(id="c01", type="choice", instructions="Which area?",
+                                            criteria={"billing": "payments", "technical": "api"},
+                                            state=STATE, gold="billing")
+        payload = suites.devset_module.request_for(item, model="bench", threads=4,
+                                                   cue="json_instructed", chat_format="role_split")
+>       request = schema.parse_request(payload)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_roles.py:688: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/ggufone/schema.py:174: in parse_request
+    options, warnings = _parse_options(payload.get("options"))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/ggufone/schema.py:300: in _parse_options
+    cue=_choice("cue", values["cue"], CUE_SHAPES),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cue', value = 'json_instructed'
+allowed = ('shipped', 'two_step', 'json_field')
+
+    def _choice(name: str, value: Any, allowed: tuple[str, ...]) -> str:
+        if value not in allowed:
+>           raise _fail(f"options.{name} must be one of {', '.join(allowed)} (got {value!r})",
+                        "E_UNKNOWN_KEY")
+E           ggufone.errors.UserError: options.cue must be one of shipped, two_step, json_field (got 'json_instructed')
+
+src/ggufone/schema.py:388: UserError
+______________ test_the_reproduce_line_names_a_non_default_policy ______________
+
+    def test_the_reproduce_line_names_a_non_default_policy() -> None:
+        base = harness.BenchConfig(suite="quality", model_path="/m.gguf", backend="vulkan", runs=1,
+                                   threads=4, items=60)
+        plain = harness.reproduce_command(base)
+        assert "--cue" not in plain and "--chat-format" not in plain
+        shaped = harness.reproduce_command(
+>           harness.BenchConfig(suite="quality", model_path="/m.gguf", backend="vulkan", runs=1,
+                                threads=4, items=60, cue="json_instructed",
+                                chat_format="role_split"))
+E       TypeError: BenchConfig.__init__() got an unexpected keyword argument 'chat_format'
+
+tests/test_e3e_roles.py:699: TypeError
+_____________ test_the_report_says_which_policy_measured_the_rows ______________
+
+    def test_the_report_says_which_policy_measured_the_rows() -> None:
+        report = {"suite": "quality", "generated_at": "2026-09-19T00:00:00Z",
+                  "config": {"backend": "vulkan", "runs": 1, "threads": 4, "cue": "json_instructed",
+                             "chat_format": "role_split"},
+                  "model": {"path": "/m.gguf"}, "overall": {}, "per_type": {},
+                  "commands": {"reproduce": "uv run ggufone bench --suite quality"}}
+        text = harness.render_report(report)
+>       assert "- prompt policy: cue=json_instructed · chat_format=role_split" in text
+E       AssertionError: assert '- prompt policy: cue=json_instructed · chat_format=role_split' in '### quality — m.gguf\n\n- generated: 2026-09-19T00:00:00Z\n- host: None · cpus None · cgroup quota n/a\n- config: bac...ement**\n\n| type | n | correct | agreement | 95% CI |\n|---|---|---|---|---|\n| overall | None | None | — | — – — |\n'
+
+tests/test_e3e_roles.py:713: AssertionError
+___________ test_the_cue_verdict_table_shows_the_named_json_verdicts ___________
+
+    def test_the_cue_verdict_table_shows_the_named_json_verdicts() -> None:
+        report = {"items": [
+            {"id": "c01", "type": "choice", "cue": {"token": QUOTE, "mass": 0.9, "refused": False,
+                                                    "verdict": "empty_value", "closer": None}},
+            {"id": "c02", "type": "choice", "cue": {"token": 7, "mass": 0.8, "refused": False,
+                                                    "verdict": "answered", "closer": None}},
+            {"id": "c03", "type": "choice", "cue": {"token": IM_END, "mass": 0.9, "refused": True,
+                                                    "closer": "<|im_end|>"}},
+        ]}
+        rows = harness.cue_verdict_rows(report)
+>       assert "| W_JSON_EMPTY_VALUE |" in rows[0]
+E       AssertionError: assert '| W_JSON_EMPTY_VALUE |' in '| c01 | choice | `token 403` | 0.9000 | ok |'
+
+tests/test_e3e_roles.py:728: AssertionError
+______________________ test_the_new_codes_are_registered _______________________
+
+    def test_the_new_codes_are_registered() -> None:
+        from ggufone.errors import ERROR_CODES, WARNING_CODES
+>       assert "E_ROLE_SPLIT_UNSUPPORTED" in ERROR_CODES
+E       AssertionError: assert 'E_ROLE_SPLIT_UNSUPPORTED' in ('E_UNKNOWN_KEY', 'E_STATE_EMPTY', 'E_QID_INVALID', 'E_Q_TYPE_UNKNOWN', 'E_CHOICE_CRITERIA', 'E_CHOICE_TOO_MANY', ...)
+
+tests/test_e3e_roles.py:735: AssertionError
+________________ test_the_two_step_readout_is_untouched_by_e3e _________________
+
+    def test_the_two_step_readout_is_untouched_by_e3e() -> None:
+        """E3d's advance rule is byte-frozen: E3e only added shapes beside it."""
+        request = parsed(cue="two_step")
+        session = JsonSession(n_vocab=512)
+        plan = chat_plan(request, session)
+        label = session.tokenize("billing")[0]
+>       suffix = prompt.build_question(request.questions[0], cue="two_step",
+                                       chat_format="answer_sheet", role=None, index=0).suffix
+E       TypeError: build_question() got an unexpected keyword argument 'chat_format'
+
+tests/test_e3e_roles.py:745: TypeError
+______________ test_the_report_names_every_family_and_its_status _______________
+
+    def test_the_report_names_every_family_and_its_status() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_role_tool.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_role_tool.py:25: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5777cea90>
+path = '/work/e3e-red/tools/e3e_role_render.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_role_render.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+__________________ test_a_live_block_is_rendered_when_present __________________
+
+    def test_a_live_block_is_rendered_when_present() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_role_tool.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_role_tool.py:25: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5775b39d0>
+path = '/work/e3e-red/tools/e3e_role_render.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_role_render.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+__________ test_the_offline_record_refuses_a_directory_without_models __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_the_offline_record_refuse0')
+
+    def test_the_offline_record_refuses_a_directory_without_models(tmp_path) -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_role_tool.py:82: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_role_tool.py:25: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5775b1c90>
+path = '/work/e3e-red/tools/e3e_role_render.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_role_render.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+____________ test_wilson_never_reports_certainty_for_a_small_sample ____________
+
+    def test_wilson_never_reports_certainty_for_a_small_sample() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5776a0390>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+__________________ test_mcnemar_exact_matches_the_e3d_pairing __________________
+
+    def test_mcnemar_exact_matches_the_e3d_pairing() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5778d2510>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+___________ test_the_paired_difference_is_the_discordant_pair_delta ____________
+
+    def test_the_paired_difference_is_the_discordant_pair_delta() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5776ca150>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+________ test_the_cell_label_carries_the_policy_that_changes_the_bytes _________
+
+    def test_the_cell_label_carries_the_policy_that_changes_the_bytes() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:94: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5777e7150>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+_________________ test_cell_stats_read_the_report_it_is_given __________________
+
+    def test_cell_stats_read_the_report_it_is_given() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5775b2890>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+__________________ test_pair_stats_count_the_discordant_items __________________
+
+    def test_pair_stats_count_the_discordant_items() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:120: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5777d25d0>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+________________ test_pair_stats_refuse_two_different_dev_sets _________________
+
+    def test_pair_stats_refuse_two_different_dev_sets() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd578751810>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+_________________ test_decide_calls_a_win_only_past_the_noise __________________
+
+    def test_decide_calls_a_win_only_past_the_noise() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:139: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5777cd010>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+___________ test_decide_refuses_two_cells_that_claim_the_same_policy ___________
+
+    def test_decide_refuses_two_cells_that_claim_the_same_policy() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:168: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd577713e90>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+______ test_decide_flips_the_pair_when_the_baseline_is_the_second_report _______
+
+    def test_decide_flips_the_pair_when_the_baseline_is_the_second_report() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:176: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5778d2510>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+___________ test_decide_refuses_a_baseline_that_is_not_in_the_table ____________
+
+    def test_decide_refuses_a_baseline_that_is_not_in_the_table() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:192: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5776fb510>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+____ test_the_report_names_the_policy_the_pairs_and_the_comparability_cost _____
+
+    def test_the_report_names_the_policy_the_pairs_and_the_comparability_cost() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:201: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd57758b690>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+______ test_the_freeze_check_compares_the_probe_to_the_committed_baseline ______
+
+    def test_the_freeze_check_compares_the_probe_to_the_committed_baseline() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:221: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5777c8b10>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+__________ test_the_freeze_check_refuses_a_probe_that_shares_nothing ___________
+
+    def test_the_freeze_check_refuses_a_probe_that_shares_nothing() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:237: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5775930d0>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+_ test_the_freeze_check_quantifies_a_noisy_rescore_instead_of_only_flagging_it _
+
+    def test_the_freeze_check_quantifies_a_noisy_rescore_instead_of_only_flagging_it() -> None:
+        """The card's table re-measures one cell under another instrument: decisions, then noise.
+    
+        The *freeze* is about the prompt and the answer (did the default move?); the re-score is about
+        the numbers, which a different placement is entitled to move. The committed baseline's exact
+        numbers became unreproducible on this tree when card `t_55de5779` landed (a `--backend auto` row
+        that claims `cpu` now really computes on the CPU), so the two claims are separated here: the
+        bytes/answers must be identical, the numbers are quantified.
+        """
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:252: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd578751910>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+_______ test_the_freeze_check_separates_a_moved_decision_from_the_noise ________
+
+    def test_the_freeze_check_separates_a_moved_decision_from_the_noise() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:272: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd578758a90>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+_________ test_the_freeze_check_pins_the_prompt_bytes_by_prefix_tokens _________
+
+    def test_the_freeze_check_pins_the_prompt_bytes_by_prefix_tokens() -> None:
+        """A prompt byte that moved shows up as a token count that moved — the byte-level freeze."""
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:284: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5778d3710>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+___ test_the_report_prints_the_rescore_line_when_the_instrument_was_measured ___
+
+    def test_the_report_prints_the_rescore_line_when_the_instrument_was_measured() -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:294: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5778d0dd0>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+_______ test_load_report_refuses_a_report_that_is_not_the_quality_suite ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-11/test_load_report_refuses_a_rep0')
+
+    def test_load_report_refuses_a_report_that_is_not_the_quality_suite(tmp_path) -> None:
+>       tool = _tool()
+               ^^^^^^^
+
+tests/test_e3e_roles_decision.py:315: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e3e_roles_decision.py:24: in _tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:936: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1073: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7fd5775bde50>
+path = '/work/e3e-red/tools/e3e_roles_decision.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/tools/e3e_roles_decision.py'
+
+<frozen importlib._bootstrap_external>:1130: FileNotFoundError
+_______ test_the_template_document_names_both_switches_and_the_contract ________
+
+    def test_the_template_document_names_both_switches_and_the_contract() -> None:
+        for needle in ("role_split", "json_instructed", "json_contract"):
+>           assert needle in TEMPLATES, f"docs/TEMPLATES.md no longer names `{needle}`"
+E           AssertionError: docs/TEMPLATES.md no longer names `role_split`
+E           assert 'role_split' in 'bash: fork: retry: Resource temporarily unavailable\nbash: fork: retry: Resource temporarily unavailable\n# Templates...strip_empty_think_block` in the family policy is\n   the one place to change (and the live tests in §7 will notice).\n'
+
+tests/test_e3e_docs.py:22: AssertionError
+________ test_the_benchmark_document_has_the_e3e_section_with_its_table ________
+
+    def test_the_benchmark_document_has_the_e3e_section_with_its_table() -> None:
+        section = BENCHMARKS.split("## 9. E3e", 1)
+>       assert len(section) == 2, "docs/BENCHMARKS.md lost the E3e section"
+E       AssertionError: docs/BENCHMARKS.md lost the E3e section
+E       assert 1 == 2
+E        +  where 1 = len(['# BENCHMARKS — measured tables for E2 (latency, throughput, quality, calibration, determinism)\n\n> **Provenance (au...he *bench* now measures for it too.\nThe mechanism, the flag and the frozen default are unchanged by this card.\n\n\n'])
+
+tests/test_e3e_docs.py:33: AssertionError
+_______ test_the_evidence_document_exists_and_points_at_its_instruments ________
+
+    def test_the_evidence_document_exists_and_points_at_its_instruments() -> None:
+>       text = EVIDENCE.read_text(encoding="utf-8")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e3e_docs.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/pathlib.py:1058: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/work/e3e-red/docs/evidence/e3e_role_split_t_4c48f40a.md')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/work/e3e-red/docs/evidence/e3e_role_split_t_4c48f40a.md'
+
+/usr/local/lib/python3.11/pathlib.py:1044: FileNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_e3e_roles.py::test_the_default_chat_format_is_the_answer_sheet
+FAILED tests/test_e3e_roles.py::test_an_unknown_chat_format_is_a_named_option_error
+FAILED tests/test_e3e_roles.py::test_an_explicit_chat_format_survives_parsing
+FAILED tests/test_e3e_roles.py::test_the_default_cue_line_is_still_the_shipped_one_for_every_type
+FAILED tests/test_e3e_roles.py::test_json_field_keeps_the_e3d_bytes - Attribu...
+FAILED tests/test_e3e_roles.py::test_json_instructed_replaces_the_cue_line_with_the_contract
+FAILED tests/test_e3e_roles.py::test_the_json_framing_asks_for_the_object_the_cue_instructs
+FAILED tests/test_e3e_roles.py::test_the_answer_sheet_question_suffix_carries_the_opener_at_its_end
+FAILED tests/test_e3e_roles.py::test_the_plain_role_split_prefix_is_the_answer_sheet_prefix
+FAILED tests/test_e3e_roles.py::test_role_split_renders_the_question_as_its_own_user_turn
+FAILED tests/test_e3e_roles.py::test_role_split_carries_the_json_opener_after_the_generation_prompt
+FAILED tests/test_e3e_roles.py::test_the_prefix_is_shared_by_every_question_and_each_tail_is_its_own
+FAILED tests/test_e3e_roles.py::test_the_role_split_context_is_none_unless_asked_for
+FAILED tests/test_e3e_roles.py::test_a_merged_or_state_dropping_template_is_refused_by_name
+FAILED tests/test_e3e_roles.py::test_a_template_without_role_markers_is_still_accepted
+FAILED tests/test_e3e_roles.py::test_a_template_that_stops_extending_the_prefix_for_a_later_question_is_refused
+FAILED tests/test_e3e_roles.py::test_a_template_that_rewrites_the_question_turn_is_refused_too
+FAILED tests/test_e3e_roles.py::test_a_prompt_left_inside_a_thinking_block_is_refused_too
+FAILED tests/test_e3e_roles.py::test_the_engine_refuses_a_role_split_question_without_its_render
+FAILED tests/test_e3e_roles.py::test_the_tail_lookup_is_bounds_checked - Attr...
+FAILED tests/test_e3e_roles.py::test_the_plan_carries_the_role_split_it_rendered
+FAILED tests/test_e3e_roles.py::test_the_marker_map_is_a_vocabulary_fact - At...
+FAILED tests/test_e3e_roles.py::test_a_candidate_token_at_the_value_row_is_an_answered_row
+FAILED tests/test_e3e_roles.py::test_a_closed_empty_value_is_named_not_low_mass
+FAILED tests/test_e3e_roles.py::test_a_closed_value_that_leads_to_another_key_is_wrong_field
+FAILED tests/test_e3e_roles.py::test_a_closed_value_without_the_next_row_reads_empty
+FAILED tests/test_e3e_roles.py::test_a_turn_closer_at_the_value_row_is_a_refusal_with_its_own_hint
+FAILED tests/test_e3e_roles.py::test_the_role_split_engine_reads_the_question_in_a_user_turn
+FAILED tests/test_e3e_roles.py::test_the_answer_sheet_default_publishes_the_assistant_turn
+FAILED tests/test_e3e_roles.py::test_the_value_row_verdict_is_published_on_the_answer
+FAILED tests/test_e3e_roles.py::test_an_empty_value_is_named_on_the_answer_and_in_the_warnings
+FAILED tests/test_e3e_roles.py::test_a_wrong_field_is_named_too - ggufone.err...
+FAILED tests/test_e3e_roles.py::test_a_refused_value_row_keeps_the_e3c_refusal
+FAILED tests/test_e3e_roles.py::test_the_shipped_shape_gets_no_verdict_key - ...
+FAILED tests/test_e3e_roles.py::test_the_cli_forwards_the_chat_format_to_the_engine_options
+FAILED tests/test_e3e_roles.py::test_the_bench_validates_the_placement_like_the_cue
+FAILED tests/test_e3e_roles.py::test_the_contract_is_the_amendments_second_variant
+FAILED tests/test_e3e_roles.py::test_the_contract_location_reaches_the_plan_and_the_answer_surface
+FAILED tests/test_e3e_roles.py::test_the_default_contract_is_the_inline_one_and_the_enumeration_is_pinned
+FAILED tests/test_e3e_roles.py::test_the_bench_row_asks_for_the_placement - g...
+FAILED tests/test_e3e_roles.py::test_the_reproduce_line_names_a_non_default_policy
+FAILED tests/test_e3e_roles.py::test_the_report_says_which_policy_measured_the_rows
+FAILED tests/test_e3e_roles.py::test_the_cue_verdict_table_shows_the_named_json_verdicts
+FAILED tests/test_e3e_roles.py::test_the_new_codes_are_registered - Assertion...
+FAILED tests/test_e3e_roles.py::test_the_two_step_readout_is_untouched_by_e3e
+FAILED tests/test_e3e_role_tool.py::test_the_report_names_every_family_and_its_status
+FAILED tests/test_e3e_role_tool.py::test_a_live_block_is_rendered_when_present
+FAILED tests/test_e3e_role_tool.py::test_the_offline_record_refuses_a_directory_without_models
+FAILED tests/test_e3e_roles_decision.py::test_wilson_never_reports_certainty_for_a_small_sample
+FAILED tests/test_e3e_roles_decision.py::test_mcnemar_exact_matches_the_e3d_pairing
+FAILED tests/test_e3e_roles_decision.py::test_the_paired_difference_is_the_discordant_pair_delta
+FAILED tests/test_e3e_roles_decision.py::test_the_cell_label_carries_the_policy_that_changes_the_bytes
+FAILED tests/test_e3e_roles_decision.py::test_cell_stats_read_the_report_it_is_given
+FAILED tests/test_e3e_roles_decision.py::test_pair_stats_count_the_discordant_items
+FAILED tests/test_e3e_roles_decision.py::test_pair_stats_refuse_two_different_dev_sets
+FAILED tests/test_e3e_roles_decision.py::test_decide_calls_a_win_only_past_the_noise
+FAILED tests/test_e3e_roles_decision.py::test_decide_refuses_two_cells_that_claim_the_same_policy
+FAILED tests/test_e3e_roles_decision.py::test_decide_flips_the_pair_when_the_baseline_is_the_second_report
+FAILED tests/test_e3e_roles_decision.py::test_decide_refuses_a_baseline_that_is_not_in_the_table
+FAILED tests/test_e3e_roles_decision.py::test_the_report_names_the_policy_the_pairs_and_the_comparability_cost
+FAILED tests/test_e3e_roles_decision.py::test_the_freeze_check_compares_the_probe_to_the_committed_baseline
+FAILED tests/test_e3e_roles_decision.py::test_the_freeze_check_refuses_a_probe_that_shares_nothing
+FAILED tests/test_e3e_roles_decision.py::test_the_freeze_check_quantifies_a_noisy_rescore_instead_of_only_flagging_it
+FAILED tests/test_e3e_roles_decision.py::test_the_freeze_check_separates_a_moved_decision_from_the_noise
+FAILED tests/test_e3e_roles_decision.py::test_the_freeze_check_pins_the_prompt_bytes_by_prefix_tokens
+FAILED tests/test_e3e_roles_decision.py::test_the_report_prints_the_rescore_line_when_the_instrument_was_measured
+FAILED tests/test_e3e_roles_decision.py::test_load_report_refuses_a_report_that_is_not_the_quality_suite
+FAILED tests/test_e3e_docs.py::test_the_template_document_names_both_switches_and_the_contract
+FAILED tests/test_e3e_docs.py::test_the_benchmark_document_has_the_e3e_section_with_its_table
+FAILED tests/test_e3e_docs.py::test_the_evidence_document_exists_and_points_at_its_instruments
+70 failed, 3 skipped in 2.17s

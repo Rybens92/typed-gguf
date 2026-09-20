@@ -279,6 +279,72 @@ engine publishes `engine.cue` and, on a shape that advanced, the answer's `advan
 `rule`, and the cue row's verdict). The card's numbers, the CI readings and the explicit
 invalidation list are in `docs/evidence/e3d_cue_decision_4b.md` §5.
 
+### The question's placement and the instructed JSON (E3e)
+
+Everything above keeps the question where the answer sheet put it: **prefilled inside the
+assistant turn**, after the template's generation prompt. That is a choice, and E3e (card
+`t_4c48f40a`) measured what happens when it moves. Two options carry it, both off by default:
+
+* `options.chat_format = role_split` — the question is rendered as its **own user message**
+  through the model's own `tokenizer.chat_template`, so the conversation the model sees is
+  `[system, user(state), assistant(question…)]` rendered by the template instead of a question
+  smuggled into an assistant turn. The prompt is split once: a **shared prefix** (the state turn
+  plus whatever the template emits with it) and one **tail per question** (the question turn, the
+  generation prompt, and the JSON opener when the cue asks for one).
+* `options.cue = json_instructed` — the ask line *is* a JSON contract
+  (`Answer with JSON: {"choice": "<exactly one candidate name>"}`, the key per question type from
+  `JSON_FIELDS`) and the assistant turn is prefilled with the opened field, so the shape the model
+  is asked for and the row the readout reads cannot disagree. `options.json_contract` picks where
+  the contract is stated: in the question block (`question`, the default) or once in the system
+  framing (`system`, all three keys up front, the question keeping its shipped ask line).
+
+The role split is only real if the family's template can render it, and that is a **measured**
+fact, not an assumption (`tools/e3e_role_render.py`, offline — no model is loaded; the E1c family
+templates on this box):
+
+| family (arch) | template | role split | prefix / tail (chars) | the residual | generation prompt + opener |
+|---|---|---|---|---|---|
+| `spark2_5` (4B) | `<｜start▁of▁sentence｜>` + `<\uff5cUser\uff5c>`/`<\uff5cBot\uff5c>` | **renders, 5/5 checks** | 552 / 363 | the state-only render's trailing `"\n"` (the template's own text after the question turn) is dropped from the shared prefix | `<\uff5cBot\uff5c></think>\n{"choice": "` |
+| `qwen35` (27B) | `<\|im_start\|>`/`<\|im_end\|>` + `enable_thinking` | **renders, 5/5** | 481 / 327 | none | `<\|im_start\|>assistant\n{"choice": "` |
+| `qwen35moe` (Occamy 24B) | same Qwen3.5 family | **renders, 5/5** | 481 / 327 | none | `<\|im_start\|>assistant\n{"choice": "` |
+| `bailingmoe3` (Ling 3.0 tiny) | `<role>HUMAN</role>` / `<role>ASSISTANT</role>` | **renders, 5/5** | 511 / 346 | none | `<role>ASSISTANT</role>\n<think></think>{"choice": "` |
+| `qwen35moe` (Tiel-Coder-35B-A3B) | the same family, but this GGUF's own template | **not renderable offline** — `E_TEMPLATE_UNRESOLVED`: the template uses a construct outside the internal subset (`set` without a value, line 172) and the built-in table does not match it either | — | — | — |
+
+The five checks the tool runs per family (`tests/test_e3e_roles.py` pins them for the models on
+this box): the state turn's own words are in the shared prefix; the question's own words are in
+*its* tail; the question does **not** appear in the prefix; `prefix + tail` is byte-for-byte the
+template's render of the three-message conversation, plus the opener when the cue asks for one; and
+the render leaves no open thinking block. A template that fails one of them is refused by name
+(`E_ROLE_SPLIT_UNSUPPORTED`, the message naming `--chat-format answer_sheet` / `--template plain`)
+rather than quietly rendering a conversation nobody described. The Tiel fallback is the documented
+one for that family: `--template plain` (the role split then uses the plain `USER:`/`ASSISTANT:`
+framing) or a live run, where the built-in bridge may render a template the internal renderer
+rejects.
+
+Two things worth knowing before reading the E3e table:
+
+* **Spark's template ends a render with a newline**, which cannot sit in the middle of one — so
+  the shared prefix stops one byte earlier and the decode re-supplies it in the tail. The bytes the
+  model sees are identical to the template's render; the *prefix* is one character short of a
+  prefix the template would never produce. The engine publishes it (`engine.chat_format.dropped`).
+* **the empty think block sits before the opener, never between the header and the prefill**
+  (`<\uff5cBot\uff5c></think>\n{"choice": "` on Spark, `<think></think>{"choice": "` on Ling) — the
+  E3d finding that the cue must not be read inside an open block still holds, and
+  `no_open_think` is one of the five checks.
+
+The 60-item table, the paired comparisons, and the decision (`tools/e3e_roles_decision.py`) are in
+`docs/evidence/e3e_role_split_t_4c48f40a.md`; the tool's per-family record is
+`.e3e/role_render.json`, its report `.e3e/role_render.md`. **Nothing moves by default**: the
+`shipped`/`answer_sheet` cell is the committed `.e3d/bench_templated_shipped.json`, and two arms on
+the current tree must agree with it — a six-item probe run with the baseline's own recipe
+(`--backend auto`, `.e3e/probe_default.json`) has to reproduce its **prompt bytes and decisions**
+item for item, and the table's own re-score of that cell (`--backend vulkan`, 60 items) has to agree
+decision for decision; `tools/e3e_roles_decision.py` exits non-zero if either stops holding. The
+numbers themselves are measured, not assumed to be bit-identical: card `t_55de5779` landed after the
+committed baseline and a `--backend auto` row that claims `cpu` now computes on the CPU, which moved
+the probabilities by ≤1.1e-2 and no decision. The E3e options are switches, and the published tables
+stay where they were.
+
 ---
 
 ## 5. The fit plan in one paragraph (A-E1c-4/5/6)

@@ -1155,4 +1155,121 @@ engine's own coverage verdict from 15/60 usable rows to 57/60, with the agreemen
 the paired CI), and `--cue json_field`'s 51/60 is the number the *bench* now measures for it too.
 The mechanism, the flag and the frozen default are unchanged by this card.
 
+## 9. E3e — where the question lives and what the ask line says (card `t_4c48f40a`)
+
+E3d (§8) ended with a winner (`--cue json_field`, 51/60) that wins by *appending an opener* — the
+model never gets a row where it can refuse the cue — and with a runner-up (`--cue two_step`) that is
+a **readout** fix and therefore inert on the model that needs it most: `decide._advance_token` will
+not advance past a cue the model closed, and Tiel closes 59 of 60 cue rows under the product's own
+prompt (§7.4.1, card `t_7c926398`). E3e measures the two levers that change **what the model is
+asked** instead of where the readout sits:
+
+* `--chat-format role_split` — the question stops being prefilled *inside the assistant turn* and is
+  rendered as its own user turn through the family's own `tokenizer.chat_template`.
+* `--cue json_instructed` — the ask line *is* the JSON contract (`Answer with JSON: {"choice":
+  "<exactly one candidate name>"}`, the key per question type), and the assistant turn is prefilled
+  with the opened field, so instruction and shape agree.
+* `--json-contract question|system` — where that contract is stated: in the question block
+  (default) or once in the system framing.
+
+Both main switches are off by default, in the E3d manner (`answer_sheet`, `shipped`,
+`json_contract=question`): the published rows above were measured on those bytes and stay comparable.
+The card's own question — does *either* lever beat the shipped cell on the 60 committed items — is
+what the table below answers, and the decision rule is printed with it (paired interval excluding
+zero **and** exact McNemar below 0.05, the E3d unit).
+
+<!-- E3E-TABLE:START — spliced by `.e3e/splice_docs.py` from the tool's own report
+     (`docs/evidence/e3e_roles_decision.md`); edit the tool, never this block. -->
+- probe `.e3e/probe_default.json` vs baseline `.e3d/bench_templated_shipped.json` (6 shared items): **frozen** — the prompt bytes and the decisions are the committed baseline's: 6/6 items, prefix_tokens identical on every item; numbers re-scored, not bit-identical (max |delta p| = 3.78e-02 over 6 item(s))
+- the table's own instrument, `.e3e/bench_shipped_answer_sheet.json` vs `.e3d/bench_templated_shipped.json` (60 shared items, tolerance 0.005): **decisions identical** (60/60) — the instrument moved the numbers, not the answers; max |delta p| = 1.14e-02, max |delta coverage| = 6.25e-03, prefix_tokens identical on every item
+
+### The cells
+
+| cell | correct | agreement (Wilson 95 %) | choice | noul | score | low_mass | refusals | cue verdicts | coverage p50 | prefix tokens |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `shipped/answer_sheet` | 42/60 | 70.0 % (57.5–80.1 %) | 20/24 | 16/18 | 6/18 | 45 | 0 | — | 3.9 % | 82–119 |
+| `shipped/role_split` | 50/60 | 83.3 % (72.0–90.7 %) | 22/24 | 17/18 | 11/18 | 0 | 0 | — | 99.9 % | 78–115 |
+| `two_step/answer_sheet` | 46/60 | 76.7 % (64.6–85.6 %) | 21/24 | 14/18 | 11/18 | 2 | 2 | — | 97.3 % | 82–119 |
+| `two_step/role_split` | 28/60 | 46.7 % (34.6–59.1 %) | 9/24 | 14/18 | 5/18 | 60 | 40 | — | 0.0 % | 78–115 |
+| `json_instructed/answer_sheet` | 51/60 | 85.0 % (73.9–91.9 %) | 21/24 | 17/18 | 13/18 | 0 | 0 | answered 60 | 100.0 % | 86–123 |
+| `json_instructed/role_split` | 50/60 | 83.3 % (72.0–90.7 %) | 21/24 | 18/18 | 11/18 | 0 | 0 | answered 60 | 100.0 % | 82–119 |
+| `json_instructed/answer_sheet/system` | 48/60 | 80.0 % (68.2–88.2 %) | 21/24 | 17/18 | 10/18 | 0 | 0 | answered 60 | 100.0 % | 131–168 |
+| `json_instructed/role_split/system` | 50/60 | 83.3 % (72.0–90.7 %) | 21/24 | 17/18 | 12/18 | 0 | 0 | answered 60 | 100.0 % | 127–164 |
+
+### Paired comparisons (same items, item by item)
+
+| baseline | challenger | only challenger | only baseline | both | neither | difference (95 % CI) | exact McNemar p |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `shipped/answer_sheet` | `shipped/role_split` | 12 | 4 | 38 | 6 | +0.133 (+0.007..+0.260) | 0.077 |
+| `shipped/answer_sheet` | `two_step/answer_sheet` | 7 | 3 | 39 | 11 | +0.067 (-0.035..+0.169) | 0.344 |
+| `shipped/answer_sheet` | `two_step/role_split` | 5 | 19 | 23 | 13 | -0.233 (-0.382..-0.085) | 0.007 |
+| `shipped/answer_sheet` | `json_instructed/answer_sheet` | 13 | 4 | 38 | 5 | +0.150 (+0.021..+0.279) | 0.049 |
+| `shipped/answer_sheet` | `json_instructed/role_split` | 11 | 3 | 39 | 7 | +0.133 (+0.016..+0.251) | 0.057 |
+| `shipped/answer_sheet` | `json_instructed/answer_sheet/system` | 10 | 4 | 38 | 8 | +0.100 (-0.020..+0.220) | 0.180 |
+| `shipped/answer_sheet` | `json_instructed/role_split/system` | 11 | 3 | 39 | 7 | +0.133 (+0.016..+0.251) | 0.057 |
+| `shipped/role_split` | `two_step/answer_sheet` | 3 | 7 | 43 | 7 | -0.067 (-0.169..+0.035) | 0.344 |
+| `shipped/role_split` | `two_step/role_split` | 2 | 24 | 26 | 8 | -0.367 (-0.505..-0.228) | 0.000 |
+| `shipped/role_split` | `json_instructed/answer_sheet` | 2 | 1 | 49 | 8 | +0.017 (-0.040..+0.073) | 1.000 |
+| `shipped/role_split` | `json_instructed/role_split` | 3 | 3 | 47 | 7 | +0.000 (-0.080..+0.080) | 1.000 |
+| `shipped/role_split` | `json_instructed/answer_sheet/system` | 2 | 4 | 46 | 8 | -0.033 (-0.113..+0.046) | 0.688 |
+| `shipped/role_split` | `json_instructed/role_split/system` | 3 | 3 | 47 | 7 | +0.000 (-0.080..+0.080) | 1.000 |
+| `two_step/answer_sheet` | `two_step/role_split` | 5 | 23 | 23 | 9 | -0.300 (-0.455..-0.145) | 0.001 |
+| `two_step/answer_sheet` | `json_instructed/answer_sheet` | 8 | 3 | 43 | 6 | +0.083 (-0.023..+0.190) | 0.227 |
+| `two_step/answer_sheet` | `json_instructed/role_split` | 9 | 5 | 41 | 5 | +0.067 (-0.054..+0.188) | 0.424 |
+| `two_step/answer_sheet` | `json_instructed/answer_sheet/system` | 7 | 5 | 41 | 7 | +0.033 (-0.080..+0.146) | 0.774 |
+| `two_step/answer_sheet` | `json_instructed/role_split/system` | 8 | 4 | 42 | 6 | +0.067 (-0.045..+0.179) | 0.388 |
+| `two_step/role_split` | `json_instructed/answer_sheet` | 24 | 1 | 27 | 8 | +0.383 (+0.252..+0.515) | 0.000 |
+| `two_step/role_split` | `json_instructed/role_split` | 22 | 0 | 28 | 10 | +0.367 (+0.245..+0.489) | 0.000 |
+| `two_step/role_split` | `json_instructed/answer_sheet/system` | 21 | 1 | 27 | 11 | +0.333 (+0.205..+0.461) | 0.000 |
+| `two_step/role_split` | `json_instructed/role_split/system` | 23 | 1 | 27 | 9 | +0.367 (+0.236..+0.497) | 0.000 |
+| `json_instructed/answer_sheet` | `json_instructed/role_split` | 1 | 2 | 49 | 8 | -0.017 (-0.073..+0.040) | 1.000 |
+| `json_instructed/answer_sheet` | `json_instructed/answer_sheet/system` | 0 | 3 | 48 | 9 | -0.050 (-0.105..+0.005) | 0.250 |
+| `json_instructed/answer_sheet` | `json_instructed/role_split/system` | 1 | 2 | 49 | 8 | -0.017 (-0.073..+0.040) | 1.000 |
+| `json_instructed/role_split` | `json_instructed/answer_sheet/system` | 1 | 3 | 47 | 9 | -0.033 (-0.098..+0.031) | 0.625 |
+| `json_instructed/role_split` | `json_instructed/role_split/system` | 1 | 1 | 49 | 9 | +0.000 (-0.046..+0.046) | 1.000 |
+| `json_instructed/answer_sheet/system` | `json_instructed/role_split/system` | 3 | 1 | 47 | 9 | +0.033 (-0.031..+0.098) | 0.625 |
+
+### The decision
+
+- best cell: `json_instructed/answer_sheet` — 51/60 correct, 0 refusals
+
+- `json_instructed/answer_sheet` vs `shipped/answer_sheet`: **wins** — 13 items only it got right, 4 only shipped/answer_sheet did; difference +0.150 (95 % CI +0.021..+0.279), exact McNemar p=0.049
+- `json_instructed/role_split` vs `shipped/answer_sheet`: **not by more than the CI noise** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
+- `json_instructed/role_split/system` vs `shipped/answer_sheet`: **not by more than the CI noise** — 11 items only it got right, 3 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.016..+0.251), exact McNemar p=0.057
+- `shipped/role_split` vs `shipped/answer_sheet`: **not by more than the CI noise** — 12 items only it got right, 4 only shipped/answer_sheet did; difference +0.133 (95 % CI +0.007..+0.260), exact McNemar p=0.077
+- `json_instructed/answer_sheet/system` vs `shipped/answer_sheet`: **not by more than the CI noise** — 10 items only it got right, 4 only shipped/answer_sheet did; difference +0.100 (95 % CI -0.020..+0.220), exact McNemar p=0.180
+- `two_step/answer_sheet` vs `shipped/answer_sheet`: **not by more than the CI noise** — 7 items only it got right, 3 only shipped/answer_sheet did; difference +0.067 (95 % CI -0.035..+0.169), exact McNemar p=0.344
+- `two_step/role_split` vs `shipped/answer_sheet`: **not by more than the CI noise** — 5 items only it got right, 19 only shipped/answer_sheet did; difference -0.233 (95 % CI -0.382..-0.085), exact McNemar p=0.007
+
+The full generated report — the policy columns, the recommendation and the caveats the numbers carry — is `docs/evidence/e3e_roles_decision.md`, written by the tool itself; `.e3e/report.sh` regenerates it and `.e3e/splice_docs.py` re-splices this block.
+<!-- E3E-TABLE:END -->
+
+**The family acceptance is part of the result, not an assumption.** The role split only exists for a
+family whose template can render it: measured offline for all five GGUFs on the box
+(`tools/e3e_role_render.py`, no model loaded), four render the two-user-turn conversation with all
+five checks green; **Tiel's own template is outside the internal renderer's subset** and the tool
+records it with its fallback rather than guessing. The per-family bytes and the Spark residual are in
+`docs/TEMPLATES.md` (E3e section) and `.e3e/role_render.md`.
+
+**The defaults did not move, and the freeze is checked twice.** The `shipped`/`answer_sheet` cell is
+the committed `.e3d/bench_templated_shipped.json`; two checks on this tree compare against it, both
+non-zero exits if either fails. `--freeze-probe .e3e/probe_default.json` is a six-item arm run with
+the *baseline's own recipe* (`--backend auto`) and must reproduce the committed rows' **prompt bytes
+and decisions** (`prefix_tokens` and the answer, item for item). `--placement-probe` is the table's
+own baseline cell re-measured under the table's instrument (`--backend vulkan`, 60 items), and it
+agrees with the committed report on all 60 decisions with `prefix_tokens` identical on every item.
+The *numbers* are deliberately not required to be bit-identical: card `t_55de5779` landed after the
+committed baseline was published, and a `--backend auto` row that claims `cpu` now really computes on
+the CPU (the probe's log says `CPU compute buffer size`, which is that fix working), so the exact
+probabilities of the committed row are no longer reproducible by any flag on this tree. The drift is
+measured rather than assumed: ≤1.1e-2 in candidate probability on the re-scored 60 items, with no
+decision moved — and one cell of the E3d table (`two_step`, 47/60 published, 46/60 here) shows that
+drift can flip a near-tie item at the margin, which is why every claim below is a *paired* one.
+Reproduce: `bash .e3e/run_arms.sh` (the freeze probe + the eight policy arms, one backend named) and
+`bash .e3e/report.sh` (the table, the two checks, the recommendation).
+
+**Comparability**: the cells compare with *each other*; none of them is a quality row to publish,
+because each changes the prompt bytes and the whole document would have to be re-measured under it
+first. That is why the switches ship frozen.
+
 

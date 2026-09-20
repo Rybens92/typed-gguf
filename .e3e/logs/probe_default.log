@@ -1,0 +1,51 @@
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = NVIDIA GeForce RTX 3060 Ti (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0 | warp size: 32 | shared memory: 49152 | int dot: 1 | matrix cores: NV_coopmat2
+load_backend: loaded Vulkan backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-vulkan.so
+load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 109.1024 MiB, matches expectation of 109.1024 MiB
+~llama_context:        CPU compute buffer size is   0.0000 MiB, matches expectation of   0.0000 MiB
+~llama_context:        CPU compute buffer size is 102.3777 MiB, matches expectation of 102.3777 MiB
+~llama_context:        CPU compute buffer size is   0.0000 MiB, matches expectation of   0.0000 MiB
+~llama_context:        CPU compute buffer size is  99.7801 MiB, matches expectation of  99.7801 MiB
+~llama_context:        CPU compute buffer size is   0.0000 MiB, matches expectation of   0.0000 MiB
+~llama_context:        CPU compute buffer size is 100.2898 MiB, matches expectation of 100.2898 MiB
+~llama_context:        CPU compute buffer size is   0.0000 MiB, matches expectation of   0.0000 MiB
+~llama_context:        CPU compute buffer size is  94.0750 MiB, matches expectation of  94.0750 MiB
+~llama_context:        CPU compute buffer size is   0.0000 MiB, matches expectation of   0.0000 MiB
+~llama_context:        CPU compute buffer size is  93.5163 MiB, matches expectation of  93.5163 MiB
+~llama_context:        CPU compute buffer size is   0.0000 MiB, matches expectation of   0.0000 MiB
+### quality — Spark-X2.5-4B-Q8_0.gguf
+
+- generated: 2026-09-20T10:59:34Z
+- host: Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41 · cpus 24 · cgroup quota 2.0
+- config: backend=auto runs=5 threads=4
+- reproduce: `uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend auto --runs 5 --threads 4 --items 6 --json`
+- wall: 73.9 s
+- backend selection: cpu of the local bundles (cpu, vulkan) — one suite run measures one backend
+- engine devices: CPU=6 (compute buffers) · effective backend: cpu
+- framing: chat-template: spark2_5 / internal · prefix tokens: 90, 94, 101, 105, 107, 119
+
+**exact-match agreement**
+
+| type | n | correct | agreement | 95% CI |
+|---|---|---|---|---|
+| choice | 6 | 4 | 0.6667 | 0.3000 – 0.9032 |
+| overall | 6 | 4 | 0.6667 | 0.3000 – 0.9032 |
+
+**cue verdicts**
+
+| item | type | cue top token | top-token mass | verdict |
+|---|---|---|---|---|
+| c01 | choice | `token 198` | 0.9704 | ok |
+| c02 | choice | `token 198` | 0.9426 | ok |
+| c03 | choice | `token 198` | 0.9929 | ok |
+| c04 | choice | `token 198` | 0.9837 | ok |
+| c05 | choice | `token 198` | 0.8869 | ok |
+| c06 | choice | `token 198` | 0.5386 | ok |
+
+- one suite run measures one backend: with `--backend auto` the local bundles are cpu, vulkan and cpu was selected; pass `--backend vulkan` to measure that one instead, or run `--suite throughput`, which measures every local backend in one report.
+- agreement = the highest-probability candidate equals the gold candidate (the discrete decision), measured per question type and overall with 95% Wilson intervals; report-only in v1 (SPEC S-11).
+
+report: .e3e/probe_default.json
+

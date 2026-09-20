@@ -1,0 +1,36 @@
+=== freeze probe: the default cell, six items ===
+probe ok
+=== arm shipped_role_split ===
+arm ok: shipped_role_split
+=== arm two_step_role_split ===
+=== campaign start 2026-09-20T10:54:56+00:00 ===
+model:  /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf
+sha256: 5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2
+runtime: /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+backend: vulkan  threads: 4  runs: 1  temperature: 0
+NVIDIA GeForce RTX 3060 Ti, 1184 MiB, 8192 MiB
+=== freeze probe: the default cell, six items, --backend vulkan ===
+=== arm shipped_answer_sheet (redo: no report yet) 2026-09-20T10:55:14+00:00 ===
+arm ok: shipped_answer_sheet (2026-09-20T10:55:43+00:00)
+=== arm shipped_role_split (redo: measured with --backend 'auto') 2026-09-20T10:55:43+00:00 ===
+arm ok: shipped_role_split (2026-09-20T10:56:11+00:00)
+=== arm two_step_answer_sheet (redo: no report yet) 2026-09-20T10:56:11+00:00 ===
+arm ok: two_step_answer_sheet (2026-09-20T10:56:43+00:00)
+=== arm two_step_role_split (redo: no report yet) 2026-09-20T10:56:43+00:00 ===
+arm ok: two_step_role_split (2026-09-20T10:57:10+00:00)
+=== arm json_instructed_answer_sheet (redo: no report yet) 2026-09-20T10:57:10+00:00 ===
+arm ok: json_instructed_answer_sheet (2026-09-20T10:57:34+00:00)
+=== arm json_instructed_role_split (redo: no report yet) 2026-09-20T10:57:34+00:00 ===
+arm ok: json_instructed_role_split (2026-09-20T10:58:01+00:00)
+=== arm json_instructed_answer_sheet_system (redo: no report yet) 2026-09-20T10:58:01+00:00 ===
+arm ok: json_instructed_answer_sheet_system (2026-09-20T10:58:40+00:00)
+=== arm json_instructed_role_split_system (redo: no report yet) 2026-09-20T10:58:40+00:00 ===
+arm ok: json_instructed_role_split_system (2026-09-20T10:59:14+00:00)
+=== arms done 2026-09-20T10:59:14+00:00 ===
+=== campaign start 2026-09-20T10:59:31+00:00 ===
+model:  /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf
+sha256: 5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2
+runtime: /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+backend: vulkan  threads: 4  runs: 1  temperature: 0
+NVIDIA GeForce RTX 3060 Ti, 1188 MiB, 8192 MiB
+=== freeze probe: the default cell, six items, --backend auto (the baseline's recipe) ===

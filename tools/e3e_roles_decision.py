@@ -320,6 +320,95 @@ def analyses(reports: Sequence[Mapping[str, Any]], *,
     return {"cells": cells, "pairs": pairs, "decision": decide(cells, pairs, baseline=baseline)}
 
 
+# ------------------------------------------------------------------ the freeze check
+#: The tolerance a *re-score under another instrument* is read at. The card's table re-measures the
+#: default cell with `--backend vulkan` while the committed baseline was measured with
+#: `--backend auto` (the `cpu` claim whose compute the engine log puts on Vulkan0); the prompt bytes
+#: are pinned separately (`prefix_tokens`, compared exactly below), so what a device change may move
+#: is the arithmetic — measured at ≤2e-3 on this box, far below any decision. The byte-for-byte
+#: freeze (`--freeze-probe`) stays at 1e-9.
+PLACEMENT_TOLERANCE = 5e-3
+
+
+def freeze_check(probe: Mapping[str, Any], baseline: Mapping[str, Any], *,
+                 tolerance: float = 1e-9) -> dict[str, Any]:
+    """Does the *default* cell still answer the same items the same way on this tree?
+
+    The table's baseline is the committed `.e3d/bench_templated_shipped.json` (the card's
+    "nothing moves by default" acceptance cannot be re-derived by re-running the cell and hoping it
+    agrees). This compares a probe arm against that report on the shared item ids: the same answer,
+    the same coverage, the same candidate probabilities — a default that moved one byte of its
+    prompt would show up here, item for item.
+
+    The prompt bytes themselves are compared exactly, whatever the tolerance: `prefix_tokens` is
+    the count of tokens the executed plan prefills, so a prompt that moved a byte (and left the
+    tokenizer's output the same length) is still named. `frozen` is therefore about the *prompt and
+    the answer* — the bytes and the decisions — while `bit_frozen` adds the numbers: a re-score
+    under another instrument (`PLACEMENT_TOLERANCE`) may move the arithmetic without touching
+    either, and the size of that move is reported (`max_probability_delta`, `max_coverage_delta`),
+    the items whose numbers moved alone in `numeric_only`).
+    """
+    probe_rows = {str(item["id"]): item for item in rows(probe)}
+    base_rows = {str(item["id"]): item for item in rows(baseline)}
+    shared = sorted(set(probe_rows) & set(base_rows))
+    if not shared:
+        raise DecisionError("the probe and the baseline share no item ids")
+    differences = []
+    numeric_only = []
+    decisions_agree = 0
+    prefix_tokens_differ = []
+    max_probability_delta = 0.0
+    max_coverage_delta = 0.0
+    for key in shared:
+        left, right = probe_rows[key], base_rows[key]
+        hard: list[str] = []            # the prompt bytes and the answer: what "frozen" means
+        soft: list[str] = []            # the numbers: what a re-score is allowed to move
+        decision_same = (left.get("got") == right.get("got")
+                         and left.get("reliability") == right.get("reliability"))
+        decisions_agree += int(decision_same)
+        if not decision_same:
+            hard.append(f"got {left.get('got')!r} != {right.get('got')!r}"
+                        f" (verdict {left.get('reliability')!r}"
+                        f" != {right.get('reliability')!r})")
+        if left.get("prefix_tokens") != right.get("prefix_tokens"):
+            prefix_tokens_differ.append(key)
+            hard.append(f"prefix_tokens {left.get('prefix_tokens')}"
+                        f" != {right.get('prefix_tokens')}")
+        left_coverage = float(left.get("coverage") or 0.0)
+        right_coverage = float(right.get("coverage") or 0.0)
+        max_coverage_delta = max(max_coverage_delta, abs(left_coverage - right_coverage))
+        if abs(left_coverage - right_coverage) > tolerance:
+            soft.append(f"coverage {left_coverage:.9f} != {right_coverage:.9f}")
+        for name, value in (right.get("probabilities") or {}).items():
+            other = (left.get("probabilities") or {}).get(name)
+            if other is None:
+                soft.append(f"p({name}) {other} != {value}")
+                continue
+            delta = abs(float(other) - float(value))
+            max_probability_delta = max(max_probability_delta, delta)
+            if delta > tolerance:
+                soft.append(f"p({name}) {other} != {value}")
+        if hard:
+            differences.append({"id": key, "problems": hard + soft})
+        elif soft:
+            numeric_only.append(key)
+    return {
+        "n": len(shared),
+        "frozen": not differences,
+        "bit_frozen": not differences and not numeric_only,
+        "differences": differences,
+        "numeric_only": numeric_only,
+        "probe": str(probe.get("_path") or ""),
+        "baseline": str(baseline.get("_path") or ""),
+        "tolerance": tolerance,
+        "decisions": len(shared),
+        "decisions_agree": decisions_agree,
+        "prefix_tokens_differ": prefix_tokens_differ,
+        "max_probability_delta": max_probability_delta,
+        "max_coverage_delta": max_coverage_delta,
+    }
+
+
 # ------------------------------------------------------------------ rendering
 def _pct(value: Any) -> str:
     return "—" if value is None else f"{100 * float(value):.1f} %"
@@ -355,8 +444,8 @@ def cell_table(cells: Sequence[Mapping[str, Any]]) -> list[str]:
 
 
 def policy_table(cells: Sequence[Mapping[str, Any]]) -> list[str]:
-    lines = ["| cell | cue | chat_format | json_contract | framing | renderer (thinking) | family | "
-             "labels | warnings |",
+    lines = ["| cell | cue | chat_format | json_contract | framing | renderer (thinking) | "
+             "family | labels | warnings |",
              "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for cell in cells:
         framing = cell["framing"]
@@ -400,7 +489,47 @@ def render(record: Mapping[str, Any]) -> str:
              f"gpu-layers {record['gpu_layers']} · threads {record['threads']}",
              f"- reports: {len(record['cells'])} cells, {len(record['pairs'])} paired comparisons "
              f"({UNIT})", "",
-             "## The cells", ""]
+             "## The default is frozen (the probe and the table's own re-score)", ""]
+    freeze = record.get("freeze") or {}
+    if freeze:
+        tokens = ("identical on every item" if not freeze["prefix_tokens_differ"]
+                  else "moved on " + ", ".join(freeze["prefix_tokens_differ"][:5]))
+        numbers = ("bit-identical" if freeze.get("bit_frozen", freeze["frozen"])
+                   else f"re-scored, not bit-identical (max |delta p| = "
+                        f"{freeze['max_probability_delta']:.2e} over "
+                        f"{len(freeze['numeric_only'])} item(s))")
+        if freeze["frozen"]:
+            verdict = (f"**frozen** — the prompt bytes and the decisions are the committed "
+                       f"baseline's: {freeze['decisions_agree']}/{freeze['decisions']} items, "
+                       f"prefix_tokens {tokens}; numbers {numbers}")
+        else:
+            verdict = (f"**MOVED** — {len(freeze['differences'])} of {freeze['n']} items differ: "
+                       + "; ".join(f"{row['id']}: {', '.join(row['problems'])}"
+                                   for row in freeze["differences"][:3])
+                       + f"; prefix_tokens {tokens}")
+        lines.append(f"- probe `{freeze['probe']}` vs baseline `{freeze['baseline']}` "
+                     f"({freeze['n']} shared items): {verdict}")
+    else:
+        lines.append("- no probe was compared (the table still reads, but the freeze is unproven)")
+    placement = record.get("placement") or {}
+    if placement:
+        moved = placement["decisions"] - placement["decisions_agree"]
+        verdict = (f"**decisions identical** ({placement['decisions_agree']}/"
+                   f"{placement['decisions']}) — the instrument moved the numbers, not the answers"
+                   if not moved else
+                   f"**{moved} decision(s) moved** — the re-score is not the same measurement: "
+                   + "; ".join(f"{row['id']}: {', '.join(row['problems'])}"
+                               for row in placement["differences"][:5]))
+        tokens = ("identical on every item" if not placement["prefix_tokens_differ"]
+                  else f"differ on {len(placement['prefix_tokens_differ'])} items: "
+                       + ", ".join(placement["prefix_tokens_differ"][:5]))
+        lines.append(
+            f"- the table's own instrument, `{placement['probe']}` vs `{placement['baseline']}` "
+            f"({placement['n']} shared items, tolerance {placement['tolerance']:g}): {verdict}; "
+            f"max |delta p| = {placement['max_probability_delta']:.2e}, "
+            f"max |delta coverage| = {placement['max_coverage_delta']:.2e}, "
+            f"prefix_tokens {tokens}")
+    lines += ["", "## The cells", ""]
     lines += cell_table(record["cells"])
     lines += ["", "## The policy each cell ran under", ""]
     lines += policy_table(record["cells"])
@@ -465,6 +594,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--baseline", default=None, help="the cell label to compare against")
     parser.add_argument("--json", default=None, help="write the record here")
     parser.add_argument("--report-file", default=None, help="write the markdown report here")
+    parser.add_argument("--freeze-probe", default=None,
+                        help="a short default-cell arm (the freeze probe), compared below")
+    parser.add_argument("--freeze-against", default=None,
+                        help="the report the probe must reproduce (the committed baseline)")
+    parser.add_argument("--placement-probe", default=None,
+                        help="a full default-cell arm measured under the table's own instrument "
+                             "(the re-score), read against --freeze-against at PLACEMENT_TOLERANCE")
+    parser.add_argument("--placement-tolerance", type=float, default=PLACEMENT_TOLERANCE,
+                        help="the tolerance a re-score is read at "
+                             f"(default {PLACEMENT_TOLERANCE:g})")
     parser.add_argument("--recommendation", default=None,
                         help="the recommendation paragraph (the card's own words)")
     args = parser.parse_args(argv)
@@ -492,9 +631,25 @@ def main(argv: list[str] | None = None) -> int:
             "the best cell, the paired evidence for it, and what it costs in comparability."),
         "caveats": build_caveats(record["cells"], record["pairs"]),
     })
+    if args.freeze_probe and args.freeze_against:
+        probe = load_report(args.freeze_probe)
+        probe["_path"] = str(args.freeze_probe)
+        against = load_report(args.freeze_against)
+        against["_path"] = str(args.freeze_against)
+        record["freeze"] = freeze_check(probe, against)
+        if args.placement_probe:
+            placement = load_report(args.placement_probe)
+            placement["_path"] = str(args.placement_probe)
+            record["placement"] = freeze_check(placement, against,
+                                               tolerance=args.placement_tolerance)
     text = report(record, json_path=args.json, report_path=args.report_file)
     if not args.report_file:
         sys.stdout.write(text)
+    if record.get("freeze") and not record["freeze"]["frozen"]:
+        return 3                      # the default moved: the table is void, the exit code says so
+    if record.get("placement") and record["placement"]["decisions_agree"] < \
+            record["placement"]["decisions"]:
+        return 4                      # the table's own baseline answers differently: not one table
     return 0
 
 

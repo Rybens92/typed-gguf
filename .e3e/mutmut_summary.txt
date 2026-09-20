@@ -1,0 +1,139 @@
+# E3e Tier-M sweep — scope, score, survivors (card t_4c48f40a)
+
+Scope: [tool.mutmut] `source_paths` = engine/prompt.py + engine/cue.py, test selection
+= tests/test_e3e_roles.py + tests/test_e3d_cue_switch.py + tests/test_e3c_cue_refused.py
+(`engine/decide.py` deliberately out — the pyproject comment says why). mutmut 3.8, this
+box, `--max-children 2`. Round 1 = the card's change; round 2 = after the two
+acceptance pins (`test_a_template_that_stops_extending_the_prefix_for_a_later_question_is_refused`,
+`test_a_template_that_rewrites_the_question_turn_is_refused_too`); round 3 = after the plan's
+`prefix_tokens` pin in `test_the_plan_carries_the_role_split_it_rendered`. Each round exists
+because the previous round's triage named a REAL unasserted path — the rounds are the
+triaging, not a score-chasing loop.
+
+## round 1 (the change, before the pins)  (mutants_e3e_r1)
+  prompt.py     423 mutants · 64.8 % of 423 run · killed 274, no tests 12, survived 136, timeout 1
+  cue.py        144 mutants · 83.3 % of 144 run · killed 120, survived 24
+  **total: 567 mutants, 394 killed — 69.5 % of 567 run**
+
+  per function (killed / run):
+    prompt.py:
+      role_split_render                 113/155   (survived 42)
+      question_block                     44/65    (survived 21)
+      build_question                     35/49    (survived 14)
+      build_prefix                       10/44    (survived 34)
+      role_split_context                 12/14    (survived 2)
+      render_value                        1/13    (survived 12)
+      chat_messages                      13/13  
+      _common_prefix                     10/13    (survived 2, timeout 1)
+      empty_candidate_code                0/12  
+      ǁRoleSplitRenderǁtail_for           9/10    (survived 1)
+      _question_messages                 10/10  
+      json_opener                         5/9     (survived 4)
+      framing_for                         8/8   
+      render_instructions                 2/5     (survived 3)
+      normalised                          1/2     (survived 1)
+      render_state                        1/1   
+    cue.py:
+      value_verdict                      63/68    (survived 5)
+      cue_verdict                        28/30    (survived 2)
+      single_token_closers               11/20    (survived 9)
+      closer_map                          7/15    (survived 8)
+      value_markers                      11/11  
+
+## round 2 (after the two acceptance pins)  (mutants_e3e_r2)
+  prompt.py     423 mutants · 67.6 % of 423 run · killed 286, no tests 12, survived 124, timeout 1
+  cue.py        144 mutants · 83.3 % of 144 run · killed 120, survived 24
+  **total: 567 mutants, 406 killed — 71.6 % of 567 run**
+
+  per function (killed / run):
+    prompt.py:
+      role_split_render                 125/155   (survived 30)
+      question_block                     44/65    (survived 21)
+      build_question                     35/49    (survived 14)
+      build_prefix                       10/44    (survived 34)
+      role_split_context                 12/14    (survived 2)
+      render_value                        1/13    (survived 12)
+      chat_messages                      13/13  
+      _common_prefix                     10/13    (survived 2, timeout 1)
+      empty_candidate_code                0/12  
+      ǁRoleSplitRenderǁtail_for           9/10    (survived 1)
+      _question_messages                 10/10  
+      json_opener                         5/9     (survived 4)
+      framing_for                         8/8   
+      render_instructions                 2/5     (survived 3)
+      normalised                          1/2     (survived 1)
+      render_state                        1/1   
+    cue.py:
+      value_verdict                      63/68    (survived 5)
+      cue_verdict                        28/30    (survived 2)
+      single_token_closers               11/20    (survived 9)
+      closer_map                          7/15    (survived 8)
+      value_markers                      11/11  
+
+## round 3 (after the plan's prefix-tokens pin)  (mutants)
+  prompt.py     423 mutants · 67.8 % of 423 run · killed 287, no tests 12, survived 123, timeout 1
+  cue.py        144 mutants · 83.3 % of 144 run · killed 120, survived 24
+  **total: 567 mutants, 407 killed — 71.8 % of 567 run**
+
+  per function (killed / run):
+    prompt.py:
+      role_split_render                 125/155   (survived 30)
+      question_block                     44/65    (survived 21)
+      build_question                     35/49    (survived 14)
+      build_prefix                       11/44    (survived 33)
+      role_split_context                 12/14    (survived 2)
+      render_value                        1/13    (survived 12)
+      chat_messages                      13/13  
+      _common_prefix                     10/13    (survived 2, timeout 1)
+      empty_candidate_code                0/12  
+      ǁRoleSplitRenderǁtail_for           9/10    (survived 1)
+      _question_messages                 10/10  
+      json_opener                         5/9     (survived 4)
+      framing_for                         8/8   
+      render_instructions                 2/5     (survived 3)
+      normalised                          1/2     (survived 1)
+      render_state                        1/1   
+    cue.py:
+      value_verdict                      63/68    (survived 5)
+      cue_verdict                        28/30    (survived 2)
+      single_token_closers               11/20    (survived 9)
+      closer_map                          7/15    (survived 8)
+      value_markers                      11/11  
+
+## The delta: 394 → 406 → 407 killed (+13 over 3 rounds, same scope, one round of pins after each triage)
+
+## The classes the survivors fall in (read from the diffs, not guessed)
+
+* **message strings — 33** (`question_block` 15, `build_question` 10, and 8 inside
+  `role_split_render` whose `XX…XX`/upper-cased error text the classifier heuristically files
+  under boolean/guard). The gates assert error *codes* and rendered bytes, so mangled prose
+  survives. The reference's recurring class; deliberately not chased.
+* **defaults a caller always supplies — 46** (the 26 `other` in `build_prefix`, the 12
+  `json.dumps` kwargs in `render_value`, 4 in `build_prefix`'s `control/return`): the gates
+  reach `build_prefix` through callers that pass `chat_format`/`cue`/`contract` explicitly, and
+  `render_value` is driven by `tests/test_engine_fork.py` — a file outside the sweep's
+  selection. A named selection boundary, not an unpinned behaviour: the offline
+  `tools/e3e_role_render.py` record and the pin files hold the byte claims.
+* **three equivalent `role` arms in `build_prefix` (13/14/15)**: `plan_context` always passes
+  `role=`, so `role if role is not None else role_split_render(...)` cannot take its other arm
+  through any caller a gate drives.
+* **the shared-prefix shortcut in `role_split_render` (2)**: `prefix = _common_prefix(...) if
+  rendered else state_only` — both arms agree on every input the gates drive, so nothing pins
+  which one ran. Recorded as an unpinned optimisation.
+* **`empty_candidate_code` (12, `no tests`)** — the selection never calls it; its callers are
+  the CLI suites, outside the pair by design.
+* **cue.py's special-token catalogue** (`closer_map` 8, `single_token_closers` 9): pinned by
+  `tests/test_e3c_cue_specials.py`, outside the selection. The composed verdicts — where the
+  card's behaviour actually lives — score 93–100 %.
+
+## What the triage closed
+
+Three rounds, three real gaps found and pinned, no score-chasing loop: round 1 named the two
+acceptance guards inside `role_split_render` that no test reached (the module's only uncovered
+lines, 267 and 274 — live evidence for the reference's warning that a high score can sit above
+unreached code), round 2's `build_prefix` count named the inverted `chat_format` guard whose
+mutant survived because the gates never compared the plan's prefix *tokens* against the
+role-split prefix they were rendered from, and round 3 pins that with one assertion. After the
+three pins the remaining survivors are prose, supplied arguments, equivalent arms, and files
+the selection does not include — every one of them named above, and none of them a guard this
+card added.
