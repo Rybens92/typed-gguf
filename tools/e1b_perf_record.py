@@ -3,7 +3,7 @@
 
 Run on the box that has the pinned runtime and the models:
 
-    GGUFONE_RUNTIME_DIR=<bundle> HOME=$HOME python3 tools/e1b_perf_record.py [--json out.json]
+    TYPED_GGUF_RUNTIME_DIR=<bundle> HOME=$HOME python3 tools/e1b_perf_record.py [--json out.json]
 
 Nothing here is a gate (SPEC 5 / A-E1b-14: "correctness before speed"). It publishes this
 milestone's own measured numbers next to the recon reference point (14-20 ms warm choice on
@@ -23,9 +23,9 @@ from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
-from ggufone import schema  # noqa: E402
-from ggufone.engine import decide  # noqa: E402
-from ggufone.engine import session as session_module  # noqa: E402
+from typed_gguf import schema  # noqa: E402
+from typed_gguf.engine import decide  # noqa: E402
+from typed_gguf.engine import session as session_module  # noqa: E402
 
 MODELS = {
     "qwen35": pathlib.Path.home() / ".cache" / "llama.cpp" / "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
@@ -40,15 +40,15 @@ CHOICE = {
 
 
 def runtime_dir() -> pathlib.Path:
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env:
         return pathlib.Path(env)
     for base in (pathlib.Path.home() / ".hermes" / "runtime",
-                 pathlib.Path.home() / ".local" / "share" / "ggufone" / "runtime"):
+                 pathlib.Path.home() / ".local" / "share" / "typed-gguf" / "runtime"):
         for candidate in sorted(base.glob("*/")):
             if (candidate / "libllama.so").exists():
                 return candidate
-    raise SystemExit("no llama.cpp runtime found; set GGUFONE_RUNTIME_DIR")
+    raise SystemExit("no llama.cpp runtime found; set TYPED_GGUF_RUNTIME_DIR")
 
 
 def measure(name: str, path: pathlib.Path, *, threads: int, repeats: int,
@@ -108,7 +108,7 @@ def main() -> int:
     args = parser.parse_args()
     runtime = runtime_dir()
     record = {
-        "schema": "ggufone.evidence.e1b-perf/v1",
+        "schema": "typed_gguf.evidence.e1b-perf/v1",
         "captured_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "runtime_dir": str(runtime),
         "cpu_count": os.cpu_count(),

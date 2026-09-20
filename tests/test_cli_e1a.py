@@ -1,6 +1,6 @@
 """E1a CLI surface: init / doctor / models (SPEC 2.8, A-E1a-2..7).
 
-Offline: the HF seam is faked, the runtime is synthetic, and `GGUFONE_DEEP_PROBE=0` keeps the
+Offline: the HF seam is faked, the runtime is synthetic, and `TYPED_GGUF_DEEP_PROBE=0` keeps the
 symbol check out of the process (the live evidence run does the deep probe).
 """
 from __future__ import annotations
@@ -15,11 +15,11 @@ import tarfile
 import pytest
 
 # import the CLI module (not the package) so monkeypatching its deps hits the same objects
-from ggufone import __version__, cli
-from ggufone.errors import InsufficientDiskError
-from ggufone.registry import hf, store
-from ggufone.registry.hf import DownloadResult
-from ggufone.runtime import pins
+from typed_gguf import __version__, cli
+from typed_gguf.errors import InsufficientDiskError
+from typed_gguf.registry import hf, store
+from typed_gguf.registry.hf import DownloadResult
+from typed_gguf.runtime import pins
 
 
 def cpu_only_host() -> pins.HostProbes:
@@ -36,12 +36,12 @@ def gpu_host() -> pins.HostProbes:
 @pytest.fixture(autouse=True)
 def _isolated(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> pathlib.Path:
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.delenv("GGUFONE_LOCK", raising=False)
-    monkeypatch.delenv("GGUFONE_OFFLINE", raising=False)
-    monkeypatch.delenv("GGUFONE_OFFLINE_CACHE", raising=False)
-    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_LOCK", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_OFFLINE", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_OFFLINE_CACHE", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_DEEP_PROBE", "0")
     # E1a FIX t_eae35404: this file tests the *plan* (which pinned asset a variant maps to),
     # not the box it runs on — so it runs in a deterministic fake CPU machine. Without this,
     # the assertions below would flip to linux-x64-cuda-12.8 on the operator's GPU host.
@@ -149,11 +149,11 @@ def test_init_from_offline_cache_with_a_poisoned_path(tmp_path: pathlib.Path,
 
     archive = build_bundle(tmp_path, name="llama-b11026-bin-ubuntu-x64.tar.gz")
     lock_path = fake_lock(tmp_path, archive)
-    monkeypatch.setenv("GGUFONE_LOCK", str(lock_path))
+    monkeypatch.setenv("TYPED_GGUF_LOCK", str(lock_path))
     cache = tmp_path / "cache"
     cache.mkdir()
     (cache / archive.name).write_bytes(archive.read_bytes())
-    monkeypatch.setenv("GGUFONE_OFFLINE_CACHE", str(cache))
+    monkeypatch.setenv("TYPED_GGUF_OFFLINE_CACHE", str(cache))
     empty_path = tmp_path / "empty-path"
     empty_path.mkdir()
     monkeypatch.setenv("PATH", str(empty_path))
@@ -175,11 +175,11 @@ def test_init_twice_is_idempotent(tmp_path: pathlib.Path, monkeypatch: pytest.Mo
     from tests.test_runtime_install import build_bundle, fake_lock
 
     archive = build_bundle(tmp_path, name="llama-b11026-bin-ubuntu-x64.tar.gz")
-    monkeypatch.setenv("GGUFONE_LOCK", str(fake_lock(tmp_path, archive)))
+    monkeypatch.setenv("TYPED_GGUF_LOCK", str(fake_lock(tmp_path, archive)))
     cache = tmp_path / "cache"
     cache.mkdir()
     (cache / archive.name).write_bytes(archive.read_bytes())
-    monkeypatch.setenv("GGUFONE_OFFLINE_CACHE", str(cache))
+    monkeypatch.setenv("TYPED_GGUF_OFFLINE_CACHE", str(cache))
     assert cli.main(["init", "--json"]) == 0
     capsys.readouterr()
     assert cli.main(["init", "--json"]) == 0
@@ -191,7 +191,7 @@ def test_doctor_without_a_runtime_fails_and_is_stable_json(capsys) -> None:
     code = cli.main(["doctor", "--json"])
     assert code == 1
     report = json.loads(capsys.readouterr().out)
-    assert report["schema"] == "ggufone.doctor/v1"
+    assert report["schema"] == "typed_gguf.doctor/v1"
     assert report["status"] == "failures"
     assert report["exit_code"] == 1
     assert report["runtime"]["installed"] is False
@@ -205,7 +205,7 @@ def test_doctor_warns_with_a_shallow_fake_runtime(tmp_path: pathlib.Path,
                                                   monkeypatch: pytest.MonkeyPatch,
                                                   capsys) -> None:
     rt = make_runtime(tmp_path)
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(rt))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(rt))
     code = cli.main(["doctor", "--json"])
     assert code == 2  # warnings: no model pulled, symbols not probed, sha not recorded
     report = json.loads(capsys.readouterr().out)
@@ -225,7 +225,7 @@ def test_doctor_fails_when_a_required_library_is_missing(tmp_path: pathlib.Path,
                                                          monkeypatch: pytest.MonkeyPatch,
                                                          capsys) -> None:
     rt = make_runtime(tmp_path, libs=("libllama.so", "libggml.so"))
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(rt))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(rt))
     assert cli.main(["doctor", "--json"]) == 1
     report = json.loads(capsys.readouterr().out)
     assert any(c["id"] == "runtime.files" and c["status"] == "fail" for c in report["checks"])
@@ -235,7 +235,7 @@ def test_doctor_fails_when_the_runtime_lacks_the_model_arch(tmp_path: pathlib.Pa
                                                             monkeypatch: pytest.MonkeyPatch,
                                                             capsys) -> None:
     rt = make_runtime(tmp_path, archs=("qwen35",))
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(rt))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(rt))
     seed_registry(tmp_path)
     assert cli.main(["doctor", "--json"]) == 1
     report = json.loads(capsys.readouterr().out)
@@ -247,11 +247,11 @@ def test_doctor_fails_when_the_runtime_lacks_the_model_arch(tmp_path: pathlib.Pa
 
 def test_doctor_text_mode_is_readable(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch,
                                       capsys) -> None:
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(make_runtime(tmp_path)))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(make_runtime(tmp_path)))
     code = cli.main(["doctor"])
     out = capsys.readouterr().out
     assert code == 2
-    assert "ggufone doctor" in out and "runtime.build" in out
+    assert "typed-gguf doctor" in out and "runtime.build" in out
 
 
 # ------------------------------------------------------------------ models ls / use / rm
@@ -264,7 +264,7 @@ def test_models_ls_json_includes_license(tmp_path: pathlib.Path, capsys) -> None
     seed_registry(tmp_path)
     assert cli.main(["models", "ls", "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
-    assert payload["schema"] == "ggufone.models/v1"
+    assert payload["schema"] == "typed_gguf.models/v1"
     assert payload["current"] == "fake"
     model = payload["models"][0]
     assert model["license"] == "apache-2.0"
@@ -432,7 +432,7 @@ def test_models_pull_no_verify_flag_is_forwarded(monkeypatch: pytest.MonkeyPatch
 
 def test_models_pull_offline_uses_the_snapshot(monkeypatch: pytest.MonkeyPatch, capsys,
                                                tmp_path: pathlib.Path) -> None:
-    monkeypatch.setenv("GGUFONE_OFFLINE", "1")
+    monkeypatch.setenv("TYPED_GGUF_OFFLINE", "1")
     blob = make_gguf()
     # pytest's tmp_path lives on a small tmpfs: the real precheck would (correctly) refuse the
     # 4.38 GB model. The precheck itself is covered in tests/test_hf.py.

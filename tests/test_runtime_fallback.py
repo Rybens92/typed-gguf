@@ -22,8 +22,8 @@ import tarfile
 
 import pytest
 
-from ggufone import cli
-from ggufone.runtime import capability, finder, install, isolated, pins
+from typed_gguf import cli
+from typed_gguf.runtime import capability, finder, install, isolated, pins
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ASSET = {
@@ -74,7 +74,7 @@ def multi_lock(cache: pathlib.Path, backends: tuple[str, ...]) -> pathlib.Path:
         assets[VARIANT[backend]] = {"asset": archive.name, "size": archive.stat().st_size,
                                     "sha256": hashlib.sha256(archive.read_bytes()).hexdigest()}
     payload = {
-        "schema": "ggufone.runtime.lock/v1",
+        "schema": "typed_gguf.runtime.lock/v1",
         "llama_cpp": {
             "repo": "ggml-org/llama.cpp", "tag": "b11026",
             "published_at": "2026-09-17T13:31:47Z", "commit": "b49650adb",
@@ -283,17 +283,17 @@ def test_find_runtime_prefers_the_recorded_variant(tmp_path: pathlib.Path,
                                                    monkeypatch: pytest.MonkeyPatch) -> None:
     """Two installed variants: the one runtime.json records is the active one.
 
-    `GGUFONE_RUNTIME_DIR` is an explicit override and wins over `home=` by design, so an ambient
+    `TYPED_GGUF_RUNTIME_DIR` is an explicit override and wins over `home=` by design, so an ambient
     one must be cleared here or this test measures the host's bundle instead of its fixture.
     """
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     home = tmp_path / "home"
     cuda = home / "runtime" / "b11026-linux-x64-cuda-12.8"
     vulkan = home / "runtime" / "b11026-linux-x64-vulkan"
     for directory in (cuda, vulkan):
         directory.mkdir(parents=True)
         (directory / "libllama.so").write_bytes(b"\x7fELF fake\n")
-    (home / "runtime.json").write_text(json.dumps({"schema": "ggufone.runtime/v1",
+    (home / "runtime.json").write_text(json.dumps({"schema": "typed_gguf.runtime/v1",
                                                   "variant": "linux-x64-vulkan",
                                                   "dir": str(vulkan)}))
     assert finder.find_runtime(home=home) == vulkan
@@ -301,7 +301,7 @@ def test_find_runtime_prefers_the_recorded_variant(tmp_path: pathlib.Path,
 
 def test_find_runtime_falls_back_to_a_scan_when_the_record_is_stale(
         tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     home = tmp_path / "home"
     vulkan = home / "runtime" / "b11026-linux-x64-vulkan"
     vulkan.mkdir(parents=True)
@@ -344,10 +344,10 @@ def test_install_reports_a_bundle_that_carries_no_such_backend(tmp_path: pathlib
 def test_doctor_reports_the_working_backend_and_the_recorded_fallback(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.delenv("GGUFONE_LOCK", raising=False)
-    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_LOCK", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_DEEP_PROBE", "0")
     monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
 
     rt = home / "runtime" / "b11026-linux-x64-vulkan"
@@ -356,7 +356,7 @@ def test_doctor_reports_the_working_backend_and_the_recorded_fallback(
                 "libggml-vulkan.so"):
         (rt / lib).write_bytes(b"\x7fELF fake\nllama_model_spark2_5\x00build 11026\n")
     (home / "runtime.json").write_text(json.dumps({
-        "schema": "ggufone.runtime/v1", "variant": "linux-x64-vulkan", "build": 11026,
+        "schema": "typed_gguf.runtime/v1", "variant": "linux-x64-vulkan", "build": 11026,
         "backend_requested": "cuda", "backend_working": "vulkan", "libllama_sha256": None,
         "fallback_reason": f"cuda does not load on this host ({CUDA_LOAD_ERROR})",
         "fallback_attempts": [{"backend": "cuda", "variant": "linux-x64-cuda-12.8",
@@ -377,10 +377,10 @@ def test_doctor_reports_the_working_backend_and_the_recorded_fallback(
 def test_doctor_marks_the_expected_backend_ok_when_it_really_loads(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.delenv("GGUFONE_LOCK", raising=False)
-    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_LOCK", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_DEEP_PROBE", "0")
     monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
 
     rt = home / "runtime" / "b11026-linux-x64-cuda-12.8"
@@ -507,9 +507,9 @@ def test_reason_codes_are_a_closed_set() -> None:
 def test_doctor_reports_the_working_backend_the_list_and_the_fallback_code(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_DEEP_PROBE", "0")
     monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
 
     rt = home / "runtime" / "b11026-linux-x64-vulkan"
@@ -518,7 +518,7 @@ def test_doctor_reports_the_working_backend_the_list_and_the_fallback_code(
                 "libggml-vulkan.so"):
         (rt / lib).write_bytes(b"\x7fELF fake\nllama_model_spark2_5\x00build 11026\n")
     (home / "runtime.json").write_text(json.dumps({
-        "schema": "ggufone.runtime/v1", "variant": "linux-x64-vulkan", "build": 11026,
+        "schema": "typed_gguf.runtime/v1", "variant": "linux-x64-vulkan", "build": 11026,
         "backend_requested": "cuda", "backend_working": "vulkan",
         "fallback_reason": f"cuda does not load on this host ({CUDA_LOAD_ERROR})",
         "fallback_reason_code": install.REASON_LOADER_ERROR,
@@ -544,9 +544,9 @@ def test_doctor_reads_the_backends_off_the_bundle_it_found(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
     """No table of backends: the list follows the files (and the dlopen result) of this bundle."""
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_DEEP_PROBE", "0")
     monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
     rt = home / "runtime" / "b11026-linux-x64-cpu"
     rt.mkdir(parents=True)

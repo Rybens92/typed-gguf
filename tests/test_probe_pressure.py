@@ -27,9 +27,9 @@ import sys
 
 import pytest
 
-from ggufone.runtime import install, isolated, pins, pressure
 from tests.conftest import pid_headroom
 from tests.test_runtime_fallback import GPU_HOST, bundle_cache, multi_lock
+from typed_gguf.runtime import install, isolated, pins, pressure
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -265,7 +265,7 @@ def test_a_fork_gate_probe() -> None:
 
 def run_nested(*selection: str, headroom: str) -> subprocess.CompletedProcess[str]:
     """A real pytest run with a *simulated* cgroup reading (the gate's own end-to-end pin)."""
-    env = {**os.environ, "GGUFONE_TEST_PID_HEADROOM": headroom, "PYTEST_ADDOPTS": ""}
+    env = {**os.environ, "TYPED_GGUF_TEST_PID_HEADROOM": headroom, "PYTEST_ADDOPTS": ""}
     return subprocess.run(                                    # noqa: S603
         [sys.executable, "-m", "pytest", "-q", "-p", "no:randomly", "-rs", "--tb=line",
          *selection],
@@ -274,8 +274,8 @@ def run_nested(*selection: str, headroom: str) -> subprocess.CompletedProcess[st
 
 @pytest.mark.needs_fork
 def test_the_gate_skips_fork_gates_under_a_starved_cgroup_and_refuses_to_look_green() -> None:
-    """`GGUFONE_TEST_PID_HEADROOM=250/256`: the fork gate skips *loudly*, the headroom gate fails,
-    and the run exits non-zero — a starved box can never be read as "the product is fine"."""
+    """`TYPED_GGUF_TEST_PID_HEADROOM=250/256`: the fork gate skips *loudly*, the headroom gate
+    fails, and the run exits non-zero — a starved box can never read as "the product is fine"."""
     result = run_nested(
         "tests/test_probe_pressure.py::test_a_fork_gate_probe",
         "tests/test_probe_pressure.py::test_the_pid_cgroup_has_fork_headroom_for_the_probe_gates",

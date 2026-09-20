@@ -18,8 +18,8 @@ from typing import Any
 
 import pytest
 
-from ggufone.engine import template as tpl
-from ggufone.errors import ERROR_CODES, WARNING_CODES
+from typed_gguf.engine import template as tpl
+from typed_gguf.errors import ERROR_CODES, WARNING_CODES
 
 # --------------------------------------------------------------------- fixtures
 SPARK_LIKE = (
@@ -326,8 +326,8 @@ def test_policy_aliases_resolve_to_the_documented_row() -> None:
 
 # ------------------------------------------- A-E1c-3: the cue contract (prompt side)
 def test_the_rendered_question_suffix_ends_at_the_cue() -> None:
-    from ggufone.engine import prompt
-    from ggufone.schema import Question
+    from typed_gguf.engine import prompt
+    from typed_gguf.schema import Question
 
     question = Question(id="area", type="choice", instructions="Which team owns this?",
                         criteria={"billing": None, "technical": None},
@@ -356,9 +356,9 @@ def test_post_cue_degenerate_output_never_affects_the_readout() -> None:
     softmax is shift-invariant — so the answers are byte-identical while the coverage diagnostic
     (full-vocab mass) legitimately collapses.
     """
-    from ggufone import schema
-    from ggufone.engine import decide
     from tests.fake_engine import FakeSession, biased_row
+    from typed_gguf import schema
+    from typed_gguf.engine import decide
 
     payload = {
         "state": "The billing dashboard is blank for every user after login.",
@@ -397,7 +397,7 @@ def test_post_cue_degenerate_output_never_affects_the_readout() -> None:
 
 
 # ------------------------------------------------------------- live: real GGUFs
-# Run with: GGUFONE_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_templates.py
+# Run with: TYPED_GGUF_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_templates.py
 MODEL_PATHS = {
     "spark2_5": pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf",
     "qwen35": pathlib.Path.home() / ".cache" / "llama.cpp" / "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
@@ -410,7 +410,7 @@ EXPECTED_TAIL = {"spark2_5": "<|Bot|></think>", "qwen35": "<|im_start|>assistant
 
 
 def _model_template(name: str) -> tuple[str, str]:
-    from ggufone.registry import gguf
+    from typed_gguf.registry import gguf
     path = MODEL_PATHS[name]
     if not path.exists():
         pytest.skip(f"{path} is not on this box")
@@ -444,13 +444,13 @@ def test_the_real_prompt_has_no_think_token_on_the_real_vocabulary() -> None:
     """The strongest form of A-E1c-2: the model's *own vocabulary* sees no think-opener."""
     import os
 
-    from ggufone.engine import session as session_module
-    from ggufone.runtime import finder
+    from typed_gguf.engine import session as session_module
+    from typed_gguf.runtime import finder
 
     path = MODEL_PATHS["spark2_5"]
     if not path.exists():
         pytest.skip(f"{path} is not on this box")
-    runtime_dir = os.environ.get("GGUFONE_RUNTIME_DIR") or finder.find_runtime()
+    runtime_dir = os.environ.get("TYPED_GGUF_RUNTIME_DIR") or finder.find_runtime()
     if not runtime_dir:
         pytest.skip("no llama.cpp runtime on this box")
     arch, template = _model_template("spark2_5")
@@ -470,7 +470,7 @@ def test_the_real_prompt_has_no_think_token_on_the_real_vocabulary() -> None:
 
 
 def _decode(handle: Any, text: str) -> str:
-    from ggufone.runtime import ctypes_binding
+    from typed_gguf.runtime import ctypes_binding
     return "".join(ctypes_binding.token_piece(handle.runtime, handle.vocab, token)
                    for token in handle.tokenize(text))
 
@@ -480,9 +480,9 @@ def test_step_two_renders_through_the_runtime_builtin_table() -> None:
     """`llama_chat_apply_template` really is a second source (Qwen's template matches chatml)."""
     import os
 
-    from ggufone.runtime import ctypes_binding, finder
+    from typed_gguf.runtime import ctypes_binding, finder
 
-    runtime_dir = os.environ.get("GGUFONE_RUNTIME_DIR") or finder.find_runtime()
+    runtime_dir = os.environ.get("TYPED_GGUF_RUNTIME_DIR") or finder.find_runtime()
     if not runtime_dir:
         pytest.skip("no llama.cpp runtime on this box")
     runtime = ctypes_binding.load_libraries(runtime_dir)

@@ -1,6 +1,6 @@
 """A deterministic, model-free session used by the engine tests (and the CLI tests).
 
-It implements exactly the seam `ggufone.engine.decide` talks to:
+It implements exactly the seam `typed_gguf.engine.decide` talks to:
 
     meta, tokenize, prefill, fork, release, decode, close
 
@@ -19,7 +19,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
-from ggufone.engine.decide import Batch, PrefillInfo, SessionMeta
+from typed_gguf.engine.decide import Batch, PrefillInfo, SessionMeta
 
 WORD_RE = re.compile(r"[a-z0-9]+")
 
@@ -221,7 +221,7 @@ class BenchModel:
 
     def decide(self, request: object, *, n_ctx: int | None = None,
                n_seq_max: int | None = None, threads: int | None = None) -> object:
-        from ggufone.engine import decide as decide_module
+        from typed_gguf.engine import decide as decide_module
 
         label = self.script.get(_state_text(request.state))
         session = self._session(n_ctx=n_ctx or 65536,

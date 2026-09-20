@@ -15,14 +15,14 @@ import pathlib
 
 import pytest
 
-from ggufone import schema
-from ggufone.engine import decide, prompt, readout
-from ggufone.engine import session as session_module
-from ggufone.engine.decide import Batch
-from ggufone.errors import GgufoneError
-from ggufone.runtime import finder
-from ggufone.schema import Question
 from tests.fake_engine import FakeSession, biased_row
+from typed_gguf import schema
+from typed_gguf.engine import decide, prompt, readout
+from typed_gguf.engine import session as session_module
+from typed_gguf.engine.decide import Batch
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.runtime import finder
+from typed_gguf.schema import Question
 
 # --------------------------------------------------------------------- helpers
 #: The pre-v2 cell, spelled out. Policy v2 (card t_5b754458) moved the *product defaults* to
@@ -170,7 +170,7 @@ def test_decode_calls_are_one_prefill_plus_one_batch_per_wave() -> None:
 
 def test_no_sampling_symbol_anywhere_in_src() -> None:
     import pathlib
-    root = pathlib.Path(__file__).resolve().parents[1] / "src" / "ggufone"
+    root = pathlib.Path(__file__).resolve().parents[1] / "src" / "typed_gguf"
     offenders = [str(path.relative_to(root)) for path in root.rglob("*.py")
                  if "llama_sampler_" in path.read_text(encoding="utf-8")]
     assert offenders == []
@@ -276,7 +276,7 @@ def test_identical_candidate_sequences_are_a_pinned_collision_error() -> None:
         "questions": {"area": {"type": "choice",
                                "criteria": {"outage": None, "outage!": None}}},
     }
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         run(session, payload)
     assert exc.value.code == "E_CANDIDATE_COLLISION"
     assert exc.value.exit_code == 2
@@ -291,7 +291,7 @@ def test_collision_is_detected_on_the_scored_sequence_only() -> None:
                                "criteria": {"billing suite": None, "billing": None}}},
         "options": {"readout": "single_token"},
     }
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         run(session, payload)
     assert exc.value.code == "E_CANDIDATE_COLLISION"
 
@@ -330,7 +330,7 @@ def test_a_healthy_coverage_reports_ok_and_no_warning() -> None:
 # --------------------------------------------------------------- ctx / seq guards
 def test_a_context_too_small_for_the_prompt_is_a_pinned_runtime_error() -> None:
     session = FakeSession(n_vocab=64, n_ctx=8)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         run(session, choice_request())
     assert exc.value.code == "E_CTX_TOO_SMALL"
     assert exc.value.exit_code == 3
@@ -338,14 +338,14 @@ def test_a_context_too_small_for_the_prompt_is_a_pinned_runtime_error() -> None:
 
 def test_a_sequence_cap_below_three_cannot_hold_prefix_and_branch() -> None:
     session = FakeSession(n_vocab=64, n_seq_max=2)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         run(session, choice_request(options={"n_seq_max": 3}))
     assert exc.value.code == "E_SEQ_MAX_EXCEEDED"
 
 
 def test_max_waves_caps_the_wave_budget() -> None:
     session = FakeSession(n_vocab=128, n_seq_max=4)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         run(session, eight_by_four(n_seq_max=4, max_waves=3))
     assert exc.value.code == "E_SEQ_MAX_EXCEEDED"
 
@@ -450,7 +450,7 @@ def test_plan_context_sizes_the_context_from_the_prompt() -> None:
 
 
 # --------------------------------------------------------------- real model (A-E1b-2/3/4/5/8)
-# Run with: GGUFONE_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_engine_fork.py
+# Run with: TYPED_GGUF_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_engine_fork.py
 MODEL_PATHS = {
     "spark2_5": pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf",
     "qwen35": pathlib.Path.home() / ".cache" / "llama.cpp" / "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
@@ -459,28 +459,29 @@ _HANDLES: dict[str, session_module.ModelHandle] = {}
 
 
 def _runtime_dir() -> pathlib.Path:
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env and (pathlib.Path(env) / "libllama.so").exists():
         return pathlib.Path(env)
     found = finder.find_runtime()
     if found:
         return found
     for base in (pathlib.Path.home() / ".hermes" / "runtime",
-                 pathlib.Path.home() / ".local" / "share" / "ggufone" / "runtime"):
+                 pathlib.Path.home() / ".local" / "share" / "typed-gguf" / "runtime"):
         for candidate in sorted(base.glob("*/")):
             if (candidate / "libllama.so").exists():
                 return candidate
-    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR or run `ggufone init`)")
+    pytest.skip("no llama.cpp runtime on this box "
+                "(set TYPED_GGUF_RUNTIME_DIR or run `typed-gguf init`)")
 
 
 def scratch_states(name: str) -> pathlib.Path:
     """A scratch dir for saved prefix states: they are ~20 MB and `/tmp` here is a 512 MB tmpfs.
 
-    Override the location with `GGUFONE_TEST_STATE_HOME` (used by the reviewer/host run).
+    Override the location with `TYPED_GGUF_TEST_STATE_HOME` (used by the reviewer/host run).
     """
     import tempfile
-    root = os.environ.get("GGUFONE_TEST_STATE_HOME") or "/var/tmp"
-    base = pathlib.Path(tempfile.mkdtemp(prefix=f"ggufone-e1b-{name}-", dir=root))
+    root = os.environ.get("TYPED_GGUF_TEST_STATE_HOME") or "/var/tmp"
+    base = pathlib.Path(tempfile.mkdtemp(prefix=f"typed-gguf-e1b-{name}-", dir=root))
     path = base / "states"
     path.mkdir(parents=True, exist_ok=True)
     return path
@@ -690,7 +691,7 @@ def test_state_round_trip_and_a_corrupt_state_is_a_pinned_error(handles, tmp_pat
     original = state_file.read_bytes()
     state_file.write_bytes(original[: max(16, len(original) // 3)])   # truncated
     with live_session(handle, request, states_home=states) as (_, broken), \
-            pytest.raises(GgufoneError) as exc:
+            pytest.raises(TypedGgufError) as exc:
         decide.DecisionEngine(broken).decide(request, plan=plan)
     assert exc.value.code == "E_STATE_LOAD_FAILED"
     assert exc.value.exit_code == 3
@@ -705,7 +706,7 @@ def test_state_round_trip_and_a_corrupt_state_is_a_pinned_error(handles, tmp_pat
     # a garbage file (wrong size AND wrong header) takes the same path, with no abort
     state_file.write_bytes(b"not a llama state at all")
     with live_session(handle, request, states_home=states) as (_, garbage), \
-            pytest.raises(GgufoneError) as exc:
+            pytest.raises(TypedGgufError) as exc:
         decide.DecisionEngine(garbage).decide(request, plan=plan)
     assert exc.value.code == "E_STATE_LOAD_FAILED"
     assert not state_file.exists()

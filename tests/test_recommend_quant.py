@@ -1,7 +1,7 @@
 """recommend_quant + quant/file selection (SPEC 2.7, A-E1a-5, A-E1a-7).
 
 The executed reference table lives in docs/verify_runtime_contract.py section C and in
-SPEC 2.7; these tests re-assert it through ggufone's own implementation.
+SPEC 2.7; these tests re-assert it through typed-gguf's own implementation.
 """
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ import pathlib
 
 import pytest
 
-from ggufone.errors import GgufoneError
-from ggufone.registry.recommend import (
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.registry.recommend import (
     GGML_TYPE_BYTES,
     OVERHEAD_BYTES,
     FileChoice,
@@ -159,7 +159,7 @@ def test_select_file_f16_matches_bare_gguf_without_quant_token() -> None:
 
 def test_select_file_ambiguous_quant_lists_candidates() -> None:
     files = hf_files("Spark-X2.5-4B-Q8_0.gguf", "Spark-X2.5-4B-Q8_0-imatrix.gguf")
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         select_file(files, quant="Q8_0")
     assert exc.value.code == "E_AMBIGUOUS_QUANT"
     msg = str(exc.value)
@@ -168,7 +168,7 @@ def test_select_file_ambiguous_quant_lists_candidates() -> None:
 
 def test_select_file_unknown_quant_is_actionable() -> None:
     files = hf_files(SPARK_Q8[0], SPARK_Q4[0])
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         select_file(files, quant="Q3_K_XL")
     assert exc.value.code == "E_MODEL_NOT_FOUND"
     assert "Q3_K_XL" in str(exc.value)
@@ -191,7 +191,7 @@ def test_select_file_explicit_file_wins() -> None:
 
 
 def test_select_file_explicit_file_missing_is_an_error() -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         select_file(hf_files(SPARK_Q8[0]), explicit_file="nope.gguf")
     assert exc.value.code == "E_MODEL_NOT_FOUND"
 

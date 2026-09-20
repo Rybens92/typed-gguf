@@ -30,23 +30,23 @@ import subprocess
 
 import pytest
 
-from ggufone.errors import RuntimeMissingError
-from ggufone.registry import recommend
-from ggufone.runtime import capability, install, pins
+from typed_gguf.errors import RuntimeMissingError
+from typed_gguf.registry import recommend
+from typed_gguf.runtime import capability, install, pins
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LOCK = ROOT / "runtime.lock"
 
 # Environment a host-fact reader could read INSTEAD of a probe. Detection must not consult any of
-# them (the installer's `GGUFONE_OFFLINE_CACHE` is a cache knob, not a host fact).
+# them (the installer's `TYPED_GGUF_OFFLINE_CACHE` is a cache knob, not a host fact).
 DEVICE_ENV = ("CUDA_VISIBLE_DEVICES", "NVIDIA_VISIBLE_DEVICES", "NVIDIA_DRIVER_CAPABILITIES",
               "GPU_DEVICE_ORDINAL", "HIP_VISIBLE_DEVICES", "ROCR_VISIBLE_DEVICES",
               "VK_ICD_FILENAMES", "VK_DRIVER_FILES", "VK_LOADER_LAYERS_ENABLE", "DISPLAY",
-              "WAYLAND_DISPLAY", "XDG_SESSION_TYPE", "GGUFONE_BACKEND", "GGUFONE_DEVICE",
-              "GGUFONE_ACCELERATOR", "GGUFONE_GPU")
+              "WAYLAND_DISPLAY", "XDG_SESSION_TYPE", "TYPED_GGUF_BACKEND", "TYPED_GGUF_DEVICE",
+              "TYPED_GGUF_ACCELERATOR", "TYPED_GGUF_GPU")
 # Names that could carry a host fact, by prefix: a probe default smuggled through the environment
 # has to be read by one of these.
-HOST_FACT_PREFIXES = ("GGUFONE_", "CUDA", "NVIDIA", "VK_", "DRI", "HIP_", "ROCR_", "DISPLAY",
+HOST_FACT_PREFIXES = ("TYPED_GGUF_", "CUDA", "NVIDIA", "VK_", "DRI", "HIP_", "ROCR_", "DISPLAY",
                       "WAYLAND", "XDG_SESSION_TYPE", "LIBGL", "MESA", "GBM_", "VULKAN", "NEO_",
                       "INTEL_VK", "RADV", "AMD_VULKAN", "WSL", "WSLENV")
 

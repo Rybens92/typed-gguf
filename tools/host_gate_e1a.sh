@@ -3,7 +3,7 @@
 #
 #   tools/host_gate_e1a.sh [LOG_DIR]
 #
-# Default LOG_DIR: $HOME/.ggufone-host-gate-<utc timestamp>. Everything the run produced —
+# Default LOG_DIR: $HOME/.typed-gguf-host-gate-<utc timestamp>. Everything the run produced —
 # raw stdout/stderr, exit codes, timings, the runtime record, the probe facts — lands there,
 # and tools/host_gate_summary.py turns the directory into host_gate_e1a.json.
 #
@@ -22,17 +22,17 @@
 #  11  fallback evidence   runtime.json + the archive hashes in the downloads dir
 #
 # It is safe to re-run: the only writes are under LOG_DIR and, for steps 4/10, under the
-# ggufone data home (delete `<data home>/runtime` to force a fresh install).
+# typed-gguf data home (delete `<data home>/runtime` to force a fresh install).
 # Nothing in the repository is modified (no git commands that write).
 set -u
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-LOG_DIR="${1:-$HOME/.ggufone-host-gate-$STAMP}"
+LOG_DIR="${1:-$HOME/.typed-gguf-host-gate-$STAMP}"
 mkdir -p "$LOG_DIR"
 cd "$REPO" || exit 2
 
-echo "ggufone E1a host gate"
+echo "typed-gguf E1a host gate"
 echo "  repo    : $REPO"
 echo "  logs    : $LOG_DIR"
 echo "  started : $(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -66,10 +66,10 @@ step() {  # step <name> <budget-seconds> <cmd...>
     echo "dri_nodes:"; ls -l /dev/dri 2>&1 | sed 's/^/  /'
     echo "vulkan_icd:"; ls /usr/share/vulkan/icd.d 2>&1 | sed 's/^/  /'
     echo "cudart_in_ldconfig:"; (ldconfig -p 2>/dev/null | grep -E 'libcudart|libcublas|libcuda\.so' || echo "  <none>") | sed 's/^/  /'
-    echo "ggufone_home: $(python3 - <<'PY'
+    echo "typed_gguf_home: $(python3 - <<'PY'
 import os, pathlib
-print(os.environ.get("GGUFONE_HOME") or (os.environ.get("XDG_DATA_HOME")
-      or pathlib.Path.home() / ".local" / "share") / "ggufone")
+print(os.environ.get("TYPED_GGUF_HOME") or (os.environ.get("XDG_DATA_HOME")
+      or pathlib.Path.home() / ".local" / "share") / "typed-gguf")
 PY
 )"
 } >"$LOG_DIR/host_facts.txt" 2>&1
@@ -78,7 +78,7 @@ sed -n '1,40p' "$LOG_DIR/host_facts.txt"
 
 # ---------------------------------------------------------------- 1 + 2 pre-install
 step pytest_before 900 uv run pytest -q
-step init_dry_run 120 uv run ggufone init --dry-run --json
+step init_dry_run 120 uv run typed-gguf init --dry-run --json
 
 # ---------------------------------------------------------------- 3. poison the toolchain
 POISON="$LOG_DIR/poison"
@@ -87,7 +87,7 @@ for tool in cc gcc g++ clang clang++ nvcc cmake ninja make ld ar rustc cargo mes
     cat >"$POISON/$tool" <<'SHIM'
 #!/bin/sh
 echo "$(basename "$0")" >> "${SHIM_LOG:-/dev/null}"
-echo "poisoned: $(basename "$0") must not be called by ggufone init" >&2
+echo "poisoned: $(basename "$0") must not be called by typed-gguf init" >&2
 exit 127
 SHIM
     chmod +x "$POISON/$tool"
@@ -97,11 +97,11 @@ echo "== [poison] $(ls "$POISON" | wc -l) compiler shims installed in $POISON"
 PATH="$POISON:$PATH" bash -c 'set -u; for t in gcc cmake nvcc; do PATH= command -v "$t" >/dev/null && echo "$t still reachable"; done; echo "poison check: $(gcc --version 2>&1 | head -1)"'
 
 # ---------------------------------------------------------------- 4. the real install
-step init 1800 uv run ggufone init --json
+step init 1800 uv run typed-gguf init --json
 
 # ---------------------------------------------------------------- 5 + 6 reporting
-step doctor 600 uv run ggufone doctor --json
-step version 120 uv run ggufone version --json
+step doctor 600 uv run typed-gguf doctor --json
+step version 120 uv run typed-gguf version --json
 
 # ---------------------------------------------------------------- 7. suite with the runtime
 step pytest_after 900 uv run pytest -q
@@ -115,20 +115,20 @@ step pytest_network 1800 uv run pytest -q --run-network
 # ---------------------------------------------------------------- 10. A-E1a-2 poisoned PATH
 DATA_HOME="$(python3 - <<'PY'
 import os, pathlib
-print(os.environ.get("GGUFONE_HOME") or (os.environ.get("XDG_DATA_HOME")
-      or pathlib.Path.home() / ".local" / "share") / "ggufone")
+print(os.environ.get("TYPED_GGUF_HOME") or (os.environ.get("XDG_DATA_HOME")
+      or pathlib.Path.home() / ".local" / "share") / "typed-gguf")
 PY
 )"
 POISON_HOME="$LOG_DIR/poison-home"
 if [ -d "$DATA_HOME/downloads" ]; then
-    export GGUFONE_OFFLINE_CACHE="$DATA_HOME/downloads"   # both pinned archives after step 4
+    export TYPED_GGUF_OFFLINE_CACHE="$DATA_HOME/downloads"   # both pinned archives after step 4
 fi
-export GGUFONE_HOME="$POISON_HOME"
+export TYPED_GGUF_HOME="$POISON_HOME"
 export SHIM_LOG="$LOG_DIR/poison_calls.log"
 : >"$LOG_DIR/poison_calls.log"
-step init_poisoned_path 180 env PATH="$POISON:$PATH" uv run ggufone init --json
+step init_poisoned_path 180 env PATH="$POISON:$PATH" uv run typed-gguf init --json
 echo "   poison shims invoked: $(wc -l <"$LOG_DIR/poison_calls.log")"
-unset GGUFONE_HOME GGUFONE_OFFLINE_CACHE SHIM_LOG
+unset TYPED_GGUF_HOME TYPED_GGUF_OFFLINE_CACHE SHIM_LOG
 
 # ---------------------------------------------------------------- 11. fallback evidence
 {

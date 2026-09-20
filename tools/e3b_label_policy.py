@@ -39,7 +39,7 @@ The shipped policy can be cross-checked against `DecisionEngine` itself (`--cros
 items pay one extra prefill each), so a probe bug cannot be published as a model finding.
 
     # the sweep (default: every cue x every label variant, coverage only)
-    GGUFONE_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> python3 tools/e3b_label_policy.py run \\
+    TYPED_GGUF_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> python3 tools/e3b_label_policy.py run \\
         --model ~/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf \\
         --devset docs/evidence/e3_chunks/devset_001.jsonl --per-type 2 \\
         --rank shipped=newline --rank shipped=bare --cross-check 1 \\
@@ -64,13 +64,13 @@ from typing import Any
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone import schema  # noqa: E402
-from ggufone.bench import devset, harness, labels, suites  # noqa: E402
-from ggufone.engine import decide, prompt, readout  # noqa: E402
-from ggufone.engine import session as session_module  # noqa: E402
-from ggufone.engine import template as template_module  # noqa: E402
+from typed_gguf import schema  # noqa: E402
+from typed_gguf.bench import devset, harness, labels, suites  # noqa: E402
+from typed_gguf.engine import decide, prompt, readout  # noqa: E402
+from typed_gguf.engine import session as session_module  # noqa: E402
+from typed_gguf.engine import template as template_module  # noqa: E402
 
-SCHEMA = "ggufone.e3b.label-policy/v1"
+SCHEMA = "typed_gguf.e3b.label-policy/v1"
 SHIPPED_PREFIX = "shipped"
 KEPT_PREFIX = "kept"
 PREFIX_VARIANTS = (SHIPPED_PREFIX, KEPT_PREFIX)
@@ -510,7 +510,7 @@ def render_report(record: dict[str, Any]) -> str:
 
 
 def write_policy_reports(record: dict[str, Any], directory: pathlib.Path) -> list[pathlib.Path]:
-    """One `ggufone.bench/v1` quality report per ranked policy (`compare.py` can read them)."""
+    """One `typed_gguf.bench/v1` quality report per ranked policy (`compare.py` can read them)."""
     directory.mkdir(parents=True, exist_ok=True)
     written: list[pathlib.Path] = []
     for key in record.get("ranked_keys", []):
@@ -555,7 +555,7 @@ def write_policy_reports(record: dict[str, Any], directory: pathlib.Path) -> lis
 def live_run(args: argparse.Namespace) -> int:
     os.environ.setdefault("VK_DRIVER_FILES", args.vk_driver_files)
     model_path = str(pathlib.Path(os.path.expanduser(args.model)))
-    runtime = args.runtime or os.environ.get("GGUFONE_RUNTIME_DIR")
+    runtime = args.runtime or os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     items = select_items(devset.load(args.devset), per_type=args.per_type, ids=args.ids,
                          limit=args.limit)
     if not items:
@@ -570,7 +570,7 @@ def live_run(args: argparse.Namespace) -> int:
         rank.append((cue, variant))
     sha = ""
     try:
-        from ggufone.runtime import fit
+        from typed_gguf.runtime import fit
         sha = fit.ModelFacts.read(model_path, want_sha256=True).sha256
     except Exception as exc:                                # noqa: BLE001 - a pin, not a gate
         print(f"warning: could not pin the model sha256 ({exc})", file=sys.stderr)
@@ -654,7 +654,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="the live sweep (loads the model once)")
     run.add_argument("--model", required=True)
-    run.add_argument("--runtime", default=None, help="GGUFONE_RUNTIME_DIR; default: the env")
+    run.add_argument("--runtime", default=None, help="TYPED_GGUF_RUNTIME_DIR; default: the env")
     run.add_argument("--devset", default=None, help="devset jsonl (default: the committed set)")
     run.add_argument("--ids", nargs="+", default=None, help="exact dev item ids")
     run.add_argument("--per-type", dest="per_type", type=int, default=None,
@@ -684,7 +684,7 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--max-sequences", dest="max_sequences", type=int, default=MAX_SEQUENCES)
     run.add_argument("--states-home", dest="states_home", default=DEFAULT_STATES_HOME)
     run.add_argument("--vk-driver-files", dest="vk_driver_files",
-                     default=os.environ.get("GGUFONE_VK_DRIVER_FILES", DEFAULT_VK_DRIVER_FILES))
+                     default=os.environ.get("TYPED_GGUF_VK_DRIVER_FILES", DEFAULT_VK_DRIVER_FILES))
     run.add_argument("--out", required=True)
     run.add_argument("--report", default=None)
     run.add_argument("--report-dir", dest="report_dir", default=None)

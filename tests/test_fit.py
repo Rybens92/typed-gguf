@@ -1,8 +1,8 @@
-"""A-E1c-4/5/6: `ggufone fit` — the plan, its source, its cache and the downgrade order.
+"""A-E1c-4/5/6: `typed-gguf fit` — the plan, its source, its cache and the downgrade order.
 
 Offline half: synthetic GGUFs (header + tensor index, no tensor data), fake hosts and a fake
 `llama-fit-params` executable, so every branch is pinned without a runtime or a GPU. Every
-`ggufone fit` CLI test here pins its host world through `pin_host_facts` (card t_e29734e6), so the
+`typed-gguf fit` CLI test here pins its host world through `pin_host_facts` (card t_e29734e6), so
 box is allowed to be busy — this host is. The live numbers (the binary on this box, RSS
 cross-check) are in `tests/test_fit_live.py` and `docs/evidence/e1c_*.md`.
 """
@@ -16,9 +16,9 @@ from collections.abc import Callable
 
 import pytest
 
-from ggufone import cli
-from ggufone.errors import WARNING_CODES
-from ggufone.runtime import fit
+from typed_gguf import cli
+from typed_gguf.errors import WARNING_CODES
+from typed_gguf.runtime import fit
 
 GIB = 1024 ** 3
 MIB = 1024 ** 2
@@ -353,7 +353,7 @@ def test_the_cli_fit_command_returns_the_documented_json(
         tmp_path: pathlib.Path, capsys: pytest.CaptureFixture[str],
         monkeypatch: pytest.MonkeyPatch,
         pin_host_facts: Callable[[fit.HostFacts], fit.HostFacts]) -> None:
-    """The documented JSON of `ggufone fit --json` on a pinned, idle device (card t_e29734e6).
+    """The documented JSON of `typed-gguf fit --json` on a pinned, idle device (card t_e29734e6).
 
     The host facts are the one thing this gate must not read off the machine: the same command
     legitimately warns `W_FIT_DOWNGRADE`/`W_KV_TYPE_DOWNGRADE` whenever the desktop already holds
@@ -361,8 +361,8 @@ def test_the_cli_fit_command_returns_the_documented_json(
     about the command — it went red the moment the operator's host became a *busy* host.
     """
     model = write_gguf(tmp_path / "synthetic.gguf")
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     roomy = pin_host_facts(gpu_host())
     code = cli.main(["fit", str(model), "--json"])
     assert code == 0
@@ -389,8 +389,8 @@ def test_the_cli_fit_command_warns_when_the_device_is_mostly_taken(
     fit than the nominal card would hold, and both warnings have to be there.
     """
     model = write_gguf(tmp_path / "synthetic.gguf")
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     busy = pin_host_facts(gpu_host(free_gib=1.5))
     assert cli.main(["fit", str(model), "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
@@ -415,8 +415,8 @@ def test_the_cli_fit_command_runs_a_binary_when_one_exists(
     script = runtime / "llama-fit-params"
     script.write_text("#!/bin/sh\nprintf 'Host 96 12 24\\n'\n", encoding="utf-8")
     script.chmod(script.stat().st_mode | stat.S_IXUSR)
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(runtime))
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(runtime))
     pin_host_facts(gpu_host())                    # the fake binary is the subject, not the card
     code = cli.main(["fit", str(model), "--json"])
     assert code == 0
@@ -436,8 +436,8 @@ def test_fit_never_touches_the_network(monkeypatch: pytest.MonkeyPatch,
         raise AssertionError("network call attempted by `fit`")
 
     model = write_gguf(tmp_path / "synthetic.gguf")
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     monkeypatch.setattr(socket, "socket", forbidden)
     pin_host_facts(gpu_host())
     assert cli.main(["fit", str(model), "--json"]) == 0
@@ -447,8 +447,8 @@ def test_fit_never_touches_the_network(monkeypatch: pytest.MonkeyPatch,
 def test_fit_reports_a_missing_model_with_the_pinned_code(
         tmp_path: pathlib.Path, capsys: pytest.CaptureFixture[str],
         monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     code = cli.main(["fit", str(tmp_path / "nope.gguf")])
     assert code == 2
     assert "E_MODEL_NOT_FOUND" in capsys.readouterr().err

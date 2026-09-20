@@ -1,6 +1,6 @@
 """E1c CLI surface: per-command help (carried finding #1), the fit knobs, `fit` itself.
 
-The card carried a UX gap from E1b verification: `ggufone ask --help` used to answer
+The card carried a UX gap from E1b verification: `typed-gguf ask --help` used to answer
 `error: E_UNKNOWN_KEY: unknown option --help`. These tests pin the fix — every command explains
 itself, and any unknown flag now points at that help.
 """
@@ -11,9 +11,9 @@ import pathlib
 
 import pytest
 
-from ggufone import cli, schema
-from ggufone.registry import store
 from tests.test_fit import write_gguf
+from typed_gguf import cli, schema
+from typed_gguf.registry import store
 
 
 # ------------------------------------------------------------------ per-command help
@@ -21,7 +21,7 @@ from tests.test_fit import write_gguf
 def test_every_command_has_a_help_page(command: str, capsys: pytest.CaptureFixture[str]) -> None:
     assert cli.main([command, "--help"]) == 0
     out = capsys.readouterr().out
-    assert f"ggufone {command}" in out
+    assert f"typed-gguf {command}" in out
     assert f"milestone: {cli.MILESTONES[command]}" in out
 
 
@@ -54,7 +54,7 @@ def test_an_unknown_flag_points_at_the_command_help(capsys: pytest.CaptureFixtur
     assert cli.main(["run", "--nope"]) == 2
     err = capsys.readouterr().err
     assert "E_UNKNOWN_KEY" in err
-    assert "ggufone run --help" in err
+    assert "typed-gguf run --help" in err
     assert "Traceback" not in err
 
 
@@ -62,9 +62,9 @@ def test_help_does_not_swallow_a_real_flag(capsys: pytest.CaptureFixture[str]) -
     """`--help` intercepts only itself: ordinary flags keep working next to it."""
     assert cli.main(["version", "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
-    assert payload["name"] == "ggufone"
+    assert payload["name"] == "typed-gguf"
     assert cli.main(["doctor", "--help"]) == 0
-    assert "usage: ggufone doctor" in capsys.readouterr().out
+    assert "usage: typed-gguf doctor" in capsys.readouterr().out
 
 
 # ------------------------------------------------------------- the fit/template knobs
@@ -122,8 +122,8 @@ def test_fit_resolves_an_alias_from_the_registry(tmp_path: pathlib.Path,
                                                  capsys: pytest.CaptureFixture[str],
                                                  monkeypatch: pytest.MonkeyPatch) -> None:
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     model = write_gguf(tmp_path / "synthetic.gguf")
     registry, _warnings = store.load_registry(store.registry_path(home))
     store.add_entry(registry, store.Entry(alias="tiny", path=str(model), size=1), alias="tiny")
@@ -139,8 +139,8 @@ def test_fit_writes_and_reuses_the_cache(tmp_path: pathlib.Path,
                                          capsys: pytest.CaptureFixture[str],
                                          monkeypatch: pytest.MonkeyPatch) -> None:
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     model = write_gguf(tmp_path / "synthetic.gguf")
     assert cli.main(["fit", str(model), "--json"]) == 0
     first = json.loads(capsys.readouterr().out)
@@ -158,8 +158,8 @@ def test_fit_writes_and_reuses_the_cache(tmp_path: pathlib.Path,
 def test_fit_text_output_prints_the_fields_and_the_notes(
         tmp_path: pathlib.Path, capsys: pytest.CaptureFixture[str],
         monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     model = write_gguf(tmp_path / "synthetic.gguf")
     assert cli.main(["fit", str(model)]) == 0
     out = capsys.readouterr().out

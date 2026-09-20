@@ -31,12 +31,12 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.engine import session as session_module  # noqa: E402
-from ggufone.errors import GgufoneError  # noqa: E402
-from ggufone.registry import recommend  # noqa: E402
-from ggufone.runtime import fit  # noqa: E402
+from typed_gguf.engine import session as session_module  # noqa: E402
+from typed_gguf.errors import TypedGgufError  # noqa: E402
+from typed_gguf.registry import recommend  # noqa: E402
+from typed_gguf.runtime import fit  # noqa: E402
 
-SCHEMA = "ggufone.evidence.fit-oom-red/v1"
+SCHEMA = "typed_gguf.evidence.fit-oom-red/v1"
 GIB = 1024 ** 3
 MIB = 1024 ** 2
 
@@ -82,7 +82,7 @@ def oom_world(model_path: pathlib.Path, runtime: pathlib.Path, free_mib: int,
     report: dict[str, object] = {"plan": {key: plan.to_dict()[key] for key in fit.FIT_FIELDS}}
     try:
         handle = session_module.open_model(model_path, runtime_dir=runtime, fit_plan=plan)
-    except GgufoneError as exc:
+    except TypedGgufError as exc:
         report["raised"] = {"code": exc.code, "message": str(exc)[:400]}
         return report
     try:

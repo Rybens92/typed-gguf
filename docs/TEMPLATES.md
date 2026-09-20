@@ -1,6 +1,6 @@
 bash: fork: retry: Resource temporarily unavailable
 bash: fork: retry: Resource temporarily unavailable
-# Templates: how ggufone renders a prompt (E1c)
+# Templates: how typed-gguf renders a prompt (E1c)
 
 This document is the reference for `engine/template.py` (A-E1c-1/2/3/9). It answers four
 questions: which template wins, what we can render, how thinking is suppressed, and what each
@@ -35,7 +35,7 @@ Rules that follow from the order:
   resolution (no `--template`) never consults step 3 before steps 1–2.
 * **`--template plain`** is the documented escape hatch to E1b's model-agnostic framing
   (`engine/prompt.py`): no chat template at all. It exists so that a model with a broken or
-  unknown template can still be used without patching ggufone.
+  unknown template can still be used without patching typed_gguf.
 * **Step 4 always carries the fix.** The message names the unsupported construct *and* the flag
   that fixes it, e.g. for `{%- include … %}`:
 
@@ -138,9 +138,9 @@ requires. "Template source" is where the string comes from, "thinking" the polic
 | family (arch) | template source | thinking | label policy | caveats |
 |---|---|---|---|---|
 | `spark2_5` | GGUF `tokenizer.chat_template` (4 556 chars, `<｜start▁of▁sentence｜>` + `<\|User\|>`/`<\|Bot\|>` roles) **[executed]** | hard: `enable_thinking=false` renders `<\|Bot\|></think>` — a *closed* block | option name / level number as plain text right after the assistant header | the special tokens are single tokens in this vocabulary; no soft marker exists (there is no `/no_think` convention here) |
-| `qwen35` | GGUF `tokenizer.chat_template` (7 816 chars, `<\|im_start\|>`/`<\|im_end\|>` + `enable_thinking`) **[executed]** | hard: `enable_thinking=false` renders `<\|im_start\|>assistant\n<think>\n\n</think>\n\n`; ggufone strips the empty block | option name / level number after the assistant header | hybrid SSM+attention: recurrent state makes `seq_cp` the interesting case (`n_rs_seq=0`, §6); the template also parses historical `</think>` spans — we never send assistant turns, so that path is inert |
+| `qwen35` | GGUF `tokenizer.chat_template` (7 816 chars, `<\|im_start\|>`/`<\|im_end\|>` + `enable_thinking`) **[executed]** | hard: `enable_thinking=false` renders `<\|im_start\|>assistant\n<think>\n\n</think>\n\n`; typed-gguf strips the empty block | option name / level number after the assistant header | hybrid SSM+attention: recurrent state makes `seq_cp` the interesting case (`n_rs_seq=0`, §6); the template also parses historical `</think>` spans — we never send assistant turns, so that path is inert |
 | `qwen35moe` | same Qwen3.5 template family, **measured here** on `Accio-Lab_occamy-1.0` (24 GB Q4_K_L, 48 experts) and `Tiel-Coder-35B-A3B` **[executed]**: chain step 1, thinking suppressed (the empty block is stripped, so the cue is `<\|im_start\|>assistant\n`) | hard (inherited) | option name / level number after the assistant header — **but the cue is refused**: `<\|im_end\|>` holds 0.99998 of the cue row's mass on the shipped prompt shape, so the label never gets a chance (`W_CUE_REFUSED`, §4.2) — **on that shape only, and not for both models**: Occamy returns 3/60 rows `measured` on the bench set while `Tiel-Coder` returns 46/60 (coverage median 2.58e-01), and on the serving shape Tiel's cue row is the special token `248069` (mass 0.68–0.99 on 19/20 batch rows), not `<\|im_end\|>` (which fires once, the only `W_CUE_REFUSED` there) — `docs/evidence/e3c_tiel_t_a58f8b67_tiel.md` §5/§5.1, `docs/BENCHMARKS.md` §7.4 | the official Qwen3.5 templates are shared across flavors and differ only in the `enable_thinking` default (`qwen3_5_think_training.jinja` for larger models, `…_nothink…` for ≤2B); the expert layout changes the **fit plan**, not the prompt |
-| `k2-horizon` | Kimi-K2 lineage: `<\|im_system\|>…<\|im_middle\|>` roles, no `enable_thinking` in the template (**[recon]**, from the published `moonshotai/Kimi-K2-Thinking` `chat_template.jinja`) | soft: no template switch | option name / level number after `<\|im_assistant\|>assistant<\|im_middle\|>` | **thinking is controlled by the serving stack, not the prompt** (`thinking.type` on Moonshot's API — this was *the* design of K2-Thinking). ggufone therefore appends the documented `/no_think` soft marker *and* keeps the strip guarantee; treat the marker as advisory for this family. The llama.cpp bundle also ships a `kimi-k2` built-in, so chain step 2 covers the shape if our renderer ever rejects a variant |
+| `k2-horizon` | Kimi-K2 lineage: `<\|im_system\|>…<\|im_middle\|>` roles, no `enable_thinking` in the template (**[recon]**, from the published `moonshotai/Kimi-K2-Thinking` `chat_template.jinja`) | soft: no template switch | option name / level number after `<\|im_assistant\|>assistant<\|im_middle\|>` | **thinking is controlled by the serving stack, not the prompt** (`thinking.type` on Moonshot's API — this was *the* design of K2-Thinking). typed-gguf therefore appends the documented `/no_think` soft marker *and* keeps the strip guarantee; treat the marker as advisory for this family. The llama.cpp bundle also ships a `kimi-k2` built-in, so chain step 2 covers the shape if our renderer ever rejects a variant |
 
 Notes that apply to every row:
 
@@ -154,10 +154,10 @@ Notes that apply to every row:
 ### Choosing a template by hand
 
 ```
-ggufone run … --template plain                 # E1b framing, no chat template
-ggufone run … --template chatml                # a built-in name (needs a runtime)
-ggufone run … --template /path/family.jinja    # a Jinja file in the supported subset
-ggufone run … --template '{{ messages[0].content }}'   # inline template text
+typed-gguf run … --template plain                 # E1b framing, no chat template
+typed-gguf run … --template chatml                # a built-in name (needs a runtime)
+typed-gguf run … --template /path/family.jinja    # a Jinja file in the supported subset
+typed-gguf run … --template '{{ messages[0].content }}'   # inline template text
 ```
 
 `--template` values are validated at request time: an unknown name that is not a file and not
@@ -359,11 +359,11 @@ stay where they were, each under the policy its own report names.
 
 ## 5. The fit plan in one paragraph (A-E1c-4/5/6)
 
-`ggufone fit [<model>]` returns `{n_gpu_layers, n_ctx, kv_type, n_seq_max, est_weights_bytes,
+`typed-gguf fit [<model>]` returns `{n_gpu_layers, n_ctx, kv_type, n_seq_max, est_weights_bytes,
 est_kv_bytes, est_total_bytes, backend, source}`. `source` is `llama-fit-params` when the bundle's
 tool ran (SPEC 2.10 flags: `--fit on --fit-target MiB --fit-ctx N --fit-print on`, plus the plan's
 `-c`/`-ngl`/`-b`), else `estimate` + `W_FIT_ESTIMATED`. The plan is cached per
-`(model sha256, host fingerprint)` under `$GGUFONE_HOME/fit/` and applied on load
+`(model sha256, host fingerprint)` under `$TYPED_GGUF_HOME/fit/` and applied on load
 (`n_gpu_layers`, `kv_type`, the `n_ctx` ceiling) unless `--no-fit`.
 
 Two accounting facts worth knowing before reading a plan:
@@ -391,7 +391,7 @@ along with the KV cells. `llama_memory_seq_cp` does both, which is why:
 
 * `kv_unified = true` is mandatory (PoC pitfall 2 — without it the cross-stream copy trips
   `GGML_ASSERT(is_full)`);
-* ggufone leaves `llama_context_params.n_rs_seq` at **0** (the llama.cpp default = one recurrent
+* typed-gguf leaves `llama_context_params.n_rs_seq` at **0** (the llama.cpp default = one recurrent
   state per sequence, allocated on demand). The PoC and E1b/E1c runs use 0, and the
   fork-equivalence gate (A-E1b-2/A-E1c-7) is measured with it: `max |Δ| = 0.000e+00` on both
   `qwen35` and `spark2_5` (the latter is the pinned default model).
@@ -401,7 +401,7 @@ along with the KV cells. `llama_memory_seq_cp` does both, which is why:
 ## 7. Reproducing the evidence
 
 ```bash
-export GGUFONE_RUNTIME_DIR=$HOME/.hermes/runtime/b11026-linux-x64-cpu   # the pinned bundle
+export TYPED_GGUF_RUNTIME_DIR=$HOME/.hermes/runtime/b11026-linux-x64-cpu   # the pinned bundle
 
 # chain + suppression on the real templates (no network):
 uv run pytest -q --run-network tests/test_templates.py -s
@@ -410,8 +410,8 @@ uv run pytest -q --run-network tests/test_templates.py -s
 uv run pytest -q --run-network tests/test_fit_live.py -s
 
 # by hand:
-uv run ggufone fit $HOME/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --json
-uv run ggufone fit --help
+uv run typed-gguf fit $HOME/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --json
+uv run typed-gguf fit --help
 
 # every E1c test with the network disabled (A-E1c-10): see tools/e1c_offline_gate.py
 uv run python tools/e1c_offline_gate.py
@@ -428,7 +428,7 @@ uv run python tools/e1c_offline_gate.py
 2. `llama_chat_apply_template` **ignores kwargs**: on the built-in path, `enable_thinking` cannot
    be passed, so suppression there relies on the strip guarantee.
 3. The `k2-horizon` marker is **advisory** — that family's thinking is controlled by the serving
-   stack, and ggufone only guarantees the prompt-level predicate.
+   stack, and typed-gguf only guarantees the prompt-level predicate.
 4. `qwen35moe`'s **template is measured here** (Occamy 1.0, Tiel-Coder), but its **cue is refused**
    on the shipped prompt shape: `<|im_end|>` holds 0.99998 of the cue row's mass, so every answer
    comes back `low_mass` with `W_CUE_REFUSED` no matter how the label is rendered (§4). The cue

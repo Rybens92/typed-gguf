@@ -49,11 +49,11 @@ from typing import Any
 
 import pytest
 
-from ggufone.bench import harness
-from ggufone.engine import session as session_module
-from ggufone.errors import RuntimeMissingError
-from ggufone.runtime import ctypes_binding, finder
 from tests.test_fit import write_gguf
+from typed_gguf.bench import harness
+from typed_gguf.engine import session as session_module
+from typed_gguf.errors import RuntimeMissingError
+from typed_gguf.runtime import ctypes_binding, finder
 
 #: what the fake bundle's `ggml_backend_dev_by_name("CPU")` answers (any non-NULL handle)
 CPU_DEVICE = 0x7F55DE57

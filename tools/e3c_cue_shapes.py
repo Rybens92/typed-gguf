@@ -30,7 +30,7 @@ item's prefix inside ONE decode batch, exactly E3b's protocol; the `two_step_*` 
 extra batched step. Coverage needs no further decode — it is read from the row.
 
     # the sweep (Occamy 1.0), the 6-item E3b subset for a directly comparable table
-    GGUFONE_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> python3 tools/e3c_cue_shapes.py run \\
+    TYPED_GGUF_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> python3 tools/e3c_cue_shapes.py run \\
         --model ~/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf \\
         --devset docs/evidence/e3_chunks/devset_001.jsonl --ids c01 c02 s01 s02 n01 n02 \\
         --rank shipped=bare --rank two_step_shipped=bare \\
@@ -57,12 +57,12 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import e3b_label_policy as e3b  # noqa: E402  (the E3b probe: batching, ranking, formatting)
 
-from ggufone.bench import devset, harness, labels  # noqa: E402
-from ggufone.engine import cue as cue_module  # noqa: E402
-from ggufone.engine import decide, prompt, readout  # noqa: E402
-from ggufone.engine import session as session_module  # noqa: E402
+from typed_gguf.bench import devset, harness, labels  # noqa: E402
+from typed_gguf.engine import cue as cue_module  # noqa: E402
+from typed_gguf.engine import decide, prompt, readout  # noqa: E402
+from typed_gguf.engine import session as session_module  # noqa: E402
 
-SCHEMA = "ggufone.e3c.cue-shapes/v1"
+SCHEMA = "typed_gguf.e3c.cue-shapes/v1"
 DEFAULT_THREADS = 4
 DEFAULT_VK_DRIVER_FILES = "/work/e3scratch/nvidia_egl_icd.json"
 #: `--hide-devices`: an ICD manifest that does not exist, so the Vulkan loader enumerates nothing
@@ -504,7 +504,7 @@ def live_run(args: argparse.Namespace) -> int:
     else:
         os.environ.setdefault("VK_DRIVER_FILES", args.vk_driver_files)
     model_path = str(pathlib.Path(os.path.expanduser(args.model)))
-    runtime = args.runtime or os.environ.get("GGUFONE_RUNTIME_DIR")
+    runtime = args.runtime or os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     items = select_items(devset.load(args.devset), ids=args.ids, per_type=args.per_type,
                          limit=args.limit)
     if not items:
@@ -520,7 +520,7 @@ def live_run(args: argparse.Namespace) -> int:
         rank.append((name, variant))
     sha = ""
     try:
-        from ggufone.runtime import fit
+        from typed_gguf.runtime import fit
         sha = fit.ModelFacts.read(model_path, want_sha256=True).sha256
     except Exception as exc:                                # noqa: BLE001 - a pin, not a gate
         print(f"warning: could not pin the model sha256 ({exc})", file=sys.stderr)
@@ -589,7 +589,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="the live sweep (loads the model once)")
     run.add_argument("--model", required=True)
-    run.add_argument("--runtime", default=None, help="GGUFONE_RUNTIME_DIR; default: the env")
+    run.add_argument("--runtime", default=None, help="TYPED_GGUF_RUNTIME_DIR; default: the env")
     run.add_argument("--devset", default=None, help="devset jsonl (default: the committed set)")
     run.add_argument("--ids", nargs="+", default=None, help="exact dev item ids")
     run.add_argument("--per-type", dest="per_type", type=int, default=None)
@@ -612,7 +612,7 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--max-sequences", dest="max_sequences", type=int, default=MAX_SEQUENCES)
     run.add_argument("--states-home", dest="states_home", default=DEFAULT_STATES_HOME)
     run.add_argument("--vk-driver-files", dest="vk_driver_files",
-                     default=os.environ.get("GGUFONE_VK_DRIVER_FILES", DEFAULT_VK_DRIVER_FILES))
+                     default=os.environ.get("TYPED_GGUF_VK_DRIVER_FILES", DEFAULT_VK_DRIVER_FILES))
     run.add_argument("--out", required=True)
     run.add_argument("--report", default=None)
     report = sub.add_parser("report", help="offline: the markdown tables from a stored run")

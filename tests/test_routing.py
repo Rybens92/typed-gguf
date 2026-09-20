@@ -18,10 +18,10 @@ from __future__ import annotations
 
 import pytest
 
-from ggufone.calibration import routing
-from ggufone.errors import BackendOomError, ModelArchUnsupportedError, ModelNotFoundError
-from ggufone.registry import store
-from ggufone.runtime import fit
+from typed_gguf.calibration import routing
+from typed_gguf.errors import BackendOomError, ModelArchUnsupportedError, ModelNotFoundError
+from typed_gguf.registry import store
+from typed_gguf.runtime import fit
 
 MIB = 1024 * 1024
 
@@ -172,7 +172,7 @@ def test_the_route_keeps_the_context_and_the_sequences_inside_the_budget() -> No
 
 
 def test_the_route_never_exceeds_the_fit_plan_it_was_asserted_against() -> None:
-    """A-E2p5-4: the picked (kv_type, n_ctx) is inside the plan `ggufone fit` would produce."""
+    """A-E2p5-4: the picked (kv_type, n_ctx) is inside the plan `typed-gguf fit` would produce."""
     facts = {"/m/mid.gguf": _facts("/m/mid.gguf", weights_mib=3 * 1024)}
     host = _host(vram_mib=8 * 1024)
     plan = routing.route([routing.Candidate(alias="mid", path="/m/mid.gguf")],
@@ -237,7 +237,7 @@ def test_candidates_can_be_built_from_registry_entries(tmp_path) -> None:
 
 def test_needs_are_derived_from_the_request() -> None:
     """The ceilings a route must respect come from the request: ctx and the candidate count."""
-    from ggufone import schema
+    from typed_gguf import schema
     request = schema.parse_request({
         "state": "blank dashboard",
         "questions": {"a": {"type": "choice", "criteria": {"x": None, "y": None, "z": None}}},
@@ -400,7 +400,7 @@ def test_escalating_with_no_target_logs_the_skip_and_changes_nothing() -> None:
 
 # ------------------------------------------------- the CLI surface (A-E2p5-4/5/8)
 def _registry_home(tmp_path, entries: dict) -> object:
-    from ggufone.registry import store
+    from typed_gguf.registry import store
     home = tmp_path / "home"
     aliases = {}
     for alias, weights_mib in entries.items():
@@ -414,7 +414,7 @@ def _registry_home(tmp_path, entries: dict) -> object:
 
 
 def test_route_request_picks_from_the_registry_and_explains_itself(tmp_path) -> None:
-    from ggufone import cli, schema
+    from typed_gguf import cli, schema
     home = _registry_home(tmp_path, {"small": 1024, "mid": 3 * 1024})
     facts = {str(tmp_path / "small.gguf"): _facts(str(tmp_path / "small.gguf"),
                                                   weights_mib=1024),
@@ -432,7 +432,7 @@ def test_route_request_picks_from_the_registry_and_explains_itself(tmp_path) -> 
 
 
 def test_route_request_is_off_by_default(tmp_path) -> None:
-    from ggufone import cli, schema
+    from typed_gguf import cli, schema
     home = _registry_home(tmp_path, {"small": 1024})
     request = schema.parse_request({"state": "blank dashboard",
                                     "questions": {"a": {"type": "noul"}}})
@@ -440,7 +440,7 @@ def test_route_request_is_off_by_default(tmp_path) -> None:
 
 
 def test_the_route_fills_the_options_it_owns_and_leaves_the_rest_alone() -> None:
-    from ggufone import cli, schema
+    from typed_gguf import cli, schema
     plan = routing.RoutePlan(mode="auto", alias="mid", path="/m/mid.gguf", quant="Q8_0",
                              kv_type="q8_0", n_ctx=2048, n_seq_max=6, n_gpu_layers=36,
                              backend="vulkan", device_bytes=1024, reason="budget fit: mid")
@@ -460,7 +460,7 @@ def test_the_route_fills_the_options_it_owns_and_leaves_the_rest_alone() -> None
 
 
 def test_escalation_replaces_only_the_flagged_answers(tmp_path) -> None:
-    from ggufone import cli
+    from typed_gguf import cli
     target = tmp_path / "big.gguf"
     target.write_bytes(b"GGUF")
     payload = {"state": "blank dashboard",
@@ -497,7 +497,7 @@ def test_escalation_replaces_only_the_flagged_answers(tmp_path) -> None:
 
 
 def test_escalation_is_off_unless_the_request_asks_for_it() -> None:
-    from ggufone import cli
+    from typed_gguf import cli
     payload = {"state": "x", "questions": {"a": {"type": "noul"}}}
     response = {"model": "small", "engine": {},
                 "answers": {"a": {"type": "noul", "noul": 0.52, "reliability": "low_mass",
@@ -510,7 +510,7 @@ def test_escalation_is_off_unless_the_request_asks_for_it() -> None:
 
 
 def test_escalation_never_exceeds_the_bound(monkeypatch) -> None:
-    from ggufone import cli
+    from typed_gguf import cli
     payload = {"state": "x", "options": {"escalate": True, "max_escalations": 2},
                "questions": {key: {"type": "noul"} for key in "abcd"}}
     answers = {key: {"type": "noul", "noul": 0.51, "confidence": 0.4, "reliability": "ok",
@@ -533,7 +533,7 @@ def test_escalation_never_exceeds_the_bound(monkeypatch) -> None:
 def test_the_audit_log_records_the_route_the_calibration_and_the_escalations(tmp_path) -> None:
     import json
 
-    from ggufone import cli
+    from typed_gguf import cli
     payload = {"state": "x", "questions": {"a": {"type": "noul"}}}
     response = {"model": "mid", "engine": {"route": {"reason": "budget fit: mid", "alias": "mid"},
                                            "escalations": {"enabled": False, "count": 0}},

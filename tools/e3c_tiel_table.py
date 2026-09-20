@@ -2,7 +2,7 @@
 """Render the three-way agreement table: 4B default (E2) · Occamy 1.0 (E3) · Tiel-Coder (E3c).
 
 The E3 tool renders *two* models (`e3_reproduce --suite compare`); the card asks for three on the
-same items, so this script reuses the committed comparison arithmetic (`ggufone.bench.compare`)
+same items, so this script reuses the committed comparison arithmetic (`typed_gguf.bench.compare`)
 and prints one wide table instead of two deltas.
 
     python3 tools/e3c_tiel_table.py \
@@ -30,7 +30,7 @@ from typing import Any
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.bench import compare  # noqa: E402
+from typed_gguf.bench import compare  # noqa: E402
 
 
 def _cell(block: dict[str, Any]) -> str:

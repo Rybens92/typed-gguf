@@ -9,8 +9,8 @@ import copy
 
 import pytest
 
-from ggufone import schema
-from ggufone.errors import UserError
+from typed_gguf import schema
+from typed_gguf.errors import UserError
 
 
 def request(**overrides) -> dict:

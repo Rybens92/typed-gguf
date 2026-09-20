@@ -10,8 +10,8 @@ import struct
 
 import pytest
 
-from ggufone.errors import GgufoneError
-from ggufone.registry import gguf, recommend
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.registry import gguf, recommend
 
 
 # --------------------------------------------------------------- budget boundaries
@@ -101,7 +101,7 @@ def test_string_at_the_cap_is_accepted_and_one_over_is_rejected(
     ok = write(tmp_path, header([kv_str("k", "12345678")]), "ok.gguf")
     assert gguf.parse_gguf_metadata(ok)["kv"]["k"] == "12345678"
     bad = write(tmp_path, header([kv_str("k", "123456789")]), "bad.gguf")
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         gguf.parse_gguf_metadata(bad)
     assert exc.value.code == "E_GGUF_CORRUPT"
 
@@ -112,7 +112,7 @@ def test_n_kv_at_the_cap_is_accepted_and_one_over_is_rejected(
     ok = write(tmp_path, header([kv_str("k", "v")]), "ok.gguf")
     assert gguf.parse_gguf_metadata(ok)["n_kv"] == 1
     bad = write(tmp_path, header([kv_str("a", "1"), kv_str("b", "2")]), "bad.gguf")
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         gguf.parse_gguf_metadata(bad)
     assert exc.value.code == "E_GGUF_CORRUPT"
 
@@ -125,7 +125,7 @@ def test_array_length_at_the_cap_is_accepted_and_one_over_is_rejected(
     assert gguf.parse_gguf_metadata(ok)["kv"]["t"] == ["a", "b"]
     bad = write(tmp_path, header([gstr("t") + struct.pack("<I", 9)
                                   + arr(8, [gstr("a"), gstr("b"), gstr("c")])]), "bad.gguf")
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         gguf.parse_gguf_metadata(bad)
     assert exc.value.code == "E_GGUF_CORRUPT"
 
@@ -136,7 +136,7 @@ def test_three_level_nesting_is_rejected(tmp_path) -> None:
     middle = arr(9, [inner])
     outer = arr(9, [middle])
     blob = header([gstr("t") + struct.pack("<I", 9) + outer])
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         gguf.parse_gguf_metadata(write(tmp_path, blob))
     assert exc.value.code == "E_GGUF_CORRUPT"
     assert "nesting" in str(exc.value)

@@ -17,7 +17,7 @@ Two rows are non-negotiable, both learned on this card:
 * **the restore line** — `git checkout -- <module>` runs in a `finally`, because a crash mid-table
   (the shared box forks `EAGAIN` in this container) used to leave a mutant in the working tree.
 
-    python3 tools/t80_replay.py src/ggufone/engine/session.py 'ModelSessionǁ__init__'
+    python3 tools/t80_replay.py src/typed_gguf/engine/session.py 'ModelSessionǁ__init__'
 """
 from __future__ import annotations
 

@@ -13,18 +13,18 @@ import stat
 
 import pytest
 
-from ggufone import cli
-from ggufone.registry import store
-from ggufone.runtime import pins
+from typed_gguf import cli
+from typed_gguf.registry import store
+from typed_gguf.runtime import pins
 
 
 @pytest.fixture(autouse=True)
 def _isolated(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> pathlib.Path:
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.delenv("GGUFONE_LOCK", raising=False)
-    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_LOCK", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_DEEP_PROBE", "0")
     # deterministic GPU-less machine (see tests/test_cli_e1a.py::_isolated)
     monkeypatch.setattr(pins, "current_host",
                         lambda: pins.fake_host(system="linux", machine="x86_64"))
@@ -47,7 +47,7 @@ def make_runtime(base: pathlib.Path, *, build: int = 11026) -> pathlib.Path:
 
 def test_doctor_reports_a_quarantined_registry(tmp_path: pathlib.Path,
                                                monkeypatch: pytest.MonkeyPatch, capsys) -> None:
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(make_runtime(tmp_path)))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(make_runtime(tmp_path)))
     store.registry_path().parent.mkdir(parents=True, exist_ok=True)
     store.registry_path().write_text("{ not json at all")
     assert cli.main(["doctor", "--json"]) == 2
@@ -62,9 +62,9 @@ def test_doctor_fails_when_the_recorded_libllama_sha_drifted(tmp_path: pathlib.P
                                                              monkeypatch: pytest.MonkeyPatch,
                                                              capsys) -> None:
     rt = make_runtime(tmp_path)
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(rt))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(rt))
     (store.data_home()).mkdir(parents=True, exist_ok=True)
-    finder_record = {"schema": "ggufone.runtime/v1", "variant": "linux-x64-cpu",
+    finder_record = {"schema": "typed_gguf.runtime/v1", "variant": "linux-x64-cpu",
                      "libllama_sha256": "0" * 64, "build": 11026}
     store.runtime_record_path().write_text(json.dumps(finder_record))
     assert cli.main(["doctor", "--json"]) == 1
@@ -78,7 +78,7 @@ def test_doctor_fails_on_a_runtime_older_than_the_arch_floor(tmp_path: pathlib.P
                                                              monkeypatch: pytest.MonkeyPatch,
                                                              capsys) -> None:
     rt = make_runtime(tmp_path, build=10715)
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(rt))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(rt))
     assert cli.main(["doctor", "--json"]) == 1
     report = json.loads(capsys.readouterr().out)
     check = next(c for c in report["checks"] if c["id"] == "runtime.build")
@@ -88,7 +88,7 @@ def test_doctor_fails_on_a_runtime_older_than_the_arch_floor(tmp_path: pathlib.P
 def test_doctor_fails_when_the_recorded_sha_is_missing(tmp_path: pathlib.Path,
                                                        monkeypatch: pytest.MonkeyPatch,
                                                        capsys) -> None:
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(make_runtime(tmp_path)))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(make_runtime(tmp_path)))
     assert cli.main(["doctor", "--json"]) == 2
     report = json.loads(capsys.readouterr().out)
     check = next(c for c in report["checks"] if c["id"] == "runtime.sha_recorded")
@@ -177,7 +177,7 @@ def test_models_pull_json_mode(monkeypatch: pytest.MonkeyPatch, capsys,
 
 def test_models_without_subcommand_help(capsys) -> None:
     assert cli.main(["models", "--help"]) == 0
-    assert "usage: ggufone models" in capsys.readouterr().out
+    assert "usage: typed-gguf models" in capsys.readouterr().out
 
 
 def test_init_text_mode_with_the_offline_cache(tmp_path: pathlib.Path,
@@ -185,11 +185,11 @@ def test_init_text_mode_with_the_offline_cache(tmp_path: pathlib.Path,
     from tests.test_runtime_install import build_bundle, fake_lock
 
     archive = build_bundle(tmp_path, name="llama-b11026-bin-ubuntu-x64.tar.gz")
-    monkeypatch.setenv("GGUFONE_LOCK", str(fake_lock(tmp_path, archive)))
+    monkeypatch.setenv("TYPED_GGUF_LOCK", str(fake_lock(tmp_path, archive)))
     cache = tmp_path / "cache"
     cache.mkdir()
     (cache / archive.name).write_bytes(archive.read_bytes())
-    monkeypatch.setenv("GGUFONE_OFFLINE_CACHE", str(cache))
+    monkeypatch.setenv("TYPED_GGUF_OFFLINE_CACHE", str(cache))
     assert cli.main(["init"]) == 0
     out = capsys.readouterr().out
     assert "installed: True" in out and "offline-cache" in out and "build: 11026" in out

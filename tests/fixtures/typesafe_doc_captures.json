@@ -9,7 +9,7 @@
       "id": "quickstart/department",
       "probabilities": [0.159, 0.84, 0.001],
       "documented_confidence": 0.596,
-      "note": "kept in the table and reproduced verbatim; ggufone makes no parity claim (SPEC 2.4) — our statistic is 0.760"
+      "note": "kept in the table and reproduced verbatim; typed-gguf makes no parity claim (SPEC 2.4) — our statistic is 0.760"
     }
   },
   "captures": [

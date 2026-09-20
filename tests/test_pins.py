@@ -6,8 +6,8 @@ import pathlib
 
 import pytest
 
-from ggufone.errors import GgufoneError
-from ggufone.runtime import install, pins
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.runtime import install, pins
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 EVID = ROOT / "docs" / "evidence"
@@ -75,12 +75,12 @@ def test_lock_file_is_found_by_walking_up_from_the_package() -> None:
 def test_lock_path_override(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     custom = tmp_path / "runtime.lock"
     custom.write_text((ROOT / "runtime.lock").read_text())
-    monkeypatch.setenv("GGUFONE_LOCK", str(custom))
+    monkeypatch.setenv("TYPED_GGUF_LOCK", str(custom))
     assert pins.default_lock_path() == custom
 
 
 def test_missing_lock_is_an_actionable_error(tmp_path: pathlib.Path) -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         pins.load_lock(tmp_path / "absent.lock")
     assert exc.value.code == "E_RUNTIME_MISSING"
     assert "absent.lock" in str(exc.value)
@@ -89,7 +89,7 @@ def test_missing_lock_is_an_actionable_error(tmp_path: pathlib.Path) -> None:
 def test_corrupt_lock_is_an_actionable_error(tmp_path: pathlib.Path) -> None:
     path = tmp_path / "runtime.lock"
     path.write_text("{not json")
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         pins.load_lock(path)
     assert exc.value.code == "E_RUNTIME_MISSING"
 
@@ -118,14 +118,14 @@ def test_host_variant_mapping(backend: str, system: str, machine: str, want: str
 
 
 def test_host_variant_rejects_unknown_platform() -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         pins.host_variant("cpu", system="linux", machine="aarch64")
     assert exc.value.code == "E_RUNTIME_MISSING"
     assert "aarch64" in str(exc.value)
 
 
 def test_host_variant_rejects_backend_without_asset() -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         pins.host_variant("cuda", system="darwin", machine="arm64")
     assert exc.value.code == "E_RUNTIME_MISSING"
     assert "cuda" in str(exc.value)
@@ -148,7 +148,7 @@ def test_detect_backend(probes: dict[str, object], want: str, tmp_path: pathlib.
 
 
 def test_asset_for_unknown_variant_is_an_error(lock: pins.RuntimeLock) -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         pins.asset_for(lock, "linux-aarch64-cpu")
     assert exc.value.code == "E_RUNTIME_MISSING"
 

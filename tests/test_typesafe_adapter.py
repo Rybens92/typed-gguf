@@ -18,8 +18,8 @@ import pathlib
 
 import pytest
 
-from ggufone import schema
-from ggufone.engine import readout
+from typed_gguf import schema
+from typed_gguf.engine import readout
 
 FIXTURES = pathlib.Path(__file__).parent / "fixtures" / "typesafe_doc_captures.json"
 CAPTURES = json.loads(FIXTURES.read_text(encoding="utf-8"))["captures"]

@@ -2,7 +2,7 @@
 
 Measured on the operator's box: a **single** Vulkan bundle prints its whole report and then dies
 with SIGSEGV — `exit 139`, the row withheld by the isolation layer because the code and the report
-contradict each other. The fault is not in ggufone's frames and not in the bundle's: it is the
+contradict each other. The fault is not in typed-gguf's frames and not in the bundle's: it is the
 NVIDIA ICD's own exit handler (`libnvidia-eglcore` → `libnvidia-glvkspirv`, fault address `0x18`)
 running from libc's `__run_exit_handlers` — i.e. *other people's destructors at interpreter exit*,
 the same class `runtime.isolated` already refuses to trust for probes ("it dies alone").
@@ -24,18 +24,18 @@ import types
 
 import pytest
 
-import ggufone
-from ggufone import cli
-from ggufone.runtime import teardown
+import typed_gguf
+from typed_gguf import cli
+from typed_gguf.runtime import teardown
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 #: the checkout's `src/`: the child processes import the working tree, not an installed copy
-SOURCE_ROOT = str(pathlib.Path(ggufone.__file__).resolve().parents[1])
+SOURCE_ROOT = str(pathlib.Path(typed_gguf.__file__).resolve().parents[1])
 
 #: What the child counts as "this process dlopened a bundle": the documented probe, stubbed, so the
 #: offline gate needs no bundle, no device and no driver.
 LOADED_BUNDLE = (
-    "from ggufone.runtime import ctypes_binding\n"
+    "from typed_gguf.runtime import ctypes_binding\n"
     "ctypes_binding.loaded_runtimes = lambda: ('/fake/bundle',)\n"
 )
 
@@ -73,7 +73,7 @@ def run_child(source: str) -> subprocess.CompletedProcess[str]:
 def test_the_entry_point_ends_the_process_before_third_party_teardown() -> None:
     """`cli.run` never returns: the entry point's code is the process's, the handler never runs."""
     child = PREAMBLE + LOADED_BUNDLE + """
-from ggufone import cli
+from typed_gguf import cli
 cli.run(["--help"])
 sys.stderr.write("ENTRY-POINT-RETURNED\\n")
 sys.stderr.flush()
@@ -91,7 +91,7 @@ sys.stderr.flush()
 def test_the_entry_point_hands_the_cli_code_to_the_shell() -> None:
     """The shell sees the code `main` produced, not a signal and not a silent 0."""
     child = PREAMBLE + LOADED_BUNDLE + """
-from ggufone import cli
+from typed_gguf import cli
 cli.run(["definitely-not-a-command"])
 """
     completed = run_child(child)
@@ -103,12 +103,12 @@ cli.run(["definitely-not-a-command"])
 def test_the_streams_are_flushed_before_the_process_ends() -> None:
     """A piped stdout is block-buffered: the usage text survives only if it was flushed."""
     child = PREAMBLE + LOADED_BUNDLE + """
-from ggufone import cli
+from typed_gguf import cli
 cli.run(["--help"])
 """
     completed = run_child(child)
     assert completed.returncode == 0
-    assert "usage: ggufone <command> [options]" in completed.stdout, (
+    assert "usage: typed-gguf <command> [options]" in completed.stdout, (
         "the entry point ended without flushing stdout: the answer is not readable\n"
         f"stdout: {completed.stdout!r}")
 
@@ -116,7 +116,7 @@ cli.run(["--help"])
 def test_a_process_that_never_loaded_a_bundle_keeps_the_normal_shutdown() -> None:
     """Only the process that dlopened a bundle ends deliberately; everything else is untouched."""
     child = PLAIN_PREAMBLE + """
-from ggufone import cli
+from typed_gguf import cli
 try:
     cli.run(["--help"])
 except SystemExit as exc:
@@ -128,34 +128,34 @@ except SystemExit as exc:
     assert "SYSTEM-EXIT-0" in completed.stderr, (
         "without a loaded bundle the entry point must raise SystemExit like any other CLI\n"
         f"{completed.stderr[-600:]}")
-    assert "usage: ggufone <command> [options]" in completed.stdout
+    assert "usage: typed-gguf <command> [options]" in completed.stdout
 
 
 def test_the_module_entry_point_runs_the_process_entry_point() -> None:
-    """`python -m ggufone` — the command every live gate and the isolation child uses."""
+    """`python -m typed_gguf` — the command every live gate and the isolation child uses."""
     child = PREAMBLE + LOADED_BUNDLE + """
 import runpy, sys
-sys.argv = ["ggufone", "--help"]
-runpy.run_module("ggufone", run_name="__main__", alter_sys=True)
+sys.argv = ["typed-gguf", "--help"]
+runpy.run_module("typed_gguf", run_name="__main__", alter_sys=True)
 sys.stderr.write("ENTRY-POINT-RETURNED\\n")
 sys.stderr.flush()
 """
     completed = run_child(child)
     assert completed.returncode == 0, (
-        f"`python -m ggufone` exited {completed.returncode}\n{completed.stderr[-600:]}")
+        f"`python -m typed_gguf` exited {completed.returncode}\n{completed.stderr[-600:]}")
     assert "ENTRY-POINT-RETURNED" not in completed.stderr
     assert "THIRD-PARTY-TEARDOWN-RAN" not in completed.stderr
 
 
 def test_the_console_script_points_at_the_process_entry_point() -> None:
-    """`ggufone …` in a shell gets the same story as `python -m ggufone …`."""
+    """`typed-gguf …` in a shell gets the same story as `python -m typed_gguf …`."""
     import tomllib
 
     payload = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    target = payload["project"]["scripts"]["ggufone"]
-    assert target == "ggufone.cli:run", (
+    target = payload["project"]["scripts"]["typed-gguf"]
+    assert target == "typed_gguf.cli:run", (
         f"the console script points at {target}: it must use the entry point that ends the "
-        f"process itself (ggufone.cli:run)")
+        f"process itself (typed_gguf.cli:run)")
     module_name, _, attribute = target.partition(":")
     assert callable(getattr(importlib.import_module(module_name), attribute))
 

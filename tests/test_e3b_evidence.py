@@ -66,7 +66,7 @@ def item_of(item_id: str, qtype: str, index: int, *, extra_prefix: bool = False)
 def sweep_record() -> dict:
     items = [item_of("c01", "choice", 0, extra_prefix=True), item_of("s01", "score", 1)]
     return {
-        "schema": "ggufone.e3b.labels/v1", "generated_at": "2026-09-19T00:00:00Z",
+        "schema": "typed_gguf.e3b.labels/v1", "generated_at": "2026-09-19T00:00:00Z",
         "model": {"name": "Accio-Lab_occamy-1.0-Q4_K_L.gguf", "bytes": 24113674848,
                   "arch": "qwen35moe"},
         "model_sha256": "a" * 64, "runtime": "/runtime", "threads": 4, "gpu_layers": 7,
@@ -88,7 +88,7 @@ def quality_row(item_id: str, qtype: str, *, correct: bool, coverage: float,
 
 
 def quality_report(rows: list[dict], *, label: str) -> dict:
-    return {"schema": "ggufone.bench/v1", "suite": "quality", "model": {"name": label},
+    return {"schema": "typed_gguf.bench/v1", "suite": "quality", "model": {"name": label},
             "items": rows, "ok": True}
 
 

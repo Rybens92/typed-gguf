@@ -22,9 +22,9 @@ import sys
 
 import pytest
 
-from ggufone.bench import labels
-from ggufone.engine import readout
-from ggufone.schema import parse_request
+from typed_gguf.bench import labels
+from typed_gguf.engine import readout
+from typed_gguf.schema import parse_request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 

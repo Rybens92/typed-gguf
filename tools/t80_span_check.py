@@ -4,7 +4,7 @@
 
 `tools/mutation_span_check.py` maps the `.spans` file's keys straight into the `.meta` dict, but
 the two use different key shapes: `.spans` holds `x_backend_claim__mutmut_1` while
-`.meta`'s `exit_code_by_key` holds `ggufone.engine.session.x_backend_claim__mutmut_1`. Every
+`.meta`'s `exit_code_by_key` holds `typed_gguf.engine.session.x_backend_claim__mutmut_1`. Every
 lookup therefore misses, and every mutant reads as "unrun" — the tool cannot distinguish a
 survivor from an unseen mutant, which is the one question it exists to answer. This version
 qualifies the span keys with `<package>.<module>.` first (derived from the module's own path) and
@@ -19,9 +19,9 @@ import sys
 
 
 def qualify(module_path: str) -> str:
-    """`src/ggufone/engine/session.py` -> `ggufone.engine.session.`"""
+    """`src/typed_gguf/engine/session.py` -> `typed_gguf.engine.session.`"""
     parts = pathlib.Path(module_path).with_suffix("").parts
-    start = parts.index("ggufone")
+    start = parts.index("typed_gguf")
     return ".".join(parts[start:]) + "."
 
 

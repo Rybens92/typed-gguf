@@ -32,11 +32,11 @@ import pathlib
 
 import pytest
 
-from ggufone import cli, schema
-from ggufone.bench import harness, suites
-from ggufone.engine import decide, prompt
-from ggufone.engine import template as template_module
 from tests.fake_engine import FakeSession, biased_row
+from typed_gguf import cli, schema
+from typed_gguf.bench import harness, suites
+from typed_gguf.engine import decide, prompt
+from typed_gguf.engine import template as template_module
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 #: the published v2 arm of the E3e table (`.e3e/run_arms.sh`): the cell these defaults now name
@@ -299,7 +299,7 @@ def test_the_report_marks_the_pre_v2_policy_and_not_the_default() -> None:
               "config": {"backend": "vulkan", "runs": 1, "threads": 4,
                          "cue": "shipped", "chat_format": "answer_sheet"},
               "model": {"path": "/m.gguf"}, "overall": {}, "per_type": {},
-              "commands": {"reproduce": "uv run ggufone bench --suite quality"}}
+              "commands": {"reproduce": "uv run typed-gguf bench --suite quality"}}
     text = harness.render_report(report)
     assert "- prompt policy: cue=shipped · chat_format=answer_sheet" in text
     report["config"].update(V2)
@@ -324,14 +324,14 @@ def test_the_documents_state_the_v2_defaults() -> None:
 def _runtime_dir() -> pathlib.Path:
     import os
 
-    from ggufone.runtime import finder
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    from typed_gguf.runtime import finder
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env and (pathlib.Path(env) / "libllama.so").exists():
         return pathlib.Path(env)
     found = finder.find_runtime()
     if found:
         return found
-    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR)")
+    pytest.skip("no llama.cpp runtime on this box (set TYPED_GGUF_RUNTIME_DIR)")
 
 
 @pytest.mark.model
@@ -346,7 +346,7 @@ def test_the_defaults_measure_the_published_v2_cell_on_the_4b(
     if not MODEL.is_file():
         pytest.skip(f"{MODEL} is not on this box")
     runtime = _runtime_dir()
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(runtime))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(runtime))
     arm = json.loads(ARM.read_text(encoding="utf-8"))
     published = {row["id"]: row for row in arm["items"]}
     assert (arm["config"]["cue"], arm["config"]["chat_format"]) == ("json_instructed",

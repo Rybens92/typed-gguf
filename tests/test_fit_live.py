@@ -10,7 +10,7 @@ are device tests by design (they need a card with room) and say so.
 
 Run::
 
-    GGUFONE_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_fit_live.py -s
+    TYPED_GGUF_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_fit_live.py -s
 """
 from __future__ import annotations
 
@@ -20,10 +20,10 @@ import pathlib
 
 import pytest
 
-from ggufone import cli, schema
-from ggufone.engine import decide
-from ggufone.engine import session as session_module
-from ggufone.runtime import finder, fit
+from typed_gguf import cli, schema
+from typed_gguf.engine import decide
+from typed_gguf.engine import session as session_module
+from typed_gguf.runtime import finder, fit
 
 SPARK = pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf"
 GIB = 1024 ** 3
@@ -36,13 +36,13 @@ def _roomy_host() -> fit.HostFacts:
 
 
 def _runtime_dir() -> pathlib.Path:
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env and (pathlib.Path(env) / "libllama.so").exists():
         return pathlib.Path(env)
     found = finder.find_runtime()
     if found:
         return found
-    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR)")
+    pytest.skip("no llama.cpp runtime on this box (set TYPED_GGUF_RUNTIME_DIR)")
 
 
 def _model() -> pathlib.Path:
@@ -237,7 +237,7 @@ def test_the_log_capture_swaps_and_restores_the_real_handler() -> None:
     segfaults — measured, see `session.capture_llama_logs`), so the capture must install, collect
     real backend output and reset with a NULL callback without any crash.
     """
-    from ggufone.runtime import ctypes_binding
+    from typed_gguf.runtime import ctypes_binding
 
     runtime = ctypes_binding.load_libraries(_runtime_dir())
     with session_module.capture_llama_logs(runtime) as lines:
@@ -257,7 +257,7 @@ def test_a_busy_desktop_plan_loads_on_the_free_reading() -> None:
     bundle then loads the real model with it; before the fix this is where the 1.06 GB allocation
     was attempted and the run died.
     """
-    from ggufone.registry import recommend
+    from typed_gguf.registry import recommend
 
     model_path = _model()
     runtime = _runtime_dir()

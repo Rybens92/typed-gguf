@@ -13,10 +13,10 @@ import socket
 
 import pytest
 
-from ggufone import cli, schema
-from ggufone.bench import devset as devset_module
-from ggufone.bench import harness, suites
 from tests.fake_engine import BenchModel
+from typed_gguf import cli, schema
+from typed_gguf.bench import devset as devset_module
+from typed_gguf.bench import harness, suites
 
 #: the real resolver, captured before the autouse fixture replaces the module attribute
 _REAL_BACKEND_RUNTIMES = harness.backend_runtimes
@@ -203,7 +203,7 @@ def test_no_suite_touches_the_registry_or_the_network(monkeypatch):
     monkeypatch.setattr(socket, "create_connection", forbidden)
     monkeypatch.setattr(socket, "getaddrinfo", forbidden)
 
-    from ggufone.registry import store
+    from typed_gguf.registry import store
 
     def no_registry(*args: object, **kwargs: object) -> None:
         raise AssertionError("a benchmark must never read the model registry")
@@ -223,7 +223,7 @@ def test_no_suite_touches_the_registry_or_the_network(monkeypatch):
 def test_the_bench_modules_never_import_the_registry_at_module_level():
     """A-E2-7 at the source level: the registry stack may only be imported lazily, in-function.
 
-    (`ggufone.runtime.finder` — which bench uses to locate a *runtime bundle* — happens to import
+    (`typed_gguf.runtime.finder` — which bench uses to locate a *runtime bundle* — happens to import
     the registry package itself; what bench must never do is read `registry.json`, resolve an
     alias or pull a model. The lazy-import rule keeps that visible in the source, and
     `test_no_suite_touches_the_registry_or_the_network` pins the behaviour.)
@@ -233,14 +233,16 @@ def test_the_bench_modules_never_import_the_registry_at_module_level():
     root = pathlib.Path(__file__).resolve().parents[1]
     checked = 0
     for module in ("harness", "suites", "devset"):
-        path = root / "src" / "ggufone" / "bench" / f"{module}.py"
+        path = root / "src" / "typed_gguf" / "bench" / f"{module}.py"
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in tree.body:                                  # module level only
             if isinstance(node, ast.ImportFrom):
-                assert not (node.module or "").startswith(("ggufone.registry", "ggufone.runtime"))
+                assert not (node.module or "").startswith(
+                    ("typed_gguf.registry", "typed_gguf.runtime"))
             elif isinstance(node, ast.Import):
                 for alias in node.names:
-                    assert not alias.name.startswith(("ggufone.registry", "ggufone.runtime")), \
+                    assert not alias.name.startswith(
+                        ("typed_gguf.registry", "typed_gguf.runtime")), \
                         f"{module}.py imports {alias.name} at module level"
         checked += 1
     assert checked == 3
@@ -253,7 +255,7 @@ def test_the_model_must_be_a_file_never_an_alias():
     assert "registry" in str(excinfo.value)
     with pytest.raises(cli.UserError):
         harness.resolve_model_path(None, env={})
-    assert harness.resolve_model_path(None, env={"GGUFONE_BENCH_MODEL": __file__}) == __file__
+    assert harness.resolve_model_path(None, env={"TYPED_GGUF_BENCH_MODEL": __file__}) == __file__
 
 
 # --------------------------------------------------------------------------- the suites
@@ -284,7 +286,7 @@ def test_latency_reports_model_load_prefill_sizes_and_candidate_counts():
     assert warm["prefill_reused"] is True
     assert warm["prefill_ms"]["p50"] == 0.0
     assert report["host"]["cpu_count"] >= 1
-    assert report["commands"]["reproduce"].startswith("uv run ggufone bench --suite latency")
+    assert report["commands"]["reproduce"].startswith("uv run typed-gguf bench --suite latency")
 
 
 def test_latency_also_reports_what_load_reuse_saves():
@@ -315,7 +317,7 @@ def test_the_prefill_sizes_are_configurable_for_smoke_runs():
 
 def test_a_backend_bundle_also_answers_for_cpu(tmp_path, monkeypatch):
     """A Vulkan/Metal bundle carries the CPU backend too: `--backend auto` still finds `cpu`."""
-    from ggufone.runtime import finder
+    from typed_gguf.runtime import finder
 
     root = tmp_path / "runtime"
     bundle = root / "b11026-linux-x64-vulkan"
@@ -323,8 +325,8 @@ def test_a_backend_bundle_also_answers_for_cpu(tmp_path, monkeypatch):
     (bundle / finder.library_names()["llama"]).write_bytes(b"")
     (bundle / "libggml-vulkan.so").write_bytes(b"")
     monkeypatch.setattr(harness, "backend_runtimes", _REAL_BACKEND_RUNTIMES)
-    monkeypatch.setenv("GGUFONE_BENCH_RUNTIME_DIR", str(root))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_BENCH_RUNTIME_DIR", str(root))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     found = harness.backend_runtimes(home=tmp_path / "data-home")
     assert found["vulkan"] == bundle
     assert found["cpu"] == bundle
@@ -337,14 +339,14 @@ def test_a_backend_bundle_also_answers_for_cpu(tmp_path, monkeypatch):
 
 
 def test_a_cpu_only_bundle_is_not_mistaken_for_an_accelerator(tmp_path, monkeypatch):
-    from ggufone.runtime import finder
+    from typed_gguf.runtime import finder
 
     bundle = tmp_path / "runtime" / "b11026-linux-x64-cpu"
     bundle.mkdir(parents=True)
     (bundle / finder.library_names()["llama"]).write_bytes(b"")
     monkeypatch.setattr(harness, "backend_runtimes", _REAL_BACKEND_RUNTIMES)
-    monkeypatch.setenv("GGUFONE_BENCH_RUNTIME_DIR", str(tmp_path / "runtime"))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_BENCH_RUNTIME_DIR", str(tmp_path / "runtime"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     found = harness.backend_runtimes(home=tmp_path / "data-home")
     assert set(found) == {"cpu"}
     assert "libggml-vulkan.so" in harness.backend_unavailable_reason("vulkan")

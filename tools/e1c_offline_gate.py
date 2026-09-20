@@ -3,12 +3,12 @@
 
 Every decision path (chain resolution, template rendering, fit planning, the engine) must work
 with no network at all. This gate runs the E1c tests — offline *and* the live model/runtime
-tests — with `GGUFONE_TEST_BLOCK_NET=1`, which makes `tests/conftest.py` replace
+tests — with `TYPED_GGUF_TEST_BLOCK_NET=1`, which makes `tests/conftest.py` replace
 `socket.socket`, `socket.create_connection` and `socket.getaddrinfo` with a function that raises.
 
 Usage::
 
-    GGUFONE_RUNTIME_DIR=<bundle> uv run python tools/e1c_offline_gate.py
+    TYPED_GGUF_RUNTIME_DIR=<bundle> uv run python tools/e1c_offline_gate.py
 
 Exit code 0 only when every collected test passed (skips are allowed and reported).
 """
@@ -29,10 +29,10 @@ SUMMARY = re.compile(r"(\d+) (passed|failed|skipped|error)")
 
 
 def main(argv: list[str]) -> int:
-    environment = {**os.environ, "GGUFONE_TEST_BLOCK_NET": "1",
+    environment = {**os.environ, "TYPED_GGUF_TEST_BLOCK_NET": "1",
                    "PYTHONPATH": str(ROOT / "src")}
     command = [sys.executable, "-m", "pytest", "-q", *SUITE, *argv]
-    print("$ GGUFONE_TEST_BLOCK_NET=1", " ".join(command), flush=True)
+    print("$ TYPED_GGUF_TEST_BLOCK_NET=1", " ".join(command), flush=True)
     done = subprocess.run(command, cwd=ROOT, env=environment,  # noqa: S603
                           capture_output=True, check=False,
                           # Live model output is *byte* text: a detokenized piece can be an

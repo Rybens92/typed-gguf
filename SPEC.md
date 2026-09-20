@@ -1,10 +1,14 @@
-# SPEC: ggufone — GGUF-native typed decision engine (Jev-like, no fine-tuning)
+# SPEC: typed-gguf — GGUF-native typed decision engine (Jev-like, no fine-tuning)
 
-- Task: t_7bcff796 (code-spec) | Tier: L | Repo: `/home/rybens/workspace/ggufone` (MIT) | Date: 2026-09-17
+- Task: t_7bcff796 (code-spec) | Tier: L | Repo: `Rybens92/typed-gguf` (MIT; this box's checkout is the dir formerly called `ggufone`) | Date: 2026-09-17
+- Renamed: the public name is `typed-gguf` (card t_5f9c15fe, 2026-09-20) — distribution, import
+  package (`typed_gguf`), console script, env vars (`TYPED_GGUF_*`) and the default data home were
+  formerly `ggufone`; `docs/evidence/` keeps the pre-rename spelling on purpose (receipts are
+  records of the runs that produced them).
 - Status: DRAFT — everything in §2 is frozen by the coordinator brief + operator updates; §8 lists
   S-1..S-12 for ratification before E1a implementation starts.
 - Oracle: `docs/verify_runtime_contract.py` (executed; exit 0 == every pinned number reproduced).
-  Run: `python3 docs/verify_runtime_contract.py` (offline) and with `GGUFONE_RUNTIME_DIR=<runtime>` (live).
+  Run: `python3 docs/verify_runtime_contract.py` (offline) and with `TYPED_GGUF_RUNTIME_DIR=<runtime>` (live).
 - Evidence: `docs/evidence/` (captured 2026-09-17) + the executed PoC `docs/evidence/poc-ctypes-20260917.py`.
 - Supersession: the operator update of 2026-09-17 15:55 (distribution) and the PoC report of 16:05
   (ctypes pitfalls) supersede the packaging wording in the original card. Both are incorporated here.
@@ -20,7 +24,7 @@ Every number below is tagged:
 
 ## 1. WHAT / WHY / OUT-OF-SCOPE / TOP-LEVEL ACCEPTANCE
 
-**WHAT.** `ggufone` is a local decision engine over GGUF models. Input: a *state* (text or structured
+**WHAT.** `typed-gguf` is a local decision engine over GGUF models. Input: a *state* (text or structured
 data) plus a map of *typed questions* (`choice` | `score` | `noul`). Output: *typed answers* with full
 probability distributions and a confidence scalar — no generated text, no parsing, no hosted service,
 no fine-tuning. The engine evaluates every question against the same state in **one prefill** of a
@@ -44,7 +48,7 @@ do not produce it).
 
 **TOP-LEVEL ACCEPTANCE (frozen; each is testable in the card that owns it).**
 
-- **A1 No-compile install.** On a machine with no compiler reachable, `ggufone init` yields a working
+- **A1 No-compile install.** On a machine with no compiler reachable, `typed-gguf init` yields a working
   runtime and answers a question end-to-end. Enforced by running `init` with a poisoned `PATH` that
   hides `cc/gcc/g++/clang/nvcc/cmake/ninja` (§4, A-E1a-2).
 - **A2 No fine-tuning.** The repository contains no training code, no training dependency, and no CLI
@@ -107,7 +111,7 @@ Naming note: `noul` is the question type name used by the adapter target; the en
 
 **D-1 (operator decision, 2026-09-17 15:55).** Primary runtime = **official llama.cpp release bundle**
 from GitHub Releases, pinned. The bundle carries shared libraries (`libllama.so`, `libggml*.so`) and
-tools; `ggufone init` downloads the variant matching the host. `llama-cpp-python` is demoted to an
+tools; `typed-gguf init` downloads the variant matching the host. `llama-cpp-python` is demoted to an
 **optional compatibility backend**; our own CI-built wheels are a **fallback** for platforms with no
 official asset. Rationale: official assets need no compiler, ship the pinned build (≥ `b10828`, so
 `spark2_5` works), and expose everything through a stable C ABI.
@@ -162,10 +166,10 @@ ggml_backend_load_all ggml_backend_load_all_from_path
 Header-level pins for `include/llama.h` @ `b11026` (1645 lines) are in the oracle; the struct layouts
 for `llama_model_params`, `llama_context_params` and `llama_batch` are pinned by field order in
 `docs/evidence/poc-ctypes-20260917.py` — that file is the **reference implementation to transplant**
-into `src/ggufone/runtime/` (it loads a model, tokenizes, prefills, forks, batch-decodes two branches
+into `src/typed_gguf/runtime/` (it loads a model, tokenizes, prefills, forks, batch-decodes two branches
 and reads logits — all verified on this box).
 
-**Context parameters ggufone sets explicitly** (never inherited blindly):
+**Context parameters typed-gguf sets explicitly** (never inherited blindly):
 
 ```
 n_ctx        prefix tokens + longest question suffix + margin (32)
@@ -186,9 +190,9 @@ no_perf      False (we need timings)
 runtime must prove it can run it: the probe scans `libllama.so` for the arch's implementation symbol
 (`llama_model_spark2_5` — 17 exported symbols in `b11026` **[executed]**) and parses the build number
 (≥ `b10828` for `spark2_5`). On failure: `E_MODEL_ARCH_UNSUPPORTED` naming the arch, the runtime build
-and the fix (`ggufone init --force`, or pull a build ≥ b10828).
+and the fix (`typed-gguf init --force`, or pull a build ≥ b10828).
 
-**Optional compatibility backend.** `ggufone[llamacpp]` selects `llama-cpp-python`. Documented as
+**Optional compatibility backend.** `typed-gguf[llamacpp]` selects `llama-cpp-python`. Documented as
 degraded: its vendored llama.cpp (2026-09-04) and the local builds (b10679/b10715) predate
 `spark2_5`, its wheels carry no Vulkan backend, and it does not expose `chat_template_kwargs` /
 `enable_thinking`, `n_cpu_moe` or `fit`. It is never on the critical path.
@@ -241,7 +245,7 @@ conservative_plan(weights, kv, ctx, seq) = weights + kv_per_token · ctx · seq 
 `confidence_normalized_peak` reproduces 7 of the 8 confidence values printed in the adapter target's
 docs within ±0.02 **[executed]**; the 8th (`quickstart/department`: p = [0.159, 0.84, 0.001],
 documented 0.596, ours 0.760) is inconsistent with every spread-based statistic we could fit and is
-recorded as an outlier in §2.6 — **ggufone makes no parity claim**; we always expose the raw
+recorded as an outlier in §2.6 — **typed-gguf makes no parity claim**; we always expose the raw
 `probabilities` so a caller can apply its own statistic.
 
 ### 2.5 Native schema
@@ -330,10 +334,10 @@ Documented outlier (§2.4) is reproduced verbatim in the fixture table with a no
 
 **Paths (XDG).** `models/` (files), `registry.json` (aliases), `runtime/<tag>-<variant>/` (the llama.cpp
 bundle), `runtime.json` (active runtime + probe results), `states/` (saved prefix states),
-`calibration.json`. Env overrides: `GGUFONE_HOME`, `GGUFONE_RUNTIME_DIR` (read-only consumption of an
+`calibration.json`. Env overrides: `TYPED_GGUF_HOME`, `TYPED_GGUF_RUNTIME_DIR` (read-only consumption of an
 existing runtime).
 
-**Pull semantics.** `ggufone models pull <repo>[:quant]` (default repo = the pinned default model):
+**Pull semantics.** `typed-gguf models pull <repo>[:quant]` (default repo = the pinned default model):
 1. resolve the repo via the HF API (offline-capable: a pinned metadata snapshot is committed for the
    default model); 2. select exactly one file (`<repo>:Q8_0` → the single `*Q8_0*.gguf`; bare repo →
    `recommend_quant`; several matches → `E_AMBIGUOUS_QUANT` listing them); 3. download with HTTP range
@@ -368,21 +372,21 @@ largest that fits RAM (20% margin, CPU placement); else `insufficient` + warning
 ### 2.8 CLI surface
 
 ```
-ggufone init [--backend auto|cpu|vulkan|cuda|metal] [--force] [--dry-run]
-ggufone doctor [--json]                     # exit 0 ok / 2 warnings / 1 failures
-ggufone models search <query>
-ggufone models pull <repo[:quant]> [--file NAME] [--no-verify] [--jobs N]
-ggufone models use <alias> | ls [--json] | rm <alias> | verify [<alias>] | recommend-quant [--vram GIB]
-ggufone run --questions q.json [--state s.txt|--state-json f] [--model alias] [--format native|typesafe]
+typed-gguf init [--backend auto|cpu|vulkan|cuda|metal] [--force] [--dry-run]
+typed-gguf doctor [--json]                     # exit 0 ok / 2 warnings / 1 failures
+typed-gguf models search <query>
+typed-gguf models pull <repo[:quant]> [--file NAME] [--no-verify] [--jobs N]
+typed-gguf models use <alias> | ls [--json] | rm <alias> | verify [<alias>] | recommend-quant [--vram GIB]
+typed-gguf run --questions q.json [--state s.txt|--state-json f] [--model alias] [--format native|typesafe]
               [--out r.json] [--state-id ID]
-ggufone ask --state <text|@file> --choice "id=instr:opt1|opt2" --score "id=instr:l0|l1|l2"
+typed-gguf ask --state <text|@file> --choice "id=instr:opt1|opt2" --score "id=instr:l0|l1|l2"
               --noul "id=instr"
-ggufone serve [--host 127.0.0.1] [--port 8088] [--format native|typesafe]
-ggufone mcp                                  # stdio JSON-RPC for MCP clients
-ggufone bench --suite latency|throughput|quality|calibration|determinism [--model alias] [--json]
-ggufone fit [<model>] [--print] [--no-cache]
-ggufone calibrate [--model alias] [--dry-run]
-ggufone version [--json]
+typed-gguf serve [--host 127.0.0.1] [--port 8088] [--format native|typesafe]
+typed-gguf mcp                                  # stdio JSON-RPC for MCP clients
+typed-gguf bench --suite latency|throughput|quality|calibration|determinism [--model alias] [--json]
+typed-gguf fit [<model>] [--print] [--no-cache]
+typed-gguf calibrate [--model alias] [--dry-run]
+typed-gguf version [--json]
 ```
 
 ### 2.9 HTTP + MCP surface
@@ -391,9 +395,9 @@ HTTP (stdlib `http.server`, default bind `127.0.0.1:8088`, no telemetry, `--host
 warning): `GET /health`, `GET /v1/models`, `POST /v1/decide` (native), `POST /v1/systemone` (typesafe
 shape; accepted on any `--format`). Errors are JSON `{error: {code, message}}` with the code from §2.5.
 
-MCP (stdio, JSON-RPC 2.0: `initialize`, `tools/list`, `tools/call`): tools `ggufone_decide`
-(state + questions → answers), `ggufone_models_list`, `ggufone_models_pull`, `ggufone_runtime_status`,
-`ggufone_fit`. Tool schemas mirror §2.5; no tool ever triggers a network call except `models_pull`.
+MCP (stdio, JSON-RPC 2.0: `initialize`, `tools/list`, `tools/call`): tools `typed_gguf_decide`
+(state + questions → answers), `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`,
+`typed_gguf_fit`. Tool schemas mirror §2.5; no tool ever triggers a network call except `models_pull`.
 
 ### 2.10 Calibration, fit and routing (E2.5)
 
@@ -402,8 +406,8 @@ MCP (stdio, JSON-RPC 2.0: `initialize`, `tools/list`, `tools/call`): tools `gguf
 - **Calibration**: fit a per-(model, question-type) temperature/scale on a committed labeled dev set,
   store in `calibration.json`, apply at readout. Accept only if ECE (or agreement at a fixed
   confidence threshold) improves on a held-out split; otherwise report "no calibration applied".
-- **Fit**: `ggufone fit` runs the bundle's `llama-fit-params` (`--fit on`, `--fit-target MiB`,
-  `--fit-ctx N`, `--fit-print on` **[executed: flags present in b11026]**) and adds ggufone's own
+- **Fit**: `typed-gguf fit` runs the bundle's `llama-fit-params` (`--fit on`, `--fit-target MiB`,
+  `--fit-ctx N`, `--fit-print on` **[executed: flags present in b11026]**) and adds typed-gguf's own
   `n_seq_max`/KV-type math; the plan is cached per (model sha256, host fingerprint) and applied on load
   unless `--no-fit`.
 - **Routing**: `--route auto` picks (alias, kv_type, n_ctx, n_seq_max) from the registry under the
@@ -424,7 +428,7 @@ in `src/`, and the absence of any training entry point in the CLI.
 ## 3. Repo layout & scaffold (created with this SPEC)
 
 ```
-ggufone/
+typed_gguf/
   pyproject.toml            # uv-managed; requires-python >=3.11; core deps = [] (stdlib only)
   runtime.lock              # the pinned runtime: release tag, per-platform asset names/sizes/sha256,
                             # required symbols, mandatory call order, default-model pin
@@ -439,7 +443,7 @@ ggufone/
     BENCHMARKS.md                  # (E2) measured tables
   tools/
     capture_evidence.py            # re-captures docs/evidence/*.json from the network
-  src/ggufone/
+  src/typed_gguf/
     __init__.py  __main__.py  cli.py  schema.py  errors.py
     engine/{prompt,readout,session,decide}.py
     runtime/{finder,ctypes_binding,capability,install,fit}.py
@@ -458,7 +462,7 @@ ggufone/
     ci.yml                    # lint + unit gate + oracle (offline and live per platform)
     runtime-matrix.yml        # downloads each pinned asset, runs the oracle live section (per OS)
     wheels-fallback.yml       # fallback publisher: our own wheels for platforms without an asset
-  state/groupchat/ggufone-e1.md  # coordination thread
+  state/groupchat/typed-gguf-e1.md  # coordination thread
 ```
 
 Nothing in this layout is aspirational: E1a owns `runtime/`, `registry/`, `cli.py init|doctor|models`,
@@ -471,7 +475,7 @@ E1b owns `schema.py`, `engine/`, `cli.py run|ask`, E1c owns the template resolve
 
 **Ladder (in order, each rung fully automated before the next is offered).**
 
-1. **Prebuilt (primary).** `ggufone init` detects OS/arch/GPU, maps to the pinned asset table (§2.2),
+1. **Prebuilt (primary).** `typed-gguf init` detects OS/arch/GPU, maps to the pinned asset table (§2.2),
    downloads it (resume + size/entry verification), extracts into `runtime/<tag>-<variant>/`, then runs
    the probe (symbols, build number, backend list) and a warm-up decode. No compiler on the path.
    GPU detection: `nvidia-smi` + driver version → CUDA asset; else Vulkan ICD present (`libvulkan.so.1`
@@ -480,13 +484,13 @@ E1b owns `schema.py`, `engine/`, `cli.py run|ask`, E1c owns the template resolve
    scripted cmake+ninja build with progress and a hard timeout, producing the *same* runtime dir
    layout, logged with the exact command line for reproducibility.
 3. **Guided manual.** Print the exact steps, accept a user-provided runtime dir via
-   `GGUFONE_RUNTIME_DIR`, and verify it with the same probe (so a hand-built runtime is first-class,
+   `TYPED_GGUF_RUNTIME_DIR`, and verify it with the same probe (so a hand-built runtime is first-class,
    just not automatic).
 
 **Rules.** `runtime.lock` (repo root, data) is the single source of truth for the pinned release;
-`src/ggufone/runtime/pins.py` (typed access) reads it and the oracle asserts both against
+`src/typed_gguf/runtime/pins.py` (typed access) reads it and the oracle asserts both against
 `docs/evidence/`. Never commit binaries to git (only pins, sizes and hashes; `.gitignore` covers `*.so`,
-`*.dylib`, `*.dll`, `*.gguf`). The runtime is reported by `ggufone doctor --json`/`version --json`.
+`*.dylib`, `*.dll`, `*.gguf`). The runtime is reported by `typed-gguf doctor --json`/`version --json`.
 Runtime-vs-model arch pre-flight always runs before load (A11). `runtime.json` (in the data dir)
 records the asset name, its SHA-256 (computed at install; GitHub publishes no per-asset digest, so our
 own pin is the source of truth), the probe results and the warm-up timing.
@@ -503,13 +507,13 @@ bumped to ≥ the pinned commit) and is explicitly *not* on the primary path.
 
 ### E1a — runtime + model registry (no engine yet)
 
-Deliverable: `ggufone init`, `ggufone doctor`, `ggufone models {search,pull,use,ls,rm,verify,
+Deliverable: `typed-gguf init`, `typed-gguf doctor`, `typed-gguf models {search,pull,use,ls,rm,verify,
 recommend-quant}`, `registry/`, `runtime/`, tests.
 
-- **A-E1a-1** Oracle live section green: `GGUFONE_RUNTIME_DIR=<rt> python3 docs/verify_runtime_contract.py`
+- **A-E1a-1** Oracle live section green: `TYPED_GGUF_RUNTIME_DIR=<rt> python3 docs/verify_runtime_contract.py`
   → exit 0 with no `SKIP` in section B.
-- **A-E1a-2** `ggufone init` succeeds with `PATH` poisoned to hide `cc/gcc/g++/clang/nvcc/cmake/ninja`
-  (or on a machine without them) and with `GGUFONE_OFFLINE_CACHE` pointing at a pre-downloaded bundle;
+- **A-E1a-2** `typed-gguf init` succeeds with `PATH` poisoned to hide `cc/gcc/g++/clang/nvcc/cmake/ninja`
+  (or on a machine without them) and with `TYPED_GGUF_OFFLINE_CACHE` pointing at a pre-downloaded bundle;
   wall clock ≤ 180 s (warm connection) **[target]**; `--dry-run` prints asset choice + destination.
 - **A-E1a-3** `doctor` verifies: bundle present, `libllama.so` SHA-256 recorded, all 34 required
   symbols resolve, build == pinned tag and ≥ `b10828`, `llama-fit-params --help` exits 0, backend list
@@ -571,7 +575,7 @@ Deliverable: `schema.py`, `engine/*`, `cli.py run|ask`, typesafe adapter, tests.
 
 ### E1c — reasoning resolver + fit
 
-Deliverable: template resolution chain, thinking suppression, `ggufone fit`, `docs/TEMPLATES.md`,
+Deliverable: template resolution chain, thinking suppression, `typed-gguf fit`, `docs/TEMPLATES.md`,
 end-to-end run on the pinned default model.
 
 - **A-E1c-1** Resolution chain, ordered and documented: (1) GGUF `tokenizer.chat_template` rendered by
@@ -581,7 +585,7 @@ end-to-end run on the pinned default model.
   rendered prompt provably contains no think-opener; soft-switch families get the documented marker.
 - **A-E1c-3** Post-cue degenerate output (a model that would start reasoning after the cue) never
   affects the readout: answers come from the cue position, proven with a synthetic logits fixture.
-- **A-E1c-4** `ggufone fit` returns `{n_gpu_layers, n_ctx, kv_type, n_seq_max, est_weights_bytes,
+- **A-E1c-4** `typed-gguf fit` returns `{n_gpu_layers, n_ctx, kv_type, n_seq_max, est_weights_bytes,
   est_kv_bytes, est_total_bytes, backend, source}`; `source` is `llama-fit-params` when the binary ran,
   `estimate` otherwise (`W_FIT_ESTIMATED`); cached per (model sha, host fingerprint).
 - **A-E1c-5** Fit plan applied on load unless `--no-fit`; over-budget plans downgrade kv_type first
@@ -617,7 +621,7 @@ Deliverable: `bench/`, `docs/BENCHMARKS.md`, committed labeled dev set, JSON rep
 
 ### E2.5 — auto-calibration + routing
 
-Deliverable: `calibration/`, `ggufone calibrate`, `--route auto`, escalation.
+Deliverable: `calibration/`, `typed-gguf calibrate`, `--route auto`, escalation.
 
 - **A-E2p5-1** `calibrate` fits per-(model, question-type) parameters on the labeled set, writes
   `calibration.json`, `--dry-run` prints the table.
@@ -717,7 +721,7 @@ the vendor's public eval; frozen Qwen3.5-4B ≈ 0.845 vs 0.883 modal agreement o
 
 ## 8. Decisions for ratification (S-1..S-12)
 
-- **S-1** Name `ggufone` (package + CLI + repo). Rename before publication = 1 commit.
+- **S-1** Name `typed-gguf` (package + CLI + repo). Rename before publication = 1 commit.
 - **S-2** Runtime: **ctypes → official llama.cpp bundle** primary; `llama-cpp-python` optional compat;
   own CI wheels only as fallback (operator decision, incorporated).
 - **S-3** `confidence` = normalized peak by default, with `entropy`/`margin` modes; **no parity claim**
@@ -728,8 +732,8 @@ the vendor's public eval; frozen Qwen3.5-4B ≈ 0.845 vs 0.883 modal agreement o
 - **S-6** Default `kv_type = auto` with the downgrade chain `f16 → q8_0 → q4_0`.
 - **S-7** Escalation off by default in E1/E2, enabled in E2.5 (`max_escalations = 1`).
 - **S-8** HTTP default `127.0.0.1:8088`, no auth, `--host` change warns.
-- **S-9** MCP tool names frozen: `ggufone_decide`, `ggufone_models_list`, `ggufone_models_pull`,
-  `ggufone_runtime_status`, `ggufone_fit`.
+- **S-9** MCP tool names frozen: `typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`,
+  `typed_gguf_runtime_status`, `typed_gguf_fit`.
 - **S-10** Quality dev set: we author ≥50 items ourselves (no vendor eval reuse); provenance documented
   in `docs/BENCHMARKS.md`.
 - **S-11** E2 quality is report-only in v1 (no minimum agreement threshold); a floor is set after the
@@ -741,11 +745,11 @@ the vendor's public eval; frozen Qwen3.5-4B ≈ 0.845 vs 0.883 modal agreement o
 ## 9. Definition of done for this card + handoff to E1a (code-tdd)
 
 Done when: `SPEC.md` committed; scaffold committed (`pyproject.toml`, `README.md`, `LICENSE`,
-`src/ggufone/*` stubs, `tests/test_scaffold.py`, workflows, `docs/evidence/*`,
+`src/typed_gguf/*` stubs, `tests/test_scaffold.py`, workflows, `docs/evidence/*`,
 `docs/verify_runtime_contract.py`); `uv run pytest -q` green; the oracle exits 0 (offline and live);
-`state/groupchat/ggufone-e1.md` carries this milestone list.
+`state/groupchat/typed-gguf-e1.md` carries this milestone list.
 
 **E1a entry conditions for code-tdd:** S-1..S-12 ratified (or defaults accepted); the oracle is the
 first test to make green; `docs/evidence/poc-ctypes-20260917.py` is transplanted into
-`src/ggufone/runtime/ctypes_binding.py` (structs verbatim — they are verified); no implementation may
-add a third-party runtime dependency; `ggufone init` must never invoke a compiler (A1).
+`src/typed_gguf/runtime/ctypes_binding.py` (structs verbatim — they are verified); no implementation may
+add a third-party runtime dependency; `typed-gguf init` must never invoke a compiler (A1).

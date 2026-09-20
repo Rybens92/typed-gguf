@@ -1,7 +1,7 @@
 """Runtime pre-flight: symbols, build number, backends, arch gate (SPEC 2.2, A-E1a-3, A-E1a-9).
 
 Everything here runs offline against synthetic runtime directories; the live probe is the
-oracle's section B (A-E1a-1) plus `ggufone doctor` on the real install.
+oracle's section B (A-E1a-1) plus `typed-gguf doctor` on the real install.
 """
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ import stat
 
 import pytest
 
-from ggufone.errors import GgufoneError
-from ggufone.runtime import capability, finder
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.runtime import capability, finder
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -99,7 +99,7 @@ def test_require_arch_passes_for_a_supported_build(tmp_path: pathlib.Path) -> No
 
 def test_require_arch_rejects_an_unknown_arch_with_actionable_text(tmp_path: pathlib.Path) -> None:
     rt = fake_runtime(tmp_path, archs=("qwen35",))
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         capability.require_arch(rt, "spark2_5", build=11026)
     assert exc.value.code == "E_MODEL_ARCH_UNSUPPORTED"
     msg = str(exc.value)
@@ -108,7 +108,7 @@ def test_require_arch_rejects_an_unknown_arch_with_actionable_text(tmp_path: pat
 
 def test_require_arch_rejects_a_runtime_older_than_the_arch_needs(tmp_path: pathlib.Path) -> None:
     rt = fake_runtime(tmp_path, build=10715, archs=("spark2_5",))
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         capability.require_arch(rt, "spark2_5", build=10715)
     assert exc.value.code == "E_MODEL_ARCH_UNSUPPORTED"
     assert "10828" in str(exc.value)  # names the minimum build
@@ -230,9 +230,9 @@ def test_probe_can_skip_the_tool_subprocesses(tmp_path: pathlib.Path) -> None:
 
 # ------------------------------------------------------------------ runtime record
 def test_runtime_record_roundtrip(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path))
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path))
     assert finder.runtime_record() is None
-    path = finder.write_runtime_record({"schema": "ggufone.runtime/v1", "tag": "b11026"})
+    path = finder.write_runtime_record({"schema": "typed_gguf.runtime/v1", "tag": "b11026"})
     assert path == tmp_path / "runtime.json"
     assert json.loads(path.read_text())["tag"] == "b11026"
     assert finder.runtime_record()["tag"] == "b11026"
@@ -241,15 +241,15 @@ def test_runtime_record_roundtrip(tmp_path: pathlib.Path, monkeypatch: pytest.Mo
 def test_find_runtime_honours_the_env_override(tmp_path: pathlib.Path,
                                                monkeypatch: pytest.MonkeyPatch) -> None:
     rt = fake_runtime(tmp_path)
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(rt))
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(rt))
     assert finder.find_runtime() == rt
     assert finder.resolve_runtime() == rt
 
 
 def test_find_runtime_scans_the_data_home(tmp_path: pathlib.Path,
                                           monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
     rt = tmp_path / "home" / "runtime" / "b11026-linux-x64-cpu"
     rt.mkdir(parents=True)
     (rt / "libllama.so").write_bytes(b"\x7fELF fake\n")
@@ -258,28 +258,28 @@ def test_find_runtime_scans_the_data_home(tmp_path: pathlib.Path,
 
 def test_resolve_runtime_raises_a_useful_error_when_absent(tmp_path: pathlib.Path,
                                                            monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "empty"))
-    with pytest.raises(GgufoneError) as exc:
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "empty"))
+    with pytest.raises(TypedGgufError) as exc:
         finder.resolve_runtime()
     assert exc.value.code == "E_RUNTIME_MISSING"
-    assert "ggufone init" in str(exc.value)
+    assert "typed-gguf init" in str(exc.value)
 
 
 def test_resolve_runtime_is_optional_for_read_only_commands(
         tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "empty"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "empty"))
     assert finder.resolve_runtime(required=False) is None
 
 
 def test_env_override_pointing_nowhere_is_an_error(tmp_path: pathlib.Path,
                                                    monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(tmp_path / "nope"))
-    with pytest.raises(GgufoneError) as exc:
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(tmp_path / "nope"))
+    with pytest.raises(TypedGgufError) as exc:
         finder.find_runtime()
     assert exc.value.code == "E_RUNTIME_MISSING"
-    assert "GGUFONE_RUNTIME_DIR" in str(exc.value)
+    assert "TYPED_GGUF_RUNTIME_DIR" in str(exc.value)
 
 
 def test_layout_reports_the_pinned_files(tmp_path: pathlib.Path) -> None:

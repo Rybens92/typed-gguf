@@ -6,14 +6,14 @@ import pathlib
 
 import pytest
 
-from ggufone.errors import GgufoneError
-from ggufone.registry import store
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.registry import store
 
 
 @pytest.fixture(autouse=True)
 def _home(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> pathlib.Path:
-    home = tmp_path / "ggufone-home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    home = tmp_path / "typed-gguf-home"
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
     return home
 
 
@@ -35,9 +35,9 @@ def entry(alias: str = "spark", **over: object) -> store.Entry:
 
 
 # ------------------------------------------------------------------ paths
-def test_data_home_honours_ggufone_home(monkeypatch: pytest.MonkeyPatch,
-                                        tmp_path: pathlib.Path) -> None:
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "custom"))
+def test_data_home_honours_typed_gguf_home(monkeypatch: pytest.MonkeyPatch,
+                                          tmp_path: pathlib.Path) -> None:
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "custom"))
     assert store.data_home() == tmp_path / "custom"
     assert store.models_dir() == tmp_path / "custom" / "models"
     assert store.registry_path() == tmp_path / "custom" / "registry.json"
@@ -49,15 +49,15 @@ def test_data_home_honours_ggufone_home(monkeypatch: pytest.MonkeyPatch,
 
 def test_data_home_falls_back_to_xdg(monkeypatch: pytest.MonkeyPatch,
                                      tmp_path: pathlib.Path) -> None:
-    monkeypatch.delenv("GGUFONE_HOME", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_HOME", raising=False)
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg"))
-    assert store.data_home() == tmp_path / "xdg" / "ggufone"
+    assert store.data_home() == tmp_path / "xdg" / "typed-gguf"
 
 
 def test_data_home_expands_tilde(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("GGUFONE_HOME", "~/ggufone-data")
-    assert store.data_home() == tmp_path / "ggufone-data"
+    monkeypatch.setenv("TYPED_GGUF_HOME", "~/typed-gguf-data")
+    assert store.data_home() == tmp_path / "typed-gguf-data"
 
 
 # ------------------------------------------------------------------ roundtrip
@@ -111,7 +111,7 @@ def test_add_entry_alias_collision_gets_a_suffix() -> None:
 
 def test_remove_unknown_alias_is_user_error() -> None:
     reg = store.Registry()
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         store.remove_entry(reg, "nope")
     assert exc.value.code == "E_MODEL_NOT_FOUND"
 
@@ -158,7 +158,7 @@ def test_corrupt_registry_strict_mode_raises() -> None:
     path = store.registry_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("[]")
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         store.load_registry(recover=False)
     assert exc.value.code == "E_REGISTRY_CORRUPT"
     assert path.exists()  # strict mode must not touch the file

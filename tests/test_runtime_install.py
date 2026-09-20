@@ -1,4 +1,4 @@
-"""`ggufone init`: prebuilt ladder rung 1 only — never a compiler (SPEC 4, A-E1a-2).
+"""`typed-gguf init`: prebuilt ladder rung 1 only — never a compiler (SPEC 4, A-E1a-2).
 
 The offline tests use a synthetic lock + a synthetic bundle; the real 16.8 MB pinned asset is
 downloaded in the live/network test and in the evidence run.
@@ -15,8 +15,8 @@ import time
 
 import pytest
 
-from ggufone.errors import GgufoneError
-from ggufone.runtime import install, pins
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.runtime import install, pins
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -50,7 +50,7 @@ def fake_lock(tmp_path: pathlib.Path, archive: pathlib.Path, *,
               size: int | None = None, digest: str | None = None,
               variant: str = "linux-x64-cpu") -> pathlib.Path:
     payload = {
-        "schema": "ggufone.runtime.lock/v1",
+        "schema": "typed_gguf.runtime.lock/v1",
         "llama_cpp": {
             "repo": "ggml-org/llama.cpp", "tag": "b11026",
             "published_at": "2026-09-17T13:31:47Z", "commit": "b49650adb",
@@ -174,7 +174,7 @@ def test_install_rejects_a_cache_file_with_the_wrong_hash(tmp_path: pathlib.Path
     cache.mkdir()
     # right size, wrong content -> the SHA-256 check is what must fire
     (cache / archive.name).write_bytes(b"\x00" * archive.stat().st_size)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         install.install("cpu", home=tmp_path / "home", lock=lock, offline_cache=cache,
                         free_bytes=1 << 40)
     assert exc.value.code == "E_SHA256_MISMATCH"
@@ -185,7 +185,7 @@ def test_install_rejects_a_cache_file_with_the_wrong_size(tmp_path: pathlib.Path
     cache = tmp_path / "cache"
     cache.mkdir()
     (cache / archive.name).write_bytes(archive.read_bytes() + b"junk")
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         install.install("cpu", home=tmp_path / "home", lock=lock, offline_cache=cache,
                         free_bytes=1 << 40)
     assert exc.value.code in ("E_SHA256_MISMATCH", "E_DOWNLOAD_FAILED")
@@ -193,7 +193,7 @@ def test_install_rejects_a_cache_file_with_the_wrong_size(tmp_path: pathlib.Path
 
 def test_install_fails_before_downloading_when_disk_is_short(tmp_path: pathlib.Path) -> None:
     lock, archive = locked(tmp_path)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         install.install("cpu", home=tmp_path / "home", lock=lock, free_bytes=1024)
     assert exc.value.code == "E_INSUFFICIENT_DISK"
     msg = str(exc.value)
@@ -214,7 +214,7 @@ def test_install_fails_when_the_bundle_lacks_a_required_file(tmp_path: pathlib.P
     cache = tmp_path / "cache"
     cache.mkdir()
     (cache / archive.name).write_bytes(archive.read_bytes())
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         install.install("cpu", home=tmp_path / "home", lock=lock, offline_cache=cache,
                         free_bytes=1 << 40)
     assert exc.value.code == "E_RUNTIME_MISSING"
@@ -253,7 +253,7 @@ def test_extract_uses_a_safe_tar_filter(tmp_path: pathlib.Path) -> None:
         payload = b"nope"
         info.size = len(payload)
         tar.addfile(info, io.BytesIO(payload))
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         install.extract_bundle(evil, tmp_path / "out")
     assert exc.value.code == "E_DOWNLOAD_FAILED"
     assert not (tmp_path / "escape.txt").exists()
@@ -277,14 +277,14 @@ def docstring_ids(tree: ast.AST) -> set[int]:
 
 
 def test_no_source_file_ever_names_a_compiler_toolchain() -> None:
-    """A1 / SPEC 4 rung 1: `ggufone init` must not shell out to a build toolchain.
+    """A1 / SPEC 4 rung 1: `typed-gguf init` must not shell out to a build toolchain.
 
-    Enforced structurally: outside docstrings, no string constant in `src/ggufone/**` mentions
+    Enforced structurally: outside docstrings, no string constant in `src/typed_gguf/**` mentions
     a compiler name, so no subprocess can be constructed from one. Docstrings are allowed to
     *talk* about the rule.
     """
     offenders: list[str] = []
-    for path in sorted((ROOT / "src" / "ggufone").rglob("*.py")):
+    for path in sorted((ROOT / "src" / "typed_gguf").rglob("*.py")):
         tree = ast.parse(path.read_text())
         prose = docstring_ids(tree)
         for node in ast.walk(tree):

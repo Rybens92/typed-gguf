@@ -6,9 +6,9 @@ die at teardown (`double free or corruption (!prev)`, exit **134**) — see
 `docs/evidence/e2_fix_t_dd62ec29_mixed_bundle_isolation.md`. This test is the executable form of the
 card's requirement 1+2: the *real* command, two real bundles on disk, the exit code the report's.
 
-    GGUFONE_RUNTIME_DIR=/work/t603-runtime/b11026-linux-x64-cpu \\
-    GGUFONE_BENCH_RUNTIME_DIR=/var/home/rybens/.local/share/ggufone/runtime \\
-    GGUFONE_BENCH_MODEL=/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf \\
+    TYPED_GGUF_RUNTIME_DIR=/work/t603-runtime/b11026-linux-x64-cpu \\
+    TYPED_GGUF_BENCH_RUNTIME_DIR=/var/home/rybens/.local/share/typed-gguf/runtime \\
+    TYPED_GGUF_BENCH_MODEL=/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf \\
       uv run --frozen pytest -q --run-network tests/test_bench_isolation_live.py -s
 
 (`VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json` in a container, so the second bundle's own
@@ -28,8 +28,8 @@ import sys
 
 import pytest
 
-import ggufone
-from ggufone.bench import harness
+import typed_gguf
+from typed_gguf.bench import harness
 
 #: The known local GGUFs (`tests/test_bench_live.py` uses the same two names): a small one for a
 #: fast gate, the operator's Spark 4B as the fallback.
@@ -45,7 +45,7 @@ def two_bundles() -> tuple[str, str, str]:
                     if backend in runtimes]
     if cpu is None or not accelerators:
         pytest.skip("this box has fewer than two local llama.cpp bundles "
-                    "(set GGUFONE_RUNTIME_DIR and GGUFONE_BENCH_RUNTIME_DIR)")
+                    "(set TYPED_GGUF_RUNTIME_DIR and TYPED_GGUF_BENCH_RUNTIME_DIR)")
     backend, directory = accelerators[0]
     if pathlib.Path(cpu).resolve() == pathlib.Path(directory).resolve():
         pytest.skip(f"one bundle answers `cpu` and `{backend}`: `--backend all` stays in one "
@@ -54,18 +54,18 @@ def two_bundles() -> tuple[str, str, str]:
 
 
 def benchmarkable_model() -> pathlib.Path:
-    explicit = os.environ.get("GGUFONE_BENCH_MODEL")
+    explicit = os.environ.get("TYPED_GGUF_BENCH_MODEL")
     candidates = ([pathlib.Path(explicit)] if explicit else []) + [QUICK_MODEL, SPARK]
     for candidate in candidates:
         if candidate.is_file():
             return candidate
-    pytest.skip("no benchmarkable GGUF on this box (set GGUFONE_BENCH_MODEL)")
+    pytest.skip("no benchmarkable GGUF on this box (set TYPED_GGUF_BENCH_MODEL)")
 
 
 def child_env() -> dict[str, str]:
     """The CLI child's env: the caller's, plus this checkout's `src/` on `PYTHONPATH`."""
     env = dict(os.environ)
-    src_root = str(pathlib.Path(ggufone.__file__).resolve().parents[1])
+    src_root = str(pathlib.Path(typed_gguf.__file__).resolve().parents[1])
     parts = [part for part in env.get("PYTHONPATH", "").split(os.pathsep) if part]
     if src_root not in parts:
         env["PYTHONPATH"] = os.pathsep.join([src_root, *parts])
@@ -79,7 +79,7 @@ def test_the_two_bundle_command_does_not_abort_and_its_exit_code_is_the_report(
     cpu, accel_backend, accel_dir = two_bundles()
     model = benchmarkable_model()
     report_path = tmp_path / "throughput-all.json"
-    command = [sys.executable, "-m", "ggufone", "bench", "--suite", "throughput",
+    command = [sys.executable, "-m", "typed_gguf", "bench", "--suite", "throughput",
                "--model", str(model), "--backend", "all", "--runs", "1", "--threads", "4",
                "--sizes", "64", "--out", str(report_path), "--json"]
     completed = subprocess.run(command, capture_output=True, text=True, env=child_env(),

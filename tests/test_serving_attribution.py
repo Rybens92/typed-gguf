@@ -1,6 +1,6 @@
 """E3 FIX (card t_80f1a4c6): the *serving* path must say what computed.
 
-The E3 campaign (`docs/evidence/e3_batch.json`) ran one `ggufone run` over 20 dev-set questions
+The E3 campaign (`docs/evidence/e3_batch.json`) ran one `typed-gguf run` over 20 dev-set questions
 with `--backend vulkan --threads 4 --n-seq-max 4` on the pinned b11026 Vulkan bundle and answered
 with
 
@@ -43,12 +43,12 @@ from typing import Any
 
 import pytest
 
-from ggufone import cli, schema
-from ggufone.engine import decide
-from ggufone.engine import session as session_module
-from ggufone.errors import WARNING_CODES
-from ggufone.runtime import finder
 from tests.fake_engine import FakeSession
+from typed_gguf import cli, schema
+from typed_gguf.engine import decide
+from typed_gguf.engine import session as session_module
+from typed_gguf.errors import WARNING_CODES
+from typed_gguf.runtime import finder
 
 #: The E3 batch's own lines (`/work/e3scratch/batch.log`, Occamy 1.0 on the Vulkan bundle): the
 #: loader's device/backend lines are requests the backend *loads* — the compute buffers below are
@@ -268,7 +268,7 @@ def test_a_record_without_a_working_backend_is_not_a_claim(tmp_path: pathlib.Pat
 
 def test_the_bundle_classifier_refuses_a_platform_it_has_no_rule_for() -> None:
     """Same rule as `finder.library_names`: an unknown platform is an error, never a guess."""
-    from ggufone.errors import RuntimeMissingError
+    from typed_gguf.errors import RuntimeMissingError
 
     with pytest.raises(RuntimeMissingError) as excinfo:
         finder.accelerator_names("plan9")
@@ -283,10 +283,10 @@ def test_the_live_session_records_the_load_and_the_context_lines(tmp_path: pathl
     The vehicle is `tests.test_fit_oom_recovery`'s fake runtime, whose lambdas print through the
     real `llama_log_set` ABI (card t_8cb0a05e): the same two captures a serving run collects.
     """
-    from ggufone.engine.decide import ContextPlan
-    from ggufone.runtime import fit
     from tests.test_fit import write_gguf
     from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    from typed_gguf.engine.decide import ContextPlan
+    from typed_gguf.runtime import fit
 
     model_path = write_gguf(tmp_path / "model.gguf", n_layer=4)
     backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
@@ -327,7 +327,7 @@ def test_the_live_session_records_the_load_and_the_context_lines(tmp_path: pathl
         finally:
             handle.close()
 
-    from ggufone.runtime import devices as devices_module
+    from typed_gguf.runtime import devices as devices_module
 
     usage = devices_module.parse_device_usage(log)
     assert usage.model_buffers == {"CPU": 1}          # the load's own line
@@ -339,10 +339,10 @@ def test_the_live_session_records_the_load_and_the_context_lines(tmp_path: pathl
 
 def test_the_live_session_names_the_bundle_it_loaded(tmp_path: pathlib.Path) -> None:
     """No `--backend` flag: the claim is the backend the bundle this run loaded carries."""
-    from ggufone.engine.decide import ContextPlan
-    from ggufone.runtime import fit
     from tests.test_fit import write_gguf
     from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    from typed_gguf.engine.decide import ContextPlan
+    from typed_gguf.runtime import fit
 
     model_path = write_gguf(tmp_path / "model.gguf", n_layer=4)
     backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
@@ -379,10 +379,10 @@ def live_session(tmp_path: pathlib.Path, **session_kwargs: Any) -> Iterator[Any]
     shared while the *observations* stay per-gate. The bundle on disk carries `libggml-vulkan.so`,
     which is what makes "the claim was not resolved" observable.
     """
-    from ggufone.engine.decide import ContextPlan
-    from ggufone.runtime import fit
     from tests.test_fit import write_gguf
     from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    from typed_gguf.engine.decide import ContextPlan
+    from typed_gguf.runtime import fit
 
     model_path = write_gguf(tmp_path / "model.gguf", n_layer=4)
     backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
@@ -515,15 +515,15 @@ def test_the_serving_payload_hands_the_claim_and_the_log_to_the_session(
 
 # --------------------------------------------------------- the live row (pinned bundle)
 def _runtime_dir() -> pathlib.Path:
-    """The bundle the live gate runs (`$GGUFONE_RUNTIME_DIR`, else the installed one)."""
+    """The bundle the live gate runs (`$TYPED_GGUF_RUNTIME_DIR`, else the installed one)."""
     import os
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env and (pathlib.Path(env) / finder.library_names()["llama"]).exists():
         return pathlib.Path(env)
     found = finder.find_runtime()
     if found:
         return found
-    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR)")
+    pytest.skip("no llama.cpp runtime on this box (set TYPED_GGUF_RUNTIME_DIR)")
 
 
 #: the operator's smallest local GGUFs, in preference order (a live row never downloads one)
@@ -532,9 +532,9 @@ LIVE_MODELS = ("Qwen3.5-4B-Q4_0.gguf", "Spark-X2.5-4B-Q8_0.gguf",
 
 
 def _live_model() -> pathlib.Path:
-    """`GGUFONE_ATTRIB_MODEL`, else the smallest known local GGUF (the card's is Occamy)."""
+    """`TYPED_GGUF_ATTRIB_MODEL`, else the smallest known local GGUF (the card's is Occamy)."""
     import os
-    explicit = os.environ.get("GGUFONE_ATTRIB_MODEL")
+    explicit = os.environ.get("TYPED_GGUF_ATTRIB_MODEL")
     candidates = [pathlib.Path(explicit)] if explicit else []
     candidates += [pathlib.Path.home() / ".hermes" / "models" / name for name in LIVE_MODELS]
     for candidate in candidates:
@@ -548,7 +548,7 @@ def test_a_live_serving_run_reports_the_bundle_backend_it_computed_on(
         tmp_path: pathlib.Path) -> None:
     """One live row on the pinned bundle (card t_80f1a4c6, requirement 3).
 
-        GGUFONE_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> \\
+        TYPED_GGUF_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> \\
             uv run pytest -q --run-network tests/test_serving_attribution.py -k live
 
     The request names no backend, so the label must come from the bundle this run *loaded* (the
@@ -556,7 +556,7 @@ def test_a_live_serving_run_reports_the_bundle_backend_it_computed_on(
     `cpu`). The device buffers must be counts the engine's own log produced, naming that same
     backend, and the response must not be flagged.
     """
-    from ggufone.runtime import devices as devices_module
+    from typed_gguf.runtime import devices as devices_module
 
     runtime_dir = _runtime_dir()
     expected = finder.backend_of_bundle(runtime_dir)

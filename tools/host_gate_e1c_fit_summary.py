@@ -18,22 +18,22 @@ import sys
 # step -> (command, what the exit code means)
 STEPS: dict[str, tuple[str, str]] = {
     "pytest_before": ("uv run pytest -q", "0 = offline suite green on this host"),
-    "fit_plan": ("uv run ggufone fit <model> --no-cache --json",
+    "fit_plan": ("uv run typed-gguf fit <model> --no-cache --json",
                  "0 = the plan + the free-VRAM reading it was bounded by"),
-    "fit_target_bounded": ("uv run ggufone fit <model> --no-cache --json --fit-target 5200",
+    "fit_target_bounded": ("uv run typed-gguf fit <model> --no-cache --json --fit-target 5200",
                            "0 = --fit-target narrowed the plan (see plan_delta)"),
-    "run_busy_desktop": ("uv run ggufone ask ... <model> --no-fit-cache",
+    "run_busy_desktop": ("uv run typed-gguf ask ... <model> --no-fit-cache",
                          "0 = the decision ran; see placement/warnings (degraded is OK)"),
-    "run_no_fit": ("uv run ggufone ask ... <model> --no-fit",
+    "run_no_fit": ("uv run typed-gguf ask ... <model> --no-fit",
                    "0 = CPU-only run; engine.placement must say so"),
     "fake_oom_degrade": ("python3 tools/fit_oom_probe.py --runtime <fake bundle>",
                          "0 = an allocation failure was survived by degrading to CPU"),
-    "fake_oom_all_rungs": ("GGUFONE_FAKE_OOM_ALL=1 python3 tools/fit_oom_probe.py",
+    "fake_oom_all_rungs": ("TYPED_GGUF_FAKE_OOM_ALL=1 python3 tools/fit_oom_probe.py",
                            "0 = nothing fits and the answer was E_BACKEND_OOM"),
-    "bench_placement": ("uv run ggufone bench --suite latency --model <model> --gpu-layers 36",
+    "bench_placement": ("uv run typed-gguf bench --suite latency --model <model> --gpu-layers 36",
                         "0 = the bench placement went through the loader's ladder; the row must "
                         "print requested AND used (E2 FIX t_31b3943a)"),
-    "bench_placement_oom": ("GGUFONE_FAKE_OOM_ALL=1 uv run ggufone bench --suite throughput "
+    "bench_placement_oom": ("TYPED_GGUF_FAKE_OOM_ALL=1 uv run typed-gguf bench --suite throughput "
                             "--model <gguf> --gpu-layers 4",
                             "1 = nothing fits at any rung; the row must name E_BACKEND_OOM, "
                             "never an AttributeError (E_INTERNAL)"),
@@ -156,7 +156,7 @@ def main(argv: list[str]) -> int:
     bench_oom = bench_view(log_dir / "bench_placement_oom.json")
 
     report: dict[str, object] = {
-        "schema": "ggufone.evidence.e1c.fit.host_gate/v1",
+        "schema": "typed_gguf.evidence.e1c.fit.host_gate/v1",
         "is_host_run": not fake_driver and fake_driver != "<none>",
         "vehicle": ("OPERATOR HOST: the real driver, the real bundle, the real desktop share"
                     if not fake_driver or fake_driver == "<none>" else

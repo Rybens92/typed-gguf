@@ -24,9 +24,9 @@ from typing import Any
 
 import pytest
 
-from ggufone.bench import labels
-from ggufone.engine import prompt, readout
-from ggufone.schema import parse_request
+from typed_gguf.bench import labels
+from typed_gguf.engine import prompt, readout
+from typed_gguf.schema import parse_request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 

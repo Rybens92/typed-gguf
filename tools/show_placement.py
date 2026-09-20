@@ -35,7 +35,7 @@ def main(argv: list[str]) -> int:
             print(f"  row[{row.get('backend')}] "
                   f"placement_used={json.dumps(row.get('placement_used'), sort_keys=True)}")
         if render:
-            from ggufone.bench import harness
+            from typed_gguf.bench import harness
 
             print()
             print(harness.render_report(payload))

@@ -42,14 +42,14 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone import schema  # noqa: E402
-from ggufone.bench import devset as devset_module  # noqa: E402
-from ggufone.bench import harness  # noqa: E402
-from ggufone.engine import prompt  # noqa: E402
-from ggufone.engine import template as template_module  # noqa: E402
-from ggufone.errors import UserError  # noqa: E402
+from typed_gguf import schema  # noqa: E402
+from typed_gguf.bench import devset as devset_module  # noqa: E402
+from typed_gguf.bench import harness  # noqa: E402
+from typed_gguf.engine import prompt  # noqa: E402
+from typed_gguf.engine import template as template_module  # noqa: E402
+from typed_gguf.errors import UserError  # noqa: E402
 
-SCHEMA = "ggufone.e3e-role-render/v1"
+SCHEMA = "typed_gguf.e3e-role-render/v1"
 #: the state/dev items the offline render uses: the first two dev rows, so the question text is the
 #: one the bench asks (not a toy) and the two tails can be compared
 OFFLINE_ITEMS = 2
@@ -65,7 +65,7 @@ def _excerpt(text: str, *, head: int = 60, tail: int = 60) -> str:
 def offline_family(path: pathlib.Path, *, cue: str,
                    json_contract: str = schema.JSON_CONTRACT) -> dict:
     """One family's offline verdict: the acceptance checks, the pins and the bytes."""
-    from ggufone.registry import gguf
+    from typed_gguf.registry import gguf
     kv = gguf.parse_gguf_metadata(path)["kv"]
     arch = gguf.arch_of(kv)
     text = kv.get(template_module.TEMPLATE_KEY)
@@ -171,14 +171,14 @@ def live_check(args: argparse.Namespace, record: dict) -> dict:
     """One real decision in the role-split shape, through the bench's own model wrapper."""
     import os
     if args.hide_devices:
-        icd = os.environ.get("GGUFONE_HIDDEN_ICD")
+        icd = os.environ.get("TYPED_GGUF_HIDDEN_ICD")
         if icd:
             os.environ["VK_DRIVER_FILES"] = icd
             os.environ["VK_ICD_FILENAMES"] = icd
     model_path = str(pathlib.Path(os.path.expanduser(args.model)))
-    runtime = args.runtime or os.environ.get("GGUFONE_RUNTIME_DIR")
+    runtime = args.runtime or os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if not runtime:
-        raise SystemExit("--live needs GGUFONE_RUNTIME_DIR (or --runtime)")
+        raise SystemExit("--live needs TYPED_GGUF_RUNTIME_DIR (or --runtime)")
     item = next(iter([row for row in devset_module.load()
                       if args.id is None or str(row.id) == args.id]), None)
     if item is None:
@@ -291,14 +291,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--report", default=None, help="write the markdown report here")
     parser.add_argument("--live", action="store_true", help="also run one live decision")
     parser.add_argument("--model", default=None, help="the live model (a .gguf path)")
-    parser.add_argument("--runtime", default=None, help="GGUFONE_RUNTIME_DIR (default: the env)")
+    parser.add_argument("--runtime", default=None, help="TYPED_GGUF_RUNTIME_DIR (default: the env)")
     parser.add_argument("--backend", default="vulkan")
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--gpu-layers", dest="gpu_layers", type=int, default=None)
     parser.add_argument("--kv-type", dest="kv_type", default="auto")
     parser.add_argument("--id", default=None, help="the dev item id for the live check")
     parser.add_argument("--hide-devices", dest="hide_devices", action="store_true",
-                        help="hide the Vulkan ICD (`GGUFONE_HIDDEN_ICD`) for a CPU-only live check")
+                        help="hide the Vulkan ICD (`TYPED_GGUF_HIDDEN_ICD`) for a CPU-only "
+                             "live check")
     args = parser.parse_args(argv)
     record = offline_record(args)
     if args.live:

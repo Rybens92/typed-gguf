@@ -32,9 +32,9 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.registry.gguf import parse_gguf_metadata  # noqa: E402
-from ggufone.registry.recommend import kv_bytes_per_token  # noqa: E402
-from ggufone.runtime import capability, ctypes_binding  # noqa: E402
+from typed_gguf.registry.gguf import parse_gguf_metadata  # noqa: E402
+from typed_gguf.registry.recommend import kv_bytes_per_token  # noqa: E402
+from typed_gguf.runtime import capability, ctypes_binding  # noqa: E402
 
 PREFILL_TEXT = (
     "Incident report: the production dashboard shows a blank page for every user after login. "
@@ -189,7 +189,7 @@ def measure(model_path: pathlib.Path, runtime_dir: pathlib.Path, n_ctx: int,
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    default_home = pathlib.Path(os.environ.get("GGUFONE_HOME", pathlib.Path.home() / ".hermes"))
+    default_home = pathlib.Path(os.environ.get("TYPED_GGUF_HOME", pathlib.Path.home() / ".hermes"))
     parser.add_argument("--model", default=str(default_home / "models" / "Spark-X2.5-4B-Q8_0.gguf"))
     parser.add_argument("--runtime", default=str(default_home / "runtime" / "b11026-linux-x64-cpu"))
     parser.add_argument("--n-ctx", type=int, default=2048)

@@ -10,7 +10,7 @@ Output: `docs/evidence/e1c_e2e.json` (machine-readable) + a printed table.
 
 Usage::
 
-    GGUFONE_RUNTIME_DIR=<bundle> uv run python tools/e1c_e2e.py [--model PATH] [--out FILE]
+    TYPED_GGUF_RUNTIME_DIR=<bundle> uv run python tools/e1c_e2e.py [--model PATH] [--out FILE]
                                                               [--threads N] [--no-fit]
                                                               [--thinking]
 """
@@ -27,14 +27,14 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone import cli  # noqa: E402
+from typed_gguf import cli  # noqa: E402
 
-SCHEMA = "ggufone.evidence.e1c-e2e/v1"
+SCHEMA = "typed_gguf.evidence.e1c-e2e/v1"
 DEFAULT_MODEL = pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf"
 
 # --------------------------------------------------------------------------- the sets
 # Every set is documented here (state + questions verbatim) so a reader can re-run it with the
-# printed `ggufone run` command; `docs/evidence/e1c_t_*.md` carries the recorded answers.
+# printed `typed-gguf run` command; `docs/evidence/e1c_t_*.md` carries the recorded answers.
 QUESTION_SETS: tuple[dict, ...] = (
     {
         "id": "incident-triage",

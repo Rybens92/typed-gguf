@@ -18,11 +18,11 @@ from __future__ import annotations
 
 import pytest
 
-from ggufone import schema
-from ggufone.bench import devset as devset_module
-from ggufone.bench import harness
-from ggufone.engine import decide as decide_module
-from ggufone.engine import session as session_module
+from typed_gguf import schema
+from typed_gguf.bench import devset as devset_module
+from typed_gguf.bench import harness
+from typed_gguf.engine import decide as decide_module
+from typed_gguf.engine import session as session_module
 
 HANDLE_TOKENS = (101, 102, 103)
 SESSION_TOKENS = (1, 2)
@@ -97,8 +97,8 @@ def test_a_row_records_which_framing_it_measured(monkeypatch: pytest.MonkeyPatch
     tokens); the quality row copies it, and the report summarizes it, so no table can be silent
     about which prompt its numbers describe (card t_6de5fc53, requirement 5).
     """
-    from ggufone.bench import suites
     from tests.fake_engine import BenchModel
+    from typed_gguf.bench import suites
 
     def factory(spec: harness.ModelSpec) -> BenchModel:
         return BenchModel(spec, template={"kind": "gguf-renderer", "renderer": "internal",

@@ -16,12 +16,12 @@ cd "$REPO" || exit 2
 git worktree add --detach "$TREE" "$REV" >"$LOG/worktree.out" 2>"$LOG/worktree.err" || exit 3
 git -C "$TREE" log --oneline -1
 
-MODEL="${GGUFONE_GATE_MODEL:-/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf}"
-RT="${GGUFONE_RUNTIME_DIR:-/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu}"
+MODEL="${TYPED_GGUF_GATE_MODEL:-/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf}"
+RT="${TYPED_GGUF_RUNTIME_DIR:-/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu}"
 
 # ---- CI step 1: bench --gpu-layers 4 on the pinned bundle (a crash happens before any load)
 cd "$TREE" || exit 2
-timeout 900 env GGUFONE_RUNTIME_DIR="$RT" uv run ggufone bench --suite latency \
+timeout 900 env TYPED_GGUF_RUNTIME_DIR="$RT" uv run typed-gguf bench --suite latency \
     --model "$MODEL" --gpu-layers 4 --runs 1 --sizes 256 --threads 2 \
     --json --out "$LOG/placement.json" >"$LOG/ci_step1.out" 2>"$LOG/ci_step1.err"
 echo "$?" >"$LOG/ci_step1.exit"
@@ -35,9 +35,9 @@ cc -shared -fPIC -O1 -o "$LOG/fake-bundle/libllama.so" tools/fixtures/fit_oom_bu
 echo "$?" >"$LOG/fake_bundle_build.exit"
 uv run python tools/fit_oom_probe.py --make-gguf "$LOG/synthetic.gguf" >"$LOG/make_gguf.out" 2>&1
 echo "$?" >"$LOG/make_gguf.exit"
-timeout 600 env -u GGUFONE_RUNTIME_DIR GGUFONE_FAKE_OOM_ALL=1 \
-    GGUFONE_BENCH_RUNTIME_DIR="$LOG/fake-bundle" \
-    uv run ggufone bench --suite throughput --model "$LOG/synthetic.gguf" --gpu-layers 4 \
+timeout 600 env -u TYPED_GGUF_RUNTIME_DIR TYPED_GGUF_FAKE_OOM_ALL=1 \
+    TYPED_GGUF_BENCH_RUNTIME_DIR="$LOG/fake-bundle" \
+    uv run typed-gguf bench --suite throughput --model "$LOG/synthetic.gguf" --gpu-layers 4 \
     --runs 1 --json --out "$LOG/placement-oom.json" >"$LOG/ci_step2.out" 2>"$LOG/ci_step2.err"
 echo "$?" >"$LOG/ci_step2.exit"
 

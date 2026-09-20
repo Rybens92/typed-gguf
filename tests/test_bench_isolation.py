@@ -1,9 +1,9 @@
 """E2 FIX (card t_dd62ec29): two bundles, one process — `--backend all` must not abort.
 
-The operator host carries **two** bundles (the pinned CPU one under `GGUFONE_RUNTIME_DIR` and the
-installed Vulkan b11026 one under `GGUFONE_BENCH_RUNTIME_DIR`). `bench --suite throughput
+The operator host carries **two** bundles (the pinned CPU one under `TYPED_GGUF_RUNTIME_DIR` and the
+installed Vulkan b11026 one under `TYPED_GGUF_BENCH_RUNTIME_DIR`). `bench --suite throughput
 --backend all` measures one row per bundle *in one process*, and the process then dies at teardown:
-the whole `ggufone.bench/v1` report is on stdout, followed by
+the whole `typed_gguf.bench/v1` report is on stdout, followed by
 
     double free or corruption (!prev)                                       exit 134
 
@@ -16,7 +16,7 @@ What this file pins (offline: two bundle *directories* on disk plus the fake ben
 
 * **the decision** (`isolation.isolation_needed`): two *distinct* bundle directories cannot share a
   process; one bundle answering two labels, or a single measured backend, still runs in-process.
-* **the child command** is this CLI with one backend (`python -m ggufone bench … --backend <one>
+* **the child command** is this CLI with one backend (`python -m typed_gguf bench … --backend <one>
   --out <report.json> --json`), so the isolated measurement is the documented single-bundle path.
 * **the child verdict** (`isolation.run_backend_child`): a child is usable only when it wrote a
   report whose exit code, backend, bundle and scale flags corroborate what the parent asked for. A
@@ -44,13 +44,13 @@ from typing import Any
 
 import pytest
 
-from ggufone import cli
-from ggufone.bench import harness, suites
-from ggufone.runtime import ctypes_binding
 from tests.test_bench import bench_factory
+from typed_gguf import cli
+from typed_gguf.bench import harness, suites
+from typed_gguf.runtime import ctypes_binding
 
 try:
-    from ggufone.bench import isolation
+    from typed_gguf.bench import isolation
 except ImportError:   # pragma: no cover - a tree that predates this card has no such module:
     isolation = None  # type: ignore[assignment]  # every gate below must fail *there*, per test,
     # not at collection time (the RED of this card's requirement 3 — see `red_pretest.txt`).
@@ -60,7 +60,7 @@ else:
 
 #: The operator's two bundles, as directories: one CPU, one carrying the Vulkan shim.
 CPU_DIR = "/work/t603-runtime/b11026-linux-x64-cpu"
-VULKAN_DIR = "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+VULKAN_DIR = "/var/home/rybens/.local/share/typed-gguf/runtime/b11026-linux-x64-vulkan"
 
 
 def two_bundle_runtimes(**kwargs: Any) -> dict[str, pathlib.Path]:
@@ -75,7 +75,7 @@ def one_bundle_runtimes(**kwargs: Any) -> dict[str, pathlib.Path]:
 
 # ------------------------------------------------------------------- the child seam (a fake CLI)
 def cli_options(command: list[str]) -> dict[str, str]:
-    """The `--flag value` pairs of a child command, after `[python, -m, ggufone, bench]`."""
+    """The `--flag value` pairs of a child command, after `[python, -m, typed-gguf, bench]`."""
     options: dict[str, str] = {}
     tokens = list(command[4:])
     for index, token in enumerate(tokens):
@@ -195,7 +195,7 @@ def test_the_child_command_is_this_cli_with_one_backend(tmp_path: pathlib.Path) 
     command = isolation.child_command(config, "vulkan", python="/usr/bin/python3",
                                       out_path=tmp_path / "row.json")
     assert command == [
-        "/usr/bin/python3", "-m", "ggufone", "bench",
+        "/usr/bin/python3", "-m", "typed_gguf", "bench",
         "--suite", "throughput", "--model", "/tmp/fake.gguf", "--backend", "vulkan",
         "--runs", "1", "--threads", "4", "--sizes", "64",
         "--kv-type", "q8_0", "--gpu-layers", "0",
@@ -226,12 +226,12 @@ def test_the_child_command_lists_every_prefill_size(tmp_path: pathlib.Path) -> N
 
 def test_a_run_without_a_model_is_range_checked_before_a_child_starts(
         tmp_path: pathlib.Path) -> None:
-    """A child resolves `GGUFONE_BENCH_MODEL` on its own: never let it measure an unnamed model."""
+    """A child resolves `TYPED_GGUF_BENCH_MODEL` alone: never let it measure an unnamed model."""
     child = isolation.run_backend_child(harness.BenchConfig(suite="throughput", backend="all"),
                                         "cpu", out_dir=tmp_path, python="python",
                                         runner=lambda *args, **kwargs: pytest.fail("spawned"))
     assert child.ok is False
-    assert "--model" in child.detail and "GGUFONE_BENCH_MODEL" in child.detail
+    assert "--model" in child.detail and "TYPED_GGUF_BENCH_MODEL" in child.detail
 
 
 def test_the_child_command_keeps_the_quick_preset(tmp_path: pathlib.Path) -> None:
@@ -395,7 +395,7 @@ def test_a_broken_child_keeps_its_scratch_directory_and_its_logs(
     stderr = out_path.parent / "row-vulkan.stderr"
     assert stderr.read_text(encoding="utf-8").strip() == "free(): double free (!prev)"
     # the child's stdout — the report it printed — is kept with it
-    assert "ggufone.bench" in (out_path.parent / "row-vulkan.stdout").read_text(encoding="utf-8")
+    assert "typed_gguf.bench" in (out_path.parent / "row-vulkan.stdout").read_text(encoding="utf-8")
 
     # a child with nothing on stdout gets no stdout file: the kept scratch is the evidence, not
     # a placeholder for evidence that does not exist

@@ -10,7 +10,7 @@ Two worlds, selected by environment:
 
     python3 tools/fit_oom_probe.py --model m.gguf --runtime <bundle> [--json OUT]
         -> the plan is forced to full offload; the ladder must land on CPU and succeed
-    GGUFONE_FAKE_OOM_ALL=1 python3 tools/fit_oom_probe.py ...
+    TYPED_GGUF_FAKE_OOM_ALL=1 python3 tools/fit_oom_probe.py ...
         -> every rung fails; the error must be E_BACKEND_OOM carrying free + needed bytes
 
 Exit code 0 only when the world behaved as required (so the gate can assert on it).
@@ -26,11 +26,11 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.engine import session as session_module  # noqa: E402
-from ggufone.errors import GgufoneError  # noqa: E402
-from ggufone.runtime import fit  # noqa: E402
+from typed_gguf.engine import session as session_module  # noqa: E402
+from typed_gguf.errors import TypedGgufError  # noqa: E402
+from typed_gguf.runtime import fit  # noqa: E402
 
-SCHEMA = "ggufone.evidence.fit-oom/v1"
+SCHEMA = "typed_gguf.evidence.fit-oom/v1"
 
 
 def write_synthetic_gguf(path: pathlib.Path, *, arch: str = "spark2_5", n_layer: int = 36,
@@ -102,7 +102,7 @@ def main(argv: list[str]) -> int:
         "runtime": str(runtime),
         "free_mib": args.free_mib,
         "total_mib": args.total_mib,
-        "world": "oom-all" if os.environ.get("GGUFONE_FAKE_OOM_ALL") else "degrade-to-cpu",
+        "world": "oom-all" if os.environ.get("TYPED_GGUF_FAKE_OOM_ALL") else "degrade-to-cpu",
         "plan": plan.to_dict(),
         "library": str(session_module.ctypes_binding.__file__),
     }
@@ -110,12 +110,12 @@ def main(argv: list[str]) -> int:
     try:
         handle = session_module.open_model(model_path, runtime_dir=runtime, fit_plan=plan,
                                            free_probe=lambda: free_bytes)
-    except GgufoneError as exc:
+    except TypedGgufError as exc:
         receipt["result"] = {"ok": False}
         receipt["error"] = {"code": exc.code, "exit_code": exc.exit_code, "message": str(exc)}
         print(json.dumps(receipt, indent=1))
         _write(args.json, receipt)
-        return 0 if (os.environ.get("GGUFONE_FAKE_OOM_ALL")
+        return 0 if (os.environ.get("TYPED_GGUF_FAKE_OOM_ALL")
                      and exc.code == "E_BACKEND_OOM") else 1
     try:
         receipt["result"] = {

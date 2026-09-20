@@ -3,13 +3,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ggufone"
+name = "typed-gguf"
 version = "0.1.0"
 description = "GGUF-native typed decision engine: state + typed questions -> typed answers with probabilities, on frozen models (no fine-tuning, no text generation)."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "ggufone contributors" }]
+authors = [{ name = "typed-gguf contributors" }]
 keywords = ["gguf", "llama.cpp", "decisions", "llm", "local"]
 classifiers = [
   "License :: OSI Approved :: MIT License",
@@ -32,14 +32,14 @@ dev = ["pytest>=8.0", "pytest-timeout>=2.3", "ruff>=0.6"]
 [project.scripts]
 # the console script uses the *process* entry point: a command that dlopened a bundle ends the
 # process itself, so its exit status is the command's code and never a third-party destructor's
-# signal (`ggufone.cli.run`, card t_97f1bc93)
-ggufone = "ggufone.cli:run"
+# signal (`typed_gguf.cli.run`, card t_97f1bc93)
+typed-gguf = "typed_gguf.cli:run"
 
 [project.urls]
-Homepage = "https://github.com/Rybens92/ggufone"
+Homepage = "https://github.com/Rybens92/typed-gguf"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ggufone"]
+packages = ["src/typed_gguf"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -75,38 +75,38 @@ quote-style = "double"
 # Mutation testing (Tier M). `source_paths` lists the *files under mutation*; `also_copy` brings
 # the rest of the package (plus tests/docs/tools) into the mutants tree verbatim, so the copied
 # package still imports while only those files carry mutants. Swap the pair for a wider sweep —
-# e.g. source_paths = ["src/ggufone"] with also_copy = ["tests", ...] — when a milestone wants
+# e.g. source_paths = ["src/typed_gguf"] with also_copy = ["tests", ...] — when a milestone wants
 # the whole package (E1a/E1b did: readout + schema).
-# Card t_8cb0a05e (E1c FIX) swept `source_paths = ["src/ggufone/runtime/fit.py"]` with
+# Card t_8cb0a05e (E1c FIX) swept `source_paths = ["src/typed_gguf/runtime/fit.py"]` with
 # [tests/test_fit.py, tests/test_fit_free_vram.py, tests/test_fit_oom_recovery.py] and
 # max_children = 2 (the fast set, so a sweep finishes inside the shared pid cap).
 # Card t_858c54d1 (E2) retargets the pair below at the bench package with the bench gates.
-# Card t_630f32a3 (E2.5) swept `source_paths = ["src/ggufone/calibration"]` with both calibration
+# Card t_630f32a3 (E2.5) swept `source_paths = ["src/typed_gguf/calibration"]` with both calibration
 # gate files and max_children = 3 (3 crashed the container's pid cap at 1726/2728 mutants; the
 # completed sweep ran with 2, which is what stays here). Card t_e29734e6 (E1c FIX) is a
 # *test-only* change (no production line moved), so its sweep was the fit pair again —
 # time-boxed on a box shared with a sibling benchmark, so the score is reported with its not-run
 # count, never as a full-sweep number. Card t_603a35a0 (E2 FIX, backend attribution) swept the
-# new parser alone — src/ggufone/runtime/devices.py with tests/test_bench_attribution.py —
+# new parser alone — src/typed_gguf/runtime/devices.py with tests/test_bench_attribution.py —
 # because that module *is* the fix's evidence rule and the bench gates are too slow to run per
 # mutant on this shared box. Card t_dd62ec29 (E2 FIX, the mixed-bundle teardown abort) swept
-# src/ggufone/bench/isolation.py with tests/test_bench_isolation.py, because that module is the
+# src/typed_gguf/bench/isolation.py with tests/test_bench_isolation.py, because that module is the
 # whole remedy (the suites only call into it) and its gate file is fast. Restore a
 # bench/fit/resolver sweep by swapping both lines back.
-# Card t_a431be85 (E3) swept `source_paths = ["src/ggufone/bench/compare.py"]` with
+# Card t_a431be85 (E3) swept `source_paths = ["src/typed_gguf/bench/compare.py"]` with
 # [tests/test_e3.py] — the module E3 adds (align / merge_reports / model_row / render_comparison);
 # its gate file is fast and drives every branch of it, which is what a Tier-M sweep needs on a box
 # shared with a sibling bench. Card t_57cc0179 (E2 FIX, the teardown crash's recovery) took
-# `source_paths` to `src/ggufone/bench/isolation.py` with both of that module's gate files (see the
+# `source_paths` to `src/typed_gguf/bench/isolation.py` with both of that module's gate files (see the
 # test-selection comment below); card t_6952f0dd (E3b, the label policy) is the current sweep and
-# mutates `src/ggufone/bench/labels.py` — a later sweep restores the isolation pair.
+# mutates `src/typed_gguf/bench/labels.py` — a later sweep restores the isolation pair.
 # Card t_6c119626 (E3c, the cue verdict + the shape probe) takes the pair to the module the change
-# adds: `src/ggufone/engine/cue.py` — the refusal rule (`cue_verdict`, `single_token_closers`,
+# adds: `src/typed_gguf/engine/cue.py` — the refusal rule (`cue_verdict`, `single_token_closers`,
 # `closer_mass`) that `decide.py` and the report both call — with the card's two gate files. The
 # doc gate in test_e3c_cue_refused.py reads the same module's closer vocabulary, so it is part of
 # the selection. Restore the bench pair above when a bench card sweeps next.
 # Card t_6de5fc53 (the bench/product prompt-parity fix) takes `source_paths` to the module the fix
-# moves: `src/ggufone/bench/harness.py` — `LiveModel.decide` plans once from the handle now, and
+# moves: `src/typed_gguf/bench/harness.py` — `LiveModel.decide` plans once from the handle now, and
 # `framing_label` / `framing_line` / `prefix_tokens_of` / `device_cell` / `evidence_line` carry the
 # framing into every row and into the rendered report. `suites.py` is deliberately *not* added: its
 # change is three dict entries that the same gate nodes read, while mutating the whole module would
@@ -138,7 +138,7 @@ quote-style = "double"
 # `tests/test_e3e_roles_decision.py` had to load the tool under its path-derived name for any of
 # this to run — mutmut keys a trampoline by the path, not by a bare module name (see `_tool()`).
 source_paths = ["tools/e3e_roles_decision.py"]
-also_copy = ["src/ggufone", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
+also_copy = ["src/typed_gguf", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # E1c FIX (card t_8cb0a05e) used [tests/test_fit.py, tests/test_fit_free_vram.py,
@@ -151,18 +151,18 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # both of its gate files are the selection (test_calibration.py drives the math/fit/store/CLI,
 # test_routing.py the router and the escalation policy). Card t_e29734e6 (E1c FIX, test-only)
 # swept the fit files again. Card t_603a35a0 (E2 FIX, backend attribution) swept
-# src/ggufone/runtime/devices.py with tests/test_bench_attribution.py. Card t_dd62ec29 (E2 FIX,
+# src/typed_gguf/runtime/devices.py with tests/test_bench_attribution.py. Card t_dd62ec29 (E2 FIX,
 # mixed-bundle teardown) swept that module with tests/test_bench_isolation.py. Card t_a431be85 (E3)
-# activated `["src/ggufone/bench/compare.py"]` + `["tests/test_e3.py"]` while it landed; card
+# activated `["src/typed_gguf/bench/compare.py"]` + `["tests/test_e3.py"]` while it landed; card
 # t_57cc0179 (E2 FIX, the teardown crash's recovery) is the most recent sweep and puts the pair back
-# on the module it changes — `src/ggufone/bench/isolation.py` with **both** isolation gate files
+# on the module it changes — `src/typed_gguf/bench/isolation.py` with **both** isolation gate files
 # (test_bench_isolation.py = the containment, test_bench_teardown_crash.py = the retry, the warning
 # and the table): the retry lives inside `run_backend_child`, whose mutants only the pair together
 # kill. A bench sweep only has to restore the three bench gate files above; an E3 sweep restores
 # `compare.py` + `test_e3.py`. Card t_6952f0dd (E3b, the `qwen35moe` label policy) activates
-# `["src/ggufone/bench/labels.py"]` + `["tests/test_e3b_labels.py"]`; a later sweep restores this
+# `["src/typed_gguf/bench/labels.py"]` + `["tests/test_e3b_labels.py"]`; a later sweep restores this
 # Card t_d90404ac (E3d, the cue shapes + the `--cue` switch) moves the pair to the module the change
-# rewrites — `src/ggufone/engine/prompt.py`: `build_question(cue=...)` renders `two_step`
+# rewrites — `src/typed_gguf/engine/prompt.py`: `build_question(cue=...)` renders `two_step`
 # byte-for-byte the same suffix and `json_field` as the cue line plus the per-type opener, and the
 # byte-identity is exactly the mutant only the card's own gate file kills
 # (tests/test_e3d_cue_switch.py, with the template/framing gates and the E1c pins beside it).

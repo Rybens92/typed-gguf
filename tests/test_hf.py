@@ -13,8 +13,8 @@ import urllib.error
 
 import pytest
 
-from ggufone.errors import GgufoneError
-from ggufone.registry import hf
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.registry import hf
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_REPO = "XHToken/Spark-X2.5-4B-GGUF"
@@ -140,7 +140,7 @@ def test_model_info_uses_the_committed_snapshot_offline() -> None:
 
 
 def test_model_info_offline_for_an_unknown_repo_is_an_error() -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         hf.model_info("someone/other-model", offline=True)
     assert exc.value.code == "E_DOWNLOAD_FAILED"
     assert "\n" not in str(exc.value)
@@ -151,7 +151,7 @@ def test_model_info_maps_401_to_hf_auth_required(monkeypatch: pytest.MonkeyPatch
         raise urllib.error.HTTPError(url, 401, "Unauthorized", {}, None)  # type: ignore[arg-type]
 
     monkeypatch.setattr(hf, "fetch_json", boom)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         hf.model_info("acme/private-gguf")
     assert exc.value.code == "E_HF_AUTH_REQUIRED"
     msg = str(exc.value)
@@ -163,7 +163,7 @@ def test_model_info_maps_403_to_hf_auth_required(monkeypatch: pytest.MonkeyPatch
         raise urllib.error.HTTPError(url, 403, "Forbidden", {}, None)  # type: ignore[arg-type]
 
     monkeypatch.setattr(hf, "fetch_json", boom)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         hf.model_info("acme/gated-gguf")
     assert exc.value.code == "E_HF_AUTH_REQUIRED"
     assert "gated" in str(exc.value)
@@ -174,7 +174,7 @@ def test_model_info_maps_a_dead_network_to_download_failed(monkeypatch: pytest.M
         raise urllib.error.URLError("no route to host")
 
     monkeypatch.setattr(hf, "fetch_json", boom)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         hf.model_info("acme/model")
     assert exc.value.code == "E_DOWNLOAD_FAILED"
     assert "offline" in str(exc.value).lower()
@@ -243,7 +243,7 @@ def test_download_detects_a_truncated_body(monkeypatch: pytest.MonkeyPatch,
     payload = b"z" * 9000
     server = FakeServer(payload, body_limit=4000)
     monkeypatch.setattr(hf, "_open", server)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         hf.download_file(DEFAULT_REPO, "m.gguf", tmp_path / "m.gguf", revision="main",
                          size=len(payload))
     assert exc.value.code == "E_DOWNLOAD_FAILED"
@@ -256,7 +256,7 @@ def test_download_rejects_a_sha_mismatch_and_keeps_the_part_file(monkeypatch: py
     payload = b"q" * 2048
     monkeypatch.setattr(hf, "_open", FakeServer(payload))
     dest = tmp_path / "m.gguf"
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         hf.download_file(DEFAULT_REPO, "m.gguf", dest, revision="main", size=len(payload),
                          sha256="0" * 64)
     assert exc.value.code == "E_SHA256_MISMATCH"
@@ -302,7 +302,7 @@ def test_download_progress_callback_sees_the_total(monkeypatch: pytest.MonkeyPat
 
 # ------------------------------------------------------------------ disk precheck
 def test_check_disk_space_names_both_numbers() -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         hf.check_disk_space("/tmp", 4_375_021_152, free_bytes=int(1.2e9))
     assert exc.value.code == "E_INSUFFICIENT_DISK"
     msg = str(exc.value)

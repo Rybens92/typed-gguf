@@ -5,22 +5,23 @@ Three subcommands, each of which is the exact invocation a row of
 `docs/BENCHMARKS.md` §2.10 names:
 
     # 1. fit + store a calibration on a real model (A-E2p5-1/2/3/6)
-    GGUFONE_HOME=<home> GGUFONE_RUNTIME_DIR=<bundle> \\
+    TYPED_GGUF_HOME=<home> TYPED_GGUF_RUNTIME_DIR=<bundle> \\
         python3 tools/e2p5_reproduce.py calibrate --model <path.gguf> --threads 2 \\
         --out docs/evidence/e2p5_calibration_qwen08.json
 
     # 2. a real `--route auto` decision, end to end (A-E2p5-4/7/8)
-    GGUFONE_HOME=<home> GGUFONE_RUNTIME_DIR=<bundle> \\
+    TYPED_GGUF_HOME=<home> TYPED_GGUF_RUNTIME_DIR=<bundle> \\
         python3 tools/e2p5_reproduce.py route --model <alias|path> \\
         --out docs/evidence/e2p5_route.json
 
     # 3. the escalation delta on the committed dev set (A-E2p5-5)
-    GGUFONE_HOME=<home> GGUFONE_RUNTIME_DIR=<bundle> \\
+    TYPED_GGUF_HOME=<home> TYPED_GGUF_RUNTIME_DIR=<bundle> \\
         python3 tools/e2p5_reproduce.py escalate --primary <path.gguf> --target <path.gguf> \\
         --threads 2 --out docs/evidence/e2p5_escalation.json
 
-`calibrate` and `route` drive the shipped CLI (`ggufone calibrate`, `ggufone run --route auto`) in
-process, so the evidence exercises the real code path; `escalate` measures the policy the CLI
+`calibrate` and `route` drive the shipped CLI (`typed-gguf calibrate`, `typed-gguf run
+--route auto`) in process, so the evidence exercises the real code path; `escalate` measures the
+policy the CLI
 wires up (`routing.escalation_candidates` / `apply_escalation`) over the bench harness, because a
 60-item measurement needs each model loaded once instead of once per question.
 """
@@ -39,13 +40,13 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
-from ggufone import cli  # noqa: E402
-from ggufone.bench import devset as devset_module  # noqa: E402
-from ggufone.calibration import calibrate, routing  # noqa: E402
-from ggufone.registry import store  # noqa: E402
-from ggufone.runtime import finder, fit  # noqa: E402
+from typed_gguf import cli  # noqa: E402
+from typed_gguf.bench import devset as devset_module  # noqa: E402
+from typed_gguf.calibration import calibrate, routing  # noqa: E402
+from typed_gguf.registry import store  # noqa: E402
+from typed_gguf.runtime import finder, fit  # noqa: E402
 
-SCHEMA = "ggufone.evidence.e2p5/v1"
+SCHEMA = "typed_gguf.evidence.e2p5/v1"
 DEFAULT_THRESHOLD = routing.DEFAULT_ESCALATION_THRESHOLD
 
 
@@ -63,7 +64,7 @@ def _write(payload: dict[str, Any], path: str | None) -> None:
 def _runtime() -> str:
     found = finder.find_runtime()
     if found is None:
-        raise SystemExit("no runtime installed: set GGUFONE_RUNTIME_DIR to a llama.cpp bundle")
+        raise SystemExit("no runtime installed: set TYPED_GGUF_RUNTIME_DIR to a llama.cpp bundle")
     return str(found)
 
 
@@ -96,7 +97,7 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
         text = buffer.getvalue()
         if code != 0 and not (code == 1 and args.allow_reject):
             print(text[-2000:], file=sys.stderr)
-            raise SystemExit(f"`ggufone calibrate` exited {code}")
+            raise SystemExit(f"`typed-gguf calibrate` exited {code}")
         payload = json.loads(text)
         table = payload
         runs.append({"code": code, "params_hash": payload["params_hash"],
@@ -199,7 +200,7 @@ def cmd_route(args: argparse.Namespace) -> int:
     text = buffer.getvalue()
     if code != 0:
         print(text[-2000:], file=sys.stderr)
-        raise SystemExit(f"`ggufone run --route auto` exited {code}")
+        raise SystemExit(f"`typed-gguf run --route auto` exited {code}")
     response = json.loads(text)
     engine = response.get("engine", {})
     audit_records = []

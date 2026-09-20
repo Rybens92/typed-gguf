@@ -20,13 +20,13 @@ jobs:
       - name: Download the pinned bundle
         run: |
           set -euo pipefail
-          ver=$(python3 -c "import re,pathlib;print(re.search(r'LLAMA_TAG = \"(b[0-9]+)\"', pathlib.Path('src/ggufone/runtime/pins.py').read_text()).group(1))" 2>/dev/null || echo b11026)
+          ver=$(python3 -c "import re,pathlib;print(re.search(r'LLAMA_TAG = \"(b[0-9]+)\"', pathlib.Path('src/typed_gguf/runtime/pins.py').read_text()).group(1))" 2>/dev/null || echo b11026)
           curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/${ver}/llama-${ver}-bin-ubuntu-x64.tar.gz"
-          mkdir -p /tmp/ggufone-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/ggufone-rt
+          mkdir -p /tmp/typed-gguf-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/typed-gguf-rt
       - name: Oracle (live, skips are failures)
         run: |
           set -euo pipefail
-          out=$(GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt python3 docs/verify_runtime_contract.py)
+          out=$(TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt python3 docs/verify_runtime_contract.py)
           echo "$out"
           ! grep -q "SKIP" <<< "$out"
       # E2 FIX (card t_31b3943a): a bench placement must survive the loader's degrade ladder on a
@@ -41,7 +41,7 @@ jobs:
       - name: Engine smoke — `bench --gpu-layers 4` goes through the loader and reports the placement
         run: |
           set -euo pipefail
-          GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite latency \
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run typed-gguf bench --suite latency \
             --model /tmp/smoke.gguf --gpu-layers 4 --runs 1 --sizes 256 --threads 2 \
             --json --out /tmp/placement.json > /dev/null
           python3 -c "import json;r=json.load(open('/tmp/placement.json'));p=r['placement'];assert r['model_load']['n']==1,r['model_load'];assert p['requested']=='n_gpu_layers=4',p;assert p['used'] is not None,'the bench row must carry the placement the loader used';assert r['per_question'],'no decision rows'"
@@ -53,8 +53,8 @@ jobs:
           cc -shared -fPIC -O1 -o /tmp/fake-bundle/libggml.so tools/fixtures/fit_oom_bundle.c
           python3 tools/fit_oom_probe.py --make-gguf /tmp/synthetic.gguf
           set +e
-          env -u GGUFONE_RUNTIME_DIR GGUFONE_FAKE_OOM_ALL=1 GGUFONE_BENCH_RUNTIME_DIR=/tmp/fake-bundle \
-            uv run ggufone bench --suite throughput --model /tmp/synthetic.gguf --gpu-layers 4 \
+          env -u TYPED_GGUF_RUNTIME_DIR TYPED_GGUF_FAKE_OOM_ALL=1 TYPED_GGUF_BENCH_RUNTIME_DIR=/tmp/fake-bundle \
+            uv run typed-gguf bench --suite throughput --model /tmp/synthetic.gguf --gpu-layers 4 \
             --runs 1 --json --out /tmp/placement-oom.json > /dev/null
           code=$?
           set -e
@@ -72,11 +72,11 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-ubuntu-vulkan-x64.tar.gz"
-          mkdir -p /tmp/ggufone-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/ggufone-rt
+          mkdir -p /tmp/typed-gguf-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/typed-gguf-rt
       - name: Oracle (live)
         run: |
           set -euo pipefail
-          out=$(GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt python3 docs/verify_runtime_contract.py)
+          out=$(TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt python3 docs/verify_runtime_contract.py)
           echo "$out"
           ! grep -q "SKIP" <<< "$out"
 
@@ -90,9 +90,9 @@ jobs:
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-win-cpu-x64.zip" -OutFile runtime.zip
-          Expand-Archive -Path runtime.zip -DestinationPath /tmp/ggufone-rt
+          Expand-Archive -Path runtime.zip -DestinationPath /tmp/typed-gguf-rt
       # The oracle's live section loads .so paths (linux); Windows runs the doctor smoke
-      # once E1a lands: `uv run ggufone init --runtime-dir /tmp/ggufone-rt && uv run ggufone doctor`
+      # once E1a lands: `uv run typed-gguf init --runtime-dir /tmp/typed-gguf-rt && uv run typed-gguf doctor`
 
   macos-metal:
     runs-on: macos-14
@@ -104,12 +104,12 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-macos-arm64.tar.gz"
-          mkdir -p /tmp/ggufone-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/ggufone-rt
+          mkdir -p /tmp/typed-gguf-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/typed-gguf-rt
       - name: Doctor smoke (E1a)
-        run: uv run ggufone doctor --help
+        run: uv run typed-gguf doctor --help
 
   # A-E2-8: one NON-LINUX job that runs the *engine*, not just the oracle. It downloads the
-  # pinned Metal bundle and a 0.5B GGUF, then drives `ggufone bench` end to end (model load ->
+  # pinned Metal bundle and a 0.5B GGUF, then drives `typed-gguf bench` end to end (model load ->
   # prefill -> fork readout -> report), including the determinism gate (3 repeats, timings
   # stripped) on this platform. The benchmark itself never downloads anything: the model is a
   # local path and the dev set ships inside the package.
@@ -123,7 +123,7 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-macos-arm64.tar.gz"
-          mkdir -p /tmp/ggufone-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/ggufone-rt
+          mkdir -p /tmp/typed-gguf-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/typed-gguf-rt
       - name: Small GGUF for the smoke decision (host-side download, not the benchmark's)
         run: |
           set -euo pipefail
@@ -133,20 +133,20 @@ jobs:
       - name: Engine smoke — latency (model load, prefill, decisions)
         run: |
           set -euo pipefail
-          GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite latency \
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run typed-gguf bench --suite latency \
             --model /tmp/smoke.gguf --backend auto --runs 1 --sizes 256 --threads 2 \
             --out /tmp/e2_latency.json --json > /dev/null
           python3 -c "import json;r=json.load(open('/tmp/e2_latency.json'));assert r['suite']=='latency';assert r['model_load']['n']==1;assert r['per_question'],'no decision rows'"
       - name: Engine smoke — results are stable bytes on this platform (A5/A-E2-5)
         run: |
           set -euo pipefail
-          GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite determinism \
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run typed-gguf bench --suite determinism \
             --model /tmp/smoke.gguf --backend auto --threads 1 --json > /tmp/e2_determinism.json
           python3 -c "import json;r=json.load(open('/tmp/e2_determinism.json'));row=r['backends'][0];assert r['ok'], r;assert len(set(row['digests']))==1, row['digests']"
       - name: Engine smoke — the dev set answers end to end (A-E2-3 path on macOS)
         run: |
           set -euo pipefail
-          GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite quality \
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run typed-gguf bench --suite quality \
             --model /tmp/smoke.gguf --backend auto --threads 2 --items 6 --json > /tmp/e2_quality.json
           python3 -c "import json;r=json.load(open('/tmp/e2_quality.json'));assert r['overall']['n']==6;assert 0.0<=r['overall']['agreement']<=1.0"
       # Card t_f46cec41: the fast preset the GPU-less workers iterate with — the whole campaign
@@ -158,7 +158,7 @@ jobs:
         run: |
           set -euo pipefail
           for suite in latency throughput quality calibration determinism; do
-            GGUFONE_RUNTIME_DIR=/tmp/ggufone-rt uv run ggufone bench --suite "$suite" --quick \
+            TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run typed-gguf bench --suite "$suite" --quick \
               --model /tmp/smoke.gguf --backend auto --threads 2 \
               --out "/tmp/quick_${suite}.json" --json > /dev/null
           done

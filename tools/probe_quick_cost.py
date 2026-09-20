@@ -13,8 +13,8 @@ import time
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
-from ggufone import schema  # noqa: E402
-from ggufone.bench import harness, suites  # noqa: E402
+from typed_gguf import schema  # noqa: E402
+from typed_gguf.bench import harness, suites  # noqa: E402
 
 
 def timed(label: str, fn):

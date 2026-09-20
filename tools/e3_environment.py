@@ -17,7 +17,7 @@ import sys
 
 sys.path.insert(0, "/work/e3repo/src")
 
-RUNTIME = "/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan"
+RUNTIME = "/var/home/rybens/.local/share/typed-gguf/runtime/b11026-linux-x64-vulkan"
 MODEL = "/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf"
 ICD = "/work/e3scratch/nvidia_egl_icd.json"
 
@@ -53,7 +53,7 @@ def main() -> int:
 
     model = pathlib.Path(MODEL)
     payload = {
-        "schema": "ggufone.e3.environment/v1",
+        "schema": "typed_gguf.e3.environment/v1",
         "generated_from": platform.platform(),
         "host_facts": {
             "cpu_count_seen": os.cpu_count(),
@@ -86,8 +86,8 @@ def main() -> int:
         "pins": {
             "model_sha256": args.sha256 or None,
             "no_downloads": "the model file predates this card (mtime above); the pinned runtime "
-                            "bundle was installed by E1a/E1c (`ggufone init`)",
-            "no_weight_mutation": "ggufone never opens a .gguf for writing; this run only reads "
+                            "bundle was installed by E1a/E1c (`typed-gguf init`)",
+            "no_weight_mutation": "typed-gguf never opens a .gguf for writing; this run only reads "
                                   "the file (sha256 re-verified after the campaign)",
         },
     }

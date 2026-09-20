@@ -16,7 +16,7 @@ import urllib.request
 
 import pytest
 
-from ggufone.registry import hf
+from typed_gguf.registry import hf
 
 REPO = "XHToken/Spark-X2.5-4B-GGUF"
 # pinned in docs/evidence/hf_lfs_oid_semantics.json (verified there by execution)

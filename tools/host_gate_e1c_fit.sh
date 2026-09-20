@@ -4,7 +4,7 @@
 #
 #   tools/host_gate_e1c_fit.sh [LOG_DIR]
 #
-# Default LOG_DIR: $HOME/.ggufone-fit-gate-<utc timestamp>. Raw stdout/stderr, exit codes, timings
+# Default LOG_DIR: $HOME/.typed-gguf-fit-gate-<utc timestamp>. Raw stdout/stderr, exit codes, timings
 # and the free-VRAM reading of every step land there; tools/host_gate_e1c_fit_summary.py folds the
 # directory into host_gate_e1c_fit.json.
 #
@@ -32,22 +32,22 @@
 #   9  bench + fake OOM bundle        the retry path in the bench: a typed E_BACKEND_OOM row,
 #                                     never an AttributeError (E_INTERNAL)
 #
-# Sandbox rehearsal: set GGUFONE_GATE_FAKE_DRIVER=<dir> to prepend a fake `nvidia-smi` (the busy
-# desktop), and GGUFONE_GATE_MODEL=<file> to point at the pinned model. The summary records which
+# Sandbox rehearsal: set TYPED_GGUF_GATE_FAKE_DRIVER=<dir> to prepend a fake `nvidia-smi` (the busy
+# desktop), and TYPED_GGUF_GATE_MODEL=<file> to point at the pinned model. The summary records which
 # vehicle produced the run (`is_host_run`), so sandbox numbers can never be read as host numbers.
 set -u
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-LOG_DIR="${1:-$HOME/.ggufone-fit-gate-$STAMP}"
+LOG_DIR="${1:-$HOME/.typed-gguf-fit-gate-$STAMP}"
 mkdir -p "$LOG_DIR"
 cd "$REPO" || exit 2
 
-MODEL="${GGUFONE_GATE_MODEL:-$HOME/.hermes/models/Spark-X2.5-4B-Q8_0.gguf}"
-FAKE_DRIVER="${GGUFONE_GATE_FAKE_DRIVER:-}"
+MODEL="${TYPED_GGUF_GATE_MODEL:-$HOME/.hermes/models/Spark-X2.5-4B-Q8_0.gguf}"
+FAKE_DRIVER="${TYPED_GGUF_GATE_FAKE_DRIVER:-}"
 if [ -n "$FAKE_DRIVER" ]; then PATH="$FAKE_DRIVER:$PATH"; fi
 
-echo "ggufone E1c fit host gate"
+echo "typed-gguf E1c fit host gate"
 echo "  repo    : $REPO"
 echo "  logs    : $LOG_DIR"
 echo "  model   : $MODEL"
@@ -97,14 +97,14 @@ free_vram() {  # prints one line: "total_mib free_mib source"
     echo "nvidia_smi_L:"; nvidia-smi -L 2>&1 | sed 's/^/  /'
     echo "nvidia_smi_query_raw:"; nvidia-smi --query-gpu=memory.total,memory.used,memory.free --format=csv 2>&1 | sed 's/^/  /'
     echo "dri_nodes:"; ls -l /dev/dri 2>&1 | sed 's/^/  /'
-    echo "ggufone_home: $(python3 - <<'PY'
+    echo "typed_gguf_home: $(python3 - <<'PY'
 import os, pathlib
-print(os.environ.get("GGUFONE_HOME") or (os.environ.get("XDG_DATA_HOME")
-      or pathlib.Path.home() / ".local" / "share") / "ggufone")
+print(os.environ.get("TYPED_GGUF_HOME") or (os.environ.get("XDG_DATA_HOME")
+      or pathlib.Path.home() / ".local" / "share") / "typed-gguf")
 PY
 )"
     echo "model: $MODEL ($(stat -c '%s bytes' "$MODEL" 2>&1))"
-    echo "runtime_dir: ${GGUFONE_RUNTIME_DIR:-<unset>}"
+    echo "runtime_dir: ${TYPED_GGUF_RUNTIME_DIR:-<unset>}"
 } >"$LOG_DIR/host_facts.txt" 2>&1
 echo
 sed -n '1,25p' "$LOG_DIR/host_facts.txt"
@@ -120,12 +120,12 @@ printf '%s\n' \
   "24 hours and the on-call engineer is already awake." >"$STATE_FILE"
 
 if [ -f "$MODEL" ]; then
-    step fit_plan 300 uv run ggufone fit "$MODEL" --no-cache --json
-    step fit_target_bounded 300 uv run ggufone fit "$MODEL" --no-cache --json --fit-target 5200
-    step run_busy_desktop 900 uv run ggufone ask --state "@$STATE_FILE" \
+    step fit_plan 300 uv run typed-gguf fit "$MODEL" --no-cache --json
+    step fit_target_bounded 300 uv run typed-gguf fit "$MODEL" --no-cache --json --fit-target 5200
+    step run_busy_desktop 900 uv run typed-gguf ask --state "@$STATE_FILE" \
         --choice "area=Which team owns this incident?:billing|technical" --model "$MODEL" \
         --no-fit-cache --out "$LOG_DIR/run_busy_desktop.json"
-    step run_no_fit 900 uv run ggufone ask --state "@$STATE_FILE" \
+    step run_no_fit 900 uv run typed-gguf ask --state "@$STATE_FILE" \
         --choice "area=Which team owns this incident?:billing|technical" --model "$MODEL" \
         --no-fit --format native --out "$LOG_DIR/run_no_fit.json"
 else
@@ -162,7 +162,7 @@ fi
 if [ "$(cat "$LOG_DIR/fake_bundle_build.exit")" = "0" ] && [ -f "$PROBE_MODEL" ]; then
     echo
     echo "== [fake_oom_degrade] the loader against a bundle that cannot allocate"
-    timeout 300 env -u GGUFONE_FAKE_OOM_ALL uv run python tools/fit_oom_probe.py \
+    timeout 300 env -u TYPED_GGUF_FAKE_OOM_ALL uv run python tools/fit_oom_probe.py \
         --model "$PROBE_MODEL" --runtime "$FIXTURE" --free-mib 1112 \
         --json "$LOG_DIR/fake_oom_degrade.json" \
         >"$LOG_DIR/fake_oom_degrade.out" 2>"$LOG_DIR/fake_oom_degrade.err"
@@ -171,7 +171,7 @@ if [ "$(cat "$LOG_DIR/fake_bundle_build.exit")" = "0" ] && [ -f "$PROBE_MODEL" ]
 
     echo
     echo "== [fake_oom_all_rungs] nothing fits -> E_BACKEND_OOM"
-    timeout 300 env GGUFONE_FAKE_OOM_ALL=1 uv run python tools/fit_oom_probe.py \
+    timeout 300 env TYPED_GGUF_FAKE_OOM_ALL=1 uv run python tools/fit_oom_probe.py \
         --model "$PROBE_MODEL" --runtime "$FIXTURE" --free-mib 1112 \
         --json "$LOG_DIR/fake_oom_all_rungs.json" \
         >"$LOG_DIR/fake_oom_all_rungs.out" 2>"$LOG_DIR/fake_oom_all_rungs.err"
@@ -184,13 +184,13 @@ else
 fi
 
 # ---------------------------------------------------------------- 4b. the bench path (E2 FIX)
-# `ggufone bench` hands the loader a *minimal* placement (`--gpu-layers`: a layer count, no
+# `typed-gguf bench` hands the loader a *minimal* placement (`--gpu-layers`: a layer count, no
 # kv_type) instead of a fit plan. Card t_31b3943a: the loader must normalize it (never
 # `AttributeError: 'Placement' object has no attribute 'kv_type'` -> E_INTERNAL) and the row must
 # print the placement it really used. Two worlds: the host's own bundle — where a busy desktop
 # really walks the ladder — and the fake-alloc bundle, where nothing fits at any rung.
 if [ -f "$MODEL" ]; then
-    step bench_placement 1800 uv run ggufone bench --suite latency --model "$MODEL" \
+    step bench_placement 1800 uv run typed-gguf bench --suite latency --model "$MODEL" \
         --gpu-layers 36 --runs 1 --sizes 64 --threads 4 \
         --json --out "$LOG_DIR/bench_placement.json"
 else
@@ -199,9 +199,9 @@ else
     echo "   -> exit=97 (no model)"
 fi
 if [ "$(cat "$LOG_DIR/fake_bundle_build.exit" 2>/dev/null)" = "0" ]; then
-    step bench_placement_oom 900 env -u GGUFONE_RUNTIME_DIR GGUFONE_FAKE_OOM_ALL=1 \
-        GGUFONE_BENCH_RUNTIME_DIR="$FIXTURE" \
-        uv run ggufone bench --suite throughput --model "$PROBE_MODEL" --gpu-layers 4 \
+    step bench_placement_oom 900 env -u TYPED_GGUF_RUNTIME_DIR TYPED_GGUF_FAKE_OOM_ALL=1 \
+        TYPED_GGUF_BENCH_RUNTIME_DIR="$FIXTURE" \
+        uv run typed-gguf bench --suite throughput --model "$PROBE_MODEL" --gpu-layers 4 \
         --runs 1 --json --out "$LOG_DIR/bench_placement_oom.json"
 else
     echo 97 >"$LOG_DIR/bench_placement_oom.exit"

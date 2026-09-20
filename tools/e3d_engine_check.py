@@ -4,7 +4,7 @@ The E3d decision rests on a probe (`tools/e3c_cue_shapes.py`) whose three shapes
 the committed 60-item dev set. A probe is an instrument, and an instrument that disagrees with the
 thing it claims to measure is worse than no measurement — so this tool runs the *serving* path
 (`decide.plan_context(request, handle)` -> `ModelSession` -> `DecisionEngine`, exactly what
-`ggufone ask`/`run` do, chat-template framing included) over the same items and the same cues and
+`typed-gguf ask`/`run` do, chat-template framing included) over the same items and the same cues and
 prints both rows side by side.
 
 What it compares, per item and per cue:
@@ -38,10 +38,10 @@ from typing import Any
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone import schema  # noqa: E402
-from ggufone.bench import devset, harness  # noqa: E402
-from ggufone.engine import decide, readout  # noqa: E402
-from ggufone.engine import session as session_module  # noqa: E402
+from typed_gguf import schema  # noqa: E402
+from typed_gguf.bench import devset, harness  # noqa: E402
+from typed_gguf.engine import decide, readout  # noqa: E402
+from typed_gguf.engine import session as session_module  # noqa: E402
 
 #: engine cue -> (the probe's ranked policy key, the probe's shape key)
 CUES = {"shipped": ("shipped=bare", "shipped"),
@@ -55,7 +55,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--record", required=True, help="the probe's JSON (e3c_cue_shapes run)")
     parser.add_argument("--model", default=DEFAULT_MODEL)
-    parser.add_argument("--runtime", default=os.environ.get("GGUFONE_RUNTIME_DIR"))
+    parser.add_argument("--runtime", default=os.environ.get("TYPED_GGUF_RUNTIME_DIR"))
     parser.add_argument("--devset", default=None)
     parser.add_argument("--items", type=int, default=12, help="items to re-run (stratified)")
     parser.add_argument("--threads", type=int, default=4)

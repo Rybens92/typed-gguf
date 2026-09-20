@@ -27,11 +27,11 @@ import pathlib
 
 import pytest
 
-from ggufone import cli, errors, schema
-from ggufone.bench import harness, suites
-from ggufone.engine import cue as cue_module
-from ggufone.engine import decide
 from tests.fake_engine import BenchModel, FakeSession, biased_row
+from typed_gguf import cli, errors, schema
+from typed_gguf.bench import harness, suites
+from typed_gguf.engine import cue as cue_module
+from typed_gguf.engine import decide
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TEMPLATES = ROOT / "docs" / "TEMPLATES.md"

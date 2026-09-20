@@ -35,7 +35,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import e3_reproduce  # noqa: E402  (the committed E3 driver: chunks, merge, batch, compare)
 
-from ggufone.bench import harness, suites  # noqa: E402
+from typed_gguf.bench import harness, suites  # noqa: E402
 
 
 class ObservedModel(harness.LiveModel):
@@ -67,7 +67,7 @@ class ObservedModel(harness.LiveModel):
         (`n_ctx`, `n_seq_max`) is planned per request — `plan_context` is pure arithmetic over the
         request and the tokenizer, so asking it a second time cannot perturb the measurement.
         """
-        from ggufone.engine import decide as decide_module
+        from typed_gguf.engine import decide as decide_module
         handle = self._require_handle()
         try:
             plan = decide_module.plan_context(request, handle)
@@ -131,7 +131,7 @@ def main(argv: list[str] | None = None) -> int:
     report = suites.run_suite(config, factory=factory_with_sink(sink))
     sink["wall_s"] = round(time.perf_counter() - started, 1)
     sink["placements_seen"] = None
-    sink["schema"] = "ggufone.e3c_tiel.placement/v1"
+    sink["schema"] = "typed_gguf.e3c_tiel.placement/v1"
     if args.out:
         harness.write_report(report, args.out)
         print(f"report: {args.out}")

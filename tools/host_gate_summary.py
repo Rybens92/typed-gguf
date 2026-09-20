@@ -17,14 +17,14 @@ import sys
 # step -> (command, what the exit code means)
 STEPS: dict[str, tuple[str, str]] = {
     "pytest_before": ("uv run pytest -q", "0 = offline suite green on this host"),
-    "init_dry_run": ("uv run ggufone init --dry-run --json", "0 = plan only, nothing written"),
-    "init": ("uv run ggufone init --json", "0 = installed (see variant/fallback below)"),
-    "doctor": ("uv run ggufone doctor --json", "0 ok / 2 warnings / 1 failures"),
-    "version": ("uv run ggufone version --json", "0 = record read back"),
+    "init_dry_run": ("uv run typed-gguf init --dry-run --json", "0 = plan only, nothing written"),
+    "init": ("uv run typed-gguf init --json", "0 = installed (see variant/fallback below)"),
+    "doctor": ("uv run typed-gguf doctor --json", "0 ok / 2 warnings / 1 failures"),
+    "version": ("uv run typed-gguf version --json", "0 = record read back"),
     "pytest_after": ("uv run pytest -q", "0 = suite green with the runtime installed"),
     "oracle": ("python3 docs/verify_runtime_contract.py", "0 = exit 0, no FAIL"),
     "pytest_network": ("uv run pytest -q --run-network", "0 = live tests green"),
-    "init_poisoned_path": ("PATH=<poisoned> uv run ggufone init --json",
+    "init_poisoned_path": ("PATH=<poisoned> uv run typed-gguf init --json",
                            "0 = installed without a toolchain; <=180 s"),
 }
 TAIL = 1200
@@ -76,7 +76,7 @@ def main(argv: list[str]) -> int:
     log_dir = pathlib.Path(argv[1] if len(argv) > 1 else ".")
     facts = read(log_dir / "host_facts.txt")
     report: dict[str, object] = {
-        "schema": "ggufone.evidence.e1a.host_gate/v1",
+        "schema": "typed_gguf.evidence.e1a.host_gate/v1",
         "log_dir": str(log_dir),
         "host_facts": facts,
         "steps": {name: step_block(log_dir, name) for name in STEPS},

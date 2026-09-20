@@ -39,10 +39,10 @@ import textwrap
 
 import pytest
 
-from ggufone.bench import harness, suites
-from ggufone.runtime import devices as devices_module
-from ggufone.runtime import finder
 from tests.fake_engine import BenchModel
+from typed_gguf.bench import harness, suites
+from typed_gguf.runtime import devices as devices_module
+from typed_gguf.runtime import finder
 
 # The operator's own lines, verbatim (thr-mixed2.raw): a Vulkan-labelled row that ran on the host
 # CPU. `sched_reserve` is the graph scheduler reserving the compute buffers — the strongest
@@ -99,11 +99,11 @@ def two_bundles(tmp_path: pathlib.Path) -> pathlib.Path:
 def install(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, *,
             runtime_dir: pathlib.Path | None, root: pathlib.Path) -> None:
     """Make `backend_runtimes` see the bundles (no registry, no download — SPEC A-E2-7)."""
-    monkeypatch.setenv("GGUFONE_BENCH_RUNTIME_DIR", str(root))
+    monkeypatch.setenv("TYPED_GGUF_BENCH_RUNTIME_DIR", str(root))
     if runtime_dir is None:
-        monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+        monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     else:
-        monkeypatch.setenv("GGUFONE_RUNTIME_DIR", str(runtime_dir))
+        monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(runtime_dir))
 
 
 def factory(*, logs: dict[str, str]):
@@ -328,11 +328,11 @@ def test_the_engine_lines_reach_the_callers_sink(tmp_path: pathlib.Path) -> None
     """
     from types import SimpleNamespace
 
-    from ggufone.engine import session as session_module
-    from ggufone.engine.decide import ContextPlan
-    from ggufone.runtime import fit
     from tests.test_fit import write_gguf
     from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+    from typed_gguf.engine import session as session_module
+    from typed_gguf.engine.decide import ContextPlan
+    from typed_gguf.runtime import fit
 
     model_path = write_gguf(tmp_path / "model.gguf", n_layer=4)
     backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
@@ -381,8 +381,8 @@ def test_the_engine_lines_reach_the_callers_sink(tmp_path: pathlib.Path) -> None
 def test_the_placement_note_does_not_claim_the_compute_path() -> None:
     """`n_gpu_layers=0` is a statement about the weights; op offload can still compute on the
     device, so the load-time note must not read as a measurement of the compute path."""
-    from ggufone.engine import session as session_module
-    from ggufone.runtime import fit
+    from typed_gguf.engine import session as session_module
+    from typed_gguf.runtime import fit
 
     plan = fit.coerce_plan(harness.Placement(0))
     note = session_module._placement_note(plan, degraded=False, fit_disabled=False)

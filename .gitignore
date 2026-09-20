@@ -1,4 +1,4 @@
-# models and runtimes are data, never repo content (root-anchored: src/ggufone/runtime IS source)
+# models and runtimes are data, never repo content (root-anchored: src/typed_gguf/runtime IS source)
 *.gguf
 /models/
 /runtime/
@@ -61,5 +61,5 @@ mutants_*/
 # the E1 coordination thread is dev chatter, not product (file stays on disk)
 state/groupchat/
 # the `--quick` bench preset's default report lands in the cwd (the `DEFAULT_OUT_NAME`
-# shape, `ggufone-bench-<suite>_quick.json`); shipped receipts name their path with `--out`
+# shape, `typed-gguf-bench-<suite>_quick.json`); shipped receipts name their path with `--out`
 /*-bench-*_quick.json

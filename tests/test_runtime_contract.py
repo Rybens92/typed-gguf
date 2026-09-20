@@ -3,7 +3,7 @@
 Two levels:
 * offline: the evidence pins + arithmetic mirror + package surface must be green without a
   runtime (skips in section B are fine here);
-* live: with a runtime installed (GGUFONE_RUNTIME_DIR or `ggufone init`), section B must be
+* live: with a runtime installed (TYPED_GGUF_RUNTIME_DIR or `typed-gguf init`), section B must be
   green with **no SKIP** — that is the A-E1a-1 gate, and this test is how CI enforces it.
 """
 from __future__ import annotations
@@ -16,7 +16,7 @@ import time
 
 import pytest
 
-from ggufone.runtime import pressure
+from typed_gguf.runtime import pressure
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ORACLE = ROOT / "docs" / "verify_runtime_contract.py"
@@ -65,16 +65,16 @@ def test_oracle_runs_offline_and_exits_zero() -> None:
 def test_oracle_section_d_sees_the_package() -> None:
     result = run_oracle()
     tail = result.stdout.split("[D] package + contract surface")[-1]
-    assert "module ggufone.runtime imports" in tail
-    assert "module ggufone.registry imports" in tail
+    assert "module typed_gguf.runtime imports" in tail
+    assert "module typed_gguf.registry imports" in tail
 
 
 def _installed_runtime() -> pathlib.Path | None:
     import os
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env and (pathlib.Path(env) / "libllama.so").exists():
         return pathlib.Path(env)
-    candidates = [pathlib.Path.home() / ".local" / "share" / "ggufone" / "runtime"]
+    candidates = [pathlib.Path.home() / ".local" / "share" / "typed-gguf" / "runtime"]
     for root in candidates:
         if root.is_dir():
             for child in sorted(root.iterdir()):
@@ -87,9 +87,9 @@ def _installed_runtime() -> pathlib.Path | None:
 def test_oracle_live_section_is_green_without_skips() -> None:
     runtime = _installed_runtime()
     if runtime is None:
-        pytest.skip("no runtime installed (run `ggufone init` or set GGUFONE_RUNTIME_DIR)")
+        pytest.skip("no runtime installed (run `typed-gguf init` or set TYPED_GGUF_RUNTIME_DIR)")
     import os
-    env = {**os.environ, "GGUFONE_RUNTIME_DIR": str(runtime)}
+    env = {**os.environ, "TYPED_GGUF_RUNTIME_DIR": str(runtime)}
     result = run_oracle(env=env)
     assert result.returncode == 0, result.stdout[-4000:]
     live = result.stdout.split("[B] live runtime probes")[-1].split("[C] arithmetic mirror")[0]

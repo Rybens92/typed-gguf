@@ -12,8 +12,8 @@ import platform
 
 import pytest
 
-from ggufone.errors import GgufoneError
-from ggufone.runtime import ctypes_binding, finder
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.runtime import ctypes_binding, finder
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 POC = ROOT / "docs" / "evidence" / "poc-ctypes-20260917.py"
@@ -65,7 +65,7 @@ def test_importing_the_module_loads_no_library() -> None:
     import sys
     root = pathlib.Path(__file__).resolve().parents[1]
     environment = {**os.environ, "PYTHONPATH": str(root / "src")}
-    code = ("import ggufone.runtime.ctypes_binding as b;"
+    code = ("import typed_gguf.runtime.ctypes_binding as b;"
             "assert b.loaded_runtimes() == (), b.loaded_runtimes();"
             "assert not hasattr(b, 'llama_decode_enabled');"
             "print('inert')")
@@ -82,7 +82,7 @@ def test_mandatory_call_order_is_documented_and_pinned() -> None:
 
 
 def test_load_libraries_reports_missing_files(tmp_path: pathlib.Path) -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         ctypes_binding.load_libraries(tmp_path)
     assert exc.value.code == "E_RUNTIME_MISSING"
     assert "libllama" in str(exc.value) or "libggml" in str(exc.value)
@@ -92,7 +92,7 @@ def test_load_libraries_surfaces_a_dlopen_failure(tmp_path: pathlib.Path) -> Non
     names = finder.library_names("linux")
     for key in ("ggml_base", "ggml", "llama"):
         (tmp_path / names[key]).write_text("this is not an ELF shared object\n")
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         ctypes_binding.load_libraries(tmp_path, system="linux")
     assert exc.value.code in ("E_RUNTIME_MISSING", "E_RUNTIME_SYMBOLS")
     assert str(tmp_path) in str(exc.value)
@@ -117,15 +117,15 @@ def test_library_names_default_to_the_running_platform() -> None:
 # ------------------------------------------------------------------ live ABI pin (needs runtime)
 def _runtime_dir() -> pathlib.Path:
     import os
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env and (pathlib.Path(env) / "libllama.so").exists():
         return pathlib.Path(env)
     for base in (pathlib.Path.home() / ".hermes" / "runtime",
-                 pathlib.Path.home() / ".local" / "share" / "ggufone" / "runtime"):
+                 pathlib.Path.home() / ".local" / "share" / "typed-gguf" / "runtime"):
         for candidate in sorted(base.glob("*/")):
             if (candidate / "libllama.so").exists():
                 return candidate
-    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR)")
+    pytest.skip("no llama.cpp runtime on this box (set TYPED_GGUF_RUNTIME_DIR)")
 
 
 @pytest.mark.model

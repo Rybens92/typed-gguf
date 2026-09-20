@@ -8,8 +8,8 @@
 #   nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits               (E1a budget)
 #   nvidia-smi -L                                                                   (detection)
 #   nvidia-smi --query-gpu=memory.total,memory.used,memory.free --format=csv        (gate facts)
-TOTAL_MIB="${GGUFONE_FAKE_TOTAL_MIB:-8192}"
-USED_MIB="${GGUFONE_FAKE_USED_MIB:-7080}"
+TOTAL_MIB="${TYPED_GGUF_FAKE_TOTAL_MIB:-8192}"
+USED_MIB="${TYPED_GGUF_FAKE_USED_MIB:-7080}"
 FREE_MIB=$((TOTAL_MIB - USED_MIB))
 
 ARGS="$*"

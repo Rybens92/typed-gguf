@@ -14,10 +14,10 @@ import sys
 
 import pytest
 
-from ggufone import cli, schema
-from ggufone.engine import decide
-from ggufone.registry import store
 from tests.fake_engine import FakeSession, biased_row
+from typed_gguf import cli, schema
+from typed_gguf.engine import decide
+from typed_gguf.registry import store
 
 
 def _fake_decide(payload: dict, *, home: pathlib.Path | None = None, **kwargs) -> dict:
@@ -43,7 +43,7 @@ def fake_engine(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def home(tmp_path: pathlib.Path) -> pathlib.Path:
-    return tmp_path / "ggufone-home"
+    return tmp_path / "typed-gguf-home"
 
 
 def test_run_reads_a_full_request_file(fake_engine, home, tmp_path, capsys) -> None:
@@ -148,7 +148,7 @@ def test_schema_errors_exit_two_without_a_traceback(fake_engine, home, tmp_path,
 
 def test_runtime_errors_exit_three(fake_engine, home, tmp_path, capsys, monkeypatch) -> None:
     def boom(payload, *, home=None, **kwargs):
-        from ggufone.errors import RuntimeMissingError
+        from typed_gguf.errors import RuntimeMissingError
         raise RuntimeMissingError("E_RUNTIME_MISSING: no runtime installed")
 
     monkeypatch.setattr(cli, "decide_payload", boom)
@@ -221,19 +221,19 @@ MODELS = {
 
 
 def _runtime_dir() -> pathlib.Path:
-    from ggufone.runtime import finder
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    from typed_gguf.runtime import finder
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env and (pathlib.Path(env) / "libllama.so").exists():
         return pathlib.Path(env)
     found = finder.find_runtime()
     if found:
         return found
     for base in (pathlib.Path.home() / ".hermes" / "runtime",
-                 pathlib.Path.home() / ".local" / "share" / "ggufone" / "runtime"):
+                 pathlib.Path.home() / ".local" / "share" / "typed-gguf" / "runtime"):
         for candidate in sorted(base.glob("*/")):
             if (candidate / "libllama.so").exists():
                 return candidate
-    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR or run init)")
+    pytest.skip("no llama.cpp runtime on this box (set TYPED_GGUF_RUNTIME_DIR or run init)")
 
 
 @pytest.mark.model
@@ -242,14 +242,14 @@ def test_cli_run_and_ask_end_to_end_on_a_real_gguf(tmp_path, capsys) -> None:
     if not model.exists():
         pytest.skip(f"{model} is not on this box")
     home = tmp_path / "home"
-    environment = {**os.environ, "GGUFONE_HOME": str(home),
-                   "GGUFONE_RUNTIME_DIR": str(_runtime_dir()),
+    environment = {**os.environ, "TYPED_GGUF_HOME": str(home),
+                   "TYPED_GGUF_RUNTIME_DIR": str(_runtime_dir()),
                    "PYTHONPATH": str(pathlib.Path(__file__).resolve().parents[1] / "src")}
     questions = tmp_path / "q.json"
     questions.write_text(json.dumps(
         {"area": {"type": "choice", "criteria": {"billing": None, "technical": None}}}),
         encoding="utf-8")
-    run = subprocess.run([sys.executable, "-m", "ggufone", "run", "--questions", str(questions),
+    run = subprocess.run([sys.executable, "-m", "typed_gguf", "run", "--questions", str(questions),
                           "--state", "The billing page is blank for every user.",
                           "--model", str(model), "--threads", "4", "--state-id", "e1b-cli"],
                          capture_output=True, text=True, env=environment, timeout=600,
@@ -260,7 +260,7 @@ def test_cli_run_and_ask_end_to_end_on_a_real_gguf(tmp_path, capsys) -> None:
     assert payload["engine"]["prefix_tokens"] > 0
     assert payload["usage"]["prefill_tokens"] == payload["engine"]["prefix_tokens"]
 
-    ask = subprocess.run([sys.executable, "-m", "ggufone", "ask", "--state", "Billing is down.",
+    ask = subprocess.run([sys.executable, "-m", "typed_gguf", "ask", "--state", "Billing is down.",
                           "--model", str(model), "--threads", "4",
                           "--noul", "page=Should we page the on-call engineer?"],
                          capture_output=True, text=True, env=environment, timeout=600,
@@ -269,19 +269,19 @@ def test_cli_run_and_ask_end_to_end_on_a_real_gguf(tmp_path, capsys) -> None:
     assert 0.0 <= json.loads(ask.stdout)["answers"]["page"]["noul"] <= 1.0
     capsys.readouterr()
 
-    bad = subprocess.run([sys.executable, "-m", "ggufone", "ask", "--state", "S",
+    bad = subprocess.run([sys.executable, "-m", "typed_gguf", "ask", "--state", "S",
                           "--choice", "broken"], capture_output=True, text=True,
                          env=environment, timeout=120, check=False)
     assert bad.returncode == 2 and "E_QID_INVALID" in bad.stderr
     # E_MODEL_NOT_FOUND is a user error (exit 2, E1a's registry classification)
-    missing = subprocess.run([sys.executable, "-m", "ggufone", "run", "--questions",
+    missing = subprocess.run([sys.executable, "-m", "typed_gguf", "run", "--questions",
                               str(questions), "--state", "S", "--model", "not-a-model"],
                              capture_output=True, text=True, env=environment, timeout=120,
                              check=False)
     assert missing.returncode == 2 and "E_MODEL_NOT_FOUND" in missing.stderr
     # a runtime problem is exit 3
-    broken = {**environment, "GGUFONE_RUNTIME_DIR": str(tmp_path / "no-runtime")}
-    no_runtime = subprocess.run([sys.executable, "-m", "ggufone", "run", "--questions",
+    broken = {**environment, "TYPED_GGUF_RUNTIME_DIR": str(tmp_path / "no-runtime")}
+    no_runtime = subprocess.run([sys.executable, "-m", "typed_gguf", "run", "--questions",
                                  str(questions), "--state", "S", "--model", str(model)],
                                 capture_output=True, text=True, env=broken, timeout=120,
                                 check=False)

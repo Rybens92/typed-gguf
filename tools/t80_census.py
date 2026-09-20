@@ -12,7 +12,7 @@ import json
 import pathlib
 import sys
 
-MODULES = ("src/ggufone/engine/session.py", "src/ggufone/engine/decide.py")
+MODULES = ("src/typed_gguf/engine/session.py", "src/typed_gguf/engine/decide.py")
 
 
 def main(argv: list[str]) -> int:

@@ -10,13 +10,13 @@ the model cannot be cached, so every item costs a full weight sweep from disk. A
 * **merges** the chunk reports into the one `quality` report the published table reads
   (`--suite merge`), refusing to double-count an item;
 * **renders the comparison** 4B default vs Occamy (`--suite compare`) with Wilson intervals and the
-  `low_mass` split (`ggufone.bench.compare`);
+  `low_mass` split (`typed_gguf.bench.compare`);
 * **runs the A-E3-2 batch**: 20 dev questions on one state, with `n_seq_max` constrained, through
-  the production `ggufone run` path (`--suite batch`).
+  the production `typed-gguf run` path (`--suite batch`).
 
     # 1. the chunks (each one is a `bench --suite quality` run of the same model/subset)
     python3 tools/e3_reproduce.py --write-chunks .e3/chunks --chunk 10
-    GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e3_reproduce.py --suite quality \
+    TYPED_GGUF_RUNTIME_DIR=<bundle> python3 tools/e3_reproduce.py --suite quality \
         --model ~/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf \
         --backend vulkan --gpu-layers 7 --threads 4 \
         --devset .e3/chunks/devset_001.jsonl --out .e3/chunks/report_001.json
@@ -29,7 +29,7 @@ the model cannot be cached, so every item costs a full weight sweep from disk. A
         --out docs/evidence/e3_comparison.md
 
     # 3. the batch gate
-    GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e3_reproduce.py --suite batch \
+    TYPED_GGUF_RUNTIME_DIR=<bundle> python3 tools/e3_reproduce.py --suite batch \
         --model ~/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf --items 20 --n-seq-max 4
 """
 from __future__ import annotations
@@ -45,7 +45,7 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.bench import compare, devset, harness, suites  # noqa: E402
+from typed_gguf.bench import compare, devset, harness, suites  # noqa: E402
 
 
 # --------------------------------------------------------------------- chunks
@@ -77,7 +77,7 @@ def build_config(args: argparse.Namespace, suite: str) -> harness.BenchConfig:
 
 # --------------------------------------------------------------------- batch (A-E3-2)
 def run_batch(args: argparse.Namespace) -> int:
-    """`ggufone run` with a 20-question batch on one state; the command is what the gate asks."""
+    """`typed-gguf run` with a 20-question batch on one state; the command is what the gate asks."""
     payload = devset.batch_payload(devset.load(), model=args.model, limit=args.items,
                                    n_seq_max=args.n_seq_max)
     state = payload.pop("state")
@@ -89,7 +89,7 @@ def run_batch(args: argparse.Namespace) -> int:
     state_path = work / "batch_state.txt"
     state_path.write_text(state, encoding="utf-8")
     out_path = pathlib.Path(args.out) if args.out else work / "batch_response.json"
-    command = [sys.executable, "-m", "ggufone", "run",
+    command = [sys.executable, "-m", "typed_gguf", "run",
                "--questions", str(questions_path), "--state", f"@{state_path}",
                "--model", str(payload["model"]), "--threads", str(args.threads or 4)]
     if args.n_seq_max:

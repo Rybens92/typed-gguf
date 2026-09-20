@@ -8,7 +8,7 @@ Everything the document states is read back from a file this campaign wrote:
 * `.e3b/after.json`      — the 20-item re-measure under the accepted policy (optional);
 * `docs/evidence/e3_occamy_quality.json` — the *before* side (E3's published run);
 * `docs/evidence/e2_quality.json`        — the 4B baseline of the published table;
-* `docs/evidence/e3b_calibrate_accepted.txt` — `ggufone calibrate` on the accepted run.
+* `docs/evidence/e3b_calibrate_accepted.txt` — `typed-gguf calibrate` on the accepted run.
 
     python3 tools/e3b_build_evidence.py            # writes the evidence doc + the tables
 """
@@ -22,7 +22,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.bench import compare, suites  # noqa: E402
+from typed_gguf.bench import compare, suites  # noqa: E402
 
 SPEC = importlib.util.spec_from_file_location("e3b", ROOT / "tools" / "e3b_label_policy.py")
 e3b = importlib.util.module_from_spec(SPEC)
@@ -259,7 +259,7 @@ def build(root: pathlib.Path | None = None) -> str:
         f"| model | `{model.get('name')}` — {model.get('bytes') or 0:,} bytes, arch "
         f"`{model.get('arch')}` |",
         f"| **SHA-256** | `{sweep.get('model_sha256')}` (hashed by this run, before the load) |",
-        f"| runtime | `{sweep['runtime']}` (`GGUFONE_RUNTIME_DIR`, the pinned b11026 bundle) |",
+        f"| runtime | `{sweep['runtime']}` (`TYPED_GGUF_RUNTIME_DIR`, the pinned b11026 bundle) |",
         f"| backend / threads | `vulkan` / {sweep['threads']} (E3 §6.5: 4 beats 8 and 12 by ~2×) |",
         f"| `--gpu-layers` requested | {sweep['gpu_layers']} |",
         f"| placement the loader used | `{json.dumps(sweep['placement'])}` |",
@@ -327,7 +327,7 @@ def build(root: pathlib.Path | None = None) -> str:
         "",
         *e3b.cross_check_block(sweep),
         "",
-        "## 7. `ggufone calibrate` on the accepted run",
+        "## 7. `typed-gguf calibrate` on the accepted run",
         "",
         "```",
         calibrate.read_text(encoding="utf-8").strip() if calibrate.exists() else "(not run)",

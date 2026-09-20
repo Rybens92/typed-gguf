@@ -10,7 +10,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 2
 LOG="${1:?usage: rehearse_quick.sh <log-dir> <model.gguf> [threads]}"
 MODEL="${2:?usage: rehearse_quick.sh <log-dir> <model.gguf> [threads]}"
 THREADS="${3:-2}"
-RT="${GGUFONE_RUNTIME_DIR:-/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu}"
+RT="${TYPED_GGUF_RUNTIME_DIR:-/var/home/rybens/.hermes/runtime/b11026-linux-x64-cpu}"
 mkdir -p "$LOG"
 echo "log dir: $LOG"
 echo "model:   $MODEL"
@@ -22,7 +22,7 @@ for suite in latency throughput quality calibration determinism; do
     echo
     echo "== quick $suite"
     start=$(date +%s)
-    GGUFONE_RUNTIME_DIR="$RT" uv run ggufone bench --suite "$suite" --quick --model "$MODEL" \
+    TYPED_GGUF_RUNTIME_DIR="$RT" uv run typed-gguf bench --suite "$suite" --quick --model "$MODEL" \
         --backend auto --threads "$THREADS" --out "$LOG/quick_$suite.json" \
         >"$LOG/quick_$suite.md" 2>"$LOG/quick_$suite.err"
     code=$?

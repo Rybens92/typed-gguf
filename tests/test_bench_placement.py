@@ -1,8 +1,8 @@
 """E2 FIX (card t_31b3943a): the benchmark's placement must survive the loader's degrade ladder.
 
-`ggufone bench` names its placement explicitly (``--gpu-layers``, the minimal ``harness.Placement``)
-instead of consuming a fit plan, and ``session.open_model`` builds the degradation ladder *before*
-its first load attempt. On the parent tree that combination died with
+`typed-gguf bench` names its placement explicitly (``--gpu-layers``, the minimal
+``harness.Placement``) instead of consuming a fit plan, and ``session.open_model`` builds the
+degradation ladder *before* its first load attempt. On the parent tree that combination died with
 
     AttributeError: 'Placement' object has no attribute 'kv_type'      ->  E_INTERNAL, exit 4
 
@@ -31,13 +31,13 @@ from typing import Any
 
 import pytest
 
-from ggufone import cli
-from ggufone.bench import harness, suites
-from ggufone.engine import session as session_module
-from ggufone.errors import BackendOomError
-from ggufone.runtime import fit
 from tests.test_fit import GIB, MIB, write_gguf
 from tests.test_fit_oom_recovery import FakeBackend, fake_runtime
+from typed_gguf import cli
+from typed_gguf.bench import harness, suites
+from typed_gguf.engine import session as session_module
+from typed_gguf.errors import BackendOomError
+from typed_gguf.runtime import fit
 
 LAYERS = 4
 

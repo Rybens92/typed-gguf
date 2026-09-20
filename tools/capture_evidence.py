@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture spec-time evidence for the ggufone runtime contract.
+"""Capture spec-time evidence for the typed-gguf runtime contract.
 
 Writes docs/evidence/*.json into the repo. Re-runnable; network required.
 Run once at spec time; the oracle (docs/verify_runtime_contract.py) then reads
@@ -17,7 +17,7 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 EVID = REPO / "docs" / "evidence"
 EVID.mkdir(parents=True, exist_ok=True)
 
-UA = {"User-Agent": "ggufone-evidence/0.1"}
+UA = {"User-Agent": "typed-gguf-evidence/0.1"}
 
 
 def get_json(url: str, accept: str = "application/json"):
@@ -116,7 +116,7 @@ def capture_hf_model() -> None:
 
 def capture_tarball_listing() -> None:
     """File listing + tarball sha256 for the release asset we distribute on this host."""
-    local = pathlib.Path("/tmp/ggufone_probe/rel/llama-b11026-bin-ubuntu-x64.tar.gz")
+    local = pathlib.Path("/tmp/typed_gguf_probe/rel/llama-b11026-bin-ubuntu-x64.tar.gz")
     if not local.exists():
         print("tarball not present locally; skipping listing capture")
         return

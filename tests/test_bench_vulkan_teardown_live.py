@@ -2,19 +2,19 @@
 
 A **single** Vulkan bundle used to print its whole report and then die with SIGSEGV (`exit 139`)
 on a device that is nearly full — the row's own process, no second bundle anywhere. The fault is
-not ggufone's and not the bundle's: it is the NVIDIA ICD's own exit handler
+not typed-gguf's and not the bundle's: it is the NVIDIA ICD's own exit handler
 (`libnvidia-eglcore` → `libnvidia-glvkspirv`, fault address `0x18`) running from libc's
 `__run_exit_handlers`, i.e. *other people's destructors at interpreter exit* (backtrace and raws in
-`.e2e/t_97f1bc93-vulkan-teardown/`). The remedy is `ggufone.cli.run`: a process that has a bundle
+`.e2e/t_97f1bc93-vulkan-teardown/`). The remedy is `typed_gguf.cli.run`: a process that has a bundle
 loaded ends itself, with the command's code and its streams already flushed.
 
 This gate is the executable form of the card's requirement 3: the operator's command, the pinned
 Vulkan bundle, a real GGUF, and device memory deliberately held by a pressure child — the exit code
 must be the report's (0 or 1), never a signal, and the report must be parseable on stdout.
 
-    VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json \\
-    GGUFONE_RUNTIME_DIR=/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan \\
-    GGUFONE_BENCH_MODEL=/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf \\
+    RT=/var/home/rybens/.local/share/typed-gguf/runtime/b11026-linux-x64-vulkan
+    VK_DRIVER_FILES=/work/e3scratch/nvidia_egl_icd.json TYPED_GGUF_RUNTIME_DIR=$RT \\
+    TYPED_GGUF_BENCH_MODEL=/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf \\
       uv run --frozen pytest -q --run-network tests/test_bench_vulkan_teardown_live.py -s
 
 It skips, with the reason, on a box without a Vulkan bundle or without a benchmarkable GGUF: this
@@ -37,8 +37,8 @@ from collections.abc import Iterator
 
 import pytest
 
-import ggufone
-from ggufone.bench import harness
+import typed_gguf
+from typed_gguf.bench import harness
 
 #: The operator's model for this crash (the same one the card's raws use).
 CARD_MODEL = pathlib.Path("/var/home/rybens/.hermes/models/Qwen3.5-4B-Q4_0.gguf")
@@ -57,22 +57,22 @@ def vulkan_bundle() -> str:
         if backend in runtimes:
             return str(runtimes[backend])
     pytest.skip("no accelerator llama.cpp bundle on this box "
-                "(set GGUFONE_RUNTIME_DIR at an extracted bundle)")
+                "(set TYPED_GGUF_RUNTIME_DIR at an extracted bundle)")
 
 
 def benchmarkable_model() -> pathlib.Path:
-    explicit = os.environ.get("GGUFONE_BENCH_MODEL")
+    explicit = os.environ.get("TYPED_GGUF_BENCH_MODEL")
     candidates = ([pathlib.Path(explicit)] if explicit else []) + [CARD_MODEL, QUICK_MODEL, SPARK]
     for candidate in candidates:
         if candidate.is_file():
             return candidate
-    pytest.skip("no benchmarkable GGUF on this box (set GGUFONE_BENCH_MODEL)")
+    pytest.skip("no benchmarkable GGUF on this box (set TYPED_GGUF_BENCH_MODEL)")
 
 
 def child_env() -> dict[str, str]:
     """The CLI child's env: the caller's, plus this checkout's `src/` on `PYTHONPATH`."""
     env = dict(os.environ)
-    src_root = str(pathlib.Path(ggufone.__file__).resolve().parents[1])
+    src_root = str(pathlib.Path(typed_gguf.__file__).resolve().parents[1])
     parts = [part for part in env.get("PYTHONPATH", "").split(os.pathsep) if part]
     if src_root not in parts:
         env["PYTHONPATH"] = os.pathsep.join([src_root, *parts])
@@ -98,7 +98,7 @@ import pathlib, sys, time
 
 sys.path.insert(0, {src!r})
 
-from ggufone.engine import session as session_module
+from typed_gguf.engine import session as session_module
 
 
 class ExactPlacement:
@@ -127,8 +127,8 @@ def device_pressure(tmp_path: pathlib.Path, *, model: pathlib.Path, bundle: str,
     resource warnings into errors.
     """
     script = tmp_path / "pressure.py"
-    layers = int(os.environ.get("GGUFONE_LIVE_PRESSURE_LAYERS", layers))
-    script.write_text(PRESSURE_SOURCE.format(src=str(pathlib.Path(ggufone.__file__).resolve()
+    layers = int(os.environ.get("TYPED_GGUF_LIVE_PRESSURE_LAYERS", layers))
+    script.write_text(PRESSURE_SOURCE.format(src=str(pathlib.Path(typed_gguf.__file__).resolve()
                                                      .parents[1]),
                                              model=str(model), bundle=bundle, layers=int(layers),
                                              seconds=PRESSURE_SECONDS), encoding="utf-8")
@@ -160,7 +160,7 @@ def test_the_single_bundle_command_ends_with_its_report_on_a_busy_device(
     bundle = vulkan_bundle()
     model = benchmarkable_model()
     report_path = tmp_path / "throughput-vulkan.json"
-    command = [sys.executable, "-m", "ggufone", "bench", "--suite", "throughput",
+    command = [sys.executable, "-m", "typed_gguf", "bench", "--suite", "throughput",
                "--model", str(model), "--backend", "vulkan", "--runs", "1", "--threads", "4",
                "--sizes", "64", "--out", str(report_path), "--json"]
     # the same command the card measured, on a device that is deliberately short of memory

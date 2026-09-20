@@ -1,14 +1,14 @@
 """The CLI must survive the runtime it probes (E1a FIX t_eae35404).
 
-`ggufone init --json` on the operator's RTX 3060 Ti printed its JSON and then died with
+`typed-gguf init --json` on the operator's RTX 3060 Ti printed its JSON and then died with
 `double free or corruption (!prev)` (SIGABRT, exit 134) — reproducibly, also on the
 idempotent re-run. The process had dlopened the CUDA bundle it rejected, deleted that
 directory, and then dlopened the vulkan bundle: third-party destructors ran at exit in a
 process that also held a live driver/GPU backend. `doctor` (one directory, same libs) exits
 clean; the fallback chain is what makes the difference.
 
-Rule that now holds for every ggufone command: **one bundle per process**. Every dlopen of a
-bundle happens in a disposable child process (`ggufone.runtime.probe_child`); the command
+Rule that now holds for every typed-gguf command: **one bundle per process**. Every dlopen of a
+bundle happens in a disposable child process (`typed_gguf.runtime.probe_child`); the command
 itself only ever reads JSON. This is the same lesson tests/test_runtime_live.py already
 learned for the test harness — a C library must never be able to kill the command.
 
@@ -26,8 +26,6 @@ import sys
 
 import pytest
 
-from ggufone import cli
-from ggufone.runtime import capability, install, isolated, pins
 from tests.test_runtime_fallback import (  # the synthetic-bundle helpers
     ASSET,
     CUDA_LOAD_ERROR,
@@ -35,6 +33,8 @@ from tests.test_runtime_fallback import (  # the synthetic-bundle helpers
     bundle_cache,
     multi_lock,
 )
+from typed_gguf import cli
+from typed_gguf.runtime import capability, install, isolated, pins
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SUMMARY_TOOL = ROOT / "tools" / "host_gate_summary.py"
@@ -119,7 +119,7 @@ def test_the_child_really_loads_the_bundle(tmp_path: pathlib.Path) -> None:
 
 @pytest.mark.needs_fork
 def test_the_probe_child_answers_the_documented_protocol(tmp_path: pathlib.Path) -> None:
-    """`python -m ggufone.runtime.probe_child` + one JSON request/response, nothing else."""
+    """`python -m typed_gguf.runtime.probe_child` + one JSON request/response, nothing else."""
     import subprocess
 
     rt = synthetic_bundle(tmp_path)
@@ -259,7 +259,7 @@ def test_already_installed_reports_the_recorded_fallback_reason(
     for lib in ("libllama.so", "libggml.so", "libggml-base.so", "libggml-cuda.so"):
         (cuda / lib).write_bytes(b"\x7fELF fake\n")
     (home / "runtime.json").write_text(json.dumps({
-        "schema": "ggufone.runtime/v1", "variant": "linux-x64-vulkan",
+        "schema": "typed_gguf.runtime/v1", "variant": "linux-x64-vulkan",
         "backend_requested": "cuda", "backend_working": "vulkan",
         "fallback_reason": f"cuda does not load on this host ({CUDA_LOAD_ERROR})",
         "fallback_attempts": [{"backend": "cuda", "variant": "linux-x64-cuda-12.8",
@@ -303,10 +303,10 @@ def test_cli_init_on_an_installed_runtime_prints_the_fallback_reason(
     if real is None:  # pragma: no cover - exotic platform
         pytest.skip("no system shared library available")
     (vulkan / "libggml-vulkan.so").symlink_to(real)
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.setenv("GGUFONE_LOCK", str(lock))
-    monkeypatch.delenv("GGUFONE_DEEP_PROBE", raising=False)
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.setenv("TYPED_GGUF_LOCK", str(lock))
+    monkeypatch.delenv("TYPED_GGUF_DEEP_PROBE", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
 
     assert cli.main(["init", "--json"]) == 0
@@ -338,10 +338,10 @@ def test_init_without_a_record_names_the_backend_this_run_asked_for(
     if real is None:  # pragma: no cover - exotic platform
         pytest.skip("no system shared library available")
     (vulkan / "libggml-vulkan.so").symlink_to(real)
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.setenv("GGUFONE_LOCK", str(lock))
-    monkeypatch.delenv("GGUFONE_DEEP_PROBE", raising=False)
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.setenv("TYPED_GGUF_LOCK", str(lock))
+    monkeypatch.delenv("TYPED_GGUF_DEEP_PROBE", raising=False)
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
 
     assert cli.main(["init", "--json"]) == 0
@@ -384,9 +384,9 @@ def test_doctor_names_the_missing_runtime_instead_of_a_retry(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
     """Cuda missing because libcudart is absent: say that, do not say `--backend cuda` (4)."""
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_DEEP_PROBE", "0")
     monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
     rt = home / "runtime" / "b11026-linux-x64-vulkan"
     rt.mkdir(parents=True)
@@ -394,7 +394,7 @@ def test_doctor_names_the_missing_runtime_instead_of_a_retry(
         (rt / lib).write_bytes(b"\x7fELF fake\nllama_model_spark2_5\x00build 11026\n")
     reason = f"cuda does not load on this host ({CUDA_LOAD_ERROR})"
     (home / "runtime.json").write_text(json.dumps({
-        "schema": "ggufone.runtime/v1", "variant": "linux-x64-vulkan", "build": 11026,
+        "schema": "typed_gguf.runtime/v1", "variant": "linux-x64-vulkan", "build": 11026,
         "backend_requested": "cuda", "backend_working": "vulkan",
         "fallback_reason": reason,
         "fallback_attempts": [{"backend": "cuda", "variant": "linux-x64-cuda-12.8",
@@ -414,9 +414,9 @@ def test_doctor_keeps_the_retry_hint_when_the_bundle_simply_lacks_the_backend(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, capsys) -> None:
     """No recorded fallback: the backend really is absent, so `init --backend cuda` is right."""
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
-    monkeypatch.setenv("GGUFONE_DEEP_PROBE", "0")
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_DEEP_PROBE", "0")
     monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
     rt = home / "runtime" / "b11026-linux-x64-vulkan"
     rt.mkdir(parents=True)
@@ -509,23 +509,23 @@ def test_warmup_child_answers_the_documented_protocol(tmp_path: pathlib.Path) ->
 
 @pytest.mark.needs_fork
 def test_system_lib_probe_reports_what_this_host_can_load() -> None:
-    got = isolated.system_libs(("libc.so.6", "libggufone-not-here.so.7"))
+    got = isolated.system_libs(("libc.so.6", "libtyped_gguf-not-here.so.7"))
     assert got["libc.so.6"] is None
-    assert got["libggufone-not-here.so.7"]
+    assert got["libtyped_gguf-not-here.so.7"]
 
 
 def test_probe_child_modes_are_callable_in_process(tmp_path: pathlib.Path) -> None:
     """The child is a plain module: mode in, JSON-able dict out (play-ELFs only, nothing real)."""
-    from ggufone.runtime import probe_child
+    from typed_gguf.runtime import probe_child
 
     rt = synthetic_bundle(tmp_path)
     probe = probe_child.handle({"mode": "probe", "runtime_dir": str(rt), "system": "linux",
                                 "symbols_llama": ["llama_backend_init"], "symbols_ggml": []})
     assert probe["error"] and "libggml-base.so" in str(probe["error"])
 
-    loaded = probe_child.handle({"mode": "libs", "libs": ["libc.so.6", "libggufone-nope.so.7"]})
+    loaded = probe_child.handle({"mode": "libs", "libs": ["libc.so.6", "libtyped_gguf-nope.so.7"]})
     assert loaded["libs"]["libc.so.6"] is None
-    assert "cannot open shared object file" in str(loaded["libs"]["libggufone-nope.so.7"])
+    assert "cannot open shared object file" in str(loaded["libs"]["libtyped_gguf-nope.so.7"])
 
     warm = probe_child.handle({"mode": "warmup", "runtime_dir": str(tmp_path / "gone"),
                                "warmup_model": str(tmp_path / "model.gguf")})

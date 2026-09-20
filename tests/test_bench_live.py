@@ -4,7 +4,7 @@ Marked `model` (skipped unless `--run-network` is passed) so the offline gate st
 Nothing here touches the network — the marker is this repository's switch for "needs real
 assets on disk" (SPEC A7).
 
-    GGUFONE_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_bench_live.py -s
+    TYPED_GGUF_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_bench_live.py -s
 
 The published numbers live in `docs/BENCHMARKS.md`; these tests only prove the *path* works on a
 real GGUF and that the dev-set budget holds on a real vocabulary.
@@ -22,10 +22,10 @@ import pathlib
 
 import pytest
 
-from ggufone import cli
-from ggufone.bench import devset, harness, suites
-from ggufone.engine import session as session_module
-from ggufone.runtime import finder
+from typed_gguf import cli
+from typed_gguf.bench import devset, harness, suites
+from typed_gguf.engine import session as session_module
+from typed_gguf.runtime import finder
 
 SPARK = pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf"
 QWEN = pathlib.Path.home() / ".cache" / "llama.cpp" / "Qwen3.5-0.8B-UD-Q4_K_XL.gguf"
@@ -37,41 +37,41 @@ MAX_ITEM_TOKENS = 200
 
 
 def _runtime() -> pathlib.Path:
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env and (pathlib.Path(env) / "libllama.so").exists():
         return pathlib.Path(env)
     found = finder.find_runtime()
     if found:
         return found
-    pytest.skip("no llama.cpp runtime on this box (set GGUFONE_RUNTIME_DIR)")
+    pytest.skip("no llama.cpp runtime on this box (set TYPED_GGUF_RUNTIME_DIR)")
 
 
 def _model() -> pathlib.Path:
-    """A benchmarkable GGUF: `GGUFONE_BENCH_MODEL` first, then the two known local models.
+    """A benchmarkable GGUF: `TYPED_GGUF_BENCH_MODEL` first, then the two known local models.
 
     The env override is deliberate — a live run must not depend on `$HOME` matching the box that
     holds the models (this container runs with a scratch HOME).
     """
-    explicit = os.environ.get("GGUFONE_BENCH_MODEL")
+    explicit = os.environ.get("TYPED_GGUF_BENCH_MODEL")
     if explicit and pathlib.Path(explicit).exists():
         return pathlib.Path(explicit)
     for candidate in (QWEN, SPARK):
         if candidate.exists():
             return candidate
     pytest.skip(f"no benchmarkable GGUF on this box ({QWEN} / {SPARK}); "
-                f"set GGUFONE_BENCH_MODEL")
+                f"set TYPED_GGUF_BENCH_MODEL")
 
 
 def _big_model() -> pathlib.Path:
     """A local model *bigger* than the CI smoke one, for the quick preset's real-weight shape.
 
     Occamy 1.0 (23 GiB, `qwen35moe`) and Tiel-Coder-35B-A3B (21 GiB) are the operator's local
-    files; `GGUFONE_BENCH_MODEL_BIG` points at any other. The skip names which of the two reasons
+    files; `TYPED_GGUF_BENCH_MODEL_BIG` points at any other. The skip names which of the two reasons
     it was — absent, or larger than this box's memory cgroup — so a missing measurement is never
     a silent one (the host run measures the big model; see
     `docs/evidence/e2_t_f46cec41_bench_quick.md`).
     """
-    explicit = os.environ.get("GGUFONE_BENCH_MODEL_BIG")
+    explicit = os.environ.get("TYPED_GGUF_BENCH_MODEL_BIG")
     candidates = ([pathlib.Path(explicit)] if explicit else []) + list(BIG_MODELS)
     for candidate in candidates:
         if not candidate.is_file():
@@ -84,7 +84,7 @@ def _big_model() -> pathlib.Path:
         return candidate
     pytest.skip("no bigger local GGUF on this box ("
                 + ", ".join(str(path) for path in BIG_MODELS)
-                + "); set GGUFONE_BENCH_MODEL_BIG")
+                + "); set TYPED_GGUF_BENCH_MODEL_BIG")
 
 
 @pytest.mark.model
@@ -182,12 +182,12 @@ def test_the_bench_sends_the_same_prompt_as_the_serving_path(monkeypatch):
 
     monkeypatch.setattr(session_module.ModelSession, "prefill", spy)
 
-    # the serving path, exactly as `ggufone ask/run` reaches the engine
+    # the serving path, exactly as `typed-gguf ask/run` reaches the engine
     serving = cli.decide_payload(payload, home=None, fit_enabled=False)
     serving_tokens = prefilled[-1]
     prefilled.clear()
 
-    # the bench path, exactly as `ggufone bench --suite quality` reaches the engine
+    # the bench path, exactly as `typed-gguf bench --suite quality` reaches the engine
     report = suites.run_suite(
         harness.BenchConfig(suite="quality", model_path=str(path), items=1, threads=4,
                             backend=harness.CPU_BACKEND),
@@ -214,7 +214,7 @@ def test_the_bench_sends_the_same_prompt_as_the_serving_path(monkeypatch):
 #: the gate stays meaningful on a 4B (and conservative on a 35B MoE, whose active slice is a
 #: fraction of the file) while the printed wall time stays the measurement
 QUICK_TARGET_BYTES = 1 << 30
-#: one `ggufone bench --quick` run is the unit the target is written for (one suite, end to end);
+#: one `typed-gguf bench --quick` run is the unit the target is written for (one suite, end to end);
 #: a five-suite campaign on a *shared* box (siblings run builds and mutation sweeps on the same 2
 #: CPU-seconds/s quota) is allowed this multiple — the measured factor against this box's quiet
 #: numbers is ~1.6×, and the campaign total is printed either way

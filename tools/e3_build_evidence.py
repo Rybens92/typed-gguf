@@ -35,7 +35,7 @@ from typing import Any
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.bench import compare  # noqa: E402
+from typed_gguf.bench import compare  # noqa: E402
 
 EVIDENCE_DOC = ROOT / "docs/evidence/e3_t_a431be85_occamy.md"
 BENCHMARKS_DOC = ROOT / "docs/BENCHMARKS.md"
@@ -71,7 +71,7 @@ REGION_FILES: dict[str, pathlib.Path] = {
 #: the chunk commands the published section prints — the exact invocations that produced the files
 CHUNK_COMMAND: tuple[str, ...] = (
     "python3 tools/e3_reproduce.py --write-chunks .e3/chunks --chunk 10",
-    "GGUFONE_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> python3 tools/e3_reproduce.py \\",
+    "TYPED_GGUF_RUNTIME_DIR=<bundle> VK_DRIVER_FILES=<icd> python3 tools/e3_reproduce.py \\",
     "    --suite quality --model ~/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf \\",
     "    --backend vulkan --gpu-layers 7 --threads 4 \\",
     "    --devset docs/evidence/e3_chunks/devset_00N.jsonl \\",

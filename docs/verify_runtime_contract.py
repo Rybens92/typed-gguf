@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""ggufone runtime + interface contract oracle.
+"""typed-gguf runtime + interface contract oracle.
 
 Exit 0 == every pinned fact reproduced. Run before and after implementation:
 
     python3 docs/verify_runtime_contract.py            # offline (evidence pins)
-    GGUFONE_RUNTIME_DIR=/path/to/llama-b11026 \
+    TYPED_GGUF_RUNTIME_DIR=/path/to/llama-b11026 \
         python3 docs/verify_runtime_contract.py        # + live ctypes probes
 
 Sections
   A. distribution / evidence pins      (reads docs/evidence/*.json, offline)
   B. live runtime probes               (conditional; SKIP without a runtime)
   C. arithmetic mirror                 (always; this is what the TDD card transplants)
-  D. package + contract-surface pins   (conditional on `import ggufone`)
+  D. package + contract-surface pins   (conditional on `import typed_gguf`)
 
 What this script is NOT: a claim of TypeSafe parity. It pins (a) the facts the
-SPEC is built on, (b) ggufone's own formulas with executed reference values, and
+SPEC is built on, (b) typed-gguf's own formulas with executed reference values, and
 (c) the names/shapes of the interfaces the SPEC freezes.
 """
 from __future__ import annotations
@@ -156,8 +156,8 @@ CLI_COMMANDS = ["init", "doctor", "models", "run", "ask", "serve", "mcp", "bench
 MODELS_SUBCOMMANDS = ["search", "pull", "use", "ls", "rm", "verify", "recommend-quant"]
 HTTP_ROUTES = ["/health", "/v1/decide", "/v1/systemone", "/v1/models"]
 HTTP_ROUTE_METHODS = {"GET": ["/health", "/v1/models"], "POST": ["/v1/decide", "/v1/systemone"]}
-MCP_TOOLS = ["ggufone_decide", "ggufone_models_list", "ggufone_models_pull",
-             "ggufone_runtime_status", "ggufone_fit"]
+MCP_TOOLS = ["typed_gguf_decide", "typed_gguf_models_list", "typed_gguf_models_pull",
+             "typed_gguf_runtime_status", "typed_gguf_fit"]
 MCP_METHODS = ["initialize", "tools/list", "tools/call"]
 FORBIDDEN_TRAINING_DEPS = ["torch", "peft", "trl", "unsloth", "bitsandbytes", "deepspeed",
                            "accelerate", "lightning", "sentence-transformers", "axolotl"]
@@ -197,7 +197,7 @@ def softmax(xs: list[float], temperature: float = 1.0) -> list[float]:
 
 
 def confidence_normalized_peak(probs: list[float]) -> float:
-    """ggufone confidence: excess of the peak over uniform, rescaled to [0, 1]."""
+    """typed-gguf confidence: excess of the peak over uniform, rescaled to [0, 1]."""
     k = len(probs)
     if k <= 1:
         return 1.0
@@ -396,11 +396,11 @@ def section_a() -> None:
 # B. live runtime probes
 # ---------------------------------------------------------------------------
 def find_runtime() -> pathlib.Path | None:
-    env = os.environ.get("GGUFONE_RUNTIME_DIR")
+    env = os.environ.get("TYPED_GGUF_RUNTIME_DIR")
     if env and pathlib.Path(env, "libllama.so").exists():
         return pathlib.Path(env)
     base = pathlib.Path(os.environ.get("XDG_DATA_HOME", pathlib.Path.home() / ".local/share"))
-    for cand in sorted((base / "ggufone" / "runtime").glob("*/")):
+    for cand in sorted((base / "typed-gguf" / "runtime").glob("*/")):
         if (cand / "libllama.so").exists():
             return cand
     return None
@@ -410,7 +410,7 @@ def section_b() -> None:
     print("\n[B] live runtime probes (ctypes vs pinned release)")
     rt = find_runtime()
     if rt is None:
-        skip("no runtime installed (set GGUFONE_RUNTIME_DIR or run `ggufone init`); "
+        skip("no runtime installed (set TYPED_GGUF_RUNTIME_DIR or run `typed-gguf init`); "
              "E1a re-runs this section against the real install")
         return
     print(f"  runtime dir: {rt}")
@@ -554,25 +554,25 @@ def section_d() -> None:
         skip("pyproject.toml not present yet")
     try:
         sys.path.insert(0, str(ROOT / "src"))
-        import ggufone  # noqa: F401
+        import typed_gguf  # noqa: F401
     except Exception as exc:  # noqa: BLE001
         skip(f"package not importable yet ({type(exc).__name__}); E1a onward re-runs this")
         return
-    check(isinstance(getattr(ggufone, "__version__", None), str), "ggufone.__version__ is a str")
+    check(isinstance(getattr(typed_gguf, "__version__", None), str), "typed_gguf.__version__ is a str")
     want_mods = ["schema", "errors", "cli", "engine", "runtime", "registry", "calibration",
                  "api", "bench"]
     import importlib
     for mod in want_mods:
         try:
-            importlib.import_module(f"ggufone.{mod}")
-            check(True, f"module ggufone.{mod} imports")
+            importlib.import_module(f"typed_gguf.{mod}")
+            check(True, f"module typed_gguf.{mod} imports")
         except Exception as exc:  # noqa: BLE001
-            check(False, f"module ggufone.{mod} imports ({exc})")
+            check(False, f"module typed_gguf.{mod} imports ({exc})")
     # transplanted reference implementations must agree with the mirror
     try:
-        from ggufone.engine import readout
+        from typed_gguf.engine import readout
     except Exception:  # noqa: BLE001
-        skip("ggufone.engine.readout not implemented yet")
+        skip("typed_gguf.engine.readout not implemented yet")
         return
     required = ("restricted_softmax", "confidence_normalized_peak", "score_weighted_mean")
     present = {n: getattr(readout, n, None) for n in required}
@@ -595,7 +595,7 @@ def section_d() -> None:
 
 
 def main() -> int:
-    print(f"ggufone runtime contract oracle — repo {ROOT}")
+    print(f"typed-gguf runtime contract oracle — repo {ROOT}")
     section_a()
     section_b()
     section_c()

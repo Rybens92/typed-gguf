@@ -21,7 +21,7 @@ import sys
 
 import pytest
 
-from ggufone.bench import harness, labels
+from typed_gguf.bench import harness, labels
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -60,7 +60,7 @@ def synthetic_record(n_per_type: int = 4) -> dict:
             **{"shipped=bare": ("a" if correct_shipped else "b", correct_shipped, 0.02,
                                 "low_mass" if not correct_shipped else "ok"),
                "two_step_shipped=bare": ("a", correct_two_step, 0.9, "ok")}))
-    return {"schema": "ggufone.e3c.cue-shapes/v1", "items": items,
+    return {"schema": "typed_gguf.e3c.cue-shapes/v1", "items": items,
             "shapes": ["shipped", "two_step_shipped", "json_field"],
             "label_variants": ["bare"], "mass_floor": 0.10,
             "ranked_keys": ["shipped=bare", "two_step_shipped=bare"]}

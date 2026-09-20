@@ -28,11 +28,11 @@ from __future__ import annotations
 
 import pytest
 
-from ggufone import cli, errors, schema
-from ggufone.bench import harness, suites
-from ggufone.engine import cue as cue_module
-from ggufone.engine import decide, prompt
 from tests.fake_engine import BenchModel, FakeSession, biased_row
+from typed_gguf import cli, errors, schema
+from typed_gguf.bench import harness, suites
+from typed_gguf.engine import cue as cue_module
+from typed_gguf.engine import decide, prompt
 
 #: the bias that puts ~1.0 of a 512-slot row's mass on one token
 TOP = 11.0
@@ -244,7 +244,7 @@ def test_the_pre_v2_request_publishes_no_advance_key() -> None:
 
 # ------------------------------------------------------------------ the bench and the CLI
 def test_the_bench_carries_the_cue_into_the_request(monkeypatch: pytest.MonkeyPatch) -> None:
-    from ggufone.bench import devset as devset_module
+    from typed_gguf.bench import devset as devset_module
 
     seen: dict = {}
     original = devset_module.request_for
@@ -280,7 +280,7 @@ def test_the_cli_passes_cue_through(monkeypatch: pytest.MonkeyPatch, tmp_path) -
     import pathlib
 
     monkeypatch.setattr(cli, "decide_payload", _fake_decide)
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
     pathlib.Path(str(tmp_path / "home")).mkdir(parents=True, exist_ok=True)
     code = cli.main(["ask", "--state", "S", "--cue", "two_step",
                      "--choice", "area=Which?:billing|api"])
@@ -292,7 +292,7 @@ def test_the_cli_rejects_an_unknown_cue(monkeypatch: pytest.MonkeyPatch, tmp_pat
     import pathlib
 
     monkeypatch.setattr(cli, "decide_payload", _fake_decide)
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home2"))
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home2"))
     pathlib.Path(str(tmp_path / "home2")).mkdir(parents=True, exist_ok=True)
     code = cli.main(["ask", "--state", "S", "--cue", "letters",
                      "--choice", "area=Which?:billing|api"])

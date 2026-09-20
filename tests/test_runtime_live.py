@@ -5,7 +5,7 @@ they are skipped unless `--run-network` is passed.
 
 Each probe runs in a **child process** (`tools/live_probe.py`). Reason: with several model
 load/free cycles in one long-lived interpreter, the shared library's teardown can abort at
-exit (`free(): invalid pointer`) long after every call returned correctly. Every real ggufone
+exit (`free(): invalid pointer`) long after every call returned correctly. Every real typed-gguf
 command is its own process, so this is a test-harness concern, not a product one — and a C
 library must never be able to kill the test runner.
 """
@@ -18,7 +18,7 @@ import sys
 
 import pytest
 
-from ggufone.runtime import capability, finder
+from typed_gguf.runtime import capability, finder
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PROBE = ROOT / "tools" / "live_probe.py"
@@ -28,7 +28,7 @@ PINNED_MODEL = HOME / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf"
 
 def run_probe(*args: str, timeout: int = 300) -> dict:
     if finder.find_runtime() is None:
-        pytest.skip("no runtime installed (run `ggufone init` or set GGUFONE_RUNTIME_DIR)")
+        pytest.skip("no runtime installed (run `typed-gguf init` or set TYPED_GGUF_RUNTIME_DIR)")
     result = subprocess.run(  # noqa: S603
         [sys.executable, str(PROBE), *args], capture_output=True, text=True,
         errors="replace",  # llama.cpp dumps tokenizer pieces: not always valid UTF-8
@@ -66,7 +66,7 @@ def test_the_command_process_maps_no_bundle_after_a_deep_probe() -> None:
     all — while still reporting exactly what the child resolved.
     """
     if finder.find_runtime() is None:
-        pytest.skip("no runtime installed (run `ggufone init` or set GGUFONE_RUNTIME_DIR)")
+        pytest.skip("no runtime installed (run `typed-gguf init` or set TYPED_GGUF_RUNTIME_DIR)")
     runtime = finder.resolve_runtime()
 
     probe = capability.probe_runtime(runtime, deep=True, run_tools=False)

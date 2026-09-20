@@ -14,16 +14,16 @@ this container; **[target]** = a number we intend to hit later.
 
 ```
 # one suite, table on stdout, JSON report written next to it
-GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite latency \
+TYPED_GGUF_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite latency \
     --model ~/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --threads 4 --runs 5 \
     --out docs/evidence/e2_latency.json
 
 # all five suites at once (each report goes to <out-dir>/e2_<suite>.json)
-GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all \
+TYPED_GGUF_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all \
     --model <path.gguf> --threads 4 --out-dir docs/evidence
 ```
 
-The same suites are reachable through the CLI (`uv run ggufone bench --suite <name> ...`); the
+The same suites are reachable through the CLI (`uv run typed-gguf bench --suite <name> ...`); the
 `reproduce:` line inside every rendered table *is* the exact command for that report.
 
 > **Policy v2 (card `t_5b754458`, 2026-09-20): the measured-good prompt policy is the default.**
@@ -60,14 +60,14 @@ the network and the registry store poisoned.
 
 **Every table on this page is a full-campaign table: it was produced without `--quick`.** A quick
 report carries `"quick": true`, the effective preset config and the note; it writes
-`ggufone-bench-<suite>_quick.json` unless `--out` says otherwise, so it can never land on an
+`typed-gguf-bench-<suite>_quick.json` unless `--out` says otherwise, so it can never land on an
 `e2_<suite>.json`. Do **not** quote a `--quick` number as a published one — the preset measures one
 sample per row (no `p95` worth the name), one prefill size, six dev items and two determinism
 repeats:
 
 ```
 # the fast loop (all five suites, ~5 min on this container, reports in /tmp/quick)
-GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all --quick \
+TYPED_GGUF_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all --quick \
     --model <path.gguf> --threads 2 --out-dir /tmp/quick
 ```
 
@@ -145,7 +145,7 @@ reserve) which is **not** amortised across calls; on GPU/Vulkan a fresh *process
 pays pipeline creation, while the *driver's* shader cache (`~/.cache/mesa_shader_cache` for Mesa,
 `~/.nv/ComputeCache` for NVIDIA) can survive process exit — so the fix is not a warm-up inside the
 process, it is a warm-up **plus** a persistent driver cache, exactly as SPEC R2 prescribes
-(`W_VULKAN_WARMUP`). `ggufone serve` keeps the model loaded; a one-shot `ggufone run` pays the
+(`W_VULKAN_WARMUP`). `typed-gguf serve` keeps the model loaded; a one-shot `typed-gguf run` pays the
 load every time (measured: `saved_ms_per_request` above).
 
 ### 1.2 Is `waves = 8` for 5 forks intended grouping, or an accounting bug?
@@ -184,7 +184,7 @@ frozen wire shape of SPEC §2.5).
 > **Pre-fix rows (plain framing).** Everything in this section — the tables, §2.1's split and
 > `docs/evidence/e2_quality.json` — was measured **before** the bench was fixed (card
 > `t_6de5fc53`): the instrument planned the executed context from the live session, which resolves
-> no chat template, so these rows are the **plain E1b framing** while `ggufone ask`/`run` sends the
+> no chat template, so these rows are the **plain E1b framing** while `typed-gguf ask`/`run` sends the
 > model's chat template. **§2.2 carries the same row re-measured with the corrected instrument**;
 > the two must not be mixed.
 >
@@ -192,10 +192,10 @@ frozen wire shape of SPEC §2.5).
 > --chat-format answer_sheet`) and stays published as that; **§2.3 is the row the product now
 > measures by default** (no policy flag), and it is the one a new user reproduces.
 
-**Provenance (S-10).** The dev set is `src/ggufone/bench/devset.jsonl`: **60 items authored for
+**Provenance (S-10).** The dev set is `src/typed_gguf/bench/devset.jsonl`: **60 items authored for
 this repository** (24 `choice`, 18 `score`, 18 `noul`), each one state of ≤ 200 tokens with a
 single defensible answer, one question per item. No vendor evaluation set, no scraped benchmark,
-no model output is reused; every record carries `provenance: authored for ggufone E2 …`.
+no model output is reused; every record carries `provenance: authored for typed-gguf E2 …`.
 `devset.validate()` enforces the contract (count, types, gold inside the criteria, ≤ 200 words,
 no duplicate states, no two candidates sharing a first word) and `tests/test_bench.py` runs it.
 
@@ -249,7 +249,7 @@ behaviour, and it is worth more than the headline number:
 - generated: 2026-09-18T07:16:32Z
 - host: Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41 · cpus 24 · cgroup quota 2.0
 - config: backend=auto runs=1 threads=4
-- reproduce: `uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend auto --runs 1 --threads 4 --json`
+- reproduce: `uv run typed-gguf bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend auto --runs 1 --threads 4 --json`
 
 **exact-match agreement**
 
@@ -266,7 +266,7 @@ behaviour, and it is worth more than the headline number:
 
 The bench used to plan the executed context from the live `ModelSession` — no `.model`/`.runtime`,
 so `resolve_template` returned `None` and `prompt.build_prefix(state, None)` fell back to the bare
-E1b framing — while `ggufone ask`/`run` planned from the model handle (the chat template).
+E1b framing — while `typed-gguf ask`/`run` planned from the model handle (the chat template).
 **Fixed**: one plan, resolved from the handle, and every row now carries the framing it measured
 (`framing`, `prefix_tokens`; the report prints `- framing: …`).
 
@@ -308,9 +308,9 @@ measurement.
 
 ### 2.3 The same row under the product's defaults (policy v2, card `t_5b754458`)
 
-`tools/e2_reproduce.py` on the same box, the same 4B and the same 60 committed items — **with no policy flag at all**, i.e. the recipe a new user's `ggufone bench` runs. The row is therefore measured under the defaults (`cue=json_instructed`, `chat_format=role_split`, `json_contract=question`), which are the cell §9's table read as the measured-good one.
+`tools/e2_reproduce.py` on the same box, the same 4B and the same 60 committed items — **with no policy flag at all**, i.e. the recipe a new user's `typed-gguf bench` runs. The row is therefore measured under the defaults (`cue=json_instructed`, `chat_format=role_split`, `json_contract=question`), which are the cell §9's table read as the measured-good one.
 
-- reproduce: `uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend vulkan --runs 5 --threads 4 --items 60 --json`
+- reproduce: `uv run typed-gguf bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend vulkan --runs 5 --threads 4 --items 60 --json`
 - report: `docs/evidence/e2_quality_v2_t_5b754458.json` · measured with backend `vulkan` · threads 4 · items 60 · runs 5
 - **item-level identity with the published E3e arm** (`json_instructed/role_split`, `.e3e/bench_json_instructed_role_split.json`): **60/60** items identical on `prefix_tokens`, `got`, `correct`, `cue`; agreement 50/60 = 0.833 on both sides. The check is `.t5b75/compare_default_row.py`.
 
@@ -319,7 +319,7 @@ measurement.
 - generated: 2026-09-20T12:40:33Z
 - host: Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41 · cpus 24 · cgroup quota 2.0
 - config: backend=vulkan runs=5 threads=4
-- reproduce: `uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend vulkan --runs 5 --threads 4 --items 60 --json`
+- reproduce: `uv run typed-gguf bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend vulkan --runs 5 --threads 4 --items 60 --json`
 - wall: 29.8 s
 - engine devices: Vulkan0=60 · Vulkan_Host=60 (compute buffers) · effective backend: vulkan
 - framing: chat-template: spark2_5 / internal · prefix tokens: 82, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 105, 107, 111, 119
@@ -435,7 +435,7 @@ minutes on this box; the 0.8B's numbers are published instead, with its command.
 
 ### 3.1 Latency (A-E2-1)
 
-`ggufone bench --suite latency`: model load, prefill throughput at {256, 2k, 8k} tokens,
+`typed-gguf bench --suite latency`: model load, prefill throughput at {256, 2k, 8k} tokens,
 per-question ms at {2, 4, 10} candidates, wave scaling N = 1..16 questions, the warm state cache,
 and the `serve` vs one-shot comparison. `p50`/`p95` are the interpolated percentiles of
 `--runs 5` samples of the same request; `tok/s` is summarised per run (tokens ÷ seconds) and never
@@ -455,7 +455,7 @@ with real cores reproduces the missing 4B row with the printed command plus `--s
 - generated: 2026-09-18T07:37:18Z
 - host: Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41 · cpus 24 · cgroup quota 2.0
 - config: backend=auto runs=5 threads=4
-- reproduce: `uv run ggufone bench --suite latency --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend auto --runs 5 --threads 4 --json`
+- reproduce: `uv run typed-gguf bench --suite latency --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend auto --runs 5 --threads 4 --json`
 
 **model load (ms)**
 
@@ -539,7 +539,7 @@ correspondingly smaller outliers.
 - generated: 2026-09-18T05:54:37Z
 - host: Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.41 · cpus 24 · cgroup quota 2.0
 - config: backend=auto runs=5 threads=2
-- reproduce: `uv run ggufone bench --suite latency --model /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf --backend auto --runs 5 --threads 2 --json`
+- reproduce: `uv run typed-gguf bench --suite latency --model /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf --backend auto --runs 5 --threads 2 --json`
 
 **model load (ms)**
 
@@ -639,8 +639,8 @@ unless told otherwise, and the placement is printed in the row.
 | model | backend | placement | prefill tok/s (p50) | decision ms (p50) | load ms (p50) | decision tok/s (p50) | unavailable |
 |---|---|---|---|---|---|---|---|
 | Spark-X2.5-4B | cpu | `n_gpu_layers=0` | 6.756 | 8,010.987 | 802.017 | 0.9986 | |
-| Spark-X2.5-4B | vulkan | — | — | — | — | — | no local llama.cpp bundle carries libggml-vulkan.so (benchmarks never download one: run `ggufone init --backend vulkan` or point GGUFONE_BENCH_RUNTIME_DIR at extracted bundles) |
-| Spark-X2.5-4B | cuda | — | — | — | — | — | no local llama.cpp bundle carries libggml-cuda.so (benchmarks never download one: run `ggufone init --backend cuda` or point GGUFONE_BENCH_RUNTIME_DIR at extracted bundles) |
+| Spark-X2.5-4B | vulkan | — | — | — | — | — | no local llama.cpp bundle carries libggml-vulkan.so (benchmarks never download one: run `typed-gguf init --backend vulkan` or point TYPED_GGUF_BENCH_RUNTIME_DIR at extracted bundles) |
+| Spark-X2.5-4B | cuda | — | — | — | — | — | no local llama.cpp bundle carries libggml-cuda.so (benchmarks never download one: run `typed-gguf init --backend cuda` or point TYPED_GGUF_BENCH_RUNTIME_DIR at extracted bundles) |
 
 ### 3.3 Determinism (A-E2-5)
 
@@ -654,8 +654,8 @@ Compare digests only within one tree state (`docs/evidence/e2_provenance_note.md
 | model | backend | threads | repeats | identical | digest |
 |---|---|---|---|---|---|
 | Spark-X2.5-4B | cpu | 1 | 3 | yes | `sha256:7ab32e5880d35e04a609659…` |
-| Spark-X2.5-4B | cuda | — | — | not measured | no local llama.cpp bundle carries libggml-cuda.so (benchmarks never download one: run `ggufone init --backend cuda` or point GGUFONE_BENCH_RUNTIME_DIR at extracted bundles) |
-| Spark-X2.5-4B | vulkan | — | — | not measured | no local llama.cpp bundle carries libggml-vulkan.so (benchmarks never download one: run `ggufone init --backend vulkan` or point GGUFONE_BENCH_RUNTIME_DIR at extracted bundles) |
+| Spark-X2.5-4B | cuda | — | — | not measured | no local llama.cpp bundle carries libggml-cuda.so (benchmarks never download one: run `typed-gguf init --backend cuda` or point TYPED_GGUF_BENCH_RUNTIME_DIR at extracted bundles) |
+| Spark-X2.5-4B | vulkan | — | — | not measured | no local llama.cpp bundle carries libggml-vulkan.so (benchmarks never download one: run `typed-gguf init --backend vulkan` or point TYPED_GGUF_BENCH_RUNTIME_DIR at extracted bundles) |
 
 ### 3.4 The recon numbers, side by side (A-E2-6)
 
@@ -698,12 +698,12 @@ probe's 12.9 tok/s measured when the box was quieter — the *shape* is the find
 | 8 | 8,900 | 8.80 | 5,599 | 14,501 | 4.89× |
 | 24 | 43,461 | 1.80 | 73,429 | 116,892 | 1.00× |
 
-`GGUFONE_RUNTIME_DIR=<bundle> python3 /tmp/probe1.py threads   # scratch probe, logs in /tmp/probe_threads.log` (model `/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf`, prefix 78 tokens, backend cpu).
+`TYPED_GGUF_RUNTIME_DIR=<bundle> python3 /tmp/probe1.py threads   # scratch probe, logs in /tmp/probe_threads.log` (model `/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf`, prefix 78 tokens, backend cpu).
 
 Read it as: **`threads = cores_seen` is a trap.** 24 threads on a 2-CPU quota is 5× slower than 4
 threads for prefill and 20× slower for the decision phase (73.4 s vs 3.7 s for the same four
 candidates), because the work is split into more pieces than the quota can run in parallel and
-every context switch is paid. `ggufone` leaves `threads` at the host's physical cores by default
+every context switch is paid. `typed-gguf` leaves `threads` at the host's physical cores by default
 (SPEC §2.2) — on this container that is the wrong choice by construction, which is why every
 published row prints the threads it used and why `--threads 4` is pinned in the tables above.
 
@@ -715,7 +715,7 @@ and only the CPU bundle, so:
 * the `throughput` row for `vulkan` is `measured: false` with the reason printed next to it
   (§3.2) — the suite refuses to invent a number for a backend it cannot run;
 * `tools/e2_vulkan_probe.py` was pointed at the pinned Vulkan bundle
-  (`GGUFONE_VULKAN_RUNTIME_DIR=/work/e1a/home/runtime/b11026-linux-x64-vulkan`) with Mesa
+  (`TYPED_GGUF_VULKAN_RUNTIME_DIR=/work/e1a/home/runtime/b11026-linux-x64-vulkan`) with Mesa
   `lavapipe` as the Vulkan device. The model **loaded** and the context was created, then the
   first `llama_decode` returned `-1` (`E_DECODE_FAILED`) in every one of the three fresh
   processes — the software rasteriser in this container cannot run the pinned Vulkan backend's
@@ -764,7 +764,7 @@ container is capped at 2 CPU-seconds/s, and §3.5 measures that setting as 5–2
 
 ### 3.8 The bench run on the operator host (E2 FIX t_31b3943a, requirement 4) **[host]**
 
-The fix card's fourth requirement was the accelerated re-run: `ggufone bench` must reach the loader
+The fix card's fourth requirement was the accelerated re-run: `typed-gguf bench` must reach the loader
 on a GPU box. The coordinator's run (RTX 3060 Ti, Vulkan bundle `b11026`) — `--suite latency
 --backend vulkan --gpu-layers -1 --runs 3 --threads 4`, exit 0, VRAM free 5522/5495 MiB — reports:
 
@@ -779,7 +779,7 @@ on a GPU box. The coordinator's run (RTX 3060 Ti, Vulkan bundle `b11026`) — `-
 | load amortisation | serve 412 ms/req · one-shot 1506 ms/req | **[host]** |
 | `--suite determinism --backend vulkan --threads 1` | `ok: true`, digest `sha256:d9978816…` ×3, `identical: true` | **[host]** |
 
-Raw JSONs live on the host (`~/.ggufone-host-gate-2026-09-18/`); the verbatim report, the placement
+Raw JSONs live on the host (`~/.typed-gguf-host-gate-2026-09-18/`); the verbatim report, the placement
 JSON and what this does *not* cover are in
 `docs/evidence/e2_fix_t_31b3943a_bench_placement.md` §8 and
 `.e2e/t_31b3943a-bench-placement/host_run_vulkan_reported.md`. These are the first Vulkan numbers with
@@ -794,7 +794,7 @@ a *working* bench path; the Vulkan rows of the E2 tables above were produced on 
 * **No escalation, no calibration applied in the E2 tables**: `max_escalations` stays 0 in E2 (S-7)
   and the calibration suite *measures* ECE for the three confidence modes. Fitting a temperature,
   the held-out acceptance gate, `--route auto` and the bounded escalation are E2.5
-  (`ggufone calibrate`) and are measured in §5 below.
+  (`typed-gguf calibrate`) and are measured in §5 below.
 * **No CUDA**: no CUDA device and no CUDA bundle exist in this container; the throughput table
   says so per row instead of omitting the backend.
 
@@ -812,7 +812,7 @@ runtime `b11026-linux-x64-cpu`, 2 CPU-seconds/s quota). One command per table �
 
 ### 5.1 The fit and the gate — 0.8B, per-type split 2/3 fit · 1/3 held out
 
-`ggufone calibrate` fits a temperature per (model, question type), fits **all three** confidence
+`typed-gguf calibrate` fits a temperature per (model, question type), fits **all three** confidence
 statistics, and stores nothing it cannot defend on the held-out split. Measured (two dev-set
 passes, identical `params_hash=sha256:dd995c81…b1bb`, 611.5 s for both passes):
 
@@ -822,7 +822,7 @@ passes, identical `params_hash=sha256:dd995c81…b1bb`, 611.5 s for both passes)
 | `noul` | 12 / 6 | `normalized_peak` (identity) | 1.0000 | 0.2627 → 0.2627 | 0.3843 → 0.3843 | no — the statistic is already honest |
 | `score` | 12 / 6 | **`entropy`** | **1.6475** | 0.1154 → 0.0695 | 0.4672 → **0.4479** | **yes** — the default statistic overfit its fit split (0.1906 → 0.0265) and lost the held-out one (0.3732 → 0.4400); `entropy` won its held-out split by 0.0194 |
 
-`calibration.json` therefore holds exactly `accepted_types: ["score"]`, and a live `ggufone run`
+`calibration.json` therefore holds exactly `accepted_types: ["score"]`, and a live `typed-gguf run`
 with that store answers with `calibrated: true`,
 `calibration.temperatures: {"score": 1.64755}` and
 `calibration.confidence_modes: {"score": "entropy"}` — the promoted statistic is visible to the
@@ -856,13 +856,13 @@ nothing on the 20 held-out items. Every re-ask is logged with its trigger and it
 
 ### 5.4 Notes and limitations
 
-* **The bench loader is broken at this commit** (`ggufone bench` → `E_INTERNAL AttributeError:
+* **The bench loader is broken at this commit** (`typed-gguf bench` → `E_INTERNAL AttributeError:
   'Placement' object has no attribute 'kv_type'` from `degrade_ladder` in `session.py:250`; card
   `t_31b3943a`, **fixed by a sibling while this card ran** — the branch is rebased on that fix, and
   the 872-test suite above includes its `tests/test_bench_placement.py`). E2.5's live numbers were
   measured **through the serving path** (`open_model` + `ModelSession` — exactly what `run`/`ask`
   use) instead of the bench harness, which is also the more faithful distribution to calibrate;
-  `ggufone calibrate` does not touch the bench path.
+  `typed-gguf calibrate` does not touch the bench path.
 * **Absolute agreement differs between the two load paths**: the same 0.8B answers 32/60 through
   the serving path (E2.5) and 28/60 through the bench path (§4). Every §5 number is measured inside
   one path, so the §5.3 delta is apples-to-apples.
@@ -881,7 +881,7 @@ nothing on the 20 held-out items. Every re-ask is logged with its trigger and it
 > re-measured [host]) is `docs/evidence/e3e_role_split_t_9bcbecff.md` §9.
 
 > **Pre-fix rows (plain framing).** Every row below was measured with the pre-fix bench (card
-> `t_6de5fc53`), i.e. the plain E1b framing, while `ggufone ask`/`run` send Occamy's chat template
+> `t_6de5fc53`), i.e. the plain E1b framing, while `typed-gguf ask`/`run` send Occamy's chat template
 > (`qwen35moe`). The corrected framing's six-item probe is in `docs/BENCHMARKS.md` §7.9 and
 > `docs/evidence/e2_fix_t_6de5fc53_framing.md` §4.3.
 
@@ -909,7 +909,7 @@ limit, the second of which decides this section.
 cgroup, which is the box this section is about; the `[host]` chunks the completion card added are
 tagged in the chunk ledger at the end of the subsection.
 
-`ggufone fit --print --json` (E1c, measured against free VRAM) says **`n_gpu_layers 7/40,
+`typed-gguf fit --print --json` (E1c, measured against free VRAM) says **`n_gpu_layers 7/40,
 n_ctx 4096, kv_type q4_0, n_seq_max 8`** — 7 layers is all that 5685 MiB of free VRAM buys at
 ~600 MB per layer. The cost, however, is not the GPU: an mmap'd GGUF is cached by whichever cgroup
 faults it in, this container is capped at 8 GiB, so 23 GB of weights can never be resident and
@@ -944,7 +944,7 @@ Merged: `docs/evidence/e3_occamy_quality.json` — 60 items, 31 correct (0.517, 
 
 ### 6.3 The 20-question batch (A-E3-2)
 
-`ggufone run` with 20 dev-set questions on one state and `n_seq_max = 4` (`docs/evidence/e3_batch.json`):
+`typed-gguf run` with 20 dev-set questions on one state and `n_seq_max = 4` (`docs/evidence/e3_batch.json`):
 
 | what | value |
 |---|---|
@@ -995,7 +995,7 @@ Both prompts were verified to end at their own assistant header (no template fai
 `threads = 4` wins and 8/12 lose by ~2× (the oversubscription E2 §3.5 measured for the 4B), and the
 7 offloaded layers buy ~2× prefill / ~3× decode against CPU-only — worth doing, and worth doing
 *only* as far as the free VRAM allows. Recommendation for this artifact: **`--backend vulkan
---gpu-layers 7 --threads 4`, `kv_type auto` (`q4_0` at 4k if you go through `ggufone fit`), small
+--gpu-layers 7 --threads 4`, `kv_type auto` (`q4_0` at 4k if you go through `typed-gguf fit`), small
 requests — and route the interactive work elsewhere**: 0.28 tok/s decode is the box's physics for a
 23 GB model that cannot be cached in 8 GiB, and no flag changes that. A host that can keep the
 weights resident (the operator host's own 31 GiB) turns the same command into a compute-bound run.
@@ -1003,7 +1003,7 @@ weights resident (the operator host's own 31 GiB) turns the same command into a 
 ## 7. E3c — Tiel-Coder (35B-A3B, 20.8 GB) measured like Occamy, and the three-way table
 
 > **Pre-fix rows (plain framing).** Every row below — §7.1 to §7.8 — was measured with the pre-fix
-> bench (card `t_6de5fc53`), i.e. the plain E1b framing, while `ggufone ask`/`run` send Tiel's chat
+> bench (card `t_6de5fc53`), i.e. the plain E1b framing, while `typed-gguf ask`/`run` send Tiel's chat
 > template. **§7.4.1 carries the same 60 items re-measured on the host with the corrected
 > instrument** (card `t_7c926398`); §7.9 labels both.
 
@@ -1038,7 +1038,7 @@ as `.e3c_tiel/flawed_capped/` and are **not** model rows — they measure the ca
 
 ### 7.2 Placement (free-VRAM aware, and what the loader actually did)
 
-`ggufone fit --print --json` plans `n_gpu_layers 9 / n_ctx 4096 / kv_type q4_0 / n_seq_max 8`
+`typed-gguf fit --print --json` plans `n_gpu_layers 9 / n_ctx 4096 / kv_type q4_0 / n_seq_max 8`
 (warnings `W_KV_TYPE_DOWNGRADE`, `W_FIT_DOWNGRADE`; note "offloading 9/40 layers within 5609 MiB").
 The quality report shape does not carry the placement (E3 §4.3), so
 `tools/e3c_tiel_reproduce.py` records what the loader settled on per chunk — an observer on
@@ -1111,7 +1111,7 @@ the cue row away from the labels is not measured here — it is the cue-shape ca
 
 §7.3/§7.4 measured the **plain** E1b framing (§7.9): the instrument planned its executed context
 from the live session, which resolves no chat template, so every row above describes a prompt
-`ggufone ask`/`run` never sends. Card `t_6de5fc53` fixed that; the table below is the same 60
+`typed-gguf ask`/`run` never sends. Card `t_6de5fc53` fixed that; the table below is the same 60
 committed dev items measured again on the operator host with the corrected instrument — same model
 file (SHA-256 `9286a94c…`, identical before and after), same placement ask (9 layers, `degraded:
 false`, `kv_type` auto in every chunk), same `--threads 4`, tree `00265ea`. Only the instrument
@@ -1210,7 +1210,7 @@ box that can keep the weights resident.
 ### 7.7 Three-way table (deliverable 6) — quotation only
 
 `docs/evidence/e3c_tiel_three_way.md` (`tools/e3c_tiel_table.py`, which reuses
-`ggufone.bench.compare`, paired, 0 unpaired rows):
+`typed_gguf.bench.compare`, paired, 0 unpaired rows):
 
 | metric | 4B default (E2, 60, CPU) | Occamy 1.0 (E3, chunks, vulkan) | Tiel-Coder (E3c, host, vulkan) |
 |---|---|---|---|
@@ -1246,7 +1246,7 @@ between the two batches; no claim about the token id `248069` beyond what it is 
 
 **Every row of §7 is pre-fix (plain framing).** The instrument planned the executed context from the
 live session, which resolves no chat template, so §7.3's `31/60` and §7.4's `46/60` `measured` rows
-were measured with the plain E1b framing while `ggufone ask`/`run` send Tiel's own chat template
+were measured with the plain E1b framing while `typed-gguf ask`/`run` send Tiel's own chat template
 (`qwen35moe`). **The corrected 60-item [host] re-run has landed — it is §7.4.1** (card
 `t_7c926398`): the same 60 items, `22/60`, `59/60` refusals at the cue, same placement ask, tree
 `00265ea`. What a *container* could run is the placement-matched six-item probe below
@@ -1311,7 +1311,7 @@ are `.e3d/bench_plain_<cue>.json`, measured on the pre-fix tree — the flag is
 2026-09-19). The pre-fix arms of this table were the reason §8 used to read "the cue's effect is
 framing-dependent": they sent the plain prompt, where the shipped cue already sits on the answer,
 so `two_step` cost agreement and doubled `low_mass`. With the executed plan resolved from the
-handle — the source `ggufone ask`/`run` has always used — the same instrument says the opposite,
+handle — the source `typed-gguf ask`/`run` has always used — the same instrument says the opposite,
 and its numbers land on the probe's:
 
 | statistic | probe (`docs/evidence/e3d_cue_decision_4b.md` §1/§2) | bench, post-fix |

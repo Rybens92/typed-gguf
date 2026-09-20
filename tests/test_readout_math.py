@@ -1,7 +1,7 @@
 """A-E1b-1 / A-E1b-7 / A-E1b-12: readout math — invariants + the oracle mirror.
 
 Every number in `REFERENCE` is executed by `docs/verify_runtime_contract.py` section C;
-section D re-checks three of the functions by importing `ggufone.engine.readout`.
+section D re-checks three of the functions by importing `typed_gguf.engine.readout`.
 The property tests use synthetic logits only (no model, no runtime).
 """
 from __future__ import annotations
@@ -11,7 +11,7 @@ import random
 
 import pytest
 
-from ggufone.engine import readout
+from typed_gguf.engine import readout
 
 # (name, candidate logits, full-vocab row, temperature) -> executed reference values
 SOFTMAX_REFERENCE = ([2.0, 1.0, 0.0], [0.665241, 0.244728, 0.090031])

@@ -11,8 +11,8 @@ import struct
 
 import pytest
 
-from ggufone.errors import GgufoneError
-from ggufone.registry.gguf import (
+from typed_gguf.errors import TypedGgufError
+from typed_gguf.registry.gguf import (
     FTYPE_NAMES,
     GGUF_MAGIC,
     parse_gguf_metadata,
@@ -117,40 +117,40 @@ def test_stops_after_n_kv_and_never_reads_tensor_data() -> None:
 
 # ------------------------------------------------------------------ corruption
 def test_bad_magic_is_corrupt() -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         parse_gguf_metadata(write(build(magic=b"GGOX")))
     assert exc.value.code == "E_GGUF_CORRUPT"
 
 
 def test_truncated_header_is_corrupt() -> None:
     blob = build(kvs=[kv("general.architecture", T_STRING, gstr("spark2_5"))])
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         parse_gguf_metadata(write(blob[: len(blob) - 4]))
     assert exc.value.code == "E_GGUF_CORRUPT"
 
 
 def test_truncated_string_payload_is_corrupt() -> None:
     blob = build(kvs=[kv("a", T_STRING, gstr("hello"))])
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         parse_gguf_metadata(write(blob[: len(blob) - 3]))
     assert exc.value.code == "E_GGUF_CORRUPT"
 
 
 def test_unknown_value_type_is_corrupt() -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         parse_gguf_metadata(write(build(kvs=[kv("a", 99, b"\x00\x00\x00\x00")])))
     assert exc.value.code == "E_GGUF_CORRUPT"
 
 
 def test_unsupported_version_is_corrupt() -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         parse_gguf_metadata(write(build(version=99, kvs=[kv("a", T_STRING, gstr("b"))])))
     assert exc.value.code == "E_GGUF_CORRUPT"
     assert "99" in str(exc.value)
 
 
 def test_missing_file_is_corrupt_with_path_in_message(tmp_path: pathlib.Path) -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         parse_gguf_metadata(tmp_path / "absent.gguf")
     assert exc.value.code == "E_GGUF_CORRUPT"
     assert "absent.gguf" in str(exc.value)
@@ -158,20 +158,20 @@ def test_missing_file_is_corrupt_with_path_in_message(tmp_path: pathlib.Path) ->
 
 def test_array_payload_truncated_is_corrupt() -> None:
     blob = build(kvs=[kv("t", T_ARRAY, array(T_STRING, [gstr("aa"), gstr("bb")]))])
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         parse_gguf_metadata(write(blob[: len(blob) - 2]))
     assert exc.value.code == "E_GGUF_CORRUPT"
 
 
 def test_empty_file_is_corrupt() -> None:
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         parse_gguf_metadata(write(b""))
     assert exc.value.code == "E_GGUF_CORRUPT"
 
 
 def test_absurd_n_kv_is_rejected_before_allocating() -> None:
     blob = GGUF_MAGIC + struct.pack("<I", 3) + struct.pack("<Q", 0) + struct.pack("<Q", 2 ** 60)
-    with pytest.raises(GgufoneError) as exc:
+    with pytest.raises(TypedGgufError) as exc:
         parse_gguf_metadata(write(blob))
     assert exc.value.code == "E_GGUF_CORRUPT"
 
@@ -203,7 +203,7 @@ def test_ftype_table_covers_the_pinned_enum_range() -> None:
 
 # ------------------------------------------------------------------ sha256
 def test_sha256_file_matches_hashlib(tmp_path: pathlib.Path) -> None:
-    payload = b"ggufone" * 100_000
+    payload = b"typed-gguf" * 100_000
     path = tmp_path / "blob.bin"
     path.write_bytes(payload)
     assert sha256_file(path) == hashlib.sha256(payload).hexdigest()

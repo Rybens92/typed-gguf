@@ -1,4 +1,4 @@
-"""A2 gate: ggufone must never be able to fine-tune anything (SPEC 2.11).
+"""A2 gate: typed-gguf must never be able to fine-tune anything (SPEC 2.11).
 
 Fails if training code or training dependencies ever enter the critical path.
 """

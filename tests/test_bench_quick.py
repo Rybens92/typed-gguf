@@ -28,9 +28,9 @@ import pathlib
 
 import pytest
 
-from ggufone import cli
-from ggufone.bench import harness, suites
 from tests.test_bench import bench_factory, devset_script
+from typed_gguf import cli
+from typed_gguf.bench import harness, suites
 
 #: the effective config `--quick` must resolve to (exact values, card t_f46cec41)
 QUICK_FIELDS = {
@@ -108,7 +108,7 @@ def test_a_full_report_is_not_marked_quick():
 def test_the_quick_reproduce_command_never_re_states_the_scale_it_fixes():
     """The `reproduce:` line is runnable: `--quick --runs 1` would be an E_BENCH_QUICK error."""
     line = harness.reproduce_command(quick_config("latency", threads=4))
-    assert line.startswith("uv run ggufone bench --suite latency")
+    assert line.startswith("uv run typed-gguf bench --suite latency")
     assert "--quick" in line and "--threads 4" in line
     for flag in ("--runs", "--items", "--n-seq-max"):
         assert flag not in line, line
@@ -157,7 +157,7 @@ def test_a_quick_quality_run_takes_two_items_of_each_type():
 
 def test_stratified_selection_degrades_to_what_the_dev_set_has():
     """A custom dev set with one type only is not an error: take what is there, in type order."""
-    from ggufone.bench import devset as devset_module
+    from typed_gguf.bench import devset as devset_module
 
     noul = [item for item in dev_items() if item.type == "noul"]
     picked = devset_module.stratify(noul, per_type=2)
@@ -235,7 +235,7 @@ def test_a_quick_run_writes_its_own_report_and_never_a_full_campaign_file(tmp_pa
     model = model_file(tmp_path)
     campaign = tmp_path / "e2_latency.json"
     campaign.write_text('{"full": true}', encoding="utf-8")
-    other = tmp_path / "ggufone-bench-latency.json"
+    other = tmp_path / "typed-gguf-bench-latency.json"
     other.write_text('{"full": true}', encoding="utf-8")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(suites, "live_factory", bench_factory())
@@ -243,15 +243,15 @@ def test_a_quick_run_writes_its_own_report_and_never_a_full_campaign_file(tmp_pa
     assert code == 0, capsys.readouterr().err
     assert cli._bench_out_path({}, suite="latency", quick=False) is None
     assert cli._bench_out_path({}, suite="latency", quick=True) == \
-        "ggufone-bench-latency_quick.json"
+        "typed-gguf-bench-latency_quick.json"
     # the *name* both branches produce, pinned: a quick report never lands on the full one, and the
     # full name is spelled out rather than only "different from the quick one"
-    assert harness.default_out_path("latency", quick=False) == "ggufone-bench-latency.json"
+    assert harness.default_out_path("latency", quick=False) == "typed-gguf-bench-latency.json"
     assert harness.default_out_path("latency", quick=True) == \
-        "ggufone-bench-latency_quick.json"
+        "typed-gguf-bench-latency_quick.json"
     assert harness.default_out_path("latency", quick=True) != \
         harness.default_out_path("latency", quick=False)
-    quick = tmp_path / "ggufone-bench-latency_quick.json"
+    quick = tmp_path / "typed-gguf-bench-latency_quick.json"
     assert quick.is_file()
     report = json.loads(quick.read_text(encoding="utf-8"))
     assert report["quick"] is True and report["suite"] == "latency"
@@ -275,7 +275,7 @@ def test_a_full_run_without_out_still_writes_nothing_and_an_explicit_out_wins(tm
     assert cli.main(["bench", "--suite", "quality", "--quick", "--model", str(model), "--out",
                      str(chosen), "--json"]) == 0
     assert chosen.is_file() and json.loads(chosen.read_text())["quick"] is True
-    assert not (tmp_path / "ggufone-bench-quality_quick.json").exists()
+    assert not (tmp_path / "typed-gguf-bench-quality_quick.json").exists()
 
 
 # --------------------------------------------------------------------------- the soft cap
@@ -343,7 +343,7 @@ def test_a_truncated_quality_run_lists_the_items_it_never_asked(tmp_path, monkey
     report = json.loads(capsys.readouterr().out)
     assert report["devset"]["items"] == 6 and report["devset"]["measured"] == 0
     assert report["overall"]["n"] == 0
-    from ggufone.bench import devset as devset_module
+    from typed_gguf.bench import devset as devset_module
     expected = [item.id for item in devset_module.stratify(dev_items(), per_type=2)]
     listed = [(entry["section"], entry["row"]) for entry in report["skipped"]]
     assert ("model_load", "load#1") in listed
@@ -364,7 +364,8 @@ def test_a_fully_truncated_report_is_still_ok_and_keeps_its_shape(tmp_path, monk
         assert report["truncated"] is True and report["ok"] is True, suite
         assert report["skipped"], suite
         assert json.loads(json.dumps(report)) == report
-    assert json.loads((tmp_path / "ggufone-bench-throughput_quick.json").read_text())["truncated"]
+    quick_report = tmp_path / "typed-gguf-bench-throughput_quick.json"
+    assert json.loads(quick_report.read_text())["truncated"]
 
 
 def test_a_measured_gate_failure_still_exits_one_even_when_the_run_was_truncated(
@@ -412,9 +413,9 @@ def test_a_quick_run_without_json_prints_the_preset_table_and_names_its_report(
     assert "latency" in out and "p50" in out
     assert "- preset: --quick" in out
     assert "- wall:" in out
-    assert "- reproduce: `uv run ggufone bench --suite latency" in out
-    assert "report: ggufone-bench-latency_quick.json" in out
-    assert (tmp_path / "ggufone-bench-latency_quick.json").is_file()
+    assert "- reproduce: `uv run typed-gguf bench --suite latency" in out
+    assert "report: typed-gguf-bench-latency_quick.json" in out
+    assert (tmp_path / "typed-gguf-bench-latency_quick.json").is_file()
 
 
 def test_the_reproduce_command_names_a_custom_dev_set_and_a_soft_cap():
@@ -460,7 +461,7 @@ def test_the_reproduce_tool_never_writes_a_quick_report_over_a_full_one():
     parser = module.make_parser()
     quick = module.resolve_out(parser.parse_args(["--suite", "latency", "--quick"]), "latency")
     full = module.resolve_out(parser.parse_args(["--suite", "latency"]), "latency")
-    assert quick == "ggufone-bench-latency_quick.json"
+    assert quick == "typed-gguf-bench-latency_quick.json"
     assert full is None
     out_dir = module.resolve_out(
         parser.parse_args(["--suite", "latency", "--quick", "--out-dir", "/tmp/x"]), "latency")
@@ -484,7 +485,7 @@ class ClockedBudget(harness.TimeBudget):
 
 
 def dev_items():
-    from ggufone.bench import devset as devset_module
+    from typed_gguf.bench import devset as devset_module
     return devset_module.load()
 
 

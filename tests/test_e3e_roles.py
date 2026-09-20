@@ -37,12 +37,12 @@ import pathlib
 
 import pytest
 
-from ggufone import cli, errors, schema
-from ggufone.bench import harness, suites
-from ggufone.engine import cue as cue_module
-from ggufone.engine import decide, prompt
-from ggufone.engine import template as template_module
 from tests.fake_engine import FakeSession, biased_row
+from typed_gguf import cli, errors, schema
+from typed_gguf.bench import harness, suites
+from typed_gguf.engine import cue as cue_module
+from typed_gguf.engine import decide, prompt
+from typed_gguf.engine import template as template_module
 
 #: the bias that puts ~1.0 of a 512-slot row's mass on one token
 TOP = 11.0
@@ -493,7 +493,7 @@ def test_a_turn_closer_at_the_value_row_is_a_refusal_with_its_own_hint() -> None
 
 
 def _scale(row: list[float]) -> float:
-    from ggufone.engine import readout
+    from typed_gguf.engine import readout
     return readout.logsumexp(row)
 
 
@@ -728,7 +728,7 @@ def test_the_report_says_which_policy_measured_the_rows() -> None:
               "config": {"backend": "vulkan", "runs": 1, "threads": 4, "cue": "shipped",
                          "chat_format": "answer_sheet"},
               "model": {"path": "/m.gguf"}, "overall": {}, "per_type": {},
-              "commands": {"reproduce": "uv run ggufone bench --suite quality"}}
+              "commands": {"reproduce": "uv run typed-gguf bench --suite quality"}}
     text = harness.render_report(report)
     assert "- prompt policy: cue=shipped · chat_format=answer_sheet" in text
     report["config"].update({"cue": "json_instructed", "chat_format": "role_split"})
@@ -751,7 +751,7 @@ def test_the_cue_verdict_table_shows_the_named_json_verdicts() -> None:
 
 
 def test_the_new_codes_are_registered() -> None:
-    from ggufone.errors import ERROR_CODES, WARNING_CODES
+    from typed_gguf.errors import ERROR_CODES, WARNING_CODES
     assert "E_ROLE_SPLIT_UNSUPPORTED" in ERROR_CODES
     assert "W_JSON_EMPTY_VALUE" in WARNING_CODES and "W_JSON_WRONG_FIELD" in WARNING_CODES
 
@@ -782,7 +782,7 @@ def test_the_two_step_readout_is_untouched_by_e3e() -> None:
 
 
 # ==================================================================== live: real family templates
-# Run with: GGUFONE_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_e3e_roles.py
+# Run with: TYPED_GGUF_RUNTIME_DIR=<bundle> uv run pytest -q --run-network tests/test_e3e_roles.py
 MODEL_PATHS = {
     "spark2_5": pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf",
     "qwen35": pathlib.Path.home() / ".hermes" / "models" / "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
@@ -801,7 +801,7 @@ EXPECTED_GENERATION_TAIL = {
 
 
 def _family_template(name: str) -> tuple[str, str]:
-    from ggufone.registry import gguf
+    from typed_gguf.registry import gguf
     path = MODEL_PATHS[name]
     if not path.exists():
         pytest.skip(f"{path} is not on this box")

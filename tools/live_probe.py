@@ -3,7 +3,7 @@
 
 The engine's C library is loaded through ctypes; several model load/free cycles in one long
 lived process can trip shared-library teardown (`free(): invalid pointer` at exit) even though
-every call succeeded. Every real CLI run is its own process, so ggufone is not affected — but
+every call succeeded. Every real CLI run is its own process, so typed-gguf is not affected — but
 tests must not be able to kill the test runner, hence this child-process probe.
 
 Usage:
@@ -23,17 +23,18 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.registry import store  # noqa: E402
-from ggufone.runtime import capability, ctypes_binding, finder, install, pins  # noqa: E402
+from typed_gguf.registry import store  # noqa: E402
+from typed_gguf.runtime import capability, ctypes_binding, finder, install, pins  # noqa: E402
 
-DEFAULT_HOME = pathlib.Path(os.environ.get("GGUFONE_HOME", pathlib.Path.home() / ".hermes"))
+DEFAULT_HOME = pathlib.Path(os.environ.get("TYPED_GGUF_HOME", pathlib.Path.home() / ".hermes"))
 MODEL = DEFAULT_HOME / "models" / "Spark-X2.5-4B-Q8_0.gguf"
 
 
 def runtime_dir() -> pathlib.Path:
     found = finder.find_runtime()
     if found is None:
-        raise SystemExit("no runtime installed (run `ggufone init` or set GGUFONE_RUNTIME_DIR)")
+        raise SystemExit("no runtime installed "
+                         "(run `typed-gguf init` or set TYPED_GGUF_RUNTIME_DIR)")
     return found
 
 

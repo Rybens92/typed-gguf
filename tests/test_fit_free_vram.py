@@ -15,10 +15,10 @@ import stat
 
 import pytest
 
-from ggufone import cli
-from ggufone.registry import recommend
-from ggufone.runtime import fit
 from tests.test_fit import GIB, MIB, tiny_model, write_gguf
+from typed_gguf import cli
+from typed_gguf.registry import recommend
+from typed_gguf.runtime import fit
 
 # --------------------------------------------------------------- a fake driver on PATH
 NVIDIA_TOTAL_MIB = 8192
@@ -278,8 +278,8 @@ def test_the_cli_fit_command_reports_the_free_number_it_planned_against(
         tmp_path: pathlib.Path, capsys: pytest.CaptureFixture[str],
         monkeypatch: pytest.MonkeyPatch) -> None:
     model = write_gguf(tmp_path / "synthetic.gguf")
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     monkeypatch.setattr(fit, "host_facts", lambda **kwargs: fit.HostFacts(
         backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
         vram_free_bytes=NVIDIA_FREE_MIB * MIB, n_cpu=8, fingerprint="vulkan:busy"))

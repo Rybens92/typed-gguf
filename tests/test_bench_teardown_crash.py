@@ -2,7 +2,7 @@
 
 Found while landing t_dd62ec29 and explicitly left unfixed there
 (`.e2e/t_dd62ec29-mixed-bundle-teardown/logs/after_mixed.raw`): a **single** Vulkan-bundle child
-can die with **exit -11 (SIGSEGV)** *after* writing a complete `ggufone.bench/v1` report, while its
+can die with **exit -11 (SIGSEGV)** *after* writing a complete `typed_gguf.bench/v1` report, while
 own report says `ok: true`. The device was memory-starved at the time (the operator host runs the
 E3 campaign on the same box: `vram_before_controls.txt` reads ~3.2 GiB free of 8 GiB); the same
 bundle alone exits 0 on a free device. The row is withheld, `ok: false`, exit 1 — the containment
@@ -37,7 +37,6 @@ from typing import Any
 
 import pytest
 
-from ggufone.bench import harness, isolation, suites
 from tests.test_bench import bench_factory
 from tests.test_bench_isolation import (
     CPU_DIR,
@@ -47,6 +46,7 @@ from tests.test_bench_isolation import (
     throughput_config,
     two_bundle_runtimes,
 )
+from typed_gguf.bench import harness, isolation, suites
 
 GIB = 1024 ** 3
 MIB = 1024 ** 2
@@ -189,7 +189,7 @@ def test_the_retry_halves_the_layers_that_really_ran() -> None:
 
 def facts_for(n_layer: int = 32) -> Any:
     """A complete `fit.ModelFacts` (no model file needed): the ladder reads every field."""
-    from ggufone.runtime import fit
+    from typed_gguf.runtime import fit
 
     return fit.ModelFacts(path="/tmp/fake.gguf", sha256="", arch="qwen35", n_layer=n_layer,
                           n_kv_head=4, key_len=128, value_len=128, n_ctx_train=4096,
@@ -201,7 +201,7 @@ def test_the_retry_placement_is_the_loaders_own_degrade_rung(n_layer: int) -> No
     """The number is not invented here: it is the rung `fit.degrade_ladder` walks to next."""
     from types import SimpleNamespace
 
-    from ggufone.runtime import fit
+    from typed_gguf.runtime import fit
 
     facts = facts_for(n_layer)
     config = harness.BenchConfig(suite="throughput", model_path="/tmp/fake.gguf", backend="vulkan")
@@ -504,7 +504,7 @@ def test_a_crash_that_gets_no_retry_says_so(tmp_path: pathlib.Path) -> None:
 def test_a_driver_that_raises_reads_as_an_unknown_device(
         monkeypatch: pytest.MonkeyPatch) -> None:
     """A failing driver query is "unknown", never an exception in the middle of a benchmark."""
-    from ggufone.registry import recommend
+    from typed_gguf.registry import recommend
 
     def refuse() -> Any:
         raise RuntimeError("nvidia-smi: the driver answered nothing")
@@ -548,7 +548,7 @@ def test_the_model_size_is_read_from_the_file_and_never_invented(tmp_path: pathl
 def test_the_model_header_is_the_facts_seam_and_a_bad_header_is_none(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     """`model_facts` resolves the real header, and an unreadable one only means "safe rung"."""
-    from ggufone.runtime import fit
+    from typed_gguf.runtime import fit
 
     model = tmp_path / "model.gguf"
     model.write_bytes(b"not a real gguf")

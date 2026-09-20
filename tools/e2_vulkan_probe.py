@@ -8,8 +8,8 @@ the first decode in a process, reuse afterwards, and a driver cache on disk acro
 and *not* enough to reproduce a GPU's absolute shader-compile cost. Every number this prints is
 tagged `[executed: lavapipe]` in `docs/BENCHMARKS.md` §3.6.
 
-    GGUFONE_VULKAN_RUNTIME_DIR=<bundle> python3 tools/e2_vulkan_probe.py
-    GGUFONE_VULKAN_MODEL=<path.gguf> GGUFONE_VULKAN_RUNTIME_DIR=<bundle> \
+    TYPED_GGUF_VULKAN_RUNTIME_DIR=<bundle> python3 tools/e2_vulkan_probe.py
+    TYPED_GGUF_VULKAN_MODEL=<path.gguf> TYPED_GGUF_VULKAN_RUNTIME_DIR=<bundle> \
         python3 tools/e2_vulkan_probe.py
 
 The driver runs three fresh *processes*, so "first decode in a fresh process" is measured the way
@@ -28,7 +28,7 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-SCHEMA = "ggufone.bench.vulkan-probe/v1"
+SCHEMA = "typed_gguf.bench.vulkan-probe/v1"
 DEFAULT_RUNTIMES = (
     "/work/e1a/home/runtime/b11026-linux-x64-vulkan",
     "/work/tf363/home-rtx/runtime/b11026-linux-x64-vulkan",
@@ -39,21 +39,21 @@ WARM_REPEATS = 3
 
 
 def runtime_dir(explicit: str | None) -> pathlib.Path:
-    candidates = [explicit, os.environ.get("GGUFONE_VULKAN_RUNTIME_DIR"), *DEFAULT_RUNTIMES]
+    candidates = [explicit, os.environ.get("TYPED_GGUF_VULKAN_RUNTIME_DIR"), *DEFAULT_RUNTIMES]
     for candidate in candidates:
         if not candidate:
             continue
         path = pathlib.Path(os.path.expanduser(candidate))
         if (path / "libllama.so").exists() and (path / "libggml-vulkan.so").exists():
             return path
-    raise SystemExit("no local Vulkan bundle found; set GGUFONE_VULKAN_RUNTIME_DIR")
+    raise SystemExit("no local Vulkan bundle found; set TYPED_GGUF_VULKAN_RUNTIME_DIR")
 
 
 def model_path(explicit: str | None) -> pathlib.Path:
-    path = pathlib.Path(os.path.expanduser(explicit or os.environ.get("GGUFONE_VULKAN_MODEL")
+    path = pathlib.Path(os.path.expanduser(explicit or os.environ.get("TYPED_GGUF_VULKAN_MODEL")
                                           or DEFAULT_MODEL))
     if not path.exists():
-        raise SystemExit(f"{path} is not on this box; set GGUFONE_VULKAN_MODEL")
+        raise SystemExit(f"{path} is not on this box; set TYPED_GGUF_VULKAN_MODEL")
     return path
 
 
@@ -75,9 +75,9 @@ def cache_state() -> dict[str, int]:
 
 def run_once(runtime: pathlib.Path, model: pathlib.Path) -> dict:
     """One fresh process: load, then the first decode (pipeline creation) vs warm decodes."""
-    from ggufone.bench import harness
-    from ggufone.engine import decide
-    from ggufone.engine import session as session_module
+    from typed_gguf.bench import harness
+    from typed_gguf.engine import decide
+    from typed_gguf.engine import session as session_module
 
     started = time.perf_counter()
     handle = session_module.open_model(model, runtime_dir=runtime, fit_plan=harness.Placement(0))

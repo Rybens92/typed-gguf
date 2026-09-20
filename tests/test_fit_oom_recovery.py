@@ -17,22 +17,22 @@ from typing import Any
 
 import pytest
 
-from ggufone import schema
-from ggufone.engine import session as session_module
-from ggufone.engine.decide import SessionMeta, decide_request
-from ggufone.errors import (
+from tests.fake_engine import FakeSession, biased_row
+from tests.test_fit import GIB, MIB, write_gguf
+from typed_gguf import schema
+from typed_gguf.engine import session as session_module
+from typed_gguf.engine.decide import SessionMeta, decide_request
+from typed_gguf.errors import (
     ERROR_CODES,
     WARNING_CODES,
     BackendOomError,
     ModelArchUnsupportedError,
     RuntimeMissingError,
 )
-from ggufone.registry import recommend
-from ggufone.runtime import ctypes_binding, finder, fit
-from tests.fake_engine import FakeSession, biased_row
-from tests.test_fit import GIB, MIB, write_gguf
+from typed_gguf.registry import recommend
+from typed_gguf.runtime import ctypes_binding, finder, fit
 
-# The operator's tail (card t_8cb0a05e), verbatim — the last line is ggufone's OLD, wrong reading
+# The operator's tail (card t_8cb0a05e), verbatim — the last line is typed-gguf's OLD, wrong reading
 # of the failure, and must not decide the classification.
 OPERATOR_OOM_TAIL = """
 ggml_vulkan: Device memory allocation of size 1058982400 failed.
@@ -404,7 +404,7 @@ def test_an_auto_kv_type_still_gets_a_context() -> None:
     "runtime refused these context parameters" — measured with a real `--no-fit` run against the
     pinned CPU bundle.
     """
-    from ggufone.engine.session import _kv_ladder
+    from typed_gguf.engine.session import _kv_ladder
     assert _kv_ladder("auto", degrade=True) == ["f16", "q8_0", "q4_0"]
     assert _kv_ladder("auto", degrade=False) == ["f16"]
     assert _kv_ladder("q8_0", degrade=True) == ["q8_0", "q4_0"]
@@ -415,7 +415,7 @@ def test_an_auto_kv_type_still_gets_a_context() -> None:
 def test_a_context_that_the_runtime_refuses_reports_the_backend_tail(
         tmp_path: pathlib.Path) -> None:
     """A non-memory context failure keeps the pinned code AND carries what the backend said."""
-    from ggufone.engine.decide import ContextPlan
+    from typed_gguf.engine.decide import ContextPlan
 
     model_path, plan = gpu_plan(tmp_path)
     backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
@@ -451,9 +451,9 @@ def test_the_context_init_notes_the_rung_it_resolved_auto_to(tmp_path: pathlib.P
 
     The first version compared the resolved rung (`f16`) against the request's literal value
     (`auto`) and warned `W_KV_TYPE_DOWNGRADE` on every default run — caught by running the real
-    `ggufone ask --no-fit` against the pinned bundle.
+    `typed-gguf ask --no-fit` against the pinned bundle.
     """
-    from ggufone.engine.decide import ContextPlan
+    from typed_gguf.engine.decide import ContextPlan
 
     model_path, plan = gpu_plan(tmp_path)
     backend = FakeBackend(n_layer=4, fail=lambda ngl, call: False)
@@ -489,11 +489,11 @@ def test_the_cli_fit_json_carries_the_free_number_and_a_bounded_plan(
         tmp_path: pathlib.Path, capsys: pytest.CaptureFixture[str],
         monkeypatch: pytest.MonkeyPatch) -> None:
     """End to end through the CLI surface the operator runs: the JSON says what it planned."""
-    from ggufone import cli
+    from typed_gguf import cli
 
     model = write_gguf(tmp_path / "synthetic.gguf")
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("GGUFONE_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("TYPED_GGUF_RUNTIME_DIR", raising=False)
     monkeypatch.setattr(fit, "host_facts", lambda **kwargs: gpu_host(1112))
     assert cli.main(["fit", str(model), "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)

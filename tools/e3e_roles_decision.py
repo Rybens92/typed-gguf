@@ -45,7 +45,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-SCHEMA = "ggufone.e3e.roles-decision/v1"
+SCHEMA = "typed_gguf.e3e.roles-decision/v1"
 Z = 1.959963984540054          # 95 % normal quantile (Wilson / Wald)
 UNIT = "discordant-pairs"      # the unit of comparison: the same items, not two samples
 

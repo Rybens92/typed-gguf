@@ -29,9 +29,9 @@ import struct
 
 import pytest
 
-from ggufone.engine import template as tpl
-from ggufone.errors import ERROR_CODES, WARNING_CODES
-from ggufone.runtime import fit
+from typed_gguf.engine import template as tpl
+from typed_gguf.errors import ERROR_CODES, WARNING_CODES
+from typed_gguf.runtime import fit
 
 GIB = 1024 ** 3
 MIB = 1024 ** 2
@@ -170,7 +170,7 @@ def test_the_builtin_name_error_names_the_missing_runtime_and_the_fix() -> None:
         tpl.resolve(**facts(model_template=None, user_template="chatml", explicit_user=True))
     message = str(excinfo.value)
     assert "llama_chat_apply_template" in message
-    assert "ggufone init" in message and "GGUFONE_RUNTIME_DIR" in message
+    assert "typed-gguf init" in message and "TYPED_GGUF_RUNTIME_DIR" in message
 
 
 def test_the_outside_subset_file_error_names_the_file_and_the_fix(tmp_path: pathlib.Path) -> None:
@@ -628,7 +628,7 @@ def test_kv_int_prefers_the_arch_key_then_general() -> None:
 def test_fit_plan_round_trips_through_its_own_json() -> None:
     plan = fit.estimate_plan(tiny_model(), cpu_host(), n_ctx=2048, n_seq_max=4)
     payload = json.loads(json.dumps(plan.to_dict()))
-    assert payload["schema"] == fit.FIT_SCHEMA == "ggufone.fit/v1"
+    assert payload["schema"] == fit.FIT_SCHEMA == "typed_gguf.fit/v1"
     restored = fit.FitPlan.from_dict(payload)
     assert restored.to_dict() == payload
     assert isinstance(restored.warnings, tuple) and "W_FIT_ESTIMATED" in restored.warnings
@@ -643,7 +643,7 @@ def test_fit_fields_are_exactly_the_nine_documented_names() -> None:
 def test_load_cached_rejects_a_foreign_schema_version(tmp_path: pathlib.Path) -> None:
     path = fit.cache_path("a" * 64, "fp", home=tmp_path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"schema": "ggufone.fit/v2", "n_ctx": 1}), encoding="utf-8")
+    path.write_text(json.dumps({"schema": "typed_gguf.fit/v2", "n_ctx": 1}), encoding="utf-8")
     assert fit.load_cached("a" * 64, "fp", home=tmp_path) is None
 
 

@@ -40,9 +40,9 @@ from typing import Any
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone.bench import harness  # noqa: E402
+from typed_gguf.bench import harness  # noqa: E402
 
-SCHEMA = "ggufone.e3d.cue-decision/v1"
+SCHEMA = "typed_gguf.e3d.cue-decision/v1"
 BOOTSTRAP_ITERS = 10000
 BOOTSTRAP_SEED = 20260919
 #: the rule the card states: a win is a paired CI that excludes zero

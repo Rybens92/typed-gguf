@@ -10,20 +10,20 @@ from pathlib import Path
 
 import pytest
 
-from ggufone import __version__, cli
-from ggufone.errors import ERROR_CODES, WARNING_CODES
+from typed_gguf import __version__, cli
+from typed_gguf.errors import ERROR_CODES, WARNING_CODES
 
 ROOT = Path(__file__).resolve().parents[1]
 
 MODULES = [
-    "ggufone", "ggufone.errors", "ggufone.schema", "ggufone.cli",
-    "ggufone.engine", "ggufone.engine.prompt", "ggufone.engine.readout",
-    "ggufone.engine.session", "ggufone.engine.decide",
-    "ggufone.runtime", "ggufone.runtime.finder", "ggufone.runtime.ctypes_binding",
-    "ggufone.runtime.capability", "ggufone.runtime.install", "ggufone.runtime.fit",
-    "ggufone.registry", "ggufone.registry.gguf", "ggufone.registry.hf",
-    "ggufone.registry.store", "ggufone.registry.recommend",
-    "ggufone.calibration", "ggufone.api", "ggufone.bench",
+    "typed_gguf", "typed_gguf.errors", "typed_gguf.schema", "typed_gguf.cli",
+    "typed_gguf.engine", "typed_gguf.engine.prompt", "typed_gguf.engine.readout",
+    "typed_gguf.engine.session", "typed_gguf.engine.decide",
+    "typed_gguf.runtime", "typed_gguf.runtime.finder", "typed_gguf.runtime.ctypes_binding",
+    "typed_gguf.runtime.capability", "typed_gguf.runtime.install", "typed_gguf.runtime.fit",
+    "typed_gguf.registry", "typed_gguf.registry.gguf", "typed_gguf.registry.hf",
+    "typed_gguf.registry.store", "typed_gguf.registry.recommend",
+    "typed_gguf.calibration", "typed_gguf.api", "typed_gguf.bench",
 ]
 
 

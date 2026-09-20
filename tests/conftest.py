@@ -9,7 +9,7 @@ be reported as product behaviour ("cuda does not load on this host" turning into
 "the isolated probe could not be started"). A test that spawns a real child now says so
 (`@pytest.mark.needs_fork`), the header carries the live reading, and when the cgroup is starved
 those gates skip *loudly* while the run refuses to exit 0 — a starved box must never read as a
-green suite. The reading lives in `ggufone.runtime.pressure` (the same one the probe path uses
+green suite. The reading lives in `typed_gguf.runtime.pressure` (the same one the probe path uses
 to name its own failures).
 """
 from __future__ import annotations
@@ -20,10 +20,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from ggufone.runtime import pressure
+from typed_gguf.runtime import pressure
 
 if TYPE_CHECKING:
-    from ggufone.runtime import fit
+    from typed_gguf.runtime import fit
 
 #: A test that spawns a real child process cannot be measured on a box whose pid cgroup is at
 #: its cap; the mark makes that requirement explicit and machine-readable.
@@ -43,13 +43,13 @@ def parse_headroom(text: str) -> pressure.PidHeadroom | None:
 
 
 def pid_headroom() -> pressure.PidHeadroom | None:
-    """The live pid-cgroup reading, or the `GGUFONE_TEST_PID_HEADROOM` override.
+    """The live pid-cgroup reading, or the `TYPED_GGUF_TEST_PID_HEADROOM` override.
 
-    The override is a *test* knob (same pattern as `GGUFONE_TEST_BLOCK_NET`) so the gate itself
-    can be pinned on a quiet box: `GGUFONE_TEST_PID_HEADROOM=250/256` makes the gate see a
+    The override is a *test* knob (same pattern as `TYPED_GGUF_TEST_BLOCK_NET`) so the gate itself
+    can be pinned on a quiet box: `TYPED_GGUF_TEST_PID_HEADROOM=250/256` makes the gate see a
     starved cgroup, `none` makes it see a host without one. Unset -> the real cgroup.
     """
-    override = os.environ.get("GGUFONE_TEST_PID_HEADROOM")
+    override = os.environ.get("TYPED_GGUF_TEST_PID_HEADROOM")
     if override is not None:
         return parse_headroom(override)
     return pressure.read_pid_headroom()
@@ -63,7 +63,7 @@ def in_process_scan(monkeypatch: pytest.MonkeyPatch) -> None:
     must never dlopen a bundle itself). A test that patches `load_backend_library` /
     `probe_symbols` is testing that implementation directly, so it has to say so.
     """
-    from ggufone.runtime import capability
+    from typed_gguf.runtime import capability
     monkeypatch.setattr(capability, "DEFAULT_SCAN", capability.scan_in_process)
 
 
@@ -76,7 +76,7 @@ def pin_host_facts(
     rule, SPEC 2.2), so replacing that one name hands the whole call a *named* world — including
     the `fit`/`decide` CLI paths, which have no injection point of their own. A fit test that
     asserts a warning list without this pin is asserting the box's mood: the same
-    `ggufone fit --json` legitimately warns `W_FIT_DOWNGRADE`/`W_KV_TYPE_DOWNGRADE` on a busy
+    `typed-gguf fit --json` legitimately warns `W_FIT_DOWNGRADE`/`W_KV_TYPE_DOWNGRADE` on a busy
     desktop (1631 MiB free of 8192 MiB — the operator's measured failure) and warns only
     `W_FIT_ESTIMATED` on a quiet one.
 
@@ -86,7 +86,7 @@ def pin_host_facts(
     pin the same seam inline with `monkeypatch.setattr(fit, "host_facts", ...)`; this is that pin,
     named once so the next CLI-level gate does not have to reinvent it.)
     """
-    from ggufone.runtime import fit
+    from typed_gguf.runtime import fit
 
     def install(host: fit.HostFacts) -> fit.HostFacts:
         def pinned(**kwargs: object) -> fit.HostFacts:
@@ -179,7 +179,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
 @pytest.fixture(autouse=True)
 def _network_disabled_for_this_run(monkeypatch: pytest.MonkeyPatch) -> None:
-    """A-E1c-10: with `GGUFONE_TEST_BLOCK_NET=1` every socket call raises.
+    """A-E1c-10: with `TYPED_GGUF_TEST_BLOCK_NET=1` every socket call raises.
 
     Used by `tools/e1c_offline_gate.py` to run the whole E1c surface (offline *and* the live
     model/runtime tests) with the network switched off at the Python level: no decision path may
@@ -187,12 +187,12 @@ def _network_disabled_for_this_run(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     import os
     import socket
-    if os.environ.get("GGUFONE_TEST_BLOCK_NET") not in ("1", "true", "yes"):
+    if os.environ.get("TYPED_GGUF_TEST_BLOCK_NET") not in ("1", "true", "yes"):
         return
 
     def forbidden(*args: object, **kwargs: object) -> None:
         raise AssertionError(
-            "network disabled for this run (GGUFONE_TEST_BLOCK_NET=1): a decision path must "
+            "network disabled for this run (TYPED_GGUF_TEST_BLOCK_NET=1): a decision path must "
             "never need it")
 
     monkeypatch.setattr(socket, "socket", forbidden)

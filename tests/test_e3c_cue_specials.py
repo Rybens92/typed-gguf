@@ -12,7 +12,7 @@ The generalised rule this file pins:
 
 * the classifier is the **vocabulary's own token attributes** (`llama_token_get_attr`): a token the
   model marks `CONTROL` or `USER_DEFINED` is a turn-shaping/special token, never content. The
-  catalogue stays as the human-readable name for the families ggufone documents; the attribute
+  catalogue stays as the human-readable name for the families typed-gguf documents; the attribute
   table is the fallback that names a special token the catalogue never heard of;
 * the token must **dominate** the row: it is the argmax *and* holds at least the engine's own
   coverage floor (`OPTION_DEFAULTS["coverage_floor"]`, 0.10) of the row's mass — the same
@@ -40,11 +40,11 @@ from typing import Any
 
 import pytest
 
-from ggufone.engine import cue as cue_module
-from ggufone.engine import decide, readout
-from ggufone.runtime import ctypes_binding
-from ggufone.schema import OPTION_DEFAULTS, parse_request
 from tests.fake_engine import BenchModel, FakeSession, biased_row
+from typed_gguf.engine import cue as cue_module
+from typed_gguf.engine import decide, readout
+from typed_gguf.runtime import ctypes_binding
+from typed_gguf.schema import OPTION_DEFAULTS, parse_request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -314,7 +314,7 @@ class FakeLlama:
 
 
 def fake_handle(attrs: dict[int, int], texts: dict[int, bytes], n_vocab: int):
-    from ggufone.engine import session as session_module
+    from typed_gguf.engine import session as session_module
 
     llama = FakeLlama(attrs, texts, n_vocab)
     runtime = type("FakeRuntime", (), {"llama": llama})()
@@ -324,7 +324,7 @@ def fake_handle(attrs: dict[int, int], texts: dict[int, bytes], n_vocab: int):
 
 
 def test_the_scan_reads_the_vocabulary_attributes_control_and_user_defined_only():
-    from ggufone.runtime import ctypes_binding as binding
+    from typed_gguf.runtime import ctypes_binding as binding
 
     attrs = {
         10: binding.TOKEN_ATTR_NORMAL,
@@ -343,7 +343,7 @@ def test_the_scan_reads_the_vocabulary_attributes_control_and_user_defined_only(
 
 
 def test_the_scan_degrades_to_empty_when_the_bundle_has_no_attribute_api():
-    from ggufone.engine import session as session_module
+    from typed_gguf.engine import session as session_module
 
     class Bare:
         llama_model_get_vocab = staticmethod(lambda model: "vocab")
@@ -358,7 +358,7 @@ def test_the_scan_degrades_to_empty_when_the_bundle_has_no_attribute_api():
 
 
 def test_the_special_attribute_mask_is_control_plus_user_defined():
-    from ggufone.runtime import ctypes_binding as binding
+    from typed_gguf.runtime import ctypes_binding as binding
 
     assert binding.SPECIAL_TOKEN_ATTRS == (binding.TOKEN_ATTR_CONTROL
                                            | binding.TOKEN_ATTR_USER_DEFINED)
@@ -386,7 +386,7 @@ class SpecialBenchModel(BenchModel):
 
 def test_the_quality_report_renders_the_special_token_where_it_used_to_read_ok(monkeypatch,
                                                                                tmp_path):
-    from ggufone.bench import harness, suites
+    from typed_gguf.bench import harness, suites
 
     monkeypatch.setattr(harness, "backend_runtimes", lambda **kwargs: {"cpu": tmp_path / "bundle"})
     report = suites.run_suite(harness.BenchConfig(suite="quality", model_path="/tmp/fake.gguf",

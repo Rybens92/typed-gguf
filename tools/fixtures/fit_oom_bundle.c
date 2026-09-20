@@ -76,9 +76,9 @@ struct llama_model_params llama_model_default_params(void) {
 
 void *llama_model_load_from_file(const char *path, struct llama_model_params params) {
     (void) path;
-    /* `GGUFONE_FAKE_OOM_ALL=1` fails even the CPU-only rung: the "nothing fits" world that must
+    /* `TYPED_GGUF_FAKE_OOM_ALL=1` fails even the CPU-only rung: the "nothing fits" world that must
      * answer E_BACKEND_OOM instead of a load error. */
-    if (params.n_gpu_layers > 0 || getenv("GGUFONE_FAKE_OOM_ALL") != NULL) {
+    if (params.n_gpu_layers > 0 || getenv("TYPED_GGUF_FAKE_OOM_ALL") != NULL) {
         emit("ggml_vulkan: Device memory allocation of size 1058982400 failed.\n");
         emit("ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory\n");
         emit("alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400\n");

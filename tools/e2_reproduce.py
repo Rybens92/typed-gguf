@@ -5,19 +5,19 @@ Every table in `docs/BENCHMARKS.md` names the exact invocation that produced it;
 invocation, in a form that works from a checkout (no install needed: `src/` goes on `sys.path`).
 
     # one suite, table on stdout, JSON report written next to it
-    GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite latency \
+    TYPED_GGUF_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite latency \
         --model ~/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --threads 4 --runs 5 \
         --out docs/evidence/e2_latency.json
 
     # everything (the five suites, same model/backends)
-    GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all \
+    TYPED_GGUF_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all \
         --model <path.gguf> --threads 4 --out-dir docs/evidence
 
     # the fast iteration preset (card t_f46cec41) — never a published table
-    GGUFONE_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all --quick \
+    TYPED_GGUF_RUNTIME_DIR=<bundle> python3 tools/e2_reproduce.py --suite all --quick \
         --model <path.gguf> --threads 4 --out-dir /tmp/quick
 
-`--quick` mirrors `ggufone bench --quick` exactly (same `harness.quick_config` preset, same
+`--quick` mirrors `typed-gguf bench --quick` exactly (same `harness.quick_config` preset, same
 refusal of `--runs/--items/--sizes/--n-seq-max`, same distinct report names: a quick run never
 writes over a full-campaign JSON). `--max-seconds N` is the CLI's soft cap.
 
@@ -33,8 +33,8 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ggufone import schema  # noqa: E402
-from ggufone.bench import harness, suites  # noqa: E402
+from typed_gguf import schema  # noqa: E402
+from typed_gguf.bench import harness, suites  # noqa: E402
 
 
 def make_parser() -> argparse.ArgumentParser:
@@ -75,7 +75,7 @@ def make_parser() -> argparse.ArgumentParser:
                         help="prefill sizes of the latency table, e.g. 256,2048 (default: "
                              + ",".join(str(size) for size in harness.PREFILL_SIZES) + ")")
     parser.add_argument("--quick", action="store_true",
-                        help="the short preset (`ggufone bench --quick`): fast feedback, "
+                        help="the short preset (`typed-gguf bench --quick`): fast feedback, "
                              "never a published table; writes its own report file")
     parser.add_argument("--max-seconds", dest="max_seconds", type=float, default=None,
                         help="soft cap checked between measurements: the report is marked "

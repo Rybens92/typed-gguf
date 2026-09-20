@@ -3,7 +3,7 @@ name: ci
 # The public gate: ruff + the whole offline suite + the engine oracle, on a runner with no model,
 # no GPU and no runtime bundle. The dev extra is the only thing installed; nothing here downloads
 # a model or a bundle, and the suite runs with the network switched off at the Python level
-# (`GGUFONE_TEST_BLOCK_NET=1` — `tests/conftest.py` replaces `socket.socket`,
+# (`TYPED_GGUF_TEST_BLOCK_NET=1` — `tests/conftest.py` replaces `socket.socket`,
 # `socket.create_connection` and `socket.getaddrinfo` with a function that raises, so a decision
 # path that reaches for the network fails this job instead of quietly passing).
 #
@@ -63,7 +63,7 @@ jobs:
           # (`runtime.finder.backend_of_bundle` classifies a bundle by its library *names*); on a
           # bundle-free runner the test fails without this stub (measured: 1 failed / 1330 passed /
           # 48 skipped instead of 1331 / 0 / 48).
-          bundle="$RUNNER_TEMP/ggufone-offline-bundle"
+          bundle="$RUNNER_TEMP/typed-gguf-offline-bundle"
           mkdir -p "$bundle"
           for lib in libllama.so libggml.so libggml-base.so libggml-cpu.so; do
             : > "$bundle/$lib"
@@ -76,19 +76,19 @@ jobs:
           # repo's own net-off flag. `-rs` prints every skip with its reason, so the log states the
           # skip counts the run really had instead of only its totals.
           log="$RUNNER_TEMP/pytest-offline.log"
-          env -u PYTHONPATH GGUFONE_TEST_BLOCK_NET=1 \
-            GGUFONE_BENCH_RUNTIME_DIR="$RUNNER_TEMP/ggufone-offline-bundle" \
+          env -u PYTHONPATH TYPED_GGUF_TEST_BLOCK_NET=1 \
+            TYPED_GGUF_BENCH_RUNTIME_DIR="$RUNNER_TEMP/typed-gguf-offline-bundle" \
             uv run --extra dev pytest -q -rs --timeout=120 2>&1 | tee "$log"
           echo "offline suite: $(tail -n 1 "$log")"
           grep -qE "[0-9]+ passed" "$log"
           ! grep -qE "[0-9]+ (failed|error)" "$log"
 
-      - name: "Live gates must skip, never fail (the red path: GGUFONE_RUNTIME_DIR unset)"
+      - name: "Live gates must skip, never fail (the red path: TYPED_GGUF_RUNTIME_DIR unset)"
         run: |
           set -euo pipefail
           # Hard rule: nothing here may need a bundle or a model. With both runtime variables
           # unset the live set is *collected* and *skipped* — never failed.
-          out=$(env -u PYTHONPATH -u GGUFONE_RUNTIME_DIR -u GGUFONE_BENCH_RUNTIME_DIR \
+          out=$(env -u PYTHONPATH -u TYPED_GGUF_RUNTIME_DIR -u TYPED_GGUF_BENCH_RUNTIME_DIR \
                 uv run --extra dev pytest -q -m "model or network")
           echo "$out"
           grep -q "skipped" <<<"$out"
@@ -102,7 +102,7 @@ jobs:
           grep -q "^failures: 0" <<<"$out"
           # The bundle-free shape runs [A], [C] (minus its local-model header pin) and [D]; only
           # [B] live probes and the absent local Spark GGUF may skip, and each prints its reason
-          # above. Any other skip (e.g. [D] skipping because `ggufone` did not import) is a
+          # above. Any other skip (e.g. [D] skipping because `typed-gguf` did not import) is a
           # regression this step must not swallow.
           unexpected=$(grep "^  SKIP" <<<"$out" | grep -Ev "no runtime installed|local Spark GGUF absent" || true)
           if [ -n "$unexpected" ]; then

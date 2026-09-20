@@ -1,6 +1,6 @@
 {
- "schema": "ggufone.runtime.lock/v1",
- "why": "Pins the runtime the engine is built and tested against. Nothing in this file is ever downloaded implicitly: ggufone init reads this lock, picks the asset for the host and verifies size + SHA-256 before extracting. Kept in git; binaries never are.",
+ "schema": "typed_gguf.runtime.lock/v1",
+ "why": "Pins the runtime the engine is built and tested against. Nothing in this file is ever downloaded implicitly: typed-gguf init reads this lock, picks the asset for the host and verifies size + SHA-256 before extracting. Kept in git; binaries never are.",
  "llama_cpp": {
   "repo": "ggml-org/llama.cpp",
   "tag": "b11026",
@@ -62,5 +62,5 @@
  },
  "oracle": "docs/verify_runtime_contract.py",
  "evidence": "docs/evidence/",
- "note": "sha256 values not yet computed (null) are downloaded-and-hashed by ggufone init on first use and written into the local runtime.json; the oracle fails if a *pinned* value drifts. The linux-x64-vulkan and linux-x64-cuda-12.8 pins were observed on two machines (container and the operator's GPU host, E1a FIX t_eae35404) on the same immutable release asset. `system_libs` lists the sonames a variant links but does not ship: `init` pre-flights them so a host without them never downloads the bundle (E1a FIX finding 2); a variant absent from the map is not pre-flighted."
+ "note": "sha256 values not yet computed (null) are downloaded-and-hashed by typed-gguf init on first use and written into the local runtime.json; the oracle fails if a *pinned* value drifts. The linux-x64-vulkan and linux-x64-cuda-12.8 pins were observed on two machines (container and the operator's GPU host, E1a FIX t_eae35404) on the same immutable release asset. `system_libs` lists the sonames a variant links but does not ship: `init` pre-flights them so a host without them never downloads the bundle (E1a FIX finding 2); a variant absent from the map is not pre-flighted."
 }

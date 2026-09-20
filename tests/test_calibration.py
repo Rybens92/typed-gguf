@@ -23,9 +23,9 @@ import pathlib
 
 import pytest
 
-from ggufone.bench import harness
-from ggufone.calibration import calibrate, stats
-from ggufone.engine import readout
+from typed_gguf.bench import harness
+from typed_gguf.calibration import calibrate, stats
+from typed_gguf.engine import readout
 
 
 # ------------------------------------------------------------------ bins / ECE
@@ -449,7 +449,7 @@ def test_a_type_with_too_few_held_out_rows_is_never_fitted() -> None:
 
 def test_a_row_describes_itself_as_an_answer_for_the_escalation_policy() -> None:
     """A row must survive the shipped decision rule: `routing.decision_of` reads its own fields."""
-    from ggufone.calibration import routing
+    from typed_gguf.calibration import routing
     for qtype, expected in (("choice", "billing"), ("noul", "yes"), ("score", "1")):
         row = next(row for row in _fit_rows((qtype,), per_type=6) if row.correct)
         answer = row.as_answer()
@@ -810,7 +810,7 @@ def test_the_dry_run_table_names_every_type_and_the_verdict() -> None:
 # ------------------------------------------- the `calibrate` command (A-E2p5-1)
 def _report_file(tmp_path, items: list[dict], name: str = "e2_calibration.json"):
     path = tmp_path / name
-    path.write_text(json.dumps({"schema": "ggufone.bench/v1", "suite": "calibration",
+    path.write_text(json.dumps({"schema": "typed_gguf.bench/v1", "suite": "calibration",
                                 "items": items}), encoding="utf-8")
     return path
 
@@ -822,10 +822,10 @@ def _model_file(tmp_path, name: str = "tiny.gguf"):
 
 
 def test_the_calibrate_command_fits_a_report_and_stores_it(tmp_path, monkeypatch, capsys) -> None:
-    from ggufone import cli
-    from ggufone.registry import store
+    from typed_gguf import cli
+    from typed_gguf.registry import store
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
     report = _report_file(tmp_path, _report_rows(("choice", "noul"), per_type=18,
                                                  temperature=2.0))
     model = _model_file(tmp_path)
@@ -841,10 +841,10 @@ def test_the_calibrate_command_fits_a_report_and_stores_it(tmp_path, monkeypatch
 
 def test_the_calibrate_dry_run_prints_the_table_and_stores_nothing(tmp_path, monkeypatch,
                                                                   capsys) -> None:
-    from ggufone import cli
-    from ggufone.registry import store
+    from typed_gguf import cli
+    from typed_gguf.registry import store
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
     report = _report_file(tmp_path, _report_rows(("choice",), per_type=18, temperature=2.0))
     model = _model_file(tmp_path)
     code = cli.main(["calibrate", "--model", str(model), "--from-report", str(report),
@@ -857,10 +857,10 @@ def test_the_calibrate_dry_run_prints_the_table_and_stores_nothing(tmp_path, mon
 
 def test_the_calibrate_command_reports_when_nothing_was_stored(tmp_path, monkeypatch,
                                                                capsys) -> None:
-    from ggufone import cli
-    from ggufone.registry import store
+    from typed_gguf import cli
+    from typed_gguf.registry import store
     home = tmp_path / "home"
-    monkeypatch.setenv("GGUFONE_HOME", str(home))
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home))
     items = [row.to_json() for row in _flat_rows(per_type=18)]
     report = _report_file(tmp_path, items)
     code = cli.main(["calibrate", "--model", str(_model_file(tmp_path)),
@@ -871,8 +871,8 @@ def test_the_calibrate_command_reports_when_nothing_was_stored(tmp_path, monkeyp
 
 
 def test_the_calibrate_command_needs_a_model(tmp_path, monkeypatch, capsys) -> None:
-    from ggufone import cli
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "empty-home"))
+    from typed_gguf import cli
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "empty-home"))
     assert cli.main(["calibrate"]) == 2
     assert "E_MODEL_NOT_FOUND" in capsys.readouterr().err
 
@@ -881,8 +881,8 @@ def _fake_serving_path(monkeypatch, tmp_path) -> None:
     """Patch the model out of `calibrate`'s live path: the same code, a deterministic session."""
     import contextlib
 
-    from ggufone import cli
     from tests.fake_engine import FakeSession, biased_row
+    from typed_gguf import cli
 
     plan = type("Plan", (), {"n_ctx": 4096, "to_dict": lambda self: {}})()
     monkeypatch.setattr(cli, "fit_plan_for", lambda *a, **k: plan)
@@ -900,14 +900,14 @@ def _fake_serving_path(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr(cli.session_module, "open_model", fake_open_model)
     monkeypatch.setattr(cli.session_module, "ModelSession", fake_session)
     monkeypatch.setattr(cli.session_module, "runtime_backend", lambda home=None: "cpu")
-    monkeypatch.setenv("GGUFONE_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
 
 
 def test_the_calibrate_command_writes_the_measured_rows_and_refits_them_identically(
         tmp_path, monkeypatch, capsys) -> None:
     """`--out` is the raw artifact: the same rows refit from the file give the same params hash."""
-    from ggufone import cli
-    from ggufone.registry import store
+    from typed_gguf import cli
+    from typed_gguf.registry import store
     _fake_serving_path(monkeypatch, tmp_path)
     rows_out = tmp_path / "rows.json"
     model = _model_file(tmp_path)
@@ -931,7 +931,7 @@ def test_the_calibrate_command_writes_the_measured_rows_and_refits_them_identica
 def test_the_calibrate_command_measures_the_committed_dev_set_without_a_report(
         tmp_path, monkeypatch, capsys) -> None:
     """Without `--from-report` the dev set is re-measured through the serving path."""
-    from ggufone import cli
+    from typed_gguf import cli
     _fake_serving_path(monkeypatch, tmp_path)
     code = cli.main(["calibrate", "--model", str(_model_file(tmp_path)), "--items", "18",
                      "--dry-run", "--json"])
@@ -939,12 +939,12 @@ def test_the_calibrate_command_measures_the_committed_dev_set_without_a_report(
     payload = json.loads(capsys.readouterr().out)
     assert payload["devset"]["items"] == 18
     assert payload["model"].endswith("tiny.gguf:36")
-    assert payload["schema"] == "ggufone.calibration/v1"
+    assert payload["schema"] == "typed_gguf.calibration/v1"
 
 
 # ------------------------------------------------- the readout hook (A-E2p5-1)
 def _choice_request(options: dict | None = None):
-    from ggufone import schema
+    from typed_gguf import schema
     payload = {"state": "The checkout page returns HTTP 500 for every customer.",
                "questions": {"area": {"type": "choice",
                                       "criteria": {"billing": None, "api": None, "sales": None}}}}
@@ -970,7 +970,7 @@ def _table_for_fake_model(temperature: float = 2.0):
 
 
 def test_a_calibrated_table_scales_the_readout_and_marks_the_response() -> None:
-    from ggufone.engine import decide
+    from typed_gguf.engine import decide
     table = _table_for_fake_model()
     baseline = decide.DecisionEngine(_biased_session()).decide(_choice_request())
     engine = decide.DecisionEngine(_biased_session(), calibration=table)
@@ -993,7 +993,7 @@ def test_a_calibrated_table_scales_the_readout_and_marks_the_response() -> None:
 
 
 def test_the_engine_ignores_a_table_that_was_never_accepted() -> None:
-    from ggufone.engine import decide
+    from typed_gguf.engine import decide
     table = calibrate.fit_table(_flat_rows(per_type=18), model_key="file:tiny.gguf:36")
     payload = decide.DecisionEngine(_biased_session(), calibration=table).decide(
         _choice_request()).payload()
@@ -1004,7 +1004,7 @@ def test_the_engine_ignores_a_table_that_was_never_accepted() -> None:
 
 
 def _score_request(confidence_mode: str | None = None):
-    from ggufone import schema
+    from typed_gguf import schema
     payload = {"state": "The checkout page returns HTTP 500 for every customer.",
                "questions": {"sev": {"type": "score",
                                      "criteria": ["cosmetic", "degraded", "blocking"]}}}
@@ -1016,7 +1016,7 @@ def _score_request(confidence_mode: str | None = None):
 def test_a_promoted_mode_is_the_reported_statistic_unless_the_request_names_one() -> None:
     """A-E2p5-3 with the live table: `score` was accepted under `entropy`, so that is its
     confidence — and an explicit `confidence_mode` in the request still wins."""
-    from ggufone.engine import decide
+    from typed_gguf.engine import decide
     table = calibrate.fit_table(calibrate.load_rows(EVIDENCE_ROWS), model_key=QWEN_KEY)
     assert table.mode_for("score") == "entropy"
     payload = decide.DecisionEngine(_biased_session(("0", "1", "2")),
