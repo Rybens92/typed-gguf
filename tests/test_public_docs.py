@@ -123,8 +123,12 @@ def test_the_root_help_marks_the_serving_surface_the_way_the_readme_does(
              if line.startswith("  ") and line.strip()}
     for command in ("serve", "mcp"):
         line = lines[command]
-        assert "specified in SPEC §2.9" in line, line
-        assert "not implemented in v0.1.0" in line, line
+        assert line.endswith(
+            "(specified in SPEC §2.9, not implemented in v0.1.0; exits 3)"), line
+    # …and a shipped command keeps its own milestone: the note is built from MILESTONES, so losing
+    # that lookup prints "(None)"/"XX…XX" here. (Mutation sweep, card t_a25bd190: these exact tails
+    # are what kills the padding mutants on the two branches this pass rewrote.)
+    assert lines["run"].endswith("(implemented in E1b)"), lines["run"]
     # …and the claim is the commands' own behaviour, not a wish: both stubs exit 3
     assert cli.main(["serve"]) == 3 and cli.main(["mcp"]) == 3
 
