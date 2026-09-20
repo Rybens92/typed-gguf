@@ -1,0 +1,276 @@
+warning: Ignoring existing virtual environment linked to non-existent Python interpreter: .venv/bin/python3 -> python
+Using CPython 3.13.15
+Removed virtual environment at: .venv
+Creating virtual environment at: .venv
+Installed 1 package in 5ms
+load_backend: loaded RPC backend from /home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+[dlssnr-layer] === VK_LAYER_NV_dlssnr loaded (VKLayer_DLSS5=(unset)) ===
+[dlssnr-layer] [layer] vkCreateInstance -> 0x27832b10
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = NVIDIA GeForce RTX 3060 Ti (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0 | warp size: 32 | shared memory: 49152 | int dot: 1 | matrix cores: NV_coopmat2
+load_backend: loaded Vulkan backend from /home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-vulkan.so
+load_backend: loaded CPU backend from /home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
+[dlssnr-layer] [layer] vkCreateDevice -> 0x2a37e960 on NVIDIA GeForce RTX 3060 Ti (inert=1 enabled=0)
+~llama_context:    Vulkan0 compute buffer size is 545.3125 MiB, matches expectation of 545.3125 MiB
+~llama_context: Vulkan_Host compute buffer size is  12.5334 MiB, matches expectation of  12.5334 MiB
+~llama_context:    Vulkan0 compute buffer size is 545.3125 MiB, matches expectation of 545.3125 MiB
+~llama_context: Vulkan_Host compute buffer size is  12.5334 MiB, matches expectation of  12.5334 MiB
+~llama_context:    Vulkan0 compute buffer size is 545.3125 MiB, matches expectation of 545.3125 MiB
+~llama_context: Vulkan_Host compute buffer size is  12.5334 MiB, matches expectation of  12.5334 MiB
+~llama_context:    Vulkan0 compute buffer size is 545.3125 MiB, matches expectation of 545.3125 MiB
+~llama_context: Vulkan_Host compute buffer size is  12.5334 MiB, matches expectation of  12.5334 MiB
+~llama_context:    Vulkan0 compute buffer size is 545.3125 MiB, matches expectation of 545.3125 MiB
+~llama_context: Vulkan_Host compute buffer size is  12.5334 MiB, matches expectation of  12.5334 MiB
+~llama_context:    Vulkan0 compute buffer size is 617.9297 MiB, matches expectation of 617.9297 MiB
+~llama_context: Vulkan_Host compute buffer size is  17.5779 MiB, matches expectation of  17.5779 MiB
+~llama_context:    Vulkan0 compute buffer size is 617.9297 MiB, matches expectation of 617.9297 MiB
+~llama_context: Vulkan_Host compute buffer size is  17.5779 MiB, matches expectation of  17.5779 MiB
+~llama_context:    Vulkan0 compute buffer size is 617.9297 MiB, matches expectation of 617.9297 MiB
+~llama_context: Vulkan_Host compute buffer size is  17.5779 MiB, matches expectation of  17.5779 MiB
+~llama_context:    Vulkan0 compute buffer size is 617.9297 MiB, matches expectation of 617.9297 MiB
+~llama_context: Vulkan_Host compute buffer size is  17.5779 MiB, matches expectation of  17.5779 MiB
+~llama_context:    Vulkan0 compute buffer size is 617.9297 MiB, matches expectation of 617.9297 MiB
+~llama_context: Vulkan_Host compute buffer size is  17.5779 MiB, matches expectation of  17.5779 MiB
+~llama_context:    Vulkan0 compute buffer size is 617.9297 MiB, matches expectation of 617.9297 MiB
+~llama_context: Vulkan_Host compute buffer size is  17.5779 MiB, matches expectation of  17.5779 MiB
+~llama_context:    Vulkan0 compute buffer size is 163.1250 MiB, matches expectation of 163.1250 MiB
+~llama_context: Vulkan_Host compute buffer size is   6.9103 MiB, matches expectation of   6.9103 MiB
+~llama_context:    Vulkan0 compute buffer size is 163.1250 MiB, matches expectation of 163.1250 MiB
+~llama_context: Vulkan_Host compute buffer size is   6.9103 MiB, matches expectation of   6.9103 MiB
+~llama_context:    Vulkan0 compute buffer size is 163.1250 MiB, matches expectation of 163.1250 MiB
+~llama_context: Vulkan_Host compute buffer size is   6.9103 MiB, matches expectation of   6.9103 MiB
+~llama_context:    Vulkan0 compute buffer size is 163.1250 MiB, matches expectation of 163.1250 MiB
+~llama_context: Vulkan_Host compute buffer size is   6.9103 MiB, matches expectation of   6.9103 MiB
+~llama_context:    Vulkan0 compute buffer size is 163.1250 MiB, matches expectation of 163.1250 MiB
+~llama_context: Vulkan_Host compute buffer size is   6.9103 MiB, matches expectation of   6.9103 MiB
+~llama_context:    Vulkan0 compute buffer size is 229.3945 MiB, matches expectation of 229.3945 MiB
+~llama_context: Vulkan_Host compute buffer size is   9.6872 MiB, matches expectation of   9.6872 MiB
+~llama_context:    Vulkan0 compute buffer size is 229.3945 MiB, matches expectation of 229.3945 MiB
+~llama_context: Vulkan_Host compute buffer size is   9.6872 MiB, matches expectation of   9.6872 MiB
+~llama_context:    Vulkan0 compute buffer size is 229.3945 MiB, matches expectation of 229.3945 MiB
+~llama_context: Vulkan_Host compute buffer size is   9.6872 MiB, matches expectation of   9.6872 MiB
+~llama_context:    Vulkan0 compute buffer size is 229.3945 MiB, matches expectation of 229.3945 MiB
+~llama_context: Vulkan_Host compute buffer size is   9.6872 MiB, matches expectation of   9.6872 MiB
+~llama_context:    Vulkan0 compute buffer size is 229.3945 MiB, matches expectation of 229.3945 MiB
+~llama_context: Vulkan_Host compute buffer size is   9.6872 MiB, matches expectation of   9.6872 MiB
+~llama_context:    Vulkan0 compute buffer size is 229.3945 MiB, matches expectation of 229.3945 MiB
+~llama_context: Vulkan_Host compute buffer size is   9.6872 MiB, matches expectation of   9.6872 MiB
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "throughput",
+  "generated_at": "2026-09-18T13:22:59Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.43",
+    "python": "3.13.15",
+    "cpu_count": 24,
+    "machine": "x86_64"
+  },
+  "config": {
+    "suite": "throughput",
+    "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "backend": "all",
+    "runs": 5,
+    "threads": null,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      256,
+      2048,
+      8192
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "name": "Spark-X2.5-4B-Q8_0.gguf",
+    "bytes": 4375021152,
+    "arch": "spark2_5"
+  },
+  "notes": [],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite throughput --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend all --runs 5 --json"
+  },
+  "backends": [
+    {
+      "backend": "cpu",
+      "measured": true,
+      "runtime_dir": "/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+      "placement": "n_gpu_layers=0",
+      "threads": 1,
+      "load_ms": {
+        "n": 5,
+        "min": 487.48179899848765,
+        "p50": 498.24228299985407,
+        "p95": 615.7940593941021,
+        "max": 643.6935139936395,
+        "mean": 524.7103759975289
+      },
+      "placement_used": {
+        "requested": "n_gpu_layers=0",
+        "used": {
+          "note": "CPU only: the fit plan offloads nothing (kv_type=auto)",
+          "n_gpu_layers": 0,
+          "kv_type": "auto",
+          "degraded": false,
+          "attempts": [],
+          "warnings": []
+        }
+      },
+      "prefill": [
+        {
+          "tokens": 256,
+          "ms": {
+            "n": 5,
+            "min": 411.22609000012744,
+            "p50": 435.47561499872245,
+            "p95": 548.9494116001879,
+            "max": 574.619304999942,
+            "mean": 459.5612901990535
+          },
+          "tok_per_s": {
+            "n": 5,
+            "min": 445.51235534981873,
+            "p50": 587.8629966473577,
+            "p95": 617.0329714361784,
+            "max": 622.5285949145898,
+            "mean": 564.9196781867233
+          },
+          "threads": 1,
+          "backend": "cpu"
+        }
+      ],
+      "prefill_tok_per_s": {
+        "n": 5,
+        "min": 445.51235534981873,
+        "p50": 587.8629966473577,
+        "p95": 617.0329714361784,
+        "max": 622.5285949145898,
+        "mean": 564.9196781867233
+      },
+      "decision_ms": {
+        "n": 5,
+        "min": 1104.288741997152,
+        "p50": 1116.1384670049301,
+        "p95": 1191.9154405972222,
+        "max": 1194.7264499976882,
+        "mean": 1140.69989540003
+      },
+      "decision_tok_per_s": {
+        "n": 5,
+        "min": 6.696093486517755,
+        "p50": 7.167569469644184,
+        "p95": 7.240053439263381,
+        "max": 7.244482077696153,
+        "mean": 7.02125792011023
+      }
+    },
+    {
+      "backend": "vulkan",
+      "measured": true,
+      "runtime_dir": "/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+      "placement": "n_gpu_layers=-1",
+      "threads": 1,
+      "load_ms": {
+        "n": 5,
+        "min": 1107.7682160030236,
+        "p50": 1125.7563799954369,
+        "p95": 1142.9728371993406,
+        "max": 1144.290579999506,
+        "mean": 1125.3399521985557
+      },
+      "placement_used": {
+        "requested": "n_gpu_layers=-1",
+        "used": {
+          "note": "all layers requested: n_gpu_layers=-1 (kv_type=auto)",
+          "n_gpu_layers": -1,
+          "kv_type": "auto",
+          "degraded": false,
+          "attempts": [],
+          "warnings": []
+        }
+      },
+      "prefill": [
+        {
+          "tokens": 256,
+          "ms": {
+            "n": 5,
+            "min": 110.31124999863096,
+            "p50": 111.78108400054043,
+            "p95": 189.92165279923938,
+            "max": 208.40662199771032,
+            "mean": 131.48960179969436
+          },
+          "tok_per_s": {
+            "n": 5,
+            "min": 1228.3678778825588,
+            "p50": 2290.190708821202,
+            "p95": 2317.9622289616227,
+            "max": 2320.7061836682765,
+            "mean": 2070.698899533117
+          },
+          "threads": 1,
+          "backend": "vulkan"
+        }
+      ],
+      "prefill_tok_per_s": {
+        "n": 5,
+        "min": 1228.3678778825588,
+        "p50": 2290.190708821202,
+        "p95": 2317.9622289616227,
+        "max": 2320.7061836682765,
+        "mean": 2070.698899533117
+      },
+      "decision_ms": {
+        "n": 5,
+        "min": 115.87274399789749,
+        "p50": 124.76108000555541,
+        "p95": 168.26059000159148,
+        "max": 176.9236460022512,
+        "mean": 134.58518540137447
+      },
+      "decision_tok_per_s": {
+        "n": 5,
+        "min": 45.21724586151818,
+        "p50": 64.12256129590872,
+        "p95": 68.37360095326483,
+        "max": 69.04125788326166,
+        "mean": 60.792105668785396
+      }
+    },
+    {
+      "backend": "cuda",
+      "measured": false,
+      "reason": "no local llama.cpp bundle carries libggml-cuda.so (benchmarks never download one: run `ggufone init --backend cuda` or point GGUFONE_BENCH_RUNTIME_DIR at extracted bundles)"
+    }
+  ],
+  "ok": true
+}
+NVVM compilation failed: 3

@@ -1,0 +1,9 @@
+
+=== the six-item freeze probe: .e3e/probe_default.json vs .e3d/bench_templated_shipped.json (6 shared items)
+  counts: {'got': 0, 'reliability': 0, 'prefix_tokens': 0, 'refused': 0, 'cue.token': 0, 'coverage>tol': 2}
+
+=== the 60-item placement probe: .e3e/bench_shipped_answer_sheet.json vs .e3d/bench_templated_shipped.json (60 shared items)
+  n16: refused False != True (token 198/1, mass 0.453601/0.447562, closer None/'<｜end▁of▁sentence｜>')
+      probe: got='no' rel='low_mass' cov=4.819261e-02 cue={'closer': None, 'mass': 0.4536014739002273, 'refused': False, 'token': 198}
+      base : got='no' rel='low_mass' cov=4.618079e-02 cue={'closer': '<｜end▁of▁sentence｜>', 'hint': 'docs/TEMPLATES.md §4 (the label policy, measured) and §5 (the cue shapes) — the cue decides where the readout sits; this prompt shape ends at the start of the assistant turn, so the model can close it (or emit another turn-shaping special token) instead of answering. `--cue two_step` moves the readout one token in without changing these bytes', 'mass': 0.44756176898493427, 'refused': True, 'token': 1}
+  counts: {'got': 0, 'reliability': 0, 'prefix_tokens': 0, 'refused': 1, 'cue.token': 1, 'coverage>tol': 1}

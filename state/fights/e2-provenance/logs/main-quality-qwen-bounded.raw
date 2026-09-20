@@ -1,0 +1,223 @@
+load_backend: loaded RPC backend from /tmp/e2-audit/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /tmp/e2-audit/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 187.1047 MiB, matches expectation of 187.1047 MiB
+~llama_context:        CPU compute buffer size is 176.5584 MiB, matches expectation of 176.5584 MiB
+~llama_context:        CPU compute buffer size is 173.7049 MiB, matches expectation of 173.7049 MiB
+~llama_context:        CPU compute buffer size is 176.5584 MiB, matches expectation of 176.5584 MiB
+~llama_context:        CPU compute buffer size is 163.1169 MiB, matches expectation of 163.1169 MiB
+~llama_context:        CPU compute buffer size is 161.2146 MiB, matches expectation of 161.2146 MiB
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "quality",
+  "generated_at": "2026-09-18T13:27:50Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.43",
+    "python": "3.13.15",
+    "cpu_count": 24,
+    "machine": "x86_64"
+  },
+  "config": {
+    "suite": "quality",
+    "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "backend": "auto",
+    "runs": 1,
+    "threads": 2,
+    "devset": null,
+    "items": 6,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      256,
+      2048,
+      8192
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "name": "Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "bytes": 558772480,
+    "arch": "qwen35"
+  },
+  "notes": [
+    "one suite run measures one backend: with `--backend auto` the local bundles are cpu, vulkan and cpu was selected; pass `--backend vulkan` to measure that one instead, or run `--suite throughput`, which measures every local backend in one report.",
+    "agreement = the highest-probability candidate equals the gold candidate (the discrete decision), measured per question type and overall with 95% Wilson intervals; report-only in v1 (SPEC S-11)."
+  ],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf --backend auto --runs 1 --threads 2 --items 6 --json"
+  },
+  "backend_selection": {
+    "requested": "auto",
+    "selected": "cpu",
+    "available": [
+      "cpu",
+      "vulkan"
+    ],
+    "missing": {}
+  },
+  "devset": {
+    "path": "/var/home/rybens/workspace/ggufone/src/ggufone/bench/devset.jsonl",
+    "items": 6,
+    "counts": {
+      "choice": 6
+    },
+    "provenance": "authored for ggufone E2 (2026-09-18); no vendor evaluation set is reused"
+  },
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "expected": "technical",
+      "got": "billing",
+      "correct": false,
+      "confidence": 0.9025173012155556,
+      "coverage": 0.04435421797096016,
+      "reliability": "low_mass",
+      "probabilities": {
+        "billing": 0.9268879759116667,
+        "technical": 0.0039914521023703,
+        "sales": 0.005843579240574406,
+        "support": 0.06327699274538857
+      },
+      "questions_ms": 664.5099259985727,
+      "wall_ms": 1936.0007869981928
+    },
+    {
+      "id": "c02",
+      "type": "choice",
+      "expected": "billing",
+      "got": "billing",
+      "correct": true,
+      "confidence": 0.8151270561552763,
+      "coverage": 0.06071464284642819,
+      "reliability": "low_mass",
+      "probabilities": {
+        "billing": 0.8613452921164572,
+        "technical": 3.3692921291859935e-05,
+        "account": 0.09330018064606198,
+        "escalation": 0.04532083431618896
+      },
+      "questions_ms": 654.5952999949805,
+      "wall_ms": 1733.9589800030808
+    },
+    {
+      "id": "c03",
+      "type": "choice",
+      "expected": "mobile",
+      "got": "mobile",
+      "correct": true,
+      "confidence": 0.9952007957869958,
+      "coverage": 0.04480108813227045,
+      "reliability": "low_mass",
+      "probabilities": {
+        "mobile": 0.9964005968402468,
+        "backend": 0.0007296773746638882,
+        "design": 0.001924329474552122,
+        "marketing": 0.0009453963105372243
+      },
+      "questions_ms": 673.5740750009427,
+      "wall_ms": 1774.9975089973304
+    },
+    {
+      "id": "c04",
+      "type": "choice",
+      "expected": "restricted",
+      "got": "public",
+      "correct": false,
+      "confidence": 0.20128099726889329,
+      "coverage": 0.042768843936642875,
+      "reliability": "low_mass",
+      "probabilities": {
+        "public": 0.40096074795166997,
+        "internal": 0.31206223554152174,
+        "confidential": 0.283568172782049,
+        "restricted": 0.003408843724759353
+      },
+      "questions_ms": 721.2852770026075,
+      "wall_ms": 1772.6342249952722
+    },
+    {
+      "id": "c05",
+      "type": "choice",
+      "expected": "security",
+      "got": "security",
+      "correct": true,
+      "confidence": 0.9774349358139364,
+      "coverage": 0.07291044752915543,
+      "reliability": "low_mass",
+      "probabilities": {
+        "security": 0.9830762018604523,
+        "support": 0.00988114189239705,
+        "docs": 0.0018470889686303333,
+        "finance": 0.005195567278520379
+      },
+      "questions_ms": 645.4312010027934,
+      "wall_ms": 1631.0635219997494
+    },
+    {
+      "id": "c06",
+      "type": "choice",
+      "expected": "fixed",
+      "got": "added",
+      "correct": false,
+      "confidence": 0.8093475878143827,
+      "coverage": 0.06220827756680224,
+      "reliability": "low_mass",
+      "probabilities": {
+        "added": 0.857010690860787,
+        "changed": 0.0326114355053892,
+        "fixed": 0.1018186958941049,
+        "removed": 0.008559177739718971
+      },
+      "questions_ms": 672.6533350010868,
+      "wall_ms": 1589.4198479945771
+    }
+  ],
+  "per_type": {
+    "choice": {
+      "n": 6,
+      "correct": 3,
+      "agreement": 0.5,
+      "ci": [
+        0.18761280689940868,
+        0.8123871931005913
+      ]
+    }
+  },
+  "overall": {
+    "n": 6,
+    "correct": 3,
+    "agreement": 0.5,
+    "ci": [
+      0.18761280689940868,
+      0.8123871931005913
+    ]
+  },
+  "ok": true
+}

@@ -1,0 +1,5 @@
+E3d json_field (12 vs 3)                      p = 0.035156
+E3e winner (13 vs 4)                          p = 0.049042
+E3e winner, one item moved (12 vs 5)          p = 0.143463
+E3e instructed/role_split (11 vs 3)           p = 0.057373
+E3e shipped/role_split (12 vs 4)              p = 0.076813

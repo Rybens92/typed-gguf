@@ -1,0 +1,11 @@
+cell                                      k/n   arm file ci[0]           z=1.96    z=1.9599639..     record ci[0]
+shipped/answer_sheet                    42/60    0.574910530336   0.574910530336   0.574912920531   0.574912920531
+shipped/role_split                      50/60    0.719681485028   0.719681485028   0.719683868364   0.719683868364
+two_step/answer_sheet                   46/60    0.645634886596   0.645634886596   0.645637296224   0.645637296224
+two_step/role_split                     28/60    0.346277015410   0.346277015410   0.346279060414   0.346279060414
+json_instructed/answer_sheet            51/60    0.738851741088   0.738851741088   0.738854109302   0.738854109302
+json_instructed/role_split              50/60    0.719681485028   0.719681485028   0.719683868364   0.719683868364
+json_instructed/answer_sheet/system     48/60    0.682179539082   0.682179539082   0.682181941944   0.682181941944
+json_instructed/role_split/system       50/60    0.719681485028   0.719681485028   0.719683868364   0.719683868364
+
+arm files: z=1.96 exactly (harness.wilson_interval default); record cells: z=1.959963984540054 (tool Z) — both confirmed on all 8 cells.

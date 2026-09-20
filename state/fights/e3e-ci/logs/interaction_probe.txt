@@ -1,0 +1,67 @@
+=== c01 across the four arms ===
+
+-- shipped/answer_sheet
+   correct=False got='billing' expected='technical' reliability='low_mass' coverage=1.066e-02 prefix_tokens=119
+   cue: token=198 mass=0.961105 refused=False closer=None verdict=None
+   probabilities={'billing': 0.421782, 'sales': 0.280405, 'support': 0.000505, 'technical': 0.297307}
+   arm coverage p50 = 3.882e-02
+
+-- shipped/role_split
+   correct=True got='technical' expected='technical' reliability='ok' coverage=9.994e-01 prefix_tokens=115
+   cue: token=97 mass=0.901356 refused=False closer=None verdict=None
+   probabilities={'billing': 0.238508, 'sales': 0.02715, 'support': 0.00108, 'technical': 0.733262}
+   arm coverage p50 = 9.988e-01
+
+-- two_step/answer_sheet
+   correct=True got='technical' expected='technical' reliability='ok' coverage=9.484e-01 prefix_tokens=119
+   cue: token=97 mass=0.862210 refused=False closer=None verdict=None
+   probabilities={'billing': 0.19665, 'sales': 0.10075, 'support': 0.000579, 'technical': 0.70202}
+   arm coverage p50 = 9.728e-01
+
+-- two_step/role_split
+   correct=False got='billing' expected='technical' reliability='low_mass' coverage=7.600e-13 prefix_tokens=115
+   cue: token=79152 mass=0.999994 refused=False closer=None verdict=None
+   probabilities={'billing': 0.847688, 'sales': 0.004525, 'support': 0.0, 'technical': 0.147787}
+   arm coverage p50 = 1.434e-09
+
+=== aggregate, per arm ===
+arm                      correct low_mass refused cue.mass<0.1    cov p50 cov==0 cnt
+shipped/answer_sheet          42       45       0            0  3.882e-02          1
+shipped/role_split            50        0       0            0  9.988e-01          0
+two_step/answer_sheet         46        2       2            0  9.728e-01          2
+two_step/role_split           28       60      40            0  1.434e-09         60
+
+=== two_step/role_split: the 20 items whose cue did NOT close ===
+   c01 type=choice correct=False got='billing'  cue.token=79152   cue.mass=1.0000 coverage=7.600e-13 reliability=low_mass
+   c02 type=choice correct=False got='escalation' cue.token=15493   cue.mass=1.0000 coverage=1.130e-11 reliability=low_mass
+   c03 type=choice correct=False got='marketing' cue.token=39      cue.mass=0.9998 coverage=9.726e-11 reliability=low_mass
+   c04 type=choice correct=False got='confidential' cue.token=28334   cue.mass=0.9993 coverage=5.014e-07 reliability=low_mass
+   c07 type=choice correct=True  got='termination' cue.token=405     cue.mass=0.9999 coverage=1.124e-08 reliability=low_mass
+   c08 type=choice correct=False got='off_hours' cue.token=7215    cue.mass=1.0000 coverage=1.264e-12 reliability=low_mass
+   c09 type=choice correct=False got='off_topic' cue.token=326     cue.mass=1.0000 coverage=1.634e-11 reliability=low_mass
+   c10 type=choice correct=True  got='compensation' cue.token=47340   cue.mass=1.0000 coverage=7.945e-09 reliability=low_mass
+   c11 type=choice correct=True  got='expedited' cue.token=4332    cue.mass=1.0000 coverage=1.262e-09 reliability=low_mass
+   c12 type=choice correct=True  got='frontend' cue.token=510     cue.mass=1.0000 coverage=3.036e-08 reliability=low_mass
+   c13 type=choice correct=True  got='partnerships' cue.token=19776   cue.mass=0.9980 coverage=5.973e-09 reliability=low_mass
+   c14 type=choice correct=False got='non_deductible' cue.token=2970    cue.mass=1.0000 coverage=7.013e-10 reliability=low_mass
+   c15 type=choice correct=False got='neurology' cue.token=88960   cue.mass=0.9751 coverage=5.003e-11 reliability=low_mass
+   c16 type=choice correct=True  got='travel'   cue.token=5874    cue.mass=1.0000 coverage=6.122e-11 reliability=low_mass
+   c17 type=choice correct=False got='enterprise' cue.token=66898   cue.mass=0.9999 coverage=2.710e-08 reliability=low_mass
+   c18 type=choice correct=False got='retrospective' cue.token=685     cue.mass=1.0000 coverage=1.771e-09 reliability=low_mass
+   c20 type=choice correct=True  got='copyleft' cue.token=4095    cue.mass=0.9999 coverage=3.177e-10 reliability=low_mass
+   c21 type=choice correct=False got='cold'     cue.token=2814    cue.mass=1.0000 coverage=1.944e-11 reliability=low_mass
+   c22 type=choice correct=True  got='sms'      cue.token=1910    cue.mass=1.0000 coverage=6.061e-12 reliability=low_mass
+   c24 type=choice correct=True  got='runbook'  cue.token=6381    cue.mass=1.0000 coverage=1.374e-09 reliability=low_mass
+
+=== the refusals: what token closed the cue (two_step/role_split) ===
+  token=1 closer='<｜end▁of▁sentence｜>'  x40
+
+=== the same tokens in shipped/role_split and shipped/answer_sheet (top cue tokens) ===
+  shipped/answer_sheet: [(198, 58), (60672, 1), (32, 1)]
+  shipped/role_split: [(4244, 12), (32, 6), (1643, 6), (30, 5), (31, 4), (29, 2)]
+
+=== mass-at-cue: distribution comparison (median / max) ===
+  shipped/answer_sheet     min=3.882e-01 p50=0.9189 max=0.9978
+  shipped/role_split       min=3.807e-01 p50=0.9687 max=0.9999
+  two_step/answer_sheet    min=3.077e-01 p50=0.8622 max=0.9998
+  two_step/role_split      min=9.712e-01 p50=1.0000 max=1.0000

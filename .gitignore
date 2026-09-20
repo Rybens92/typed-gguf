@@ -24,3 +24,33 @@ coverage.xml
 # mutation testing workspace (mutmut copies the tree here)
 /mutants/
 .gauntlet/
+# ---------------------------------------------------------------------------
+# dev-run scratch (the E-runs): the `.e2e/`, `.e3*/`, `.t7c9/`, `.t9bcb/` dirs
+# carry the receipts `docs/` cites — those stay committed. Their raw per-run
+# logs, smoke/ad-hoc probe logs and mutmut tree copies are not repo content.
+# Rules only ever affect *new* files: a receipt already tracked stays tracked
+# (the `.e3b/logs` and `.e3c/logs` pins below say which files those are).
+# ---------------------------------------------------------------------------
+# mutmut working copies (the live workspace is `/mutants/` above)
+mutants-*/
+mutants.*/
+mutants_*/
+.mutmut-cache*
+# raw run logs
+.e3b/logs/*
+!.e3b/logs/full_suite_final.txt
+!.e3b/logs/mutmut_final.out
+!.e3b/logs/mutmut_sweep.out
+.e3b/merge_smoke.json
+.e3c/logs/*
+!.e3c/logs/mutmut_cue.out
+!.e3c/logs/occamy_a.log
+!.e3c/logs/occamy_c01_vulkan.log
+!.e3c/logs/occamy_s01.log
+.e3c/smoke*.log
+.e3c_tiel/*.log
+.e3c_tiel/extras_logs/run_*.log
+.t7c9/*.log
+.t9bcb/logs/occ_*_run_*.log
+# the E1 coordination thread is dev chatter, not product (file stays on disk)
+state/groupchat/

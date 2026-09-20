@@ -1,0 +1,16 @@
+=== regeneration receipts (auditor t_57bd3db2) ===
+scratch copy: /var/home/rybens/.hermes/profiles/auditor/cache/scratch/e3e-reg1 (fresh git archive of HEAD 4ef74f6, CPython 3.13.15)
+
+--- report.sh ---
+report.sh exit=0
+
+--- diffs against the committed docs ---
+byte-identical: docs/evidence/e3e_roles_decision.json
+byte-identical: docs/evidence/e3e_roles_decision.md
+
+--- splice_docs.py ---
+/var/home/rybens/.hermes/profiles/auditor/cache/scratch/e3e-reg1/docs/BENCHMARKS.md: spliced 62 lines between the markers
+/var/home/rybens/.hermes/profiles/auditor/cache/scratch/e3e-reg1/docs/evidence/e3e_role_split_t_4c48f40a.md: spliced 87 lines between the markers
+splice exit=0
+byte-identical: docs/BENCHMARKS.md
+byte-identical: docs/evidence/e3e_role_split_t_4c48f40a.md

@@ -1,0 +1,4 @@
+load_backend: loaded RPC backend from /tmp/e2-audit/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /tmp/e2-audit/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+error: E_INTERNAL: AttributeError: 'Placement' object has no attribute 'kv_type'
+EXIT=4

@@ -1,0 +1,63 @@
+records: json_instructed (cue=json_instructed), shipped (cue=shipped), two_step (cue=two_step)
+
+=== shipped vs json_instructed ===
+  Accio-Lab_occamy-1.0-Q4_K_L.gguf                 status rendered status=same opener=DIFFERENT tail_chars=DIFFERENT distinct_tails=same prompt_chars=DIFFERENT prefix_chars=DIFFERENT full_render_chars=DIFFERENT tail_head_excerpt=same tail_tail_excerpt=DIFFERENT prefix_excerpt=same
+      opener: shipped=''
+      opener: json_instructed='{"choice": "'
+      tail_chars: shipped=[294, 290]
+      tail_chars: json_instructed=[327, 323]
+      prompt_chars: shipped=755
+      prompt_chars: json_instructed=808
+      prefix_chars: shipped=461
+      prefix_chars: json_instructed=481
+      full_render_chars: shipped=755
+      full_render_chars: json_instructed=796
+      tail_tail_excerpt: shipped='sations\nAnswer with exactly one candidate name:<|im_end|>\n<|im_start|>assistant\n'
+      tail_tail_excerpt: json_instructed='e": "<exactly one candidate name>"}<|im_end|>\n<|im_start|>assistant\n{"choice": "'
+  Ling-3.0-tiny-Q5_K_M.gguf                        status rendered status=same opener=DIFFERENT tail_chars=DIFFERENT distinct_tails=same prompt_chars=DIFFERENT prefix_chars=DIFFERENT full_render_chars=DIFFERENT tail_head_excerpt=same tail_tail_excerpt=DIFFERENT prefix_excerpt=same
+      opener: shipped=''
+      opener: json_instructed='{"choice": "'
+      tail_chars: shipped=[313, 309]
+      tail_chars: json_instructed=[346, 342]
+      prompt_chars: shipped=804
+      prompt_chars: json_instructed=857
+      prefix_chars: shipped=491
+      prefix_chars: json_instructed=511
+      full_render_chars: shipped=804
+      full_render_chars: json_instructed=845
+      tail_tail_excerpt: shipped='h exactly one candidate name:\n<|role_end|><role>ASSISTANT</role>\n<think></think>'
+      tail_tail_excerpt: json_instructed='candidate name>"}\n<|role_end|><role>ASSISTANT</role>\n<think></think>{"choice": "'
+  Spark-X2.5-4B-Q8_0.gguf                          status rendered status=same opener=DIFFERENT tail_chars=DIFFERENT distinct_tails=same prompt_chars=DIFFERENT prefix_chars=DIFFERENT full_render_chars=DIFFERENT tail_head_excerpt=same tail_tail_excerpt=DIFFERENT prefix_excerpt=same
+      opener: shipped=''
+      opener: json_instructed='{"choice": "'
+      tail_chars: shipped=[330, 326]
+      tail_chars: json_instructed=[363, 359]
+      prompt_chars: shipped=862
+      prompt_chars: json_instructed=915
+      prefix_chars: shipped=532
+      prefix_chars: json_instructed=552
+      full_render_chars: shipped=862
+      full_render_chars: json_instructed=903
+      tail_tail_excerpt: shipped='tly one candidate name:\n<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think>\n'
+      tail_tail_excerpt: json_instructed='ate name>"}\n<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think>\n{"choice": "'
+  Ternary-Bonsai-2-27B-PTQ1_0.gguf                 status rendered status=same opener=DIFFERENT tail_chars=DIFFERENT distinct_tails=same prompt_chars=DIFFERENT prefix_chars=DIFFERENT full_render_chars=DIFFERENT tail_head_excerpt=same tail_tail_excerpt=DIFFERENT prefix_excerpt=same
+      opener: shipped=''
+      opener: json_instructed='{"choice": "'
+      tail_chars: shipped=[294, 290]
+      tail_chars: json_instructed=[327, 323]
+      prompt_chars: shipped=755
+      prompt_chars: json_instructed=808
+      prefix_chars: shipped=461
+      prefix_chars: json_instructed=481
+      full_render_chars: shipped=755
+      full_render_chars: json_instructed=796
+      tail_tail_excerpt: shipped='sations\nAnswer with exactly one candidate name:<|im_end|>\n<|im_start|>assistant\n'
+      tail_tail_excerpt: json_instructed='e": "<exactly one candidate name>"}<|im_end|>\n<|im_start|>assistant\n{"choice": "'
+  Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf               status not-renderable status=same opener=same tail_chars=same distinct_tails=same prompt_chars=same prefix_chars=same full_render_chars=same tail_head_excerpt=same tail_tail_excerpt=same prefix_excerpt=same
+
+=== shipped vs two_step ===
+  Accio-Lab_occamy-1.0-Q4_K_L.gguf                 status rendered status=same opener=same tail_chars=same distinct_tails=same prompt_chars=same prefix_chars=same full_render_chars=same tail_head_excerpt=same tail_tail_excerpt=same prefix_excerpt=same
+  Ling-3.0-tiny-Q5_K_M.gguf                        status rendered status=same opener=same tail_chars=same distinct_tails=same prompt_chars=same prefix_chars=same full_render_chars=same tail_head_excerpt=same tail_tail_excerpt=same prefix_excerpt=same
+  Spark-X2.5-4B-Q8_0.gguf                          status rendered status=same opener=same tail_chars=same distinct_tails=same prompt_chars=same prefix_chars=same full_render_chars=same tail_head_excerpt=same tail_tail_excerpt=same prefix_excerpt=same
+  Ternary-Bonsai-2-27B-PTQ1_0.gguf                 status rendered status=same opener=same tail_chars=same distinct_tails=same prompt_chars=same prefix_chars=same full_render_chars=same tail_head_excerpt=same tail_tail_excerpt=same prefix_excerpt=same
+  Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf               status not-renderable status=same opener=same tail_chars=same distinct_tails=same prompt_chars=same prefix_chars=same full_render_chars=same tail_head_excerpt=same tail_tail_excerpt=same prefix_excerpt=same

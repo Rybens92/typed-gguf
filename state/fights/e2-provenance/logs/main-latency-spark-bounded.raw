@@ -1,0 +1,650 @@
+load_backend: loaded RPC backend from /tmp/e2-audit/runtime/b11026-linux-x64-cpu/libggml-rpc.so
+load_backend: loaded CPU backend from /tmp/e2-audit/runtime/b11026-linux-x64-cpu/libggml-cpu-haswell.so
+~llama_context:        CPU compute buffer size is 166.2610 MiB, matches expectation of 166.2610 MiB
+~llama_context:        CPU compute buffer size is 229.6541 MiB, matches expectation of 229.6541 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 229.6541 MiB, matches expectation of 229.6541 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 233.7908 MiB, matches expectation of 233.7908 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 233.7908 MiB, matches expectation of 233.7908 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 246.3573 MiB, matches expectation of 246.3573 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 246.3573 MiB, matches expectation of 246.3573 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.2224 MiB, matches expectation of 231.2224 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 231.7322 MiB, matches expectation of 231.7322 MiB
+~llama_context:        CPU compute buffer size is 233.7908 MiB, matches expectation of 233.7908 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 233.7908 MiB, matches expectation of 233.7908 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 233.7908 MiB, matches expectation of 233.7908 MiB
+state_read_meta: cell_count = 362, dest_seq_id = 0
+state_read_meta: cell_count = 362, dest_seq_id = 0
+~llama_context:        CPU compute buffer size is 233.7908 MiB, matches expectation of 233.7908 MiB
+{
+  "schema": "ggufone.bench/v1",
+  "suite": "latency",
+  "generated_at": "2026-09-18T13:06:08Z",
+  "host": {
+    "platform": "Linux-7.2.4-ogc3.1.fc44.x86_64-x86_64-with-glibc2.43",
+    "python": "3.13.15",
+    "cpu_count": 24,
+    "machine": "x86_64"
+  },
+  "config": {
+    "suite": "latency",
+    "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "backend": "auto",
+    "runs": 1,
+    "threads": 4,
+    "devset": null,
+    "items": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "gpu_layers": null,
+    "n_bins": 10,
+    "prefill_sizes": [
+      256
+    ],
+    "candidate_counts": [
+      2,
+      4,
+      10
+    ],
+    "wave_scaling": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "parts": [],
+    "home": null
+  },
+  "model": {
+    "path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "name": "Spark-X2.5-4B-Q8_0.gguf",
+    "bytes": 4375021152,
+    "arch": "spark2_5"
+  },
+  "notes": [
+    "`waves` counts the decode batches a decision takes after the prefill (here: 1 suffix decode per question group + 1 per extra candidate token); five single-token candidates in one question are 1 wave, not ceil(5 / n_seq_max): {'groups': 1, 'suffix_decodes': 1, 'step_decodes': 1, 'waves': 2}.",
+    "every measured call reports `prefill_reused: true` once the prefix state cache is warm, which is why the decision tables isolate the question phase."
+  ],
+  "commands": {
+    "reproduce": "uv run ggufone bench --suite latency --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend auto --runs 1 --threads 4 --json"
+  },
+  "model_load": {
+    "n": 1,
+    "min": 450.9922600045684,
+    "p50": 450.9922600045684,
+    "p95": 450.9922600045684,
+    "max": 450.9922600045684,
+    "mean": 450.9922600045684
+  },
+  "placement": {
+    "requested": "n_gpu_layers=0",
+    "used": {
+      "note": "CPU only: the fit plan offloads nothing (kv_type=auto)",
+      "n_gpu_layers": 0,
+      "kv_type": "auto",
+      "degraded": false,
+      "attempts": [],
+      "warnings": []
+    }
+  },
+  "prefill": [
+    {
+      "tokens": 256,
+      "ms": {
+        "n": 1,
+        "min": 7596.225284003594,
+        "p50": 7596.225284003594,
+        "p95": 7596.225284003594,
+        "max": 7596.225284003594,
+        "mean": 7596.225284003594
+      },
+      "tok_per_s": {
+        "n": 1,
+        "min": 33.70094888300562,
+        "p50": 33.70094888300562,
+        "p95": 33.70094888300562,
+        "max": 33.70094888300562,
+        "mean": 33.70094888300562
+      },
+      "threads": 4,
+      "backend": "cpu"
+    }
+  ],
+  "per_question": [
+    {
+      "candidates": 2,
+      "ms": {
+        "n": 1,
+        "min": 1211.9907579981373,
+        "p50": 1211.9907579981373,
+        "p95": 1211.9907579981373,
+        "max": 1211.9907579981373,
+        "mean": 1211.9907579981373
+      },
+      "total_ms": {
+        "n": 1,
+        "min": 1222.812273997988,
+        "p50": 1222.812273997988,
+        "p95": 1222.812273997988,
+        "max": 1222.812273997988,
+        "mean": 1222.812273997988
+      },
+      "waves": 2,
+      "forks": 2,
+      "decode_steps": 4,
+      "prefix_tokens": null,
+      "n_seq_max": 3,
+      "threads": 4,
+      "backend": "cpu",
+      "prefill_reused": true
+    },
+    {
+      "candidates": 4,
+      "ms": {
+        "n": 1,
+        "min": 1552.0214779971866,
+        "p50": 1552.0214779971866,
+        "p95": 1552.0214779971866,
+        "max": 1552.0214779971866,
+        "mean": 1552.0214779971866
+      },
+      "total_ms": {
+        "n": 1,
+        "min": 1562.792263001029,
+        "p50": 1562.792263001029,
+        "p95": 1562.792263001029,
+        "max": 1562.792263001029,
+        "mean": 1562.792263001029
+      },
+      "waves": 2,
+      "forks": 4,
+      "decode_steps": 8,
+      "prefix_tokens": null,
+      "n_seq_max": 5,
+      "threads": 4,
+      "backend": "cpu",
+      "prefill_reused": true
+    },
+    {
+      "candidates": 10,
+      "ms": {
+        "n": 1,
+        "min": 2715.2143309940584,
+        "p50": 2715.2143309940584,
+        "p95": 2715.2143309940584,
+        "max": 2715.2143309940584,
+        "mean": 2715.2143309940584
+      },
+      "total_ms": {
+        "n": 1,
+        "min": 2727.411009997013,
+        "p50": 2727.411009997013,
+        "p95": 2727.411009997013,
+        "max": 2727.411009997013,
+        "mean": 2727.411009997013
+      },
+      "waves": 2,
+      "forks": 10,
+      "decode_steps": 20,
+      "prefix_tokens": null,
+      "n_seq_max": 11,
+      "threads": 4,
+      "backend": "cpu",
+      "prefill_reused": true
+    }
+  ],
+  "wave_scaling": [
+    {
+      "questions": 1,
+      "ms": {
+        "n": 1,
+        "min": 1186.376798999845,
+        "p50": 1186.376798999845,
+        "p95": 1186.376798999845,
+        "max": 1186.376798999845,
+        "mean": 1186.376798999845
+      },
+      "waves": 1,
+      "forks": 2,
+      "decode_steps": 2,
+      "ms_per_question": 1186.376798999845,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 2,
+      "ms": {
+        "n": 1,
+        "min": 2390.2958469989244,
+        "p50": 2390.2958469989244,
+        "p95": 2390.2958469989244,
+        "max": 2390.2958469989244,
+        "mean": 2390.2958469989244
+      },
+      "waves": 2,
+      "forks": 4,
+      "decode_steps": 4,
+      "ms_per_question": 1195.1479234994622,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 3,
+      "ms": {
+        "n": 1,
+        "min": 3628.5582819982665,
+        "p50": 3628.5582819982665,
+        "p95": 3628.5582819982665,
+        "max": 3628.5582819982665,
+        "mean": 3628.5582819982665
+      },
+      "waves": 3,
+      "forks": 6,
+      "decode_steps": 6,
+      "ms_per_question": 1209.5194273327554,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 4,
+      "ms": {
+        "n": 1,
+        "min": 4839.982615005283,
+        "p50": 4839.982615005283,
+        "p95": 4839.982615005283,
+        "max": 4839.982615005283,
+        "mean": 4839.982615005283
+      },
+      "waves": 4,
+      "forks": 8,
+      "decode_steps": 8,
+      "ms_per_question": 1209.9956537513208,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 5,
+      "ms": {
+        "n": 1,
+        "min": 6061.262033996172,
+        "p50": 6061.262033996172,
+        "p95": 6061.262033996172,
+        "max": 6061.262033996172,
+        "mean": 6061.262033996172
+      },
+      "waves": 5,
+      "forks": 10,
+      "decode_steps": 10,
+      "ms_per_question": 1212.2524067992344,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 6,
+      "ms": {
+        "n": 1,
+        "min": 7192.05633099773,
+        "p50": 7192.05633099773,
+        "p95": 7192.05633099773,
+        "max": 7192.05633099773,
+        "mean": 7192.05633099773
+      },
+      "waves": 6,
+      "forks": 12,
+      "decode_steps": 12,
+      "ms_per_question": 1198.6760551662883,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 7,
+      "ms": {
+        "n": 1,
+        "min": 8645.755031997396,
+        "p50": 8645.755031997396,
+        "p95": 8645.755031997396,
+        "max": 8645.755031997396,
+        "mean": 8645.755031997396
+      },
+      "waves": 7,
+      "forks": 14,
+      "decode_steps": 14,
+      "ms_per_question": 1235.1078617139137,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 8,
+      "ms": {
+        "n": 1,
+        "min": 9607.667985001171,
+        "p50": 9607.667985001171,
+        "p95": 9607.667985001171,
+        "max": 9607.667985001171,
+        "mean": 9607.667985001171
+      },
+      "waves": 8,
+      "forks": 16,
+      "decode_steps": 16,
+      "ms_per_question": 1200.9584981251464,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 9,
+      "ms": {
+        "n": 1,
+        "min": 10874.678639003832,
+        "p50": 10874.678639003832,
+        "p95": 10874.678639003832,
+        "max": 10874.678639003832,
+        "mean": 10874.678639003832
+      },
+      "waves": 9,
+      "forks": 18,
+      "decode_steps": 18,
+      "ms_per_question": 1208.2976265559814,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 10,
+      "ms": {
+        "n": 1,
+        "min": 12910.55131599569,
+        "p50": 12910.55131599569,
+        "p95": 12910.55131599569,
+        "max": 12910.55131599569,
+        "mean": 12910.55131599569
+      },
+      "waves": 10,
+      "forks": 20,
+      "decode_steps": 20,
+      "ms_per_question": 1291.055131599569,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 11,
+      "ms": {
+        "n": 1,
+        "min": 13888.951711000118,
+        "p50": 13888.951711000118,
+        "p95": 13888.951711000118,
+        "max": 13888.951711000118,
+        "mean": 13888.951711000118
+      },
+      "waves": 11,
+      "forks": 22,
+      "decode_steps": 22,
+      "ms_per_question": 1262.6319737272834,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 12,
+      "ms": {
+        "n": 1,
+        "min": 14973.175384999195,
+        "p50": 14973.175384999195,
+        "p95": 14973.175384999195,
+        "max": 14973.175384999195,
+        "mean": 14973.175384999195
+      },
+      "waves": 12,
+      "forks": 24,
+      "decode_steps": 24,
+      "ms_per_question": 1247.7646154165996,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 13,
+      "ms": {
+        "n": 1,
+        "min": 16319.285938996472,
+        "p50": 16319.285938996472,
+        "p95": 16319.285938996472,
+        "max": 16319.285938996472,
+        "mean": 16319.285938996472
+      },
+      "waves": 13,
+      "forks": 26,
+      "decode_steps": 26,
+      "ms_per_question": 1255.3296876151132,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 14,
+      "ms": {
+        "n": 1,
+        "min": 17311.585458999616,
+        "p50": 17311.585458999616,
+        "p95": 17311.585458999616,
+        "max": 17311.585458999616,
+        "mean": 17311.585458999616
+      },
+      "waves": 14,
+      "forks": 28,
+      "decode_steps": 28,
+      "ms_per_question": 1236.5418184999726,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 15,
+      "ms": {
+        "n": 1,
+        "min": 18649.8275749982,
+        "p50": 18649.8275749982,
+        "p95": 18649.8275749982,
+        "max": 18649.8275749982,
+        "mean": 18649.8275749982
+      },
+      "waves": 15,
+      "forks": 30,
+      "decode_steps": 30,
+      "ms_per_question": 1243.3218383332132,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    },
+    {
+      "questions": 16,
+      "ms": {
+        "n": 1,
+        "min": 20370.77040800068,
+        "p50": 20370.77040800068,
+        "p95": 20370.77040800068,
+        "max": 20370.77040800068,
+        "mean": 20370.77040800068
+      },
+      "waves": 16,
+      "forks": 32,
+      "decode_steps": 32,
+      "ms_per_question": 1273.1731505000425,
+      "n_seq_max": 4,
+      "threads": 4,
+      "backend": "cpu"
+    }
+  ],
+  "warm_cache": {
+    "state_id": "bench-warm-prefix",
+    "prefill_reused": true,
+    "prefill_ms": {
+      "n": 1,
+      "min": 0.0,
+      "p50": 0.0,
+      "p95": 0.0,
+      "max": 0.0,
+      "mean": 0.0
+    },
+    "questions_ms": {
+      "n": 1,
+      "min": 1717.553049995331,
+      "p50": 1717.553049995331,
+      "p95": 1717.553049995331,
+      "max": 1717.553049995331,
+      "mean": 1717.553049995331
+    },
+    "backend": "cpu",
+    "threads": 4
+  },
+  "load_amortisation": {
+    "calls": 1,
+    "model_load_ms": 450.9922600045684,
+    "steady_ms_per_request": {
+      "n": 1,
+      "min": 1774.5587839963264,
+      "p50": 1774.5587839963264,
+      "p95": 1774.5587839963264,
+      "max": 1774.5587839963264,
+      "mean": 1774.5587839963264
+    },
+    "serve_ms_per_request": 1774.5587839963264,
+    "one_shot_ms_per_request": 2225.5510440008948,
+    "saved_ms_per_request": 450.9922600045684,
+    "backend": "cpu",
+    "threads": 4
+  },
+  "wave_accounting": {
+    "groups": 1,
+    "suffix_decodes": 1,
+    "step_decodes": 1,
+    "waves": 2
+  }
+}

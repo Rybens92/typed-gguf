@@ -1,9 +1,0 @@
-2026-09-19T17:23:51+02:00 vram_used=5216MiB memfree=272464 memavail=3010552 | 17464236:/var/home/rybens/.hermes/runtimes/llamacpp/prism-b10685/vulkan/llama-prism-b10685-7dffb15/llama-server 
-2026-09-19T17:24:11+02:00 vram_used=5299MiB memfree=283508 memavail=2987596 | 17288196:/var/home/rybens/.hermes/runtimes/llamacpp/prism-b10685/vulkan/llama-prism-b10685-7dffb15/llama-server 
-2026-09-19T17:24:31+02:00 vram_used=5290MiB memfree=217660 memavail=2790972 | 16816336:/var/home/rybens/.hermes/runtimes/llamacpp/prism-b10685/vulkan/llama-prism-b10685-7dffb15/llama-server 
-2026-09-19T17:24:51+02:00 vram_used=7371MiB memfree=255852 memavail=1964612 | 12168292:/var/home/rybens/.hermes/runtimes/llamacpp/prism-b10685/vulkan/llama-prism-b10685-7dffb15/llama-server 
-2026-09-19T17:25:11+02:00 vram_used=7249MiB memfree=268316 memavail=1808008 | 10825048:/var/home/rybens/.hermes/runtimes/llamacpp/prism-b10685/vulkan/llama-prism-b10685-7dffb15/llama-server 
-2026-09-19T17:25:31+02:00 vram_used=7235MiB memfree=283396 memavail=1838216 | 10825056:/var/home/rybens/.hermes/runtimes/llamacpp/prism-b10685/vulkan/llama-prism-b10685-7dffb15/llama-server 
-2026-09-19T17:25:51+02:00 vram_used=7235MiB memfree=256588 memavail=1761928 | 10825056:/var/home/rybens/.hermes/runtimes/llamacpp/prism-b10685/vulkan/llama-prism-b10685-7dffb15/llama-server 
-2026-09-19T17:26:12+02:00 vram_used=7250MiB memfree=287480 memavail=1745844 | 10824936:/var/home/rybens/.hermes/runtimes/llamacpp/prism-b10685/vulkan/llama-prism-b10685-7dffb15/llama-server 
-2026-09-19T17:26:32+02:00 vram_used=7316MiB memfree=245352 memavail=1770624 | 6446960:/var/home/rybens/.hermes/runtimes/llamacpp/prism-b10685/vulkan/llama-prism-b10685-7dffb15/llama-server 

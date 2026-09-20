@@ -1,0 +1,12 @@
+record: 8 cells, 28 pairs, generated_at 2026-09-20T10:55:14Z
+  bootstrap  shipped/role_split                     exact-DP CI [+0.017, +0.267] P(diff<=0)=0.0249  wald [+0.007, +0.260]
+  bootstrap  two_step/answer_sheet                  exact-DP CI [-0.033, +0.167] P(diff<=0)=0.1284  wald [-0.035, +0.169]
+  bootstrap  two_step/role_split                    exact-DP CI [-0.383, -0.083] P(diff<=0)=0.9993  wald [-0.382, -0.085]
+  bootstrap  json_instructed/answer_sheet           exact-DP CI [+0.017, +0.283] P(diff<=0)=0.0150  wald [+0.021, +0.279]
+  bootstrap  json_instructed/role_split             exact-DP CI [+0.017, +0.250] P(diff<=0)=0.0168  wald [+0.016, +0.251]
+  bootstrap  json_instructed/answer_sheet/system    exact-DP CI [-0.017, +0.217] P(diff<=0)=0.0646  wald [-0.020, +0.220]
+  bootstrap  json_instructed/role_split/system      exact-DP CI [+0.017, +0.250] P(diff<=0)=0.0168  wald [+0.016, +0.251]
+devset: 60 rows, types {'choice': 24, 'noul': 18, 'score': 18}
+
+checks run: 655
+no disagreement: every checked number matches the record

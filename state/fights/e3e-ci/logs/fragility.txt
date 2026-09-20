@@ -1,0 +1,23 @@
+
+json_instructed/answer_sheet: recorded split 13 vs 4, p=0.0490, ci=+0.021..+0.279, wins=True
+   move 0 item(s) from the challenger to the baseline: 13 vs 4 -> p=0.0490, ci=+0.021..+0.279 [wins]
+   move 1 item(s) from the challenger to the baseline: 12 vs 5 -> p=0.1435, ci=-0.015..+0.248 [not more than the noise]
+   move 2 item(s) from the challenger to the baseline: 11 vs 6 -> p=0.3323, ci=-0.050..+0.216 [not more than the noise]
+   one more item to the challenger (+1): 14 vs 3 -> p=0.0127, ci=+0.057..+0.310
+   one more item to the challenger (+2): 15 vs 2 -> p=0.0023, ci=+0.094..+0.340
+
+json_instructed/role_split: recorded split 11 vs 3, p=0.0574, ci=+0.016..+0.251, wins=False
+   move 0 item(s) from the challenger to the baseline: 11 vs 3 -> p=0.0574, ci=+0.016..+0.251 [not more than the noise]
+   move 1 item(s) from the challenger to the baseline: 10 vs 4 -> p=0.1796, ci=-0.020..+0.220 [not more than the noise]
+   move 2 item(s) from the challenger to the baseline: 9 vs 5 -> p=0.4240, ci=-0.054..+0.188 [not more than the noise]
+   one more item to the challenger (+1): 12 vs 2 -> p=0.0129, ci=+0.052..+0.281
+   one more item to the challenger (+2): 13 vs 1 -> p=0.0018, ci=+0.089..+0.311
+
+shipped/role_split: recorded split 12 vs 4, p=0.0768, ci=+0.007..+0.260, wins=False
+   move 0 item(s) from the challenger to the baseline: 12 vs 4 -> p=0.0768, ci=+0.007..+0.260 [not more than the noise]
+   move 1 item(s) from the challenger to the baseline: 11 vs 5 -> p=0.2101, ci=-0.028..+0.228 [not more than the noise]
+   move 2 item(s) from the challenger to the baseline: 10 vs 6 -> p=0.4545, ci=-0.063..+0.196 [not more than the noise]
+   one more item to the challenger (+1): 13 vs 3 -> p=0.0213, ci=+0.043..+0.290
+   one more item to the challenger (+2): 14 vs 2 -> p=0.0042, ci=+0.080..+0.320
+
+The winner's margin over the 0.05 gate: 0.0010 of p — one item is 0.0944
