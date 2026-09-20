@@ -1,231 +1,219 @@
-# typed-gguf v0.1.0 — release-gate review (card `t_41c4fdda`)
+# typed-gguf v0.1.0 — release gate, re-run at the post-E4 head (card `t_0070415c`)
 
-**Verdict: APPROVE — v0.1.0 is releasable.** Every gate the release names was re-run by execution
-at the reviewed head, the document set says the same thing as the code that ships, and nothing was
-found that must be fixed before the tag. The findings below are 🟡 minor / ⚪ nit; none of them
-changes a shipped behaviour, a published number, or a claim the README makes.
+**Verdict: BLOCKED — v0.1.0 is *not* releasable at `ed48acb`.** The E4 surface itself holds up under
+execution (the warm host, the idle unload, the swap and the fallbacks were all re-derived on this box
+and the documents match the code), but the **repository's own CI gate is red at the head**: the
+offline suite under the flag the committed workflow sets fails 24 tests and errors on 11 more, all of
+them the new `keep` gates. What ships today is a tree whose first push turns the CI red, so the tag
+waits for one change. The details, the exact reproduction, and the rest of the battery are below.
 
-- **Reviewed head: `cb79e92`** (`main`, shared checkout; `cb79e92887415ca868e154315eca7b8291fd6c3f`,
-  2026-09-20 13:40:45 +0000). **The tree moved during this review**: `296c498` — the head the public
-  docs pass published — was the checkout when I started; card `t_2b89cce2` landed `cb79e92` while I
-  was running the first gate battery. `git diff --stat 296c498 cb79e92` is
-  `tests/test_typed_gguf_surface.py | 81 ++++…`, "1 file changed, 66 insertions(+), 15 deletions(-)",
-  and **no `src/` line**: the rename
-  gate's worktree/`TYPED_GGUF_HOME` false-failures, fixed test-side. At `296c498` I measured the
-  suite 1361 passed / 49 skipped, oracle `failures: 0 skips: 0` (live shape), ruff clean; every
-  gate below was then **re-run at `cb79e92`**, and the live-engine evidence carries because the
-  delta touches no engine file.
-- **Deliverable path.** The repo's convention (`git log -- REVIEW.md`) is that each review overwrites
-  `REVIEW.md` and git keeps the predecessors, so this release review is filed there. The review it
-  replaces is the E3 completion review at `d0f4932` (its round 1 at `9ec0c0e`, the E1a review at
-  `05f3ee4`).
-- **Environment.** podman container (1 CPU-second/s, 5 GiB memory cap — the box the receipts
-  describe), scratch env `/tmp/rvgg/venv` built with `uv sync --frozen --extra dev` on CPython 3.11,
-  pytest 9.1.1, ruff 0.16.8. The live half ran against the pinned bundle and the pinned 4B from the
-  docs pass's isolated data home (`.t07b5/home`), with the pinned `Spark-X2.5-4B-Q8_0.gguf`
-  reachable at `~/.hermes/models/` so the oracle's model pins execute. `/dev/dri` is present in
-  this container, but the Vulkan backend reports *no devices* here (the pinned bundle loads and the
-  engine falls back to CPU with `W_BACKEND_MISMATCH`), so live numbers here are CPU-computed — the
-  published Vulkan rows are the operator-host ones, as the tables say.
+This file replaces the `cb79e92` APPROVE (commit `232a11b`) — the repo's convention (`git log --
+REVIEW.md`) is that each review overwrites `REVIEW.md` and git keeps the predecessors.
 
-## The checklist (release gate item 3)
+## Re-gate at `ed48acb` — per-area verdicts
+
+| # | area | verdict | what was executed |
+|---|---|---|---|
+| 1 | **CI-shape offline suite** (the public gate) | 🔴 **RED** | clean clone of `ed48acb`, `TYPED_GGUF_TEST_BLOCK_NET=1 TYPED_GGUF_BENCH_RUNTIME_DIR=<empty stub> pytest -q -rs --timeout=120` → **24 failed, 1466 passed, 56 skipped, 11 errors**; `.github/workflows/ci.yml` fails a step on that log. Same run at `dec1819`: 24 failed / 1461 passed / 11 errors. The 24 failures are *all* the net-block hook (`tests/conftest.py:193`), *all* in `tests/test_keep_host.py` + `tests/test_keep_client.py` — see the blocking issue |
+| 2 | the same suite without the net-block flag (the shape the E4 receipt used) | ✅ | **1489 passed, 1 failed, 56 skipped** — the one failure is `tests/test_bench_prompt_parity.py::test_a_row_records_which_framing_it_measured`, which the CI's empty-file bundle stub exists for (run with `TYPED_GGUF_BENCH_RUNTIME_DIR` → 2 passed) |
+| 3 | **E4 live surface** (the new feature) | ✅ **re-derived by execution** | `VK_DRIVER_FILES=<nvidia icd> TYPED_GGUF_RUNTIME_DIR=<pinned bundle> pytest -q --run-network tests/test_keep_live.py -s` → **7 passed in 410.19 s, exit 0**, on the real 4B + the pinned Vulkan bundle: `A-E4-1 cold 35.30s (load 2654 ms) → warm 3.11s (load 0 ms), pid 17839`; `A-E4-2 idled out 5.2s after the window; device free 6330 → 2255 (loaded) → 6345 MiB (unloaded)`; `A-E4-3 pids: A 19577 → B 20010 → A 22159` |
+| 4 | E4 offline pins | ✅ | `pytest -q tests/test_keep.py tests/test_keep_host.py tests/test_keep_client.py tests/test_keep_cli.py` → **93 passed** (without the net-block flag); with it → 24 failed / 69 passed / 11 errors (area 1) |
+| 5 | oracle, live shape | ✅ | `TYPED_GGUF_RUNTIME_DIR=<bundle> python docs/verify_runtime_contract.py` → `failures: 0  skips: 0` |
+| 6 | oracle, bundle-free shape | ✅ | `failures: 0  skips: 1` (the one skip is `no runtime installed`; the pinned model is visible here) |
+| 7 | ruff | ✅ | `ruff check src tests tools docs .github` → `All checks passed!` |
+| 8 | E3e / policy / parity gates | ✅ | E3e files **76 passed, 3 skipped**; `tests/test_policy_v2.py` **13 passed, 1 skipped**; `tests/test_bench_prompt_parity.py` (with the stub) **2 passed** |
+| 9 | doc gates | ✅ | `pytest -q -k doc` → **96 passed** (91 before the notes catch-up landed); `tests/test_public_docs.py` alone → 17 passed |
+| 10 | red path (no bundle, no model) | ✅ | `pytest -q -m "model or network"` with the runtime vars unset → **55 skipped, 1491 deselected, 0 failed** (49 baseline + the 7 E4 live gates, which skip by name) |
+| 11 | **uvx / out-of-tree install** | ✅ artifact half | `pytest -q tests/test_wheel_install.py` → **8 passed in 3.75 s** (real `uv build --wheel --offline` + `uv tool install` + three CLI runs from a neutral cwd carrying a decoy lock) |
+| 12 | citations ledger | ✅ no new dangling | hygiene checker at `ed48acb`: 1763 tracked files, 262 citations, 245 resolved, **0 cited-but-untracked**, 17 missing (16 pre-existing receipts + `mutants/**/*.py.meta`, a mutation-workbench glob the E4 evidence doc cites) |
+| 13 | `--help` / exit-code surface | ✅ | re-probed every command: root `--help` exit 0 with `serve`/`mcp` reading *“(specified in SPEC §2.9, not implemented in v0.1.0; exits 3)”* (F1 closed), `models <sub> --help` no longer repeats the subcommand (F2 closed), `serve`/`mcp` exit **3** with the milestone pointer, an unknown command exits **2**, `keep` with no subcommand exits 2, `version` and every `--help` exit 0 |
+| 14 | secrets | ✅ | `git grep` for AWS/`ghp_`/`github_pat_`/`hf_`/`sk-`/`xox*`/`AIza`/private-key shapes over the tracked tree → **0 hits**; no `.env`/`.pem`/`.key`/`id_rsa` tracked |
+| 15 | hygiene at the certified sha | ✅ | the clean clone of `ed48acb` is clean; the *shared* checkout is dirty only with the in-flight tests-only card named at the bottom (not part of this certification) |
+
+**Not re-run, and why** (unchanged from the first gate): the operator-host rows (RTX 3060 Ti Vulkan
+tables, the Tiel/Occamy cells) need the operator host — their receipts are the evidence; the 20+ GB
+GGUFs do not fit this container's 5 GiB cgroup; anything that downloads from HuggingFace is outside
+the offline shape this gate runs in.
+
+## E4-specific checks (card item 2)
+
+**(a) The README/release-notes claims against the E4 receipt** — claim by claim, receipt → document:
+
+| claim as published (README *Warm host* / release notes) | receipt | re-checked here |
+|---|---|---|
+| cold **17.50 s** (load 2280 ms) → warm **2.58 s** (load 0 ms), same host pid | `docs/evidence/v0_1_0_t_7e24cea4_warm_host.md` §1 A-E4-1 | ✅ mechanism re-derived live (35.30 s / 2654 ms → 3.11 s / **0 ms**, same pid). The *numbers* are the operator box's and this box is slower under co-tenant load — the receipt itself says the cold delta is the box, and the receipt's numbers are what the documents quote (a new gate in `tests/test_public_docs.py` now pins each of `17.50 / 2280 / 2.58 / 0 ms / 5.3 / 6384 / 2314 / 6409` to both the receipt and the notes) |
+| idle unload: host gone **5.3 s** after a 5 s window; device 6384 → 2314 → 6409 MiB | §1 A-E4-2 | ✅ re-derived: gone **5.2 s** after the window, device 6330 → 2255 (loaded) → 6345 MiB (unloaded), pid confirmed gone and the socket gone with it |
+| one model at a time: a different key stops the old host *before* the new one loads | §1 A-E4-3/A-E4-5 | ✅ re-derived: `A → B → A` gave three distinct pids and the old pid was dead before the new model loaded; the `--threads` swap also swapped the host |
+| keep-alive precedence **flag > env > default**, 600 s default, `--keep-alive 0` = pre-E4 | §1 A-E4-6, SPEC §2.12 | ✅ code reads as documented (`keep/identity.py::resolve_keep_alive`, `DEFAULT_KEEP_ALIVE = 600.0`) and the live gate re-ran `0` (flag and `$TYPED_GGUF_KEEP_ALIVE=0` → no `engine.keep` block, `keep status` stopped) plus `$TYPED_GGUF_KEEP_ALIVE=5s` → a host with a 5.0 s window |
+| inline fallback (unreachable/dead spawn → answer inline, named reason) + `W_KEEP_UNAVAILABLE` off-unix | §2, SPEC §2.12 | ✅ exercised by the offline pins and the live A-E4-4/A-E4-7 pair; `keep status` on a socket nobody answers is `unresponsive` (bug 2.2's fix holds — re-probed offline, exit 0) |
+
+**(b) One warm claim re-derived by execution** — done twice over: the warm call above reports
+`timings.model_load_ms == 0.0` on a resident host that answered the previous call from the same pid,
+and the `--keep-alive 5s` host was watched **gone by pid** 5.2 s after a 5 s window with the device
+free memory back to its pre-load level. Both are the card's own suggestions, both pass.
+
+**(c) The `keep` surface for footguns** — one found, and it is a real (if narrow) one: **`keep stop`
+signals a pid it has not verified is a host** (🟠 M2 below). The two bugs the E4 card *did* fix were
+re-probed and hold: `keep status` on a busy/dead host reports `unresponsive` instead of `E_INTERNAL`,
+and a `kill -9`'d host's socket+record are cleaned up by the next call (the live A-E4-4/A-E4-7 gates
+re-ran green).
+
+## uvx-specific check (card item 3)
+
+- The README block (`README.md` → *Install without a clone*) names the packaged lock and the
+  precedence rule, and the artifact gate executes exactly that contract: the built wheel carries
+  `typed_gguf/data/runtime.lock`, an installed tool reads it from a neutral cwd that plants a **decoy**
+  lock, `$TYPED_GGUF_LOCK` stays authoritative and the `E_RUNTIME_MISSING` text lists every path
+  searched. `pytest -q tests/test_wheel_install.py` → **8 passed** here. ✅
+- The **post-publish-only half is declared, but in the release notes, not in the README**: the notes
+  say the `git fetch` step of the `git+https://…` spelling is verified **post-publish** (the checkout
+  has no remote and that URL answers *Repository not found* today), and a new gate pins those words.
+  The README's own text only offers the alternative (“Before/without a published remote, the same
+  thing works from a checkout — `uvx --from . …`”) next to a sample output measured from a local
+  path. 🟡 **M3** — one sentence would make the two documents say the same thing.
+
+## Docs consistency (card item 4)
+
+- **README ↔ release notes ↔ code agree on the whole `keep` surface**: 600 s default,
+  `--keep-alive <dur|0>`, `$TYPED_GGUF_KEEP_ALIVE`, *flag > env > default*, one host per data home,
+  swap-on-different-key, `engine.keep.served_by`/`fallback`, `keep status`/`keep stop`, the Windows
+  `W_KEEP_UNAVAILABLE` path. The new `tests/test_public_docs.py` block asserts the same fact list
+  against **both** documents and reads the field set out of `schema.Options()`, so a later edit to
+  either side fails the gate instead of drifting. ✅
+- **`schema.Options()` defaults vs the warm host**: the window is deliberately *not* a request option
+  — it is a CLI flag / env knob (`keep/identity.py::DEFAULT_KEEP_ALIVE`), and the new gate fails any
+  public document that spells it `options.keep_alive` or names an `options.<field>` the schema lacks.
+  The policy-v2 defaults (`cue=json_instructed`, `chat_format=role_split`, `json_contract=question`)
+  are still read from `Options()` into SPEC §2.5 and the quickstart, unchanged by E4. ✅
+- **SPEC §2.12 vs the code**: the section's claims (detached `setsid` child, 0600 unix socket in
+  `$TYPED_GGUF_HOME/keep/`, never TCP, one host/one model/one data home, the key's composition, the
+  countdown restarting on every request, serialized requests, `os._exit` teardown after a clean
+  close, debris probed and replaced, the fallback policy) all match `src/typed_gguf/keep/*` line for
+  line. ✅
+- One stale line inside a **receipt**: `docs/evidence/v0_1_0_t_7e24cea4_warm_host.md:11` calls the
+  model “the 4B **Q4_K_M**” while the gate loads the pinned 4B **Q8_0** (`tests/test_keep_live.py:39`,
+  and the release notes say `Q8_0`). ⚪ **N1** — the numbers are unaffected; the receipt names the
+  wrong quant.
+
+## Checklist (the release gate's own list, re-run at `ed48acb`)
 
 | # | item | status | evidence |
 |---|---|---|---|
-| 1 | LICENSE (MIT) + credits | ✅ | `LICENSE:1` "MIT License", `Copyright (c) 2026 typed-gguf contributors`; `pyproject.toml` `license = {text = "MIT"}` + the MIT classifier; credits in `README.md` → *Credits and attribution* (llama.cpp MIT, pinned `b11026`; TypeSafe **no parity claim** + the documented outlier reproduced in the oracle; the "System One" prior art; the default model's Apache-2.0, pinned by size + SHA-256). The release notes repeat the MIT + no-parity + not-shipped statements, and `tests/test_public_docs.py` fails if they go |
-| 2 | pyproject metadata | ✅ | `name = "typed-gguf"`, `version = "0.1.0"`, description, `readme = "README.md"`, `requires-python = ">=3.11"`, 5 classifiers (MIT, 3-only, 3.11, 3.12, SciEng-AI), console script `typed-gguf = typed_gguf.cli:run`, `Homepage = https://github.com/Rybens92/typed-gguf` |
-| 3 | CI workflow sane (offline, no model downloads) | ✅ | `.github/workflows/ci.yml` is the public gate: `uv sync --extra dev`, `ruff check src tests tools docs .github`, an **empty-file** bundle stub (no download), the offline suite (`TYPED_GGUF_TEST_BLOCK_NET=1`, network replaced at the Python level), the red path (`-m "model or network"` must skip, never fail), the oracle's bundle-free shape; 3.11 + 3.12, `permissions: contents: read`, 15-min timeout. `runtime-matrix.yml` (the live acceptance harness, pinned bundle + one 0.5 GB GGUF) is `workflow_dispatch` + weekly and is deliberately not part of the CI trigger surface. `wheels-fallback.yml` is dispatch-only scaffolding — see N2 |
-| 4 | no secrets in tracked files | ✅ | git-grep for AWS keys, private keys, `ghp_`/`github_pat_`/`hf_`/`sk-`/`xox*`/`AIza` tokens over the whole tracked tree: **0 hits**; no `.env`, `.pem`, `.key` or `id_rsa` tracked |
-| 5 | hygiene applied | ✅ | `git status --porcelain -uall` empty at the head (before this file's own commit); ignored-only entries 6946. `.gitignore` carries the dev-run scratch rules, the live/`.t07b5` scratch (`.t07b5/home/`, `.t07b5/venv/`), the local coordination thread (`state/groupchat`, never staged) and the quick-bench default report. The acceptance card's 4.3 GB scratch concern is **closed**: it is `.t07b5/` (4.3 GB — the docs pass's isolated data home with the pulled model + pinned bundle, plus its throwaway venv), and `.gitignore:82–83` ignore `.t07b5/home/` and `.t07b5/venv/` while the small receipts stay pinned; `git check-ignore -v .t07b5/home/models/Spark-X2.5-4B-Q8_0.gguf` → `.gitignore:82:.t07b5/home/`. Cited-but-untracked is **0 in a clean clone** (239 resolved / 16 missing, all pre-existing or the one intentional frozen-evidence pointer) |
-| 6 | fresh-install acceptance quoted | ✅ | The acceptance is card `t_ea16db9e` + `/tmp/tg-acceptance/ACCEPTANCE_REPORT.md` (outside the repo): pristine clone → fresh venv → project-only install → `init` with 15 compiler shims (**0 shim invocations**) → `doctor` → `ask` on the 4B with no policy flags, 8 runs one prompt digest, the quick bench 7.1 s. The repo-side equivalent is committed: `.t07b5/logs/{init,pull,ask_clean,run_1,run_2_reuse,run_typesafe,pip_install,suite_after}.{txt,json}` and the README quotes the run it ships |
-| 7 | `--help` surface self-consistent | ⚠️ two cosmetic defects | every command and subcommand answers `--help` with exit 0, `serve`/`mcp` exit 3 with the milestone pointer, unknown commands exit 2 (probed). Two cosmetic drifts: the root help calls `serve`/`mcp` *"(implemented in E1b)"* (F1) and `models <sub> --help` duplicates the subcommand name (F2) |
-
-## Gates, executed (release gate item 1)
-
-| gate | command (as the repo documents it) | result at `cb79e92` |
-|---|---|---|
-| full offline suite (CI shape) | `TYPED_GGUF_TEST_BLOCK_NET=1 TYPED_GGUF_BENCH_RUNTIME_DIR=<empty stub> pytest -q -rs --timeout=120` | **1362 passed, 49 skipped, exit 0** in the working tree (5:57, contended) and in a **clean clone** of the head (29.4 s) |
-| the same, ambient-runtime shape | as above, with a bundle discoverable | 1361/49 at `296c498`; at `cb79e92` the tree run is 1362/49 and the fix card's 1363/48 is the same tree **plus** the unmarked env-conditional oracle test (`tests/test_runtime_contract.py`), which runs only when a runtime is discoverable — same reconciliation the E3 review recorded |
-| oracle, live shape | `TYPED_GGUF_RUNTIME_DIR=<b11026 bundle> python docs/verify_runtime_contract.py` | **failures: 0  skips: 0** — the reference table executed end to end (the release/asset pins, the `llama.h` header pins, the model's local header pins, the no-training-dependency list, the readout mirrors `restricted_softmax` / `confidence_normalized_peak` / `score_weighted_mean`, the math table incl. `recommend_quant`) |
-| oracle, bundle-free shape | `python docs/verify_runtime_contract.py` (system python, stdlib-only — the README's own line) | **failures: 0  skips: 1** with the pinned model reachable (the skip is `no runtime installed`); **2 skips** when the model is absent too — the CI's documented shape |
-| ruff | `ruff check src tests tools docs .github` | **All checks passed!** (the CI scope; a bare `ruff check .` still reads the committed dev-run receipts, which the CI comment explains) |
-| E3e gate files | `pytest -q tests/test_e3e_roles.py tests/test_e3e_role_tool.py tests/test_e3e_docs.py tests/test_e3e_roles_decision.py` | **76 passed, 3 skipped** (all three skips are `test_e3e_roles.py:814`'s live gate) |
-| policy v2 / parity pins | `pytest -q tests/test_policy_v2.py` | **13 passed, 1 skipped** (the live 4B half), incl. the **default-parity byte pin** through both assemblies and the pre-v2 byte freeze |
-| bench↔product prompt parity | `pytest -q tests/test_bench_prompt_parity.py` (with the CI's empty-file bundle stub) | **2 passed**; without the stub it reproduces the CI's documented red path (1 failed) — the stub exists for exactly that test |
-| doc gates | `pytest -q -k doc` | **86 passed** |
-| red path | `pytest -q -m "model or network"` with `TYPED_GGUF_RUNTIME_DIR` / `TYPED_GGUF_BENCH_RUNTIME_DIR` unset | **48 skipped, 1362 deselected, 0 failed** — the live gates skip, never fail |
-| citations | the hygiene card's checker over a clean clone of the head this review is committed on | **239 resolved / 0 cited-but-untracked / 16 missing** (15 pre-existing receipts + the one intentional dangling pointer, below; in the shared working tree the same ledger shows 3 extra *exists-but-untracked* hits — the ignored local scratch dirs, mutmut trees and gauntlet QA notes, which never ship) |
-
-**The three handoff probes, all re-derived by execution:**
-
-1. **The no-flags request *is* the flagged v2 cell.** Live on the pinned 4B: `pytest --run-network
-   tests/test_policy_v2.py -k test_the_defaults_measure_the_published_v2_cell_on_the_4b`
-   → **1 passed in 134.81 s** (prefix_tokens, decision, correctness and cue verdict identical item
-   for item against the published `.e3e/bench_json_instructed_role_split.json` arm). I also ran the
-   quickstart's own `ask` (its state and question set) twice — once with no policy flag, once with
-   `--cue json_instructed --chat-format role_split --json-contract question`: the two responses are
-   **byte-identical apart from `timings` and one `engine.fit.budget_bytes`** (5 907 677 184 vs
-   5 904 531 456 — the plan re-reads free device memory, exactly as the README's reuse note says).
-   The `usage` block is identical to the README's quoted block field for field (`input_tokens 255 ·
-   output_tokens 10 · questions 3 · forks 8 · prefill_tokens 104 · decode_steps 10 · waves 4`),
-   `engine.chat_format` reproduces the quoted `{role_split, user, question, prefix_chars 507,
-   dropped "\n"}`, and the per-answer `decode_steps`/cue tokens line up too (79 / 29-30 / 1643). The
-   only divergence from the quoted numbers is in the third decimal of the answers themselves
-   (`area` 0.7338/0.1758/0.0904 vs 0.73758/0.171766/0.0906544): this container's Vulkan backend
-   reports **no devices**, so the run is CPU-computed (`effective_backend: "cpu"`,
-   `W_BACKEND_MISMATCH`) where the quoted block is the [host] Vulkan one (`effective_backend:
-   "vulkan"`, `warnings: []`).
-2. **The pre-v2 cell still collapses on the same state.** The same `ask`, once with the pre-v2 cell's
-   flags (`--cue shipped --chat-format answer_sheet`): exit 0, but `area` reads `coverage 0.00415`
-   → `reliability low_mass`, `page` answers `noul 0.8617` (`low_mass`, and the wrong direction — the
-   v2 run says 0.0045), warnings `[W_BACKEND_MISMATCH, W_LOW_MASS]`, and `input_tokens` 200 (the
-   prompt bytes differ). The readout is on a tail, which is the §2.2/§7.4.1 collapse the release
-   notes quote at full size (Tiel 22/60, Occamy 26/60).
-3. **The fit-plan cache only ever shrinks — confirmed** (see F3). Replaying the real cached plan
-   through the real `replan_for_host`: cached `ngl 36 / budget 5634 MiB` → busy device (1500 MiB
-   free) degrades it to `ngl 0` → the *same free* device (7000 MiB) leaves it at **`ngl 0`** (budget
-   refreshed to 5976 MiB) while the original plan at that budget stays `ngl 36`. The cache never
-   walks back up.
-
-**Not re-run, and why** (named so the gap is visible): the [host] rows (RTX 3060 Ti Vulkan tables,
-the Tiel/Occamy E3e cells) need the operator host — their receipts and the [host] tags are the
-evidence; the two 35B GGUFs (20.8 and 23 GB) do not fit this container's 5 GiB cgroup; anything that
-downloads from HuggingFace is outside the offline shape the release gate runs in.
-
-## Document-set consistency (release gate item 2)
-
-- **The v2 defaults are stated the same way everywhere they are stated.** `README.md` (quickstart
-  prose + the quoted response + the interfaces table), `docs/BENCHMARKS.md` (the policy blockquote,
-  §2.3, §7.4.2, §9), `docs/TEMPLATES.md` (§4/§4.3 + the E3e section) and
-  `docs/RELEASE_NOTES_v0.1.0.md` all name `cue=json_instructed · chat_format=role_split ·
-  json_contract=question`, and two pinned tests enforce it (`test_public_docs.py` reads the defaults
-  out of `schema.Options()` instead of a literal; `test_policy_v2.py` checks the two documents by
-  name).
-- **The comparability rule holds.** Every pre-v2 row sits under a marker: §2.2 (pre-fix *and*
-  pre-v2), §3 whole, §5 whole, §6 whole, §7 whole, §8 whole, and the pre-v2 switches appear in the
-  public pair only as flags/cells/policy mentions (the docs gate's grep is clean). The v2 rows (§2.3,
-  §7.4.2, the Occamy pair) each say which cell they are and refuse the comparison with the pre-v2
-  neighbour. The one frozen-block sentence that reads "the default stays `shipped`" (§7.4.1) is not an
-  exception: §8's marker quotes it and explains it (N1).
-- **Every README claim is measured or tagged.** Spot-checked against the repo: the quickstart's
-  `init`/`pull` transcripts (`.t07b5/logs/init.txt`, `pull.txt`), the response block (re-derived
-  live above, usage identical), the reuse note (`run_1.json` / `run_2_reuse.json`), the TypeSafe
-  reduction (`run_typesafe.json`), the family/template matrix (TEMPLATES §4 + the E3e role-render
-  table), the fit ±20 % cross-check (TEMPLATES §5, `test_fit_live.py`), the limitations (§below),
-  the credits. `SPEC.md`'s tag legend is intact and `[UNVERIFIED]` is genuinely unused (the only two
-  occurrences are the legend lines — the README's claim about it is true).
-
-## Known limitations (release gate item 4)
-
-The README's *Limitations and known issues* matches reality on every line I could execute: sequential
-questions (measured here: `usage.waves`/`decode_steps` are per request, the tables' own accounting),
-the pre-v2 latency/throughput/determinism/calibration tables (marked, never mixed), `serve`/`mcp`
-shipped as stubs (`cli.main(["serve"]) == 3`), prompt-level thinking suppression, the own-dev-set
-provenance, box physics for big models, no CUDA row, no TypeSafe parity. Two additions it does not
-carry today: the shrinking fit-plan cache (F3) and — if the coordinator wants it public — the
-`--help` annotation drift (F1/F2). The one `[UNVERIFIED]`-class gap is not in the README at all:
-`SPEC.md` §2.5/§2.8 predate the `cue`/`chat_format`/`json_contract` options (F4).
-
-## Leftovers (release gate item 5) — listed, not fixed
-
-- **Receipt density.** 1737 tracked files: 1058 under the E-run dirs (`.e2e/`, `.e3*/`, `.t*`), 246 in
-  `docs/evidence/`, 61 in `state/` — **~79 % of the tree is the verification story**. The hygiene
-  card's decision (keep the cited receipts, drop the scratch) is what makes the citations resolve;
-  the slim-down is a coordinator call, not a release defect.
-- **`REVIEW.md` lineage.** This file replaces the E3 completion review (`d0f4932`); its predecessors
-  live in git. `REVIEW.md` is referenced by one frozen evidence doc (`docs/evidence/e1a_t_83ee1eed_survivor_pins.md`).
-- **the `.t07b5/`, `.t5b75/`, `.t9bcb/` tool scripts** are committed on purpose (receipt tooling the
-  cards cite); they are outside the lint scope by the CI's own rule.
-- **TODO/FIXME audit:** exactly one hit in the whole living surface —
-  `.github/workflows/wheels-fallback.yml:35` (`TODO(E1a): checkout the pinned llama.cpp commit…`,
-  N2). No dead code found in `src/typed_gguf/` (ruff + the suite + the oracle pins all pass; the
-  unused-import/no-op gates are green).
-- **Stale references:** the old product name survives in exactly the three deliberate lines
-  (`README.md:3`, `SPEC.md:3`, `SPEC.md:6`) and inside frozen receipts by design
-  (`git grep -in` for the old name over the living surface). The `SPEC.md → state/groupchat/…` dangling
-  pointer the hygiene card handed over is **closed**: only the frozen
-  `docs/evidence/t_a696ce02_pid_pressure_gate.md` still names it, which the hygiene card classified
-  as the one intentional miss.
-- **The publish step.** `git remote -v` is empty; `https://github.com/Rybens92/typed-gguf` answers
-  **404** and PyPI has no `typed-gguf` project (JSON API 404) — so the README/notes install lines
-  (`git clone …`) are the *post-publish* form, exactly as the release-notes draft's header says. This
-  is a publish-step dependency, not a code defect; the tag/release/PyPI steps remain the operator's.
-
-## Findings
-
-**🟡 F1 — the root `--help` marks the two unimplemented commands as implemented.**
-`typed-gguf --help` prints `serve (implemented in E1b)` and `mcp (implemented in E1b)`
-(`src/typed_gguf/cli.py:118`, fed by `MILESTONES`, `cli.py:37–39`, whose comment reads
-"command → milestone that implements it"). Both commands exit 3 and their own message says
-`'serve' is not implemented yet (milestone E1b)`; `README.md:224` and the release notes say they are
-*specified, not shipped*. Suggested fix: drop "implemented" from that line (e.g. name the milestone
-without the verb, or add "(not yet implemented)"), or move `serve`/`mcp` to a "specified, not
-implemented" line of the usage block. Cheap, and it is the one public surface where the
-honesty claim is currently contradicted by the tool itself.
-
-**🟡 F2 — `models … --help` duplicates the subcommand name.** `typed-gguf models search --help`
-prints `usage: typed-gguf models search search <query>` (same for pull/use/ls/rm/verify/
-recommend-quant): `cli.py:1625–1626` prefixes `models <sub>` *and* prints the `COMMAND_HELP["models"]`
-entry, which already begins with the subcommand name. Suggested fix: strip the leading `wanted`
-token from the matched entry before printing. Cosmetic; exit code and behaviour are right.
-
-**🟡 F3 — the fit-plan cache only ever shrinks (verified above).** `runtime/fit.py::replan_for_host`
-re-checks a *cached* plan against free device memory and walks it down the ladder; nothing walks it
-back up, so a plan degraded for one busy run stays degraded after the device frees up (only
-`budget_bytes` refreshes). Impact: placement/perf only — a user who first ran on a busy GPU keeps
-fewer offloaded layers until `fit --no-cache` / `--no-fit-cache` (or deleting `$TYPED_GGUF_HOME/fit/`)
-— the decisions are unaffected, and it is why the docs cards' runs were conservative. Recommendation:
-one line in the README's limitations ("a cached plan is never re-expanded; drop the cache with
-`--no-fit-cache` when free memory returns") **or** a small follow-up card that lets a cached plan be
-re-derived upward. Not a release blocker either way, but the limitations section is the checklist's
-own lens for exactly this class.
-
-**🟡 F4 — `SPEC.md` §2.5/§2.8 predate the prompt-policy options.** The frozen request schema's
-`options` block and the CLI-surface block do not list `cue`, `chat_format`, `json_contract` (or
-`thinking`), and its error catalog predates `E_ROLE_SPLIT_UNSUPPORTED` / `E_BENCH_*`; the code and
-the public docs do carry them, and no gate reads SPEC's option list (`tests/test_scaffold.py` asserts
-SPEC's *existence* plus the module imports, the frozen command sets and two error-catalog entries —
-never the option list). A reader who goes to SPEC for the wire schema —
-which the README calls "the contract" — cannot find the switches the defaults are made of.
-Recommendation: a docs-only SPEC touch-up (add the three options with their defaults + the missing
-error names) in whichever card owns the next docs pass; it changes no behaviour.
-
-**⚪ N1 — `docs/BENCHMARKS.md:1145` (frozen §7.4.1 block) still says "The default stays `shipped`".**
-Checked and **reconciled, not stale**: §8's pre-v2 marker (`docs/BENCHMARKS.md:1276`) quotes that
-exact sentence and explains it as the state when the row was written, and §7's own header marks the
-section pre-v2 — so the one surviving "default stays `shipped`" string in the docs set is already
-declared. No action; recorded so the next reader of §7.4.1 does not have to re-derive that.
-
-**⚪ N2 — `.github/workflows/wheels-fallback.yml` is a stub.** Dispatch-only; its build step is
-`echo "TODO(E1a): …"` plus a `pip install` wrapped in `|| true`, and it uploads `dist/*.whl` which
-nothing ever produces (`if-no-files-found: warn`, so a dispatch silently "succeeds"). Either
-implement it or drop it before the repo goes public — a workflow named *wheels-fallback* that cannot
-produce a wheel invites the wrong trust.
-
-**⚪ N3 — the largest tracked file was an agent-session transcript.**
-The E2 provenance fight's session export (2 787 035 B — the biggest single item in the 27 MB tracked
-tree, embedding worker prompts rather than measurements) is **gone from the public tree**: the
-slim-down card `t_a25bd190` removed it before the tag and recorded the removal where it was cited —
-`state/fights/e2-provenance/scorecard.md` — where the measurements it accompanied stay.
-
-**⚪ N4 — one receipt carries the operator's e-mail.** `.e2e/t_a696ce02-pid-pressure/rig/git.sh:11`
-sets `user.email=rybens92@gmail.com`. The identity is already public as the repo author's commit
-e-mail; noted only because a public-repo sweep may want it scrubbed.
+| 1 | LICENSE (MIT) + credits | ✅ | `LICENSE` MIT; `pyproject.toml` MIT + classifier; README *Credits and attribution*; the notes repeat MIT + no-parity and a gate fails if they go |
+| 2 | pyproject metadata | ✅ | `typed-gguf 0.1.0`, `requires-python >=3.11`, console script, `force-include` mapping `runtime.lock` into the wheel, `[tool.mutmut]` documenting the E4 pair |
+| 3 | CI workflow sane (offline, no downloads) | 🔴 | the workflow *is* offline and downloads nothing — but its "Offline suite" step **fails at this head** (blocking issue B1) |
+| 4 | no secrets in tracked files | ✅ | 0 hits over the tracked tree (area 14) |
+| 5 | hygiene applied | ✅ | clean clone of the certified sha is clean; `.gitignore` carries the live/scratch rules; the 4.3 GB scratch home stays ignored |
+| 6 | fresh-install acceptance quoted | ✅ | unchanged from the first gate (`.t07b5/logs/*` receipts + the acceptance report), plus the new out-of-tree artifact gate |
+| 7 | `--help` surface self-consistent | ✅ | F1/F2 closed; exit codes as documented (area 13) |
+| 8 | docs ↔ code for the new surface | ✅ | areas 3/4 and the two consistency sections above |
 
 ## Blocking issues
 
-**None.** No 🔴 CRITICAL and no 🟠 MAJOR finding. The only checklist item with a defect is #7, the
-`--help` self-consistency check (F1/F2 — cosmetic strings); F3/F4 are a limitations line and a SPEC
-section, each a one-to-few line change, and none of them touches an answer, a published number, or
-the install path.
+**B1 🔴 CRITICAL — the committed CI gate is red at `ed48acb` (and was at `dec1819`).**
+`tests/conftest.py:180-200` (`_network_disabled_for_this_run`) replaces `socket.socket` with a raiser
+for **every** address family when `TYPED_GGUF_TEST_BLOCK_NET=1`, including `AF_UNIX`. The E4 feature
+is *built* on `AF_UNIX` sockets, and its gates open them in-process: `tests/test_keep_client.py` and
+`tests/test_keep_host.py` fail with `AssertionError: network disabled for this run …: a decision path
+must never need it` (the host's `bind()` raises inside its thread, which is also where the 11
+teardown errors come from).
+
+Reproduction on a clean clone of `ed48acb` (the exact shape `.github/workflows/ci.yml` runs):
+
+```
+TYPED_GGUF_TEST_BLOCK_NET=1 TYPED_GGUF_BENCH_RUNTIME_DIR=<empty stub> \
+  .venv/bin/pytest -q -rs --timeout=120
+  → 24 failed, 1466 passed, 56 skipped, 11 errors      (log: /tmp/rg2/logs_e/suite_ci.txt)
+TYPED_GGUF_TEST_BLOCK_NET=1 .venv/bin/pytest -q \
+  tests/test_keep.py tests/test_keep_host.py tests/test_keep_client.py tests/test_keep_cli.py
+  → 24 failed, 69 passed, 11 errors                    (log: /tmp/rg2/logs_e/keep_netblock.txt)
+# same four files, flag off → 93 passed
+```
+
+`ci.yml`'s step ends with `! grep -qE "[0-9]+ (failed|error)" "$log"`, so the first push of this tree
+is a red workflow. The E4 receipt's “1485 passed, 56 skipped”
+(`.e2e/t_7e24cea4-warm-host/logs/suite_final.txt`) was measured **without** the flag, which is why the
+card's own expectation (~1485/56 for the CI-shape suite) cannot be met at this head. The first gate at
+`cb79e92` ran the CI shape green (1362/49) — the regression is E4's.
+
+*Owner/direction (not fixed here, per the review's rules):* the hook in `tests/conftest.py` must stop
+forbidding local IPC — scope it to the network families (`AF_INET`/`AF_INET6`, plus
+`socket.create_connection` / `getaddrinfo`, which the same fixture already patches) or let the keep
+gates opt out by name; the decision belongs to whoever owns that fixture. Either way the flag must
+stay meaningful for the download paths it was written for.
+
+## Findings (non-blocking)
+
+**🟠 M2 — `keep stop` signals a pid the ledger never verified is a host.**
+`src/typed_gguf/keep/state.py`'s own rule is “a record is a claim, not a fact — `alive()` checks the
+pid *and* the socket; nothing is inferred from the file alone”, and `client.stop()`
+(`src/typed_gguf/keep/client.py:362`) is the one verb that acts on the record: it reads
+`record.pid`, and — after the `pid == os.getpid()` guard — calls `os.kill(pid, SIGTERM)` on
+`state.pid_alive(pid)` alone. No socket probe, no identity check. The realistic path is the one the
+module itself says is expected debris: a host killed with `kill -9` leaves its record **and** its
+socket behind; its pid is recycled by any other process on the box; the next `keep stop`, a
+`--keep-alive 0` call (which also calls `stop()`), or a swap to a different key then SIGTERM/SIGKILLs
+whatever now owns that pid.
+
+Confirmed by execution (clean clone, scratch home, a decoy `sleep 600`): with a record whose socket
+nobody listens on and whose pid belongs to the decoy, `keep status --json` is honest (`unresponsive`,
+exit 0, no harm) while `keep stop --json` answers `{"stopped": true, "pid": 20300, "reason":
+"stopped (SIGTERM)", "cleaned": true}` and the decoy's `/proc/<pid>/stat` goes `R → Z`.
+Suggested guard (two lines, and it is the same policy `_abandon(hard=True)` already applies):
+`stop()` should treat a record whose socket is not *listening* as debris — clean it up, signal
+nothing — and only signal a pid when the socket answers a probe (a busy host still listens).
+
+**🟡 M3 — the README's uvx block does not carry the “post-publish” limit its own notes now do.**
+The release notes (landed as `ed48acb`) state that the `git fetch` step of
+`uvx --from git+https://…` is verified **post-publish**; the README's block shows the same one-liner
+with the measured sample output beneath it and only implies the caveat (“Before/without a published
+remote, the same thing works from a checkout”). One sentence — the notes' own words — would make the
+two documents agree. No behaviour claim is affected: the artifact gate executes the local-path half.
+
+**⚪ N1 — the E4 evidence doc names the wrong quant.** `docs/evidence/v0_1_0_t_7e24cea4_warm_host.md:11`
+says “the 4B **Q4_K_M**”; the live gate loads the pinned **Q8_0** (`tests/test_keep_live.py:39–40`),
+which is what the README, the notes and the card's numbers are about. The receipt's numbers are the
+gate's own output, so nothing measured changes — it is a receipt line to correct on the next pass
+into that file.
+
+**⚪ N2 — one new citation only resolves while the sweep's scratch dir exists.**
+The E4 evidence doc cites `mutants/**/*.py.meta` (the census tool's own input). That is dev scratch,
+never tracked, and consistent with two pre-existing mutation receipts that cite the same shape; the
+hygiene ledger's *cited-but-untracked* count stays **0**, which is the number the gate cares about.
+
+**⚪ N3 — `typed-gguf models` with no subcommand exits 0** and prints the usage line (every other
+missing-argument path in the CLI is exit 2). Untouched by E4 and not documented either way; noted
+only because the help/exit-code surface was re-probed line by line this time.
+
+## What landed around the certified head
+
+- **Certified sha: `ed48acb`** (`docs(t_67bb0409): the notes catch up — the warm engine host and the
+  uvx install path`), i.e. `dec1819` + the release-notes catch-up (+64 lines of notes, +63 lines of
+  `tests/test_public_docs.py`). Everything reported above was run at `ed48acb` except the clean-clone
+  CI-shape suite, which was run at **both** heads (24 failed / 1461 passed at `dec1819`, 24 failed /
+  1466 passed at `ed48acb`) so the blocker is attributable to E4 and not to the notes.
+- **The release-notes catch-up is folded in**, and it is what closes the one docs gap the first gate
+  left open: the notes now headline the warm host, quote the E4 receipts' numbers, carry the uvx
+  one-liner with its post-publish limit, and the new gates pin both documents to the same facts.
+- **In flight while this review ran, explicitly *not* certified:** `t_c3195a5c` (tests-only, a
+  `sun_path`/long-`TMPDIR` fix for the keep fixtures) is sitting **uncommitted** in the shared
+  checkout (`tests/conftest.py`, `tests/test_keep*.py`, plus an untracked
+  `tests/test_keep_socket_path.py`). It does not touch the net-block hook, so it cannot clear **B1** —
+  and none of the 24 failures here were `sun_path`-shaped (0 occurrences of that path in the failure
+  logs). Its own receipt must be judged at its own head.
+- **This review's own commit lands after `ed48acb`** (`REVIEW.md` only), exactly as the previous
+  gate's did at `232a11b`.
 
 ## Verdict
 
-**v0.1.0 is releasable.** At `cb79e92`: the offline suite is green in a clean clone (1362 passed /
-49 skipped), the oracle is `failures: 0 skips: 0` against the pinned live bundle and model and
-`failures: 0` in its bundle-free shape, ruff is clean on the repo's gate, the E3e/policy/parity/doc
-gates are green, the citation ledger has zero cited-but-untracked entries, the live 4B gate
-reproduces the published v2 arm item for item while the pre-v2 cell still collapses on the same
-state, the defaults/limitations/credits/install story in the README matches what the code does, and
-nothing in the tree is a secret. The findings above are worth a follow-up docs/help pass before or
-right after the tag — the tag itself is not blocked by any of them.
+**v0.1.0 is not releasable at `ed48acb`.** One blocker: the committed CI workflow's offline-suite step
+is red at this head — `TYPED_GGUF_TEST_BLOCK_NET=1` forbids `AF_UNIX`, so the 24 keep gates that
+exercise the new socket surface fail (24 failed / 11 errors in a clean clone), and the published
+receipt that says the suite is green was taken without that flag. Everything else the release claims
+was re-executed and holds: the E4 live surface (7 gates, 410 s, cold → warm with `model_load_ms 0.0`
+on the same pid, the 5 s idle unload by pid and by device memory, the one-host-at-a-time swap), the
+offline keep pins, the oracle (live `failures: 0 skips: 0`, bundle-free `failures: 0`), ruff, the
+E3e/policy/parity/doc gates, the red path's all-skip, the wheel/uvx artifact gate (8 passed), the
+`--help`/exit-code surface (F1/F2 closed), the citation ledger (0 cited-but-untracked) and the secret
+scan. Fix B1 (and, cheaply, M2) and this is a re-run of one command away: the same clean-clone suite
+with the flag, which must come back `0 failed / 0 errors`.
