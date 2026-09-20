@@ -244,6 +244,40 @@ that is not in the registry (`model: "jev-latest"` and friends) is translated to
 default. **No parity claim**: the confidence statistic is ours, and the one documented outlier in
 the adapter target's docs is reproduced as-is in `docs/verify_runtime_contract.py` (SPEC §2.6).
 
+### Warm host: no cold start between calls
+
+```bash
+typed-gguf ask --state "Billing is down." --choice "area=Which?:billing|technical"   # cold: loads
+typed-gguf ask --state "Billing is down." --choice "area=Which?:billing|technical"   # warm
+typed-gguf keep status
+```
+
+The second call skips the model load: the first one left a **keep host** behind — a detached child
+process holding the model and answering `run`/`ask` over a unix socket in the data home
+(`$TYPED_GGUF_HOME/keep/`, mode 0600, never TCP). After `--keep-alive` seconds without a request it
+exits itself and frees the device.
+
+- **One model at a time.** One host per data home. Switching models stops the old host *before* the
+  new one loads, so a swap never holds two models in RAM/VRAM.
+- **The window** is 600 s (10 min) by default and configurable: `--keep-alive 10m` / `30s` / `1h` on
+  `run`/`ask`, or `TYPED_GGUF_KEEP_ALIVE=10m` in the environment. Precedence: **flag > env >
+  default**. `--keep-alive 0` is the old behaviour exactly — answer inline and unload.
+- **The key.** A host serves one identity: the resolved model path plus its SHA (the registry's
+  recorded sha256, else the file's own size+mtime) plus the placement-affecting options (`backend`,
+  `n_ctx`, `kv_type`, `n_seq_max`, `threads`, fit flags). A request with a different key gets a
+  swap, never a wrong answer; `keep status` prints the key it is holding.
+- **Who answered** is in the response: `engine.keep.served_by` is `"host"` or `"inline"`, with the
+  host's pid, its one-time `model_load_ms`, the idle time left, and — when a host could not be had —
+  the named reason it fell back (`engine.keep.fallback`). A warm answer reports
+  `timings.model_load_ms: 0.0`: the load it did not pay.
+- **`keep status` / `keep stop`** are the control surface. `status` reports the pid, the model, the
+  key, idle seconds left, the placement, and the device the *engine's own log* proved.
+- **Fallback policy.** If the host cannot be reached, spawns but never becomes ready, or dies with a
+  request, the client cleans up its ledger entry and answers **inline on that same call** — the CLI
+  never wedges on a host. Crashes inside the host are typed errors on the wire, rebuilt as the
+  product's own exception type. If a platform has no unix sockets (Windows), `run`/`ask` say so by
+  name (`W_KEEP_UNAVAILABLE`) and answer inline; no daemon is attempted.
+
 ## Interfaces
 
 | command | what it does | milestone |
@@ -252,10 +286,11 @@ the adapter target's docs is reproduced as-is in `docs/verify_runtime_contract.p
 | `typed-gguf doctor [--json]` | checks the bundle (files, symbols, build, `llama-fit-params`, backends, accelerator, recorded SHA) and the registry; exit 0 ok / 2 warnings / 1 broken | E1a |
 | `typed-gguf models search <q>` / `pull <repo[:quant]>` / `use <alias>` / `ls [--json]` / `rm <alias>` / `verify [alias]` / `recommend-quant [--vram GiB]` | the model registry: resume + SHA-256 verified downloads, the model author's license recorded with the file, and a quant recommendation for a VRAM budget | E1a |
 | `typed-gguf fit [<model>] [--json]` | the fit plan for this host (`n_gpu_layers`, `n_ctx`, `kv_type`, `n_seq_max`, `est_*` bytes), cached per (model SHA-256, host fingerprint) and applied on load unless `--no-fit` | E1c |
-| `typed-gguf run --questions q.json [--state …] [--format native\|typesafe] [--out r.json]` | a whole request from a file | E1b |
-| `typed-gguf ask --state … --choice/--score/--noul "id=instruction:labels"` | the same engine from the command line | E1b |
+| `typed-gguf run --questions q.json [--state …] [--format native\|typesafe] [--out r.json] [--keep-alive <dur\|0>]` | a whole request from a file | E1b |
+| `typed-gguf ask --state … --choice/--score/--noul "id=instruction:labels" [--keep-alive <dur\|0>]` | the same engine from the command line | E1b |
 | `typed-gguf bench --suite latency\|throughput\|quality\|calibration\|determinism --model <path.gguf>` | reproduces the tables in `docs/BENCHMARKS.md`; never touches the registry and never opens a socket | E2 |
 | `typed-gguf calibrate [--dry-run]` | fits the per-(model, question-type) temperature/scale on the committed dev set and keeps it only if a held-out split improves | E2.5 |
+| `typed-gguf keep status [--json]` / `stop [--json]` | the warm host: one resident model per data home, answering `run`/`ask` over a 0600 unix socket and unloading itself after `--keep-alive` | E4 |
 | `typed-gguf version [--json]` | versions, the pinned runtime tag, the installed runtime and the data home | E0 |
 | `typed-gguf serve` / `typed-gguf mcp` | the HTTP (`/health`, `/v1/models`, `/v1/decide`, `/v1/systemone`) and MCP (`typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`, `typed_gguf_fit`) surfaces are **specified in SPEC §2.9 but not implemented in v0.1.0**: both commands exit 3 with the milestone pointer | — |
 
