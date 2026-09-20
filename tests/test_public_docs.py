@@ -119,7 +119,8 @@ def test_the_root_help_marks_the_serving_surface_the_way_the_readme_does(
     honesty claim is pinned here, in the README's own words."""
     assert cli.main(["--help"]) == 0
     out = capsys.readouterr().out
-    lines = {line.split()[0]: line for line in out.splitlines() if line.startswith("  ")}
+    lines = {line.split()[0]: line for line in out.splitlines()
+             if line.startswith("  ") and line.strip()}
     for command in ("serve", "mcp"):
         line = lines[command]
         assert "specified in SPEC §2.9" in line, line
