@@ -142,7 +142,7 @@ carry today: the shrinking fit-plan cache (F3) and — if the coordinator wants 
   unused-import/no-op gates are green).
 - **Stale references:** the old product name survives in exactly the three deliberate lines
   (`README.md:3`, `SPEC.md:3`, `SPEC.md:6`) and inside frozen receipts by design
-  (`git grep -in ggufone` over the living surface). The `SPEC.md → state/groupchat/…` dangling
+  (`git grep -in` for the old name over the living surface). The `SPEC.md → state/groupchat/…` dangling
   pointer the hygiene card handed over is **closed**: only the frozen
   `docs/evidence/t_a696ce02_pid_pressure_gate.md` still names it, which the hygiene card classified
   as the one intentional miss.

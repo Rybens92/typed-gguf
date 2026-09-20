@@ -112,9 +112,10 @@ Naming note: `noul` is the question type name used by the adapter target; the en
 **D-1 (operator decision, 2026-09-17 15:55).** Primary runtime = **official llama.cpp release bundle**
 from GitHub Releases, pinned. The bundle carries shared libraries (`libllama.so`, `libggml*.so`) and
 tools; `typed-gguf init` downloads the variant matching the host. `llama-cpp-python` is demoted to an
-**optional compatibility backend**; our own CI-built wheels are a **fallback** for platforms with no
-official asset. Rationale: official assets need no compiler, ship the pinned build (≥ `b10828`, so
-`spark2_5` works), and expose everything through a stable C ABI.
+**optional compatibility backend**; our own CI-built wheels are the planned **fallback** for platforms
+with no official asset — future work in v0.1.0, no wheel workflow ships (§4; the dispatch-only stub
+was dropped before the public tag). Rationale: official assets need no compiler, ship the pinned build
+(≥ `b10828`, so `spark2_5` works), and expose everything through a stable C ABI.
 
 Pinned release **[executed]** (`docs/evidence/llama_cpp_release_b11026.json`):
 
@@ -482,7 +483,6 @@ typed_gguf/
   .github/workflows/
     ci.yml                    # lint + unit gate + oracle (offline and live per platform)
     runtime-matrix.yml        # downloads each pinned asset, runs the oracle live section (per OS)
-    wheels-fallback.yml       # fallback publisher: our own wheels for platforms without an asset
   state/fights/<fight>/     # committed receipts of an evidence fight (scorecard + logs + scripts)
 ```
 
