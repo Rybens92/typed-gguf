@@ -50,6 +50,18 @@ def test_models_subcommands_have_help_too(capsys: pytest.CaptureFixture[str]) ->
         assert sub in out
 
 
+@pytest.mark.parametrize("sub", cli.MODELS_SUBCOMMANDS)
+def test_a_models_subcommand_help_page_names_the_subcommand_once(
+        sub: str, capsys: pytest.CaptureFixture[str]) -> None:
+    """Release review F1/F2 pass (card `t_a25bd190`): the usage line used to read
+    `usage: typed-gguf models search search <query>` — the matched `COMMAND_HELP["models"]` entry
+    already begins with the subcommand name, so the line must add it exactly once."""
+    assert cli.main(["models", sub, "--help"]) == 0
+    usage = capsys.readouterr().out.splitlines()[0]
+    assert usage.startswith(f"usage: typed-gguf models {sub} "), usage
+    assert not usage.startswith(f"usage: typed-gguf models {sub} {sub}"), usage
+
+
 def test_an_unknown_flag_points_at_the_command_help(capsys: pytest.CaptureFixture[str]) -> None:
     assert cli.main(["run", "--nope"]) == 2
     err = capsys.readouterr().err

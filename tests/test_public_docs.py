@@ -29,6 +29,7 @@ from typed_gguf import cli, schema
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 README = (ROOT / "README.md").read_text(encoding="utf-8")
 NOTES = (ROOT / "docs" / "RELEASE_NOTES_v0.1.0.md").read_text(encoding="utf-8")
+SPEC = (ROOT / "SPEC.md").read_text(encoding="utf-8")
 PYPROJECT = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
 #: the prompt-policy switches that are *not* the default any more (policy v2, card `t_5b754458`)
@@ -105,3 +106,47 @@ def test_the_readme_keeps_the_deduplicated_shape() -> None:
     back (one `## Verification`, one `## License`, one quickstart)."""
     for title in ("## Quickstart", "## Verification", "## License"):
         assert README.count(title) == 1, f"{title} appears {README.count(title)} times"
+
+
+# ------------------------------------------- the F1/F3/N2 polish (card t_a25bd190)
+def test_the_root_help_marks_the_serving_surface_the_way_the_readme_does(
+        capsys: pytest.CaptureFixture[str]) -> None:
+    """Release review F1: the root help called `serve`/`mcp` *"implemented in E1b"* while the README
+    and SPEC §2.9 say they are specified, not shipped. The one public surface that contradicted the
+    honesty claim is pinned here, in the README's own words."""
+    assert cli.main(["--help"]) == 0
+    out = capsys.readouterr().out
+    lines = {line.split()[0]: line for line in out.splitlines() if line.startswith("  ")}
+    for command in ("serve", "mcp"):
+        line = lines[command]
+        assert "specified in SPEC §2.9" in line, line
+        assert "not implemented in v0.1.0" in line, line
+    # …and the claim is the commands' own behaviour, not a wish: both stubs exit 3
+    assert cli.main(["serve"]) == 3 and cli.main(["mcp"]) == 3
+
+
+def test_the_limitations_carry_the_two_release_findings_this_pass_adds() -> None:
+    """F3 and N2: the fit-plan cache only ever shrinks, and the exotic-platform wheels are future
+    work (the `wheels-fallback` stub is gone). Both are limitations a reader must be able to find."""
+    limitations = README.split("## Limitations and known issues", 1)[1].split("\n## ", 1)[0]
+    assert "never re-expanded" in limitations, (
+        "F3: the limitations must say a cached fit plan is never re-expanded")
+    assert "--no-fit-cache" in limitations, (
+        "F3: the limitations must name the escape hatch (`--no-fit-cache`)")
+    assert "wheel" in limitations and "future work" in limitations, (
+        "N2: the limitations must say exotic-platform wheels are future work")
+
+
+def test_the_spec_schema_lists_the_policy_options_the_code_ships() -> None:
+    """F4: the README calls SPEC "the contract", and a reader who goes there for the wire schema
+    must find the switches the shipped defaults are made of — read from `schema.Options()`, so a
+    later default flip fails here instead of drifting."""
+    section = SPEC.split("### 2.5 Native schema", 1)[1].split("### 2.6", 1)[0]
+    options = schema.Options()
+    for name, value in (("cue", options.cue), ("chat_format", options.chat_format),
+                        ("json_contract", options.json_contract)):
+        line = next((line for line in section.splitlines() if f'"{name}"' in line), None)
+        assert line is not None, f"SPEC 2.5 lists no `{name}` option"
+        assert f'"{value}"' in line, (
+            f"SPEC 2.5 names `{name}` without its shipped default {value!r}: {line}")
+    assert '"thinking"' in section, "SPEC 2.5 lists no `thinking` option"

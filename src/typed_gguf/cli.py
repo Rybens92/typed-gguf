@@ -37,6 +37,10 @@ MODELS_SUBCOMMANDS = ("search", "pull", "use", "ls", "rm", "verify", "recommend-
 MILESTONES = {"version": "E0", "init": "E1a", "doctor": "E1a", "models": "E1a",
               "run": "E1b", "ask": "E1b", "fit": "E1c", "serve": "E1b", "mcp": "E1b",
               "bench": "E2", "calibrate": "E2.5"}
+#: commands that are *specified*, not shipped in v0.1.0 (SPEC 2.9). The root help names them in the
+#: README's own words: release review F1 (card `t_a25bd190`) — "(implemented in E1b)" was the one
+#: public surface where the tool contradicted its own documentation.
+NOT_IMPLEMENTED = ("serve", "mcp")
 DOCTOR_SCHEMA = "typed_gguf.doctor/v1"
 MODELS_SCHEMA = "typed_gguf.models/v1"
 
@@ -115,7 +119,10 @@ def _command_usage(command: str) -> str:
 def _usage() -> str:
     lines = [f"typed-gguf {__version__}", "usage: typed-gguf <command> [options]", "", "commands:"]
     for cmd in COMMANDS:
-        lines.append(f"  {cmd:12s} (implemented in {MILESTONES.get(cmd, 'E1')})")
+        if cmd in NOT_IMPLEMENTED:
+            lines.append(f"  {cmd:12s} (specified in SPEC §2.9, not implemented in v0.1.0; exits 3)")
+        else:
+            lines.append(f"  {cmd:12s} (implemented in {MILESTONES.get(cmd, 'E1')})")
     lines.append("")
     lines.append("models: " + ", ".join(MODELS_SUBCOMMANDS))
     return "\n".join(lines)
@@ -1622,8 +1629,11 @@ def main(argv: list[str] | None = None) -> int:
     if any(arg in ("-h", "--help") for arg in rest):
         if cmd == "models" and rest and rest[0] in MODELS_SUBCOMMANDS:
             wanted = rest[0]
-            flags = " ".join(flag for flag in COMMAND_HELP["models"] if flag.startswith(wanted))
-            print(f"usage: typed-gguf models {wanted} {flags}")
+            # the matched COMMAND_HELP entry already names the subcommand (`search <query>`), so the
+            # usage line adds it once — release review F2 (card `t_a25bd190`) printed it twice
+            entry = next((flag for flag in COMMAND_HELP["models"] if flag.startswith(wanted)), wanted)
+            flags = entry.removeprefix(wanted).strip()
+            print(f"usage: typed-gguf models {wanted}" + (f" {flags}" if flags else ""))
             return 0
         print(_command_usage(cmd))
         return 0
