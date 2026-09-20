@@ -280,7 +280,7 @@ def test_the_wheel_copies_the_root_lock_into_the_package() -> None:
     assert wheel["force-include"] == {"runtime.lock": pins.PACKAGED_LOCK_RELATIVE}
 
 
-def test_the_packaged_lock_path_is_inside_the_distribution() -> None:
+def test_the_packaged_lock_path_is_inside_the_distribution(tmp_path: pathlib.Path) -> None:
     """`<pkg>/data/runtime.lock`, next to the module that reads it, and the same destination the
     wheel build maps the root file to — the two spellings cannot drift apart."""
     package_root = pathlib.Path(pins.__file__).resolve().parents[1]
@@ -288,6 +288,10 @@ def test_the_packaged_lock_path_is_inside_the_distribution() -> None:
     # the wheel root (site-packages) is where force-include's destination starts
     assert pins.packaged_lock_path().relative_to(package_root.parent).as_posix() == \
         pins.PACKAGED_LOCK_RELATIVE
+    # the `package_file` seam is a *pure* function of the file it is handed, not a name for
+    # `__file__` — a test that only reads the real package cannot tell those apart
+    synthetic = tmp_path / "site-packages" / "typed_gguf" / "runtime" / "pins.py"
+    assert pins.packaged_lock_path(synthetic) == synthetic.parent.parent / "data" / "runtime.lock"
 
 
 def test_the_lookup_order_is_override_checkout_package_then_cwd(tmp_path: pathlib.Path) -> None:
@@ -321,6 +325,26 @@ def test_an_installed_package_reads_the_copy_it_ships(tmp_path: pathlib.Path) ->
     assert pins.located_lock(environ={}, package_file=package_file, cwd=neutral) == packaged
 
 
+def test_the_search_uses_the_knobs_it_was_handed(tmp_path: pathlib.Path) -> None:
+    """`located_lock` *is* the search: what it was given has to reach `lock_candidates`. A
+    default-argument slip there would read the real environment (or the real cwd) inside a
+    caller's world — the injection points are only worth what this pin is worth."""
+    package_file = tmp_path / "site-packages" / "typed_gguf" / "runtime" / "pins.py"
+    package_file.parent.mkdir(parents=True)
+    override = tmp_path / "override.lock"
+    override.write_text((ROOT / "runtime.lock").read_text(encoding="utf-8"), encoding="utf-8")
+    neutral = tmp_path / "neutral"
+    neutral.mkdir()
+    # the override is the first rung, and nothing else exists yet
+    assert pins.located_lock(environ={"TYPED_GGUF_LOCK": str(override)},
+                             package_file=package_file, cwd=neutral) == override
+    # …and with nothing above the package, the *given* cwd is the rung that answers (the real
+    # cwd of this run is the checkout, whose lock would answer instead)
+    own = neutral / "runtime.lock"
+    own.write_text("{}", encoding="utf-8")
+    assert pins.located_lock(environ={}, package_file=package_file, cwd=neutral) == own
+
+
 def test_a_broken_install_lists_every_path_it_searched(tmp_path: pathlib.Path,
                                                        monkeypatch: pytest.MonkeyPatch) -> None:
     """The old text ("run from the repository root or set TYPED_GGUF_LOCK") sent a uvx user to the
@@ -337,9 +361,10 @@ def test_a_broken_install_lists_every_path_it_searched(tmp_path: pathlib.Path,
         pins.load_lock()
     message = str(exc.value)
     assert message.startswith("E_RUNTIME_MISSING")
-    assert str(package_file.parent / "runtime.lock") in message      # nearest above the package
-    assert str(pins.packaged_lock_path(package_file)) in message     # the copy a wheel ships
-    assert str(neutral / "runtime.lock") in message                  # the historical last resort
+    # one path per line — the list *is* the diagnosis, so its shape is part of the contract
+    assert f"\n  {package_file.parent / 'runtime.lock'}" in message   # nearest above the package
+    assert f"\n  {pins.packaged_lock_path(package_file)}" in message  # the copy a wheel ships
+    assert f"\n  {neutral / 'runtime.lock'}" in message               # the historical last resort
     assert "run from the repository root" not in message
 
 
