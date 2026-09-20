@@ -25,6 +25,7 @@ import pathlib
 import tomllib
 
 from typed_gguf import cli, schema
+from typed_gguf.errors import ERROR_CODES, WARNING_CODES
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 README = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -150,3 +151,11 @@ def test_the_spec_schema_lists_the_policy_options_the_code_ships() -> None:
         assert f'"{value}"' in line, (
             f"SPEC 2.5 names `{name}` without its shipped default {value!r}: {line}")
     assert '"thinking"' in section, "SPEC 2.5 lists no `thinking` option"
+
+
+def test_the_spec_catalog_is_the_frozen_registry() -> None:
+    """F4: SPEC §2.5 is the contract's catalog, so every code the code may raise has to be findable
+    there — the release review found the prompt-policy and bench-era additions missing."""
+    section = SPEC.split("### 2.5 Native schema", 1)[1].split("### 2.6", 1)[0]
+    missing = [code for code in (*ERROR_CODES, *WARNING_CODES) if f"`{code}`" not in section]
+    assert missing == [], f"SPEC 2.5 does not list: {', '.join(missing)}"

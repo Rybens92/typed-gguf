@@ -306,6 +306,8 @@ GGUFONE_RUNTIME_DIR=/tmp/e2-audit/runtime/b11026-linux-x64-cpu uv run ggufone be
 
 Artifacts: `state/fights/e2-provenance/logs/` (raw stdout+stderr + JSON per run,
 `internal-consistency.txt`, `e2-session-cmd-timeline.txt`, `e2-provenance-receipts.txt` — the quoted
-session receipts, `e2-session-export.jsonl` — the full code-tdd session export), checker
-`/tmp/e2-audit/check_reports.py` (also at `logs/../check_reports.py` if copied). All runs read-only
-w.r.t. other profiles; nothing committed by me.
+session receipts), checker `/tmp/e2-audit/check_reports.py` (also at `logs/../check_reports.py` if
+copied). All runs read-only w.r.t. other profiles; nothing committed by me. The full code-tdd session
+export that used to sit beside these (`e2-session-export.jsonl`) was removed from the public tree
+before the v0.1.0 tag (card `t_a25bd190`: 2.8 MB of embedded worker prompts, not measurements) — the
+measurements it accompanied stay here.

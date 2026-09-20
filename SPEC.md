@@ -267,6 +267,10 @@ recorded as an outlier in §2.6 — **typed-gguf makes no parity claim**; we alw
   "options": {                              // ALL optional; defaults in brackets
     "temperature": 1.0, "length_norm": 1.0, "readout": "sequence | single_token" ["sequence"],
     "confidence_mode": "normalized_peak | entropy | margin" ["normalized_peak"],
+    "cue": "shipped | two_step | json_field | json_instructed" ["json_instructed"],
+    "chat_format": "answer_sheet | role_split" ["role_split"],
+    "json_contract": "question | system" ["question"],
+    "thinking": false,
     "n_ctx": null, "n_seq_max": null, "kv_type": "auto | f16 | q8_0 | q4_0" ["auto"],
     "coverage_floor": 0.10, "seed": 0, "threads": null, "backend": "auto",
     "state_id": null, "state_cache": true, "save_state": false, "max_waves": null,
@@ -298,18 +302,29 @@ recorded as an outlier in §2.6 — **typed-gguf makes no parity claim**; we alw
 ```
 
 Rules: `strict=false` ⇒ unknown keys inside `options` produce `W_UNKNOWN_OPTION`; unknown keys at the
-top level are always `E_UNKNOWN_KEY`. `usage.output_tokens` counts **decode steps consumed by the
-readout** (we generate nothing; the field keeps the wire shape honest and is documented as such).
-Numbers are rounded to 6 significant decimals in JSON to keep runs byte-comparable.
+top level are always `E_UNKNOWN_KEY`. The three prompt-policy options (`cue`, `chat_format`,
+`json_contract`) default to the shipped v2 cell (`json_instructed` / `role_split` / `question`): a
+request that names none of them gets exactly that cell — the policy the v2 rows in
+`docs/BENCHMARKS.md` were measured under — and the older cells stay reachable by naming them.
+`usage.output_tokens` counts **decode steps consumed by the readout** (we generate nothing; the
+field keeps the wire shape honest and is documented as such). Numbers are rounded to 6 significant
+decimals in JSON to keep runs byte-comparable.
 
 **Error catalog** (exit code 2 for user errors, 3 for runtime/model errors, 4 for internal):
 `E_UNKNOWN_KEY`, `E_STATE_EMPTY`, `E_QID_INVALID`, `E_Q_TYPE_UNKNOWN`, `E_CHOICE_CRITERIA`,
 `E_CHOICE_TOO_MANY` (>255), `E_SCORE_LEVELS` (outside 2..10), `E_NOUL_CRITERIA`, `E_CANDIDATE_COLLISION`,
 `E_MODEL_NOT_FOUND`, `E_MODEL_ARCH_UNSUPPORTED`, `E_RUNTIME_MISSING`, `E_RUNTIME_SYMBOLS`,
 `E_RUNTIME_BUILD_OLD`, `E_CTX_TOO_SMALL`, `E_SEQ_MAX_EXCEEDED`, `E_PREFILL_FAILED`, `E_DECODE_FAILED`,
-`E_GGUF_CORRUPT`, `E_SHA256_MISMATCH`, `E_DOWNLOAD_FAILED`, `E_AMBIGUOUS_QUANT`, `E_TEMPLATE_UNRESOLVED`.
+`E_GGUF_CORRUPT`, `E_SHA256_MISMATCH`, `E_DOWNLOAD_FAILED`, `E_AMBIGUOUS_QUANT`, `E_TEMPLATE_UNRESOLVED`,
+`E_HF_AUTH_REQUIRED`, `E_INSUFFICIENT_DISK`, `E_REGISTRY_CORRUPT`, `E_STATE_LOAD_FAILED`,
+`E_BACKEND_OOM`, `E_ROLE_SPLIT_UNSUPPORTED`. `errors.ERROR_CODES` is that frozen list; the bench adds
+its own exit-2 family on top (`E_BENCH_USAGE`, `E_BENCH_SUITE`, `E_BENCH_MODEL`, `E_BENCH_BACKEND`,
+`E_BENCH_QUICK`, `E_BENCH_COMPARE`, `E_BENCH_CHILD`, `E_BENCH_STATE`, and the `E_LABEL_*`
+label-rendering codes) — extra codes only, never a redefinition of one above.
 Warnings: `W_LOW_MASS`, `W_LOW_CONFIDENCE`, `W_UNKNOWN_OPTION`, `W_TRUNCATED_STATE`,
-`W_KV_TYPE_DOWNGRADE`, `W_VULKAN_WARMUP`, `W_TEMPLATE_FALLBACK`, `W_FIT_ESTIMATED`.
+`W_KV_TYPE_DOWNGRADE`, `W_VULKAN_WARMUP`, `W_TEMPLATE_FALLBACK`, `W_FIT_ESTIMATED`, `W_FIT_DOWNGRADE`,
+`W_BACKEND_OOM`, `W_BACKEND_MISMATCH`, `W_CUE_REFUSED`, `W_JSON_EMPTY_VALUE`, `W_JSON_WRONG_FIELD`,
+`W_ESCALATED` (`errors.WARNING_CODES`).
 
 ### 2.6 TypeSafe adapter (`--format typesafe`)
 
@@ -379,6 +394,8 @@ typed-gguf models pull <repo[:quant]> [--file NAME] [--no-verify] [--jobs N]
 typed-gguf models use <alias> | ls [--json] | rm <alias> | verify [<alias>] | recommend-quant [--vram GIB]
 typed-gguf run --questions q.json [--state s.txt|--state-json f] [--model alias] [--format native|typesafe]
               [--out r.json] [--state-id ID]
+              [--cue shipped|two_step|json_field|json_instructed] [--chat-format answer_sheet|role_split]
+              [--json-contract question|system] [--thinking]
 typed-gguf ask --state <text|@file> --choice "id=instr:opt1|opt2" --score "id=instr:l0|l1|l2"
               --noul "id=instr"
 typed-gguf serve [--host 127.0.0.1] [--port 8088] [--format native|typesafe]
@@ -388,6 +405,10 @@ typed-gguf fit [<model>] [--print] [--no-cache]
 typed-gguf calibrate [--model alias] [--dry-run]
 typed-gguf version [--json]
 ```
+
+`--cue`, `--chat-format` and `--json-contract` are the prompt-policy switches of §2.5 (`--thinking`
+the opt-in thinking switch); `run`, `ask` and `bench` all accept them, so a published row's cell is
+reproducible from the CLI.
 
 ### 2.9 HTTP + MCP surface
 
@@ -497,9 +518,13 @@ own pin is the source of truth), the probe results and the warm-up timing.
 
 **CI.** `ci.yml`: ruff + `uv run pytest -q` + oracle offline on linux. `runtime-matrix.yml`: per
 platform (ubuntu cpu/vulkan, windows cpu, macos arm64) download → extract → oracle **live** section →
-smoke decision on a tiny GGUF; a job fails if the live section skips. `wheels-fallback.yml` stays as
-the escape hatch for platforms without an official asset (llama-cpp-python with the vendored submodule
-bumped to ≥ the pinned commit) and is explicitly *not* on the primary path.
+smoke decision on a tiny GGUF; a job fails if the live section skips. A `llama-cpp-python` wheel
+matrix for platforms with no official asset (exotic arch, downstream re-distribution) stays **future
+work**: the dispatch-only `wheels-fallback.yml` stub was dropped before the public v0.1.0 tag rather
+than shipped half-built (release review N2, card `t_a25bd190`). Rung 1 (the pinned prebuilt bundle) is
+the only automated rung in v0.1.0; rung 2 (the automated source build) is not implemented yet, and a
+host with no matching asset uses rung 3 — its own build, consumed through `TYPED_GGUF_RUNTIME_DIR`
+and probed by `typed-gguf doctor`.
 
 ---
 

@@ -284,6 +284,12 @@ estimate is cross-checked against measured load RSS within ±20 % on this box
   marks every such row rather than mixing it with a v2 one. What *is* v2: the 4B quality row (§2.3),
   the Tiel row (§7.4.2) and the Occamy pair.
 - **`serve`/`mcp` are specified, not shipped** (SPEC §2.9); the CLI is the only interface in v0.1.0.
+- **Exotic-platform wheels are future work.** The primary distribution is the pinned prebuilt
+  llama.cpp bundle (SPEC §4, rung 1) and rung 1 is the only automated rung in v0.1.0: a
+  `llama-cpp-python` wheel matrix for platforms with no official asset was scoped but is not built by
+  this release, and the dispatch-only `wheels-fallback.yml` stub was dropped rather than shipped
+  half-built. On such a host, point `TYPED_GGUF_RUNTIME_DIR` at a runtime you built yourself and
+  `typed-gguf doctor` probes it (rung 3).
 - **Thinking suppression is prompt-level.** It is proved on the rendered bytes for the families with
   a real switch; for `k2-horizon` the `/no_think` marker is advisory, because that family's thinking
   is a serving-stack setting (SPEC §2.11, `docs/TEMPLATES.md` §8).
@@ -294,6 +300,12 @@ estimate is cross-checked against measured load RSS within ±20 % on this box
   ~0.3 tok/s decode (measured, §6.5) and its fit plan offloads only what free VRAM allows; a host
   that can keep the weights resident turns the same command into a compute-bound run. Read
   `docs/BENCHMARKS.md` §6/§7 before blaming the engine.
+- **A cached fit plan is never re-expanded.** The plan is cached per (model SHA-256, host
+  fingerprint) under `$TYPED_GGUF_HOME/fit/` and re-checked against free device memory on every
+  load, but that check only walks the plan *down*: a plan degraded for one busy run stays degraded
+  after the device frees up (only its `budget_bytes` refreshes). Drop the cache — `--no-fit-cache`
+  on a request, `typed-gguf fit --no-cache`, or deleting `$TYPED_GGUF_HOME/fit/` — when free memory
+  returns.
 - **No CUDA row exists in the published tables** (no CUDA device was reachable when they were
   measured); each table says `measured: false` with the reason instead of omitting the backend.
 - **`typed-gguf` is not affiliated with TypeSafe** and makes no parity claim; the `typesafe` output

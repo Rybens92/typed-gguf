@@ -202,11 +202,11 @@ nothing ever produces (`if-no-files-found: warn`, so a dispatch silently "succee
 implement it or drop it before the repo goes public — a workflow named *wheels-fallback* that cannot
 produce a wheel invites the wrong trust.
 
-**⚪ N3 — the largest tracked file is an agent-session transcript.**
-`state/fights/e2-provenance/logs/e2-session-export.jsonl` (2 787 035 B) is the E2 provenance fight's
-session export — the biggest single item in the 27 MB tracked tree, and it embeds worker prompts
-rather than measurements. Cited (`state/fights/e2-provenance/scorecard.md:309`), so not dangling;
-flagged for the coordinator's slim-down decision.
+**⚪ N3 — the largest tracked file was an agent-session transcript.**
+The E2 provenance fight's session export (2 787 035 B — the biggest single item in the 27 MB tracked
+tree, embedding worker prompts rather than measurements) is **gone from the public tree**: the
+slim-down card `t_a25bd190` removed it before the tag and recorded the removal where it was cited —
+`state/fights/e2-provenance/scorecard.md` — where the measurements it accompanied stay.
 
 **⚪ N4 — one receipt carries the operator's e-mail.** `.e2e/t_a696ce02-pid-pressure/rig/git.sh:11`
 sets `user.email=rybens92@gmail.com`. The identity is already public as the repo author's commit
