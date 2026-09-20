@@ -38,7 +38,9 @@ def _fake_decide(payload: dict, *, home: pathlib.Path | None = None, **kwargs) -
 
 @pytest.fixture
 def fake_engine(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(cli, "decide_payload", _fake_decide)
+    """The seam `run`/`ask` call: E4 made it `decide_payload_warm` (which owns keep-alive and
+    falls back to the cold `decide_payload` when there is no host to be had)."""
+    monkeypatch.setattr(cli, "decide_payload_warm", _fake_decide)
 
 
 @pytest.fixture
@@ -151,7 +153,7 @@ def test_runtime_errors_exit_three(fake_engine, home, tmp_path, capsys, monkeypa
         from typed_gguf.errors import RuntimeMissingError
         raise RuntimeMissingError("E_RUNTIME_MISSING: no runtime installed")
 
-    monkeypatch.setattr(cli, "decide_payload", boom)
+    monkeypatch.setattr(cli, "decide_payload_warm", boom)     # the seam `run`/`ask` call (E4)
     assert cli.main(["ask", "--state", "S", "--choice", "a=Which?:x|y"]) == 3
     assert "E_RUNTIME_MISSING" in capsys.readouterr().err
 
@@ -161,7 +163,7 @@ def test_internal_errors_exit_four_and_never_leak_a_traceback(fake_engine, home,
     def boom(payload, *, home=None, **kwargs):
         raise ZeroDivisionError("kaboom")
 
-    monkeypatch.setattr(cli, "decide_payload", boom)
+    monkeypatch.setattr(cli, "decide_payload_warm", boom)     # the seam `run`/`ask` call (E4)
     assert cli.main(["ask", "--state", "S", "--choice", "a=Which?:x|y"]) == 4
     err = capsys.readouterr().err
     assert "E_INTERNAL" in err and "Traceback" not in err and "kaboom" in err

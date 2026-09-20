@@ -279,7 +279,7 @@ def test_the_cli_passes_cue_through(monkeypatch: pytest.MonkeyPatch, tmp_path) -
     `engine` block — a knob that does not appear in the response is a silent knob."""
     import pathlib
 
-    monkeypatch.setattr(cli, "decide_payload", _fake_decide)
+    monkeypatch.setattr(cli, "decide_payload_warm", _fake_decide)  # the E4 seam
     monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home"))
     pathlib.Path(str(tmp_path / "home")).mkdir(parents=True, exist_ok=True)
     code = cli.main(["ask", "--state", "S", "--cue", "two_step",
@@ -291,7 +291,7 @@ def test_the_cli_rejects_an_unknown_cue(monkeypatch: pytest.MonkeyPatch, tmp_pat
                                         capsys: pytest.CaptureFixture[str]) -> None:
     import pathlib
 
-    monkeypatch.setattr(cli, "decide_payload", _fake_decide)
+    monkeypatch.setattr(cli, "decide_payload_warm", _fake_decide)  # the E4 seam
     monkeypatch.setenv("TYPED_GGUF_HOME", str(tmp_path / "home2"))
     pathlib.Path(str(tmp_path / "home2")).mkdir(parents=True, exist_ok=True)
     code = cli.main(["ask", "--state", "S", "--cue", "letters",

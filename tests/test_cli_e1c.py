@@ -92,7 +92,7 @@ def recorder(monkeypatch: pytest.MonkeyPatch) -> dict:
         return {"model": None, "engine": {}, "answers": {}, "usage": {}, "timings": {},
                 "warnings": []}
 
-    monkeypatch.setattr(cli, "decide_payload", fake_decide)
+    monkeypatch.setattr(cli, "decide_payload_warm", fake_decide)   # the E4 seam (see test_cli.py)
     return seen
 
 

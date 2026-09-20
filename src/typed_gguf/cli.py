@@ -18,7 +18,7 @@ import time
 from collections.abc import Mapping, Sequence
 from typing import Any, NoReturn
 
-from typed_gguf import __version__, schema
+from typed_gguf import __version__, keep, schema
 from typed_gguf.bench import devset as devset_module
 from typed_gguf.bench import harness, suites
 from typed_gguf.calibration import calibrate as calibration_module
@@ -26,17 +26,23 @@ from typed_gguf.calibration import routing
 from typed_gguf.engine import decide
 from typed_gguf.engine import session as session_module
 from typed_gguf.errors import ModelNotFoundError, Sha256MismatchError, TypedGgufError, UserError
+from typed_gguf.keep import client as keep_client
+from typed_gguf.keep import host as keep_host
+from typed_gguf.keep import identity
 from typed_gguf.registry import gguf, hf, recommend, store
 from typed_gguf.registry.gguf import sha256_file
 from typed_gguf.runtime import capability, finder, fit, install, pins, teardown
 
 COMMANDS = ("init", "doctor", "models", "run", "ask", "serve", "mcp", "bench",
-            "fit", "calibrate", "version")
+            "fit", "calibrate", "keep", "version")
 MODELS_SUBCOMMANDS = ("search", "pull", "use", "ls", "rm", "verify", "recommend-quant")
+#: `typed-gguf keep <sub>` (SPEC 2.12). `_host` is the client's own spawn target — reachable,
+#: deliberately not advertised (`test_keep_cli.py` pins that).
+KEEP_SUBCOMMANDS = ("status", "stop")
 # command -> milestone that implements it (SPEC 5)
 MILESTONES = {"version": "E0", "init": "E1a", "doctor": "E1a", "models": "E1a",
               "run": "E1b", "ask": "E1b", "fit": "E1c", "serve": "E1b", "mcp": "E1b",
-              "bench": "E2", "calibrate": "E2.5"}
+              "bench": "E2", "calibrate": "E2.5", "keep": "E4"}
 #: commands that are *specified*, not shipped in v0.1.0 (SPEC 2.9). The root help names them in the
 #: README's own words: release review F1 (card `t_a25bd190`) — "(implemented in E1b)" was the one
 #: public surface where the tool contradicted its own documentation.
@@ -65,9 +71,10 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
             "--length-norm F", "--coverage-floor F", "--state-id ID", "--save-state",
             "--no-state-cache", "--strict", "--max-waves N",
             "--route off|auto", "--escalate", "--max-escalations N",
-            "--escalation-model REF", "--audit DIR"),
+            "--escalation-model REF", "--audit DIR", "--keep-alive <dur|0>"),
     "ask": ("--state TEXT|@FILE", "--state-json FILE", "--choice 'id=instr:opt1|opt2'",
             "--score 'id=instr:l0|l1'", "--noul 'id=instr'", "… plus every `run` flag"),
+    "keep": ("status [--json]", "stop [--json]"),
     "fit": ("[<model>]", "--print", "--no-cache", "--json", "--fit-target MIB", "--fit-ctx N",
             "--n-ctx N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--timeout S"),
     "serve": ("--host IP", "--port N", "--format native|typesafe"),
@@ -786,7 +793,7 @@ ENGINE_VALUE_FLAGS = ("model", "format", "state-id", "temperature", "length-norm
                       "n-ctx",
                       "n-seq-max", "kv-type", "threads", "backend", "seed", "max-waves", "out",
                       "questions", "state", "state-json", "template", "route", "max-escalations",
-                      "escalation-model", "audit")
+                      "escalation-model", "audit", "keep-alive")
 ENGINE_BOOL_FLAGS = ("strict", "save-state", "no-state-cache", "thinking", "no-fit",
                      "no-fit-cache", "escalate")
 FIT_VALUE_FLAGS = ("fit-target", "fit-ctx")
@@ -938,10 +945,31 @@ def fit_plan_for(model_path: str, *, home: pathlib.Path | None = None, use_cache
     return fit.plan_for_model(model, host, home=home, runtime_dir=runtime_dir, **kwargs)
 
 
-def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
-                   fit_enabled: bool = True, fit_target_mb: int | None = None,
-                   fit_ctx: int | None = None, fit_cache: bool = True) -> dict[str, Any]:
-    """Validate -> route -> resolve -> fit -> load -> prefilled fork-decide -> response body."""
+@dataclasses.dataclass(frozen=True)
+class PreparedDecision:
+    """Everything a decision needs that does *not* require a model in memory (card t_7e24cea4).
+
+    The single-decision path (`decide_payload`) and the warm host both go through this: the host
+    prepares once while it loads and then answers request after request without re-resolving the
+    model, re-running the fitter or re-loading calibration (SPEC 2.12).
+    """
+
+    payload: dict[str, Any]
+    request: schema.Request
+    alias: str
+    model_path: str
+    calibration: Any
+    plan: fit.FitPlan | None
+    n_ctx_cap: int | None
+    route_plan: routing.RoutePlan | None
+    fit_enabled: bool
+    home: pathlib.Path | None
+
+
+def prepare_decision(payload: dict[str, Any], *, home: pathlib.Path | None = None,
+                     fit_enabled: bool = True, fit_target_mb: int | None = None,
+                     fit_ctx: int | None = None, fit_cache: bool = True) -> PreparedDecision:
+    """Validate -> route -> resolve -> fit -> calibration: the half with no model in it."""
     request = schema.parse_request(payload)
     route_plan = route_request(request, home=home, fit_target_mb=fit_target_mb)
     if route_plan is not None:
@@ -956,35 +984,63 @@ def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
                             kv_type=request.options.kv_type)
         n_ctx_cap = plan.n_ctx
         request = _with_fit_options(request, plan)
-    with session_module.open_model(model_path, home=home, fit_plan=plan,
-                                   fit_disabled=not fit_enabled) as handle:
-        # the plan the load actually used: a degraded retry (allocation failure) may offload less
-        # than the plan that was requested (card t_8cb0a05e)
-        effective = getattr(handle, "fit_plan", None) or plan
-        context_plan = decide.plan_context(request, handle, n_ctx_cap=n_ctx_cap)
-        # E3 FIX (card t_80f1a4c6): name the label this run is published under and where it came
-        # from — the request's own `--backend`, else the bundle that loaded, else the record. The
-        # device that *computed* is read back from the session's own log (`engine.devices` /
-        # `engine.effective_backend`), never from this claim.
-        claim = session_module.backend_claim(
-            requested=request.options.backend,
-            runtime_dir=getattr(getattr(handle, "runtime", None), "directory", None),
-            home=home)
-        with session_module.ModelSession(handle, context_plan,
-                                         backend=claim.backend, backend_source=claim.source,
-                                         states_home=store.states_dir(home)) as live:
-            result = decide.DecisionEngine(live, calibration=calibration).decide(
-                request, plan=context_plan, model_alias=alias)
-        body = schema.render_response(result.payload(), format=request.format)
+    return PreparedDecision(payload=payload, request=request, alias=alias, model_path=model_path,
+                            calibration=calibration, plan=plan, n_ctx_cap=n_ctx_cap,
+                            route_plan=route_plan, fit_enabled=fit_enabled, home=home)
+
+
+def decide_on_handle(prepared: PreparedDecision, payload: dict[str, Any], handle: Any, *,
+                     session_load_ms: float | None = None) -> dict[str, Any]:
+    """The warm half: one decision on an already-loaded handle, with no model I/O at all.
+
+    Every request is validated on its own (`payload`), but the *route*, the fit plan and the
+    calibration are the prepared ones: a warm host must not re-plan between requests, or two
+    answers from one host could describe two different placements (`tests/test_keep_cli.py`).
+    """
+    request = schema.parse_request(payload)
+    if prepared.route_plan is not None:
+        request = _with_route_options(request, prepared.route_plan)
+    if prepared.plan is not None:
+        request = _with_fit_options(request, prepared.plan)
+    # the plan the load actually used: a degraded retry (allocation failure) may offload less
+    # than the plan that was requested (card t_8cb0a05e)
+    effective = getattr(handle, "fit_plan", None) or prepared.plan
+    context_plan = decide.plan_context(request, handle, n_ctx_cap=prepared.n_ctx_cap)
+    # E3 FIX (card t_80f1a4c6): name the label this run is published under and where it came
+    # from — the request's own `--backend`, else the bundle that loaded, else the record. The
+    # device that *computed* is read back from the session's own log (`engine.devices` /
+    # `engine.effective_backend`), never from this claim.
+    claim = session_module.backend_claim(
+        requested=request.options.backend,
+        runtime_dir=getattr(getattr(handle, "runtime", None), "directory", None),
+        home=prepared.home)
+    extra = {} if session_load_ms is None else {"load_ms": session_load_ms}
+    with session_module.ModelSession(handle, context_plan,
+                                     backend=claim.backend, backend_source=claim.source,
+                                     states_home=store.states_dir(prepared.home), **extra) as live:
+        result = decide.DecisionEngine(live, calibration=prepared.calibration).decide(
+            request, plan=context_plan, model_alias=prepared.alias)
+    body = schema.render_response(result.payload(), format=request.format)
     if effective is not None and isinstance(body.get("engine"), dict):
         # surface the plan the load really used, not the one that was asked for (card t_8cb0a05e):
         # a degraded retry offloads fewer layers, and the response has to say so.
         body["engine"]["fit"] = effective.to_dict()
-    if route_plan is not None and isinstance(body.get("engine"), dict):
+    if prepared.route_plan is not None and isinstance(body.get("engine"), dict):
         # A-E2p5-8: the routing decision and its reason belong in the response, next to the answer
-        body["engine"]["route"] = route_plan.to_dict()
-        body["model"] = route_plan.alias or body.get("model")
+        body["engine"]["route"] = prepared.route_plan.to_dict()
+        body["model"] = prepared.route_plan.alias or body.get("model")
     return body
+
+
+def decide_payload(payload: dict[str, Any], *, home: pathlib.Path | None = None,
+                   fit_enabled: bool = True, fit_target_mb: int | None = None,
+                   fit_ctx: int | None = None, fit_cache: bool = True) -> dict[str, Any]:
+    """Validate -> route -> resolve -> fit -> load -> prefilled fork-decide -> response body."""
+    prepared = prepare_decision(payload, home=home, fit_enabled=fit_enabled,
+                               fit_target_mb=fit_target_mb, fit_ctx=fit_ctx, fit_cache=fit_cache)
+    with session_module.open_model(prepared.model_path, home=home, fit_plan=prepared.plan,
+                                   fit_disabled=not prepared.fit_enabled) as handle:
+        return decide_on_handle(prepared, payload, handle)
 
 
 # ----------------------------------------------- routing / escalation (E2.5)
@@ -1163,7 +1219,8 @@ def _cmd_run(args: list[str]) -> int:
     payload = engine_request_payload(body, state=state, model=options.get("model"),
                                      fmt=options.get("format"),
                                      engine_options=_engine_options(options))
-    response = decide_payload(payload, **_fit_arguments(options))
+    response = decide_payload_warm(payload, keep_alive=options.get("keep_alive"),
+                                   **_fit_arguments(options))
     response = escalate_if_requested(payload, response,
                                      target=_escalation_target(response, options),
                                      decide_fn=(lambda sub, **kwargs: decide_payload(
@@ -1260,7 +1317,8 @@ def _cmd_ask(args: list[str]) -> int:
     payload = engine_request_payload({"questions": questions}, state=state,
                                      model=options.get("model"), fmt=options.get("format"),
                                      engine_options=_engine_options(options))
-    response = decide_payload(payload, **_fit_arguments(options))
+    response = decide_payload_warm(payload, keep_alive=options.get("keep_alive"),
+                                   **_fit_arguments(options))
     response = escalate_if_requested(payload, response,
                                      target=_escalation_target(response, options),
                                      decide_fn=(lambda sub, **kwargs: decide_payload(
@@ -1591,6 +1649,205 @@ def _cmd_fit(args: list[str]) -> int:
     return 0
 
 
+# ------------------------------------------------ the warm host's CLI half (E4, SPEC 2.12)
+def keep_model_sha(ref: str | None, *, home: pathlib.Path | None = None) -> str:
+    """The model identity a host key carries: the registry's sha256, else the file's own stat.
+
+    A host is keyed on the model it holds; a file that was replaced under the same path must not
+    keep answering from the old weights, and hashing every model on every call is exactly the
+    cost this feature exists to avoid (SPEC 2.12) — so a registry entry contributes its recorded
+    sha and a bare path contributes `stat:<size>:<mtime_ns>` (`identity.model_identity`).
+    """
+    if not ref:
+        return ""
+    registry, _warnings = store.load_registry(store.registry_path(home))
+    entry = store.resolve(registry, ref)
+    return str(getattr(entry, "sha256", "") or "") if entry is not None else ""
+
+
+def keep_key_for(payload: dict[str, Any], *, home: pathlib.Path | None = None,
+                 fit: Mapping[str, Any] | None = None) -> tuple[identity.KeepKey, str]:
+    """(the host identity this request resolves to, the model's alias) — no model I/O at all.
+
+    Cheap on purpose: the client asks this *before* deciding whether to reuse, swap or answer
+    inline, so it must not load, fit, or hash anything.
+    """
+    request = schema.parse_request(payload)
+    alias, model_path = _resolve_model(request, home=home)
+    return identity.KeepKey.of(request, model_path=model_path,
+                               model_sha=identity.model_identity(
+                                   model_path, keep_model_sha(alias, home=home)),
+                               fit=dict(fit or {})), alias
+
+
+def decide_payload_warm(payload: dict[str, Any], *, home: pathlib.Path | None = None,
+                        keep_alive: Any = None, **fit_kwargs: Any) -> dict[str, Any]:
+    """`decide_payload`, served by a resident host when one can be had (SPEC 2.12).
+
+    The fallbacks are the *product*: keep-alive 0, a platform without unix sockets, or a host
+    that cannot be reached all answer inline on this very call. What a caller never gets is a
+    wait — the client bounds every step it takes (`keep.client.Client`) — or a silent switch:
+    the response's `engine.keep` says who answered and why, if not a host.
+    """
+    seconds = identity.resolve_keep_alive(keep_alive)
+    if not seconds:
+        return decide_payload(payload, home=home, **fit_kwargs)
+    if not keep.supported():
+        print("warning: W_KEEP_UNAVAILABLE: keep-alive needs unix sockets, which this platform "
+              "does not have — answering inline instead of keeping a host alive "
+              "(SPEC 2.12)", file=sys.stderr)
+        return decide_payload(payload, home=home, **fit_kwargs)
+    key, alias = keep_key_for(payload, home=home, fit=fit_kwargs)
+    return keep_client.Client(home=home).decide(
+        key, payload, keep_alive=seconds, fit=fit_kwargs, model=alias,
+        inline=lambda: decide_payload(payload, home=home, **fit_kwargs))
+
+
+def keep_host_loaded(spec: keep_host.HostSpec) -> keep_host.Loaded:
+    """The loader the host runs *once*: the spec's payload picks the model, the plan and the rest.
+
+    The handle deliberately stays loaded: `ModelHandle` is a context manager so that a
+    single-decision run can unload in a `with`, and this process's whole reason to exist is to
+    *not* do that. The host's exit path is `os._exit` (a bundle is mapped), so nothing here is
+    ever asked to unload — the placement the engine proved is read from the handle's own log.
+    """
+    home = pathlib.Path(spec.home) if spec.home else None
+    prepared = prepare_decision(spec.payload, home=home, **spec.fit)
+    # `__enter__` on purpose: `open_model` returns a `ModelHandle`, which is a context manager so
+    # a single-decision run can unload in a `with` — a warm host enters and never leaves (the
+    # process ends with the bundle mapped, `cli.run`) . Entering here also keeps the handle
+    # object itself, not a generator a GC pass would close.
+    handle = session_module.open_model(prepared.model_path, home=home, fit_plan=prepared.plan,
+                                       fit_disabled=not prepared.fit_enabled).__enter__()
+    def decide_inner(payload: dict[str, Any]) -> dict[str, Any]:
+        return decide_on_handle(prepared, payload, handle, session_load_ms=0.0)
+
+    def decide_and_remember(payload: dict[str, Any]) -> dict[str, Any]:
+        # the evidence a warm host publishes is the *engine's*: `engine.devices` comes from the
+        # session's own log, so `keep status` reports the device that computed, not the one the
+        # flags asked for (card t_80f1a4c6) — refreshed after every decision.
+        body = decide_inner(payload)
+        engine = body.get("engine") if isinstance(body.get("engine"), dict) else {}
+        loaded.devices = {"devices": engine.get("devices"),
+                          "device_buffers": engine.get("device_buffers"),
+                          "effective_backend": engine.get("effective_backend")}
+        if isinstance(engine.get("placement"), dict):
+            loaded.placement = engine["placement"]
+        return body
+
+    loaded = keep_host.Loaded(handle=handle, decide=decide_and_remember,
+                              model=spec.model, model_path=str(prepared.model_path),
+                              model_load_ms=float(getattr(handle, "load_ms", 0.0) or 0.0),
+                              placement=_placement_of(handle, spec.payload),
+                              devices=_devices_from_log(getattr(handle, "load_log", None) or [],
+                                                        spec.key.backend))
+    return loaded
+
+
+def _placement_of(handle: Any, payload: Mapping[str, Any]) -> dict[str, Any] | None:
+    """The placement as the handle records it (`n_gpu_layers`, `--no-fit`, a degraded retry)."""
+    placement = getattr(handle, "placement", None)
+    if placement is None:
+        return None
+    to_dict = getattr(placement, "to_dict", None)
+    return dict(to_dict()) if callable(to_dict) else dict(placement)
+
+
+def _devices_from_log(log_lines: Sequence[str], claimed: str | None) -> dict[str, Any]:
+    """What the *load* log proves on its own, before any context exists (`engine.devices`)."""
+    from typed_gguf.runtime import devices as devices_module
+
+    usage = devices_module.parse_device_usage("\n".join(log_lines))
+    return {"devices": list(usage.devices), "device_buffers": dict(usage.compute_buffers),
+            "effective_backend": usage.effective, "claimed_backend": claimed}
+
+
+# ------------------------------------------------------------------ keep status / stop
+def _cmd_keep(args: list[str]) -> int:
+    """`keep status|stop` (SPEC 2.12) plus the internal `_host` the client spawns."""
+    if args and args[0] in ("_host", "--host"):
+        return _cmd_keep_host(args[1:])
+    positionals, options = _parse_args(args, bool_flags=("json",))
+    sub = positionals[0] if positionals else None
+    if len(positionals) > 1:
+        raise UserError(f"unexpected argument {positionals[1]!r}", code="E_UNKNOWN_KEY")
+    if sub == "status":
+        report = keep_client.Client(home=store.data_home()).status()
+        if options.get("json"):
+            print(json.dumps(report, indent=2, sort_keys=False))
+        else:
+            print(_keep_status_text(report))
+        return 0
+    if sub == "stop":
+        report = keep_client.Client(home=store.data_home()).stop()
+        if options.get("json"):
+            print(json.dumps(report, indent=2, sort_keys=False))
+        else:
+            print(_keep_stop_text(report))
+        return 0
+    raise UserError(f"keep needs {'|'.join(KEEP_SUBCOMMANDS)} (SPEC 2.12), not {sub!r}",
+                    code="E_UNKNOWN_KEY")
+
+
+def _keep_status_text(report: Mapping[str, Any]) -> str:
+    """One screen about the warm host: what it is, what it is doing, and what to do about it."""
+    state_ = str(report.get("state") or "stopped")
+    if state_ == "stopped":
+        return "no warm host (keep-alive off, or nothing resident)"
+    lines = [f"state: {state_}", f"pid: {report.get('pid')}",
+             f"model: {report.get('model')} ({report.get('model_path')})",
+             f"keep-alive: {report.get('keep_alive_s')}s",
+             f"idle left: {report.get('idle_left_s')}s",
+             f"uptime: {report.get('uptime_s')}s   requests: {report.get('requests')}",
+             f"model load: {report.get('model_load_ms')}ms   key: {report.get('key_digest')}"]
+    placement = report.get("placement") or {}
+    if placement:
+        lines.append("placement: " + ", ".join(f"{key}={value}"
+                                               for key, value in placement.items()))
+    devices = report.get("devices") or {}
+    if devices.get("devices") or devices.get("effective_backend"):
+        lines.append(f"proved by the engine: {devices.get('devices') or 'none named'} "
+                     f"(effective backend: {devices.get('effective_backend')})")
+    lines.append(f"socket: {report.get('socket')}   log: {report.get('log')}")
+    if state_ == "stale":
+        lines.append("hint: the pid is gone — the next call cleans this up, or `typed-gguf keep "
+                     "stop` does it now")
+    elif state_ == "unresponsive":
+        lines.append("hint: the pid is alive but the socket did not answer — `typed-gguf keep "
+                     "stop` to end it")
+    lines.append("hint: `--keep-alive 0` on `run`/`ask` answers without a host at all")
+    return "\n".join(lines)
+
+
+def _keep_stop_text(report: Mapping[str, Any]) -> str:
+    if report.get("stopped"):
+        return (f"stopped the warm host (pid {report.get('pid')})"
+                + ("" if report.get("cleaned") else " and cleaned up its record"))
+    return f"no host was running ({report.get('reason')})"
+
+
+def _cmd_keep_host(args: list[str]) -> int:
+    """The host *is* a process: this is what the client spawns, and it does not come back.
+
+    `python -m typed_gguf keep _host --spec FILE`: the spec (written by the client before the
+    spawn) carries the key, the paths, the first request and the keep-alive window. Everything
+    the host does after the load happens on the socket; when the window closes it returns 0 and
+    `cli.run`'s teardown discipline ends the process without asking a destructor to unload a
+    mapped bundle.
+    """
+    _, options = _parse_args(args, value_flags=("spec",))
+    path = options.get("spec")
+    if not path:
+        raise UserError("the keep host needs --spec FILE (it is spawned by the client, not by "
+                        "hand)", code="E_UNKNOWN_KEY")
+    spec = keep_host.read_spec(str(path))
+    if spec is None:
+        raise UserError(f"E_UNKNOWN_KEY: {path} is not a readable keep spec (version skew?)",
+                        code="E_UNKNOWN_KEY")
+    server = keep_host.Server(spec, load=lambda: keep_host_loaded(spec))
+    return server.serve()
+
+
 # --------------------------------------------------------------------- version
 def _cmd_version(args: list[str]) -> int:
     _, options = _parse_args(args, bool_flags=("json",))
@@ -1658,6 +1915,8 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_fit(rest)
         if cmd == "calibrate":
             return _cmd_calibrate(rest)
+        if cmd == "keep":
+            return _cmd_keep(rest)
     except TypedGgufError as exc:
         return _fail(exc, command=cmd)
     except KeyboardInterrupt:  # pragma: no cover - interactive

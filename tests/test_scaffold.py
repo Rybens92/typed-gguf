@@ -55,7 +55,7 @@ def test_cli_version_and_unknown_command(capsys) -> None:
 def test_cli_command_set_frozen() -> None:
     assert set(cli.COMMANDS) == {
         "init", "doctor", "models", "run", "ask", "serve", "mcp", "bench",
-        "fit", "calibrate", "version",
+        "fit", "calibrate", "keep", "version",      # `keep` is E4 (SPEC 2.12)
     }
     assert set(cli.MODELS_SUBCOMMANDS) == {
         "search", "pull", "use", "ls", "rm", "verify", "recommend-quant",

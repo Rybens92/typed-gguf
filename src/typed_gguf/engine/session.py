@@ -455,9 +455,15 @@ class ModelSession:
                  backend: str | None = None, backend_source: str = "",
                  decode_spy: Callable[[Batch], None] | None = None,
                  states_home: pathlib.Path | None = None, degrade: bool = True,
-                 log: list[str] | None = None) -> None:
+                 log: list[str] | None = None,
+                 load_ms: float | None = None) -> None:
         self.handle = handle
         self.plan = plan
+        #: card t_7e24cea4: the load this *call* paid. A warm host paid it once, an hour and six
+        #: requests ago — reporting the handle's original number as this call's `model_load_ms`
+        #: would be a lie about where the time went, so the host passes `0.0` and publishes its
+        #: own load in `engine.keep.model_load_ms`.
+        self.load_ms = float(handle.load_ms if load_ms is None else load_ms)
         #: the label this session is published under (`engine.backend`) and where it came from
         #: (`engine.backend_source`). It is a *claim*: the device that really computed is read
         #: out of `device_log` below (card t_80f1a4c6). `backend=None` asks the bundle this
@@ -514,7 +520,7 @@ class ModelSession:
                            n_seq_max=int(self.handle.runtime.llama.llama_n_seq_max(self.ctx)),
                            kv_unified=True, threads=int(self.plan.threads),
                            n_vocab=self.handle.n_vocab, model_path=self.handle.path,
-                           model_alias=None, load_ms=self.handle.load_ms,
+                           model_alias=None, load_ms=self.load_ms,
                            kv_type=self.kv_type,
                            n_gpu_layers=int(getattr(self.handle, "n_gpu_layers", 0) or 0),
                            placement=placement,
