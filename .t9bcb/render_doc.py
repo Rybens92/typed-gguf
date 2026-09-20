@@ -59,6 +59,112 @@ def cell_line(label: str, cell: dict[str, Any]) -> str:
             f"{cell['refusals']}/{cell['items']}")
 
 
+def render_occamy(stats: dict[str, Any]) -> list[str]:
+    """§9 — the optional Occamy pass: both cells measured here, compared with each other."""
+    occ = stats.get("occamy") or {}
+    if not occ:
+        return []
+    base = occ["cells"]["baseline"]
+    chall = occ["cells"]["challenger"]
+    pair = occ["paired"]
+    verdict = ("the pair clears the card's E3e unit rule" if pair.get("challenger_wins")
+               else "the pair does **not** clear the card's E3e unit rule")
+    lines = [
+        "",
+        "## 9. The optional Occamy pass (the card's \u201c(and Occamy)\u201d)",
+        "",
+        f"Occamy (`{occ.get('model_name')}`, `{occ.get('model')}`) has **no published row under "
+        f"the corrected instrument**: "
+        f"the E3 Occamy row of `docs/evidence/e3_t_a431be85_occamy.md` was measured in a container "
+        f"before the framing fix, so it is not comparable with this pair. Both cells are therefore "
+        f"measured here \u2014 the same 60 committed items, the same placement ask and the same "
+        f"`--backend vulkan --threads 4` instrument \u2014 and compared with each other, paired by "
+        f"item.",
+        "",
+        cell_line("Occamy, shipped placement + shipped cue (measured here)", base),
+        cell_line("Occamy, role_split + json_instructed (measured here)", chall),
+        "",
+        f"* paired risk difference (challenger \u2212 its own baseline): "
+        f"**{_num(pair['difference'])} ({_interval(pair['ci'])}, exact McNemar p = "
+        f"{_num(pair['mcnemar_p'])})** \u2014 discordant {pair['challenger_only']} challenger-only "
+        f"against {pair['baseline_only']} baseline-only, both correct {pair['both_correct']}, "
+        f"neither correct {pair['neither_correct']}; {verdict}.",
+        f"* refusals at the cue {base['refusals']}/{base['items']} \u2192 "
+        f"{chall['refusals']}/{chall['items']}, "
+        f"`low_mass` {base['low_mass']}/{base['items']} \u2192 "
+        f"{chall['low_mass']}/{chall['items']}, "
+        f"`measured` {base['measured']}/{base['items']} \u2192 "
+        f"{chall['measured']}/{chall['items']}.",
+    ]
+    rows = []
+    for qtype in sorted(base["per_type"]):
+        b = base["per_type"][qtype]
+        c = chall["per_type"].get(qtype) or {}
+        pt = occ["per_type"].get(qtype) or {}
+        rows.append([qtype, f"{b['correct']}/{b['n']}", f"{c.get('correct')}/{c.get('n')}",
+                     f"{pt.get('challenger_only')} / {pt.get('baseline_only')}",
+                     _num(pt.get("difference")) if pt.get("difference") is not None else "\u2014",
+                     _num(pt.get("mcnemar_p")) if pt.get("mcnemar_p") is not None else "\u2014"])
+    lines += ["", "### 9.1 By question type", ""]
+    lines += _table(["type", "shipped cue (measured here)", "role_split + json_instructed",
+                     "discordant (challenger-only / baseline-only)", "difference",
+                     "exact McNemar p"], rows)
+
+    lines += ["", "### 9.2 Placement per chunk (the loader's own answer)", ""]
+    base_by_chunk = {chunk["chunk"]: chunk for chunk in occ["baseline_chunks"]}
+    rows = []
+    for chunk in occ["challenger_chunks"]:
+        other = base_by_chunk.get(chunk["chunk"]) or {}
+        other_cell = f"{other['correct']}/{other['items']}" if other else "—"
+        rows.append([f"`{chunk['chunk']}`",
+                     other_cell,
+                     f"{chunk['correct']}/{chunk['items']}",
+                     f"{chunk['ngl_requested']} \u2192 {chunk['ngl_used']}",
+                     str(chunk["degraded"]), str(chunk["n_ctx"]),
+                     f"{_num(chunk['chunk_wall_s'])} s", f"`{chunk['effective_backend']}`",
+                     f"{chunk['low_mass']}/{chunk['items']}"])
+    lines += _table(["chunk", "shipped cue correct", "challenger correct", "ngl req \u2192 used",
+                     "degraded", "n_ctx", "chunk wall", "effective_backend", "challenger low_mass"],
+                    rows)
+
+    seen: dict[str, int] = {}
+    templates: dict[str, int] = {}
+    for chunk in occ["challenger_chunks"] + occ["baseline_chunks"]:
+        for key, count in (chunk.get("chat_format_seen") or {}).items():
+            seen[key] = seen.get(key, 0) + count
+        for key, count in (chunk.get("template_seen") or {}).items():
+            templates[key] = templates.get(key, 0) + count
+    shapes: dict[str, int] = {}
+    for key, count in seen.items():
+        data = json.loads(key)
+        label = json.dumps({name: data.get(name)
+                            for name in ("kind", "question_turn", "contract", "dropped")},
+                           sort_keys=True)
+        shapes[label] = shapes.get(label, 0) + count
+    lines += ["", "### 9.3 What the Occamy cells rendered through", ""]
+    lines += _table(["surface", "value", "rows"],
+                    [["`engine.chat_format`", f"`{key}`", str(count)]
+                     for key, count in sorted(shapes.items())] +
+                    [["`engine.template`", f"`{key}`", str(count)]
+                     for key, count in sorted(templates.items())])
+    lines += [
+        "",
+        f"* **the pin.** `{occ.get('model')}` — {occ.get('model_bytes')} bytes, mtime "
+        f"`{occ.get('model_mtime')}`, SHA-256 `{occ['sha']}` "
+        f"(`{occ.get('sha_receipt', '—')}`); the same digest is in "
+        f"`{occ.get('sha_e3_receipt', '—')}` for this file — "
+        f"**{occ.get('sha_matches_e3_receipt')}** — and its mtime precedes the pass, so the file "
+        f"the two cells loaded is the file that was already on disk, unmoved.",
+        "* the driver's own before/after hash pair did **not** reach this pass's log: the run went "
+        "through `systemd-run` without a file redirect and only its status lines were journaled, "
+        "so the digest above is a single measurement taken after the pass, not a pair.",
+        f"* per-chunk reports + placement sinks: `{occ['chunk_dir']}/`; merged: "
+        f"`{occ['merged']['baseline']}`, `{occ['merged']['challenger']}`; log: `{occ['log']}`.",
+        "",
+    ]
+    return lines
+
+
 def render_benchmarks(stats: dict[str, Any]) -> str:
     """The §7.4.2 block for `docs/BENCHMARKS.md`, rendered from the same stats file."""
     chall, base, pair, log = stats["challenger"], stats["baseline"], stats["paired"], stats["log"]
@@ -581,8 +687,18 @@ def main() -> int:
         "models. The comparability note of E3e applies unchanged: a cell measured under a role "
         "split and an instructed contract cannot be compared with rows measured on the shipped "
         "prompt bytes.",
+        "* the optional Occamy pass (§9) is a pair measured **entirely here** — its own shipped/"
+        "answer-sheet cell against `role_split` + `json_instructed` — because Occamy has no row "
+        "under the corrected instrument; it is not comparable with the container-era E3 row, and "
+        "its numbers live in this document (this card's `docs/BENCHMARKS.md` block is the Tiel "
+        "row).",
         "",
-        "## 9. Gates",
+    ]
+    lines += render_occamy(stats)
+    occ_facts = stats.get("occamy") or {}
+    lines += [
+        "",
+        "## 10. Gates",
         "",
     ]
     lines += [
@@ -616,6 +732,10 @@ def main() -> int:
         + (((stats.get("gates") or {}).get("suite_post_render") or {}).get("summary") or "—")
         + f" (`{((stats.get('gates') or {}).get('suite_post_render') or {}).get('receipt', '—')}`)"
         + " — the only tree change after that run is this section's own text |",
+        "| the optional Occamy pass exits 0 | `bash .t9bcb/run_occamy.sh` (unit `t9bcb-occamy2`) | "
+        + (f"{len(occ_facts.get('chunk_exits') or [])} chunk(s), all exit 0 — "
+           f"`{(occ_facts or {}).get('all_chunks_ok')}` — log `{occ_facts.get('log', '—')}` |"
+           if occ_facts else "not run |"),
         "",
         "The suite's skip count is this host's, not a container's: the worker scope carries no "
         "container pid cgroup, so `test_probe_pressure.py` skips — the same skip the baseline card "
@@ -641,6 +761,9 @@ def main() -> int:
         "* the same numbers in the benchmark document: `docs/BENCHMARKS.md` §7.4.2, "
         "spliced by this "
         "script from the same `stats.json`",
+        "* the optional Occamy pass: `.t9bcb/run_occamy.sh` → `.t9bcb/run_arm.sh`, "
+        "`docs/evidence/t9bcbecff_occamy_chunks/`, the two merged reports, "
+        "`.t9bcb/logs/occamy.log` + `.t9bcb/logs/occamy_sha.txt` (the pin, taken after the pass)",
         "",
     ]
     TARGET.write_text("\n".join(lines), encoding="utf-8")

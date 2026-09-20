@@ -26,6 +26,7 @@ import json
 import pathlib
 import re
 import sys
+import time
 from collections import Counter
 from typing import Any
 
@@ -385,6 +386,83 @@ def gates_facts() -> dict[str, Any]:
     return facts
 
 
+def occamy_facts() -> dict[str, Any]:
+    """The optional Occamy pass (the card's "(and Occamy)"): both E3e cells measured here.
+
+    Occamy has no row under the corrected instrument, so this pair is measured *both ways* under
+    one instrument and compared with itself — it is deliberately not comparable with the
+    container-era E3 row of card `t_a431be85`.
+    """
+    merged_base = ROOT / "docs/evidence/t9bcbecff_occamy_base_quality.json"
+    merged_e3e = ROOT / "docs/evidence/t9bcbecff_occamy_e3e_quality.json"
+    if not (merged_base.exists() and merged_e3e.exists()):
+        return {}
+    base = load(merged_base)
+    chall = load(merged_e3e)
+    chunks = ROOT / "docs/evidence/t9bcbecff_occamy_chunks"
+    log_path = ROOT / ".t9bcb/logs/occamy.log"
+    shas: list[str] = []
+    if log_path.exists():
+        shas = re.findall(r"\b([0-9a-f]{64})\b", log_path.read_text(encoding="utf-8",
+                                                                  errors="replace"))
+    facts: dict[str, Any] = {
+        "cells": {
+            "baseline": arm_cell(base, "occamy: shipped placement + shipped cue (measured here)"),
+            "challenger": arm_cell(chall, "occamy: role_split + json_instructed (measured here)"),
+        },
+        "paired": e3e.pair_stats(base, chall),
+        "paired_items": paired_items(base, chall),
+        "per_type": per_type_paired(base, chall),
+        "baseline_chunks": chunk_facts(chunks, ROOT / ".t9bcb/logs",
+                                       prefix="occ_base_report_",
+                                       sink_prefix="occ_base_placement_",
+                                       log_prefix="occ_base_run_"),
+        "challenger_chunks": chunk_facts(chunks, ROOT / ".t9bcb/logs",
+                                         prefix="occ_e3e_report_",
+                                         sink_prefix="occ_e3e_placement_",
+                                         log_prefix="occ_e3e_run_"),
+        "merged": {"baseline": str(merged_base.relative_to(ROOT)),
+                   "challenger": str(merged_e3e.relative_to(ROOT))},
+        "chunk_dir": str(chunks.relative_to(ROOT)),
+        "log": str(log_path.relative_to(ROOT)),
+        "sha_lines": len(shas),
+        "sha_identical": len(shas) >= 2 and len(set(shas)) == 1,
+        "sha": shas[0] if shas else None,
+        "all_ok": bool(base.get("ok")) and bool(chall.get("ok")),
+    }
+    model_meta = base.get("model") if isinstance(base.get("model"), dict) else {}
+    facts["model"] = model_meta.get("path") or base.get("model_path") or None
+    if not facts["model"]:
+        first = chunks / "occ_base_report_001.json"
+        if first.exists():
+            facts["model"] = load(first).get("model_path") or None
+    facts["model_name"] = pathlib.Path(str(facts["model"])).name if facts["model"] else None
+    sha_receipt = ROOT / ".t9bcb/logs/occamy_sha.txt"
+    if sha_receipt.exists():
+        found = re.search(r"[0-9a-f]{64}",
+                          sha_receipt.read_text(encoding="utf-8", errors="replace"))
+        facts["sha"] = found.group(0) if found else facts["sha"]
+        facts["sha_receipt"] = str(sha_receipt.relative_to(ROOT))
+    model_path = pathlib.Path(str(facts["model"])) if facts["model"] else None
+    if model_path is not None and model_path.exists():
+        stat = model_path.stat()
+        facts["model_bytes"] = stat.st_size
+        facts["model_mtime"] = time.strftime("%Y-%m-%d %H:%M:%S",
+                                             time.localtime(stat.st_mtime))
+    e3_env = ROOT / "docs/evidence/e3_environment.json"
+    if e3_env.exists() and facts.get("sha"):
+        facts["sha_e3_receipt"] = str(e3_env.relative_to(ROOT))
+        facts["sha_matches_e3_receipt"] = bool(
+            facts["sha"] in e3_env.read_text(encoding="utf-8", errors="replace"))
+    if log_path.exists():
+        codes = [int(code) for code in
+                 re.findall(r"=== chunk \d+ exit=(\d+)",
+                            log_path.read_text(encoding="utf-8", errors="replace"))]
+        facts["chunk_exits"] = codes
+        facts["all_chunks_ok"] = len(codes) == 12 and all(code == 0 for code in codes)
+    return facts
+
+
 def main() -> int:
     challenger = load(CHALL_MERGED)
     baseline = load(BASE_MERGED)
@@ -438,6 +516,7 @@ def main() -> int:
         "smokes": smoke_facts(),
         "aux": aux,
         "gates": gates_facts(),
+        "occamy": occamy_facts(),
     }
     smokes = stats["smokes"]
     if "collapse" in smokes and "two_step_role_split" in aux:

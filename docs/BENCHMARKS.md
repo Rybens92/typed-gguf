@@ -1040,6 +1040,18 @@ Full detail (per-chunk placement ledger, refusal breakdown, the item flips, the 
 <!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
 <!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
 <!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
 ### 7.5 The 20-question batch (deliverable 4)
 
 | what | value |

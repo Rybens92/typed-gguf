@@ -21,6 +21,17 @@ python3 tools/e3_reproduce.py --suite merge --reports "$CH/aux_two_step_report_*
   --out docs/evidence/t9bcbecff_tiel_two_step_quality.json \
   --label "Tiel-Coder-35B-A3B (t_9bcbecff aux, role_split + two_step)" || exit 1
 
+# the optional Occamy pass: both cells are measured there, so both are merged (see run_occamy.sh)
+OC=docs/evidence/t9bcbecff_occamy_chunks
+if compgen -G "$OC/occ_base_report_*.json" > /dev/null; then
+  python3 tools/e3_reproduce.py --suite merge --reports "$OC/occ_base_report_*.json" \
+    --out docs/evidence/t9bcbecff_occamy_base_quality.json \
+    --label "Occamy-1.0 (t_9bcbecff occamy, shipped placement + shipped cue)" || exit 1
+  python3 tools/e3_reproduce.py --suite merge --reports "$OC/occ_e3e_report_*.json" \
+    --out docs/evidence/t9bcbecff_occamy_e3e_quality.json \
+    --label "Occamy-1.0 (t_9bcbecff occamy, role_split + json_instructed)" || exit 1
+fi
+
 python3 .t9bcb/analyse.py || exit 1
 python3 .t9bcb/render_doc.py || exit 1
 echo "merge + analysis + document done"

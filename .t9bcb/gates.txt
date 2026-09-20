@@ -63,4 +63,4 @@ SKIPPED [1] tests/test_serving_attribution.py:546: live test: pass --run-network
 SKIPPED [2] tests/test_templates.py:423: live test: pass --run-network to run
 SKIPPED [1] tests/test_templates.py:442: live test: pass --run-network to run
 SKIPPED [1] tests/test_templates.py:478: live test: pass --run-network to run
-1325 passed, 48 skipped in 40.43s
+1325 passed, 48 skipped in 37.02s

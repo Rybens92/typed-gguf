@@ -22,8 +22,8 @@ TAG=${TAG:?set TAG (e.g. aux_role_split_)}
 CUE=${CUE:?set CUE (shipped | two_step | json_instructed)}
 CHAT=${CHAT:-role_split}
 CONTRACT=${CONTRACT:-question}
-LOG_DIR=.t9bcb/logs
-OUT_DIR=docs/evidence/t9bcbecff_tiel_chunks
+LOG_DIR=${LOG_DIR:-.t9bcb/logs}
+OUT_DIR=${OUT_DIR:-docs/evidence/t9bcbecff_tiel_chunks}
 mkdir -p "$LOG_DIR" "$OUT_DIR"
 CGROUP=$(cat /proc/self/cgroup | cut -d: -f3)
 echo "tiel aux arm ${TAG} start $(date -Is) pid $$"

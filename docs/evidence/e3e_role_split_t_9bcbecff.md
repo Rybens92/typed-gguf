@@ -221,8 +221,52 @@ Items the baseline got and the challenger loses:
 * the auxiliary cells are **not** accuracy claims: they are `measured` 0/60 with median coverage 2.488e-08, so their agreement is the argmax of a tail (§5.3). What they establish is the *mechanism*: the placement moves the question out of the assistant turn, and `two_step` is inert under it on this family because every cue row is closed before the readout can advance.
 * `score` remains the hardest type for this model even under the winning policy: 13/18 against 8/18 — the same reading E3c/E3d/E3e published.
 * this is one model's row under a *policy*; it moves no default and it does not rank models. The comparability note of E3e applies unchanged: a cell measured under a role split and an instructed contract cannot be compared with rows measured on the shipped prompt bytes.
+* the optional Occamy pass (§9) is a pair measured **entirely here** — its own shipped/answer-sheet cell against `role_split` + `json_instructed` — because Occamy has no row under the corrected instrument; it is not comparable with the container-era E3 row, and its numbers live in this document (this card's `docs/BENCHMARKS.md` block is the Tiel row).
 
-## 9. Gates
+
+## 9. The optional Occamy pass (the card's “(and Occamy)”)
+
+Occamy (`Accio-Lab_occamy-1.0-Q4_K_L.gguf`, `/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf`) has **no published row under the corrected instrument**: the E3 Occamy row of `docs/evidence/e3_t_a431be85_occamy.md` was measured in a container before the framing fix, so it is not comparable with this pair. Both cells are therefore measured here — the same 60 committed items, the same placement ask and the same `--backend vulkan --threads 4` instrument — and compared with each other, paired by item.
+
+- **Occamy, shipped placement + shipped cue (measured here)** — 26/60 = 0.433 [0.316 – 0.559]; `low_mass` 60/60, `measured` 0/60, refusals 60/60
+- **Occamy, role_split + json_instructed (measured here)** — 54/60 = 0.900 [0.799 – 0.953]; `low_mass` 0/60, `measured` 60/60, refusals 0/60
+
+* paired risk difference (challenger − its own baseline): **0.467 (0.332 – 0.601, exact McNemar p = 5.774e-08)** — discordant 29 challenger-only against 1 baseline-only, both correct 25, neither correct 5; the pair clears the card's E3e unit rule.
+* refusals at the cue 60/60 → 0/60, `low_mass` 60/60 → 0/60, `measured` 0/60 → 60/60.
+
+### 9.1 By question type
+
+| type | shipped cue (measured here) | role_split + json_instructed | discordant (challenger-only / baseline-only) | difference | exact McNemar p |
+|---|---|---|---|---|---|
+| choice | 12/24 | 23/24 | 12 / 1 | 0.458 | 0.003 |
+| noul | 7/18 | 18/18 | 11 / 0 | 0.611 | 9.766e-04 |
+| score | 7/18 | 13/18 | 6 / 0 | 0.333 | 0.031 |
+
+### 9.2 Placement per chunk (the loader's own answer)
+
+| chunk | shipped cue correct | challenger correct | ngl req → used | degraded | n_ctx | chunk wall | effective_backend | challenger low_mass |
+|---|---|---|---|---|---|---|---|---|
+| `001` | 2/10 | 9/10 | 9 → 9 | False | 205 | 37.100 s | `vulkan` | 0/10 |
+| `002` | 4/10 | 9/10 | 9 → 9 | False | 194 | 36.100 s | `vulkan` | 0/10 |
+| `003` | 4/10 | 8/10 | 9 → 9 | False | 171 | 36.800 s | `vulkan` | 0/10 |
+| `004` | 4/10 | 9/10 | 9 → 9 | False | 207 | 37.000 s | `vulkan` | 0/10 |
+| `005` | 6/10 | 10/10 | 9 → 9 | False | 172 | 35.100 s | `vulkan` | 0/10 |
+| `006` | 6/10 | 9/10 | 9 → 9 | False | 198 | 37.700 s | `vulkan` | 0/10 |
+
+### 9.3 What the Occamy cells rendered through
+
+| surface | value | rows |
+|---|---|---|
+| `engine.chat_format` | `{"contract": "question", "dropped": "", "kind": "role_split", "question_turn": "user"}` | 60 |
+| `engine.chat_format` | `{"contract": null, "dropped": null, "kind": "answer_sheet", "question_turn": "assistant"}` | 60 |
+| `engine.template` | `{"family": "qwen35moe", "kind": "gguf-renderer", "renderer": "internal", "source": "gguf:tokenizer.chat_template"}` | 120 |
+
+* **the pin.** `/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf` — 24113674848 bytes, mtime `2026-09-18 11:18:55`, SHA-256 `633ae57faf731e863cc3ba7cb75396a1b1e377191730e7b0d7294eff55cdf757` (`.t9bcb/logs/occamy_sha.txt`); the same digest is in `docs/evidence/e3_environment.json` for this file — **True** — and its mtime precedes the pass, so the file the two cells loaded is the file that was already on disk, unmoved.
+* the driver's own before/after hash pair did **not** reach this pass's log: the run went through `systemd-run` without a file redirect and only its status lines were journaled, so the digest above is a single measurement taken after the pass, not a pair.
+* per-chunk reports + placement sinks: `docs/evidence/t9bcbecff_occamy_chunks/`; merged: `docs/evidence/t9bcbecff_occamy_base_quality.json`, `docs/evidence/t9bcbecff_occamy_e3e_quality.json`; log: `.t9bcb/logs/occamy.log`.
+
+
+## 10. Gates
 
 | gate | command | result |
 |---|---|---|
@@ -232,9 +276,10 @@ Items the baseline got and the challenger loses:
 | 6-item smokes exit 0 | `.t9bcb/smoke.sh` (unit `t9bcb-smoke`) | see §7 |
 | the two auxiliary arms exit 0 | `TAG=… bash .t9bcb/run_arm.sh` (unit `t9bcb-aux`) | role_split_only 35/60, two_step_role_split 35/60 — raw log `.t9bcb/logs/campaign_aux.log` |
 | oracle | `python3 docs/verify_runtime_contract.py` | failures: 0  skips: 0 (`.t9bcb/oracle.txt`) |
-| test suite | `uv run --frozen --offline --extra dev pytest -q -rs` | 1325 passed, 48 skipped in 40.43s (`.t9bcb/gates.txt`) |
+| test suite | `uv run --frozen --offline --extra dev pytest -q -rs` | 1325 passed, 48 skipped in 37.02s (`.t9bcb/gates.txt`) |
 | ruff (the paths this card touches) | `uv run --frozen --offline --extra dev ruff check .t9bcb` | All checks passed! (`.t9bcb/logs/gates_run.log`) |
-| the suite again, after this document's render | `uv run --frozen --offline --extra dev pytest -q -rs -p no:cacheprovider` | 1325 passed, 48 skipped in 38.18s (`.t9bcb/logs/final_suite.txt`) — the only tree change after that run is this section's own text |
+| the suite again, after this document's render | `uv run --frozen --offline --extra dev pytest -q -rs -p no:cacheprovider` | 1325 passed, 48 skipped in 37.20s (`.t9bcb/logs/final_suite.txt`) — the only tree change after that run is this section's own text |
+| the optional Occamy pass exits 0 | `bash .t9bcb/run_occamy.sh` (unit `t9bcb-occamy2`) | 12 chunk(s), all exit 0 — `True` — log `.t9bcb/logs/occamy.log` |
 
 The suite's skip count is this host's, not a container's: the worker scope carries no container pid cgroup, so `test_probe_pressure.py` skips — the same skip the baseline card recorded on this box.
 
@@ -249,3 +294,4 @@ The suite's skip count is this host's, not a container's: the worker scope carri
 * statistics: `.t9bcb/stats.json` (this document is rendered from it by `.t9bcb/render_doc.py`)
 * run logs: `.t9bcb/logs/campaign.log`, `.t9bcb/logs/run_00{1..6}.log`, `.t9bcb/logs/smoke_*.log`, `.t9bcb/logs/campaign_aux.log` (+ the two auxiliary arms' per-chunk logs)
 * the same numbers in the benchmark document: `docs/BENCHMARKS.md` §7.4.2, spliced by this script from the same `stats.json`
+* the optional Occamy pass: `.t9bcb/run_occamy.sh` → `.t9bcb/run_arm.sh`, `docs/evidence/t9bcbecff_occamy_chunks/`, the two merged reports, `.t9bcb/logs/occamy.log` + `.t9bcb/logs/occamy_sha.txt` (the pin, taken after the pass)

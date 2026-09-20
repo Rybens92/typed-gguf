@@ -1,0 +1,49 @@
+wrz 20 13:45:05 localhost-live.home systemd[1921]: Started t9bcb-occamy2.service - [systemd-run] /usr/sbin/bash /var/home/rybens/workspace/ggufone-wt-t9bcb/.t9bcb/run_occamy.sh.
+wrz 20 13:45:05 localhost-live.home bash[214749]: occamy pass start 2026-09-20T13:45:05+02:00 pid 214749
+wrz 20 13:45:05 localhost-live.home bash[214749]: model=/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf ngl=9
+wrz 20 13:45:05 localhost-live.home bash[214752]: tiel aux arm occ_base_ start 2026-09-20T13:45:05+02:00 pid 214752
+wrz 20 13:45:05 localhost-live.home bash[214752]: cgroup=/user.slice/user-1000.slice/user@1000.service/app.slice/t9bcb-occamy2.service memory.max=max
+wrz 20 13:45:05 localhost-live.home bash[214752]: model=/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf ngl=9 cue=shipped chat_format=answer_sheet json_contract=question
+wrz 20 13:45:23 localhost-live.home bash[214752]: === chunk 001 start 2026-09-20T13:45:23+02:00
+wrz 20 13:45:23 localhost-live.home bash[214752]:     vram_used=1080 MiB memavail=25978308kB
+wrz 20 13:46:18 localhost-live.home bash[214752]: === chunk 001 exit=0 wall=55s 2026-09-20T13:46:18+02:00
+wrz 20 13:46:18 localhost-live.home bash[214752]: === chunk 002 start 2026-09-20T13:46:18+02:00
+wrz 20 13:46:18 localhost-live.home bash[214752]:     vram_used=1086 MiB memavail=26181868kB
+wrz 20 13:46:53 localhost-live.home bash[214752]: === chunk 002 exit=0 wall=35s 2026-09-20T13:46:53+02:00
+wrz 20 13:46:53 localhost-live.home bash[214752]: === chunk 003 start 2026-09-20T13:46:53+02:00
+wrz 20 13:46:53 localhost-live.home bash[214752]:     vram_used=1080 MiB memavail=26162372kB
+wrz 20 13:47:28 localhost-live.home bash[214752]: === chunk 003 exit=0 wall=35s 2026-09-20T13:47:28+02:00
+wrz 20 13:47:28 localhost-live.home bash[214752]: === chunk 004 start 2026-09-20T13:47:28+02:00
+wrz 20 13:47:28 localhost-live.home bash[214752]:     vram_used=1081 MiB memavail=26578040kB
+wrz 20 13:48:03 localhost-live.home bash[214752]: === chunk 004 exit=0 wall=35s 2026-09-20T13:48:03+02:00
+wrz 20 13:48:03 localhost-live.home bash[214752]: === chunk 005 start 2026-09-20T13:48:03+02:00
+wrz 20 13:48:03 localhost-live.home bash[214752]:     vram_used=1081 MiB memavail=26263152kB
+wrz 20 13:48:39 localhost-live.home bash[214752]: === chunk 005 exit=0 wall=36s 2026-09-20T13:48:39+02:00
+wrz 20 13:48:39 localhost-live.home bash[214752]: === chunk 006 start 2026-09-20T13:48:39+02:00
+wrz 20 13:48:39 localhost-live.home bash[214752]:     vram_used=1082 MiB memavail=26136684kB
+wrz 20 13:49:15 localhost-live.home bash[214752]: === chunk 006 exit=0 wall=36s 2026-09-20T13:49:15+02:00
+wrz 20 13:49:15 localhost-live.home bash[214752]: tiel aux arm occ_base_ done 2026-09-20T13:49:15+02:00
+wrz 20 13:49:29 localhost-live.home bash[223500]: tiel aux arm occ_e3e_ start 2026-09-20T13:49:29+02:00 pid 223500
+wrz 20 13:49:29 localhost-live.home bash[223500]: cgroup=/user.slice/user-1000.slice/user@1000.service/app.slice/t9bcb-occamy2.service memory.max=max
+wrz 20 13:49:29 localhost-live.home bash[223500]: model=/var/home/rybens/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf ngl=9 cue=json_instructed chat_format=role_split json_contract=question
+wrz 20 13:49:42 localhost-live.home bash[223500]: === chunk 001 start 2026-09-20T13:49:42+02:00
+wrz 20 13:49:43 localhost-live.home bash[223500]:     vram_used=1072 MiB memavail=26714388kB
+wrz 20 13:50:20 localhost-live.home bash[223500]: === chunk 001 exit=0 wall=37s 2026-09-20T13:50:20+02:00
+wrz 20 13:50:20 localhost-live.home bash[223500]: === chunk 002 start 2026-09-20T13:50:20+02:00
+wrz 20 13:50:20 localhost-live.home bash[223500]:     vram_used=1080 MiB memavail=26798492kB
+wrz 20 13:50:56 localhost-live.home bash[223500]: === chunk 002 exit=0 wall=36s 2026-09-20T13:50:56+02:00
+wrz 20 13:50:56 localhost-live.home bash[223500]: === chunk 003 start 2026-09-20T13:50:56+02:00
+wrz 20 13:50:56 localhost-live.home bash[223500]:     vram_used=1080 MiB memavail=26703924kB
+wrz 20 13:51:33 localhost-live.home bash[223500]: === chunk 003 exit=0 wall=37s 2026-09-20T13:51:33+02:00
+wrz 20 13:51:33 localhost-live.home bash[223500]: === chunk 004 start 2026-09-20T13:51:33+02:00
+wrz 20 13:51:33 localhost-live.home bash[223500]:     vram_used=1080 MiB memavail=26758124kB
+wrz 20 13:52:10 localhost-live.home bash[223500]: === chunk 004 exit=0 wall=37s 2026-09-20T13:52:10+02:00
+wrz 20 13:52:10 localhost-live.home bash[223500]: === chunk 005 start 2026-09-20T13:52:10+02:00
+wrz 20 13:52:10 localhost-live.home bash[223500]:     vram_used=1077 MiB memavail=26791200kB
+wrz 20 13:52:46 localhost-live.home bash[223500]: === chunk 005 exit=0 wall=36s 2026-09-20T13:52:46+02:00
+wrz 20 13:52:46 localhost-live.home bash[223500]: === chunk 006 start 2026-09-20T13:52:46+02:00
+wrz 20 13:52:46 localhost-live.home bash[223500]:     vram_used=1081 MiB memavail=26771864kB
+wrz 20 13:53:24 localhost-live.home bash[223500]: === chunk 006 exit=0 wall=38s 2026-09-20T13:53:24+02:00
+wrz 20 13:53:24 localhost-live.home bash[223500]: tiel aux arm occ_e3e_ done 2026-09-20T13:53:24+02:00
+wrz 20 13:53:38 localhost-live.home bash[214749]: occamy pass done 2026-09-20T13:53:38+02:00
+wrz 20 13:53:38 localhost-live.home systemd[1921]: t9bcb-occamy2.service: Consumed 10min 45.079s CPU time over 8min 32.262s wall clock time, 23.2G memory peak, 78.4M memory swap peak.
