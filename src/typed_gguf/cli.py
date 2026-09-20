@@ -120,9 +120,10 @@ def _usage() -> str:
     lines = [f"typed-gguf {__version__}", "usage: typed-gguf <command> [options]", "", "commands:"]
     for cmd in COMMANDS:
         if cmd in NOT_IMPLEMENTED:
-            lines.append(f"  {cmd:12s} (specified in SPEC §2.9, not implemented in v0.1.0; exits 3)")
+            note = "specified in SPEC §2.9, not implemented in v0.1.0; exits 3"
         else:
-            lines.append(f"  {cmd:12s} (implemented in {MILESTONES.get(cmd, 'E1')})")
+            note = f"implemented in {MILESTONES.get(cmd, 'E1')}"
+        lines.append(f"  {cmd:12s} ({note})")
     lines.append("")
     lines.append("models: " + ", ".join(MODELS_SUBCOMMANDS))
     return "\n".join(lines)
@@ -1631,7 +1632,8 @@ def main(argv: list[str] | None = None) -> int:
             wanted = rest[0]
             # the matched COMMAND_HELP entry already names the subcommand (`search <query>`), so the
             # usage line adds it once — release review F2 (card `t_a25bd190`) printed it twice
-            entry = next((flag for flag in COMMAND_HELP["models"] if flag.startswith(wanted)), wanted)
+            entry = next((flag for flag in COMMAND_HELP["models"]
+                          if flag.startswith(wanted)), wanted)
             flags = entry.removeprefix(wanted).strip()
             print(f"usage: typed-gguf models {wanted}" + (f" {flags}" if flags else ""))
             return 0

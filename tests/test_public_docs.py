@@ -24,6 +24,8 @@ from __future__ import annotations
 import pathlib
 import tomllib
 
+import pytest
+
 from typed_gguf import cli, schema
 from typed_gguf.errors import ERROR_CODES, WARNING_CODES
 
@@ -128,7 +130,7 @@ def test_the_root_help_marks_the_serving_surface_the_way_the_readme_does(
 
 def test_the_limitations_carry_the_two_release_findings_this_pass_adds() -> None:
     """F3 and N2: the fit-plan cache only ever shrinks, and the exotic-platform wheels are future
-    work (the `wheels-fallback` stub is gone). Both are limitations a reader must be able to find."""
+    work (the stub is gone) — both are limitations a reader must be able to find."""
     limitations = README.split("## Limitations and known issues", 1)[1].split("\n## ", 1)[0]
     assert "never re-expanded" in limitations, (
         "F3: the limitations must say a cached fit plan is never re-expanded")
