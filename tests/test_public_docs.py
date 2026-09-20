@@ -21,7 +21,9 @@ the code, and cannot bless one that misreads it.
 """
 from __future__ import annotations
 
+import dataclasses
 import pathlib
+import re
 import tomllib
 
 import pytest
@@ -158,6 +160,67 @@ def test_the_spec_schema_lists_the_policy_options_the_code_ships() -> None:
         assert f'"{value}"' in line, (
             f"SPEC 2.5 names `{name}` without its shipped default {value!r}: {line}")
     assert '"thinking"' in section, "SPEC 2.5 lists no `thinking` option"
+
+
+# ------------------------------------------- the E4 + uvx catch-up (card t_67bb0409)
+#: E4 (the warm engine host) and the uvx fix landed *after* the draft these notes were written from,
+#: so the two things a reader cannot get anywhere else are pinned here: what the warm host bought
+#: (in the live gate's own numbers) and how the out-of-tree install spells itself.
+WARM_RECEIPT = ROOT / "docs" / "evidence" / "v0_1_0_t_7e24cea4_warm_host.md"
+UVX_RECEIPT = ROOT / "docs" / "evidence" / "v0_1_0_t_eff926f9_uvx_install.md"
+UVX_ONE_LINER = "uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf"
+#: the facts the README (the `keep` row + the *Warm host* section) and the notes must both carry
+WARM_FACTS = ("17.50", "2280", "2.58", "--keep-alive", "--keep-alive 0", "TYPED_GGUF_KEEP_ALIVE",
+              "flag > env", "keep status", "keep stop", "one model at a time")
+
+
+def test_the_notes_make_the_warm_host_the_headline_of_this_build() -> None:
+    assert "keep host" in NOTES, "the notes must name the warm host (card t_7e24cea4)"
+    assert NOTES.index("keep host") < NOTES.index("## Measured highlights"), (
+        "the warm host is this build's headline: it belongs above the benchmark tables")
+
+
+def test_the_warm_host_numbers_are_the_live_receipts_own() -> None:
+    """No number without a receipt (requirement 5): every measured value the notes quote must still
+    be the one `tests/test_keep_live.py` produced — re-measure, never re-quote from nowhere."""
+    receipt = WARM_RECEIPT.read_text(encoding="utf-8")
+    for needle in ("17.50", "2280", "2.58", "0 ms", "5.3", "6384", "2314", "6409"):
+        assert needle in receipt, f"the E4 receipt lost {needle!r}: re-measure before re-quoting"
+        assert needle in NOTES, f"the notes no longer quote the measured {needle!r}"
+    assert "docs/evidence/v0_1_0_t_7e24cea4_warm_host.md" in NOTES, (
+        "the warm-host headline needs its receipt (docs/evidence/)")
+
+
+def test_the_notes_and_the_readme_agree_on_the_warm_host() -> None:
+    """Requirement 3: the two public documents must not contradict each other — one fact list,
+    asserted against both, so a later edit to either one fails here instead of drifting. Compared
+    case-insensitively: a bullet that opens with a capital is the same fact."""
+    for source, text in PUBLIC:
+        lowered = text.lower()
+        for needle in WARM_FACTS:
+            assert needle.lower() in lowered, f"{source} no longer carries {needle!r}"
+
+
+def test_the_notes_and_the_readme_carry_the_same_uvx_one_liner_with_its_honest_limit() -> None:
+    assert UVX_ONE_LINER in README, "the README's uvx install line moved: update the notes with it"
+    assert UVX_ONE_LINER in NOTES, "the notes must carry the uvx one-liner (card t_eff926f9)"
+    for needle in ("out-of-tree", "git fetch", "post-publish"):
+        assert needle in NOTES, f"the uvx limit must be stated honestly ({needle!r})"
+    assert "docs/evidence/v0_1_0_t_eff926f9_uvx_install.md" in NOTES, (
+        "the uvx claim needs its receipt (docs/evidence/)")
+
+
+def test_no_public_doc_presents_a_default_the_schema_does_not_carry() -> None:
+    """Requirement 3, second half: `schema.Options()` is where a native-request default lives. The
+    warm host's window is a CLI flag / env knob (`keep/identity.py::DEFAULT_KEEP_ALIVE` = 600 s), so
+    a document that spells it `options.keep_alive` sends the reader into `E_UNKNOWN_KEY`."""
+    fields = {field.name for field in dataclasses.fields(schema.Options)}
+    for source, text in PUBLIC:
+        for hit in re.findall(r"options\.([a-z_]+)", text):
+            assert hit in fields, f"{source} names `options.{hit}`, which schema.Options() lacks"
+        assert '"keep_alive"' not in text, (
+            f"{source} presents keep-alive as a request option; it is `--keep-alive` plus "
+            "$TYPED_GGUF_KEEP_ALIVE, not part of the native schema")
 
 
 def test_the_spec_catalog_is_the_frozen_registry() -> None:

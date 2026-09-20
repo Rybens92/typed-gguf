@@ -1,0 +1,54 @@
+FFFF.                                                                    [100%]
+=================================== FAILURES ===================================
+_________ test_the_notes_make_the_warm_host_the_headline_of_this_build _________
+
+    def test_the_notes_make_the_warm_host_the_headline_of_this_build() -> None:
+>       assert "keep host" in NOTES, "the notes must name the warm host (card t_7e24cea4)"
+E       AssertionError: the notes must name the warm host (card t_7e24cea4)
+E       assert 'keep host' in '# typed-gguf v0.1.0 — typed decisions on any GGUF (release-notes draft, not yet published)\n\n> Draft for the v0.1.0 ...` drives).\n`docs/BENCHMARKS.md`, `docs/TEMPLATES.md` and `SPEC.md` carry the full detail behind every number\nhere.\n'
+
+tests/test_public_docs.py:178: AssertionError
+_____________ test_the_warm_host_numbers_are_the_live_receipts_own _____________
+
+    def test_the_warm_host_numbers_are_the_live_receipts_own() -> None:
+        """No number without a receipt (requirement 5): every measured value the notes quote must still
+        be the one `tests/test_keep_live.py` produced — re-measure, never re-quote from nowhere."""
+        receipt = WARM_RECEIPT.read_text(encoding="utf-8")
+        for needle in ("17.50", "2280", "2.58", "0 ms", "5.3", "6384", "2314", "6409"):
+            assert needle in receipt, f"the E4 receipt lost {needle!r}: re-measure before re-quoting"
+>           assert needle in NOTES, f"the notes no longer quote the measured {needle!r}"
+E           AssertionError: the notes no longer quote the measured '17.50'
+E           assert '17.50' in '# typed-gguf v0.1.0 — typed decisions on any GGUF (release-notes draft, not yet published)\n\n> Draft for the v0.1.0 ...` drives).\n`docs/BENCHMARKS.md`, `docs/TEMPLATES.md` and `SPEC.md` carry the full detail behind every number\nhere.\n'
+
+tests/test_public_docs.py:189: AssertionError
+_____________ test_the_notes_and_the_readme_agree_on_the_warm_host _____________
+
+    def test_the_notes_and_the_readme_agree_on_the_warm_host() -> None:
+        """Requirement 3: the two public documents must not contradict each other — one fact list,
+        asserted against both, so a later edit to either one fails here instead of drifting. Compared
+        case-insensitively: a bullet that opens with a capital is the same fact."""
+        for source, text in PUBLIC:
+            lowered = text.lower()
+            for needle in WARM_FACTS:
+>               assert needle.lower() in lowered, f"{source} no longer carries {needle!r}"
+E               AssertionError: docs/RELEASE_NOTES_v0.1.0.md no longer carries '17.50'
+E               assert '17.50' in '# typed-gguf v0.1.0 — typed decisions on any gguf (release-notes draft, not yet published)\n\n> draft for the v0.1.0 ...` drives).\n`docs/benchmarks.md`, `docs/templates.md` and `spec.md` carry the full detail behind every number\nhere.\n'
+E                +  where '17.50' = <built-in method lower of str object at 0x7fa474bed7a0>()
+E                +    where <built-in method lower of str object at 0x7fa474bed7a0> = '17.50'.lower
+
+tests/test_public_docs.py:201: AssertionError
+_ test_the_notes_and_the_readme_carry_the_same_uvx_one_liner_with_its_honest_limit _
+
+    def test_the_notes_and_the_readme_carry_the_same_uvx_one_liner_with_its_honest_limit() -> None:
+        assert UVX_ONE_LINER in README, "the README's uvx install line moved: update the notes with it"
+>       assert UVX_ONE_LINER in NOTES, "the notes must carry the uvx one-liner (card t_eff926f9)"
+E       AssertionError: the notes must carry the uvx one-liner (card t_eff926f9)
+E       assert 'uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf' in '# typed-gguf v0.1.0 — typed decisions on any GGUF (release-notes draft, not yet published)\n\n> Draft for the v0.1.0 ...` drives).\n`docs/BENCHMARKS.md`, `docs/TEMPLATES.md` and `SPEC.md` carry the full detail behind every number\nhere.\n'
+
+tests/test_public_docs.py:206: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_public_docs.py::test_the_notes_make_the_warm_host_the_headline_of_this_build
+FAILED tests/test_public_docs.py::test_the_warm_host_numbers_are_the_live_receipts_own
+FAILED tests/test_public_docs.py::test_the_notes_and_the_readme_agree_on_the_warm_host
+FAILED tests/test_public_docs.py::test_the_notes_and_the_readme_carry_the_same_uvx_one_liner_with_its_honest_limit
+4 failed, 1 passed, 12 deselected in 0.14s

@@ -1,0 +1,11 @@
+Using CPython 3.13.15
+Creating virtual environment at: .venv
+   Building typed-gguf @ file:///tmp/gt-catchup
+      Built typed-gguf @ file:///tmp/gt-catchup
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+Installed 8 packages in 94ms
+........................................................................ [ 75%]
+........................                                                 [100%]
+96 passed, 1450 deselected in 3.87s

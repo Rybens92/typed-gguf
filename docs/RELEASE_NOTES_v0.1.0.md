@@ -24,6 +24,41 @@ Three properties are the point of the project:
   the parallel readout is *exactly* the sequential one — the proof-of-concept measured
   `max |Δ| = 0.00e+00` against a fresh sequential decode on the same context (SPEC §2.4, A4).
 
+## The headline of this build: the warm engine host
+
+`run`/`ask` no longer pay the load twice. The first call leaves a **keep host** behind — a detached
+child process holding the loaded model and answering over a `0600` unix socket in the data home
+(`$TYPED_GGUF_HOME/keep/`, never TCP) — and the next call to the same model is answered warm.
+Measured on the operator box (4B `Q8_0`, pinned Vulkan bundle, `tests/test_keep_live.py`, 7 gates in
+297.82 s, 2026-09-20):
+
+- **Cold → warm, one host pid 35915.** Cold **17.50 s** (`timings.model_load_ms` **2280 ms**) →
+  warm **2.58 s** (load **0 ms**): the warm call is decision-only, no second load, no second fit.
+- **Idle unload.** With `--keep-alive 5s` the host was gone **5.3 s** after the window, and the
+  device went 6384 → **2314** MiB (resident) → **6409** MiB (unloaded): the unload really frees.
+- **Model switch A → B → A.** Pids 37279 → 37591 → 38083: the old host is stopped *before* the new
+  one loads, so a swap never holds two models.
+
+The knobs:
+
+- **The window** is 600 s (10 min) by default, configurable with `--keep-alive <dur|0>` (`10m`,
+  `30s`, `1h`) on `run`/`ask` or with `TYPED_GGUF_KEEP_ALIVE`. Precedence: **flag > env > default**.
+  `--keep-alive 0` is the pre-E4 path exactly — answer inline and unload, so the keep path never
+  runs and the response carries no `engine.keep` block; it is also the escape hatch for an A/B
+  workflow on a box that cannot hold two models.
+- **One model at a time.** One host per data home, keyed by the resolved model plus its SHA and the
+  placement-affecting options; a request for a different key gets a swap, never a wrong answer.
+- **The control surface** is `typed-gguf keep status [--json]` / `keep stop [--json]`: `status`
+  reports the pid, the model, the key it is holding, idle seconds left, and the device the engine's
+  own log proved.
+- **Who answered** travels in the response: `engine.keep.served_by` is `"host"` or `"inline"`, with
+  the host's pid, its one-time `model_load_ms` and the named reason for a fallback. The call that
+  spawned the host reports the load it waited for; a warm answer reports `0.0`. If a host cannot be
+  reached, the client answers inline on that same call — the CLI never wedges on a host.
+
+Receipts: `docs/evidence/v0_1_0_t_7e24cea4_warm_host.md` (the gate table, the two bugs the live
+gates found, the Tier-M sweep over `src/typed_gguf/keep`); offline pins in `tests/test_keep*.py`.
+
 ## Measured highlights
 
 **Quality on our own 60-item labeled dev set** (`src/typed_gguf/bench/devset.jsonl`, authored in
@@ -70,12 +105,39 @@ Requires Python 3.11+ (no compiler, no CUDA toolkit, no build step); data lives 
 `~/.local/share/typed-gguf` (`$TYPED_GGUF_HOME` / `$XDG_DATA_HOME` override it). Model licenses are
 recorded in the registry as they are pulled, so the author's terms travel with the file.
 
+**Without a clone**, the wheel carries its own pinned `runtime.lock` and works from any directory:
+
+```bash
+uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf version
+uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf init          # pinned runtime
+uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf doctor --json
+```
+
+The honest limit, measured rather than assumed: the install itself is verified out-of-tree — the
+artifact gate installs the built wheel into a temp tool env and runs `version` / `init --dry-run` /
+`doctor --json` from a neutral cwd that carries a *decoy* lock, and a real
+`uvx --from . … typed-gguf init --backend cpu` installed build 11026 with `symbols_ok: True` — but
+the **git fetch** step of the `git+https://…` spelling needs the published repository and is
+verified **post-publish**: this checkout has no remote configured and GitHub answers that URL with
+"Repository not found" today.
+Receipt: `docs/evidence/v0_1_0_t_eff926f9_uvx_install.md`. What stays repository-root-only is the
+development surface — the test suite and the oracle read `tests/`, `docs/evidence/` and `SPEC.md`,
+which no wheel ships.
+
 ## What v0.1.0 does not include
 
 - **HTTP and MCP serving.** `typed-gguf serve` and `typed-gguf mcp` are specified (SPEC §2.9:
   `/health`, `/v1/models`, `/v1/decide`, `/v1/systemone`; the `typed_gguf_*` tool set) but they are
   not implemented in this release — both commands exit 3 with a milestone pointer. The CLI is the
   interface that ships.
+- **More than one resident model.** The warm host holds one model per data home: a request for a
+  different model — or for the same model with placement-affecting options that differ — stops the
+  old host *before* the new one loads, so a switch costs a full cold load. That is deliberate on an
+  8 GB-VRAM box, where two resident models do not fit; `--keep-alive 0` turns the host off entirely
+  and `keep stop` frees the device right now. Two honest edges: the window belongs to the call that
+  spawned the host (a later call that merely reuses it does not change it), and nothing supervises
+  a host that dies — the next call just pays a cold load. On a platform without unix sockets
+  (Windows) `run`/`ask` answer inline with `W_KEEP_UNAVAILABLE`; no daemon is attempted.
 - **Cross-question batching.** Questions in one request are decided sequentially (the parallelism is
   per candidate inside a question); a request's decode cost grows additively with question count.
 - **Post-v2 re-measurement of everything else.** The latency, throughput, determinism, calibration
@@ -102,5 +164,7 @@ Everything above is regenerated from this checkout: `uv run pytest -q` (offline 
 `python3 docs/verify_runtime_contract.py`, one command per benchmark table
 (`python3 tools/e2_reproduce.py --suite <name> --model <path.gguf>`), and the E3e decision tool
 (`python3 tools/e3e_roles_decision.py --report <arm.json> …`, the command `.e3e/report.sh` drives).
+The warm-host numbers come from the live gate on the real 4B:
+`uv run pytest -q --run-network tests/test_keep_live.py -s` (~5 min).
 `docs/BENCHMARKS.md`, `docs/TEMPLATES.md` and `SPEC.md` carry the full detail behind every number
 here.
