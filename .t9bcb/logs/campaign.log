@@ -1,0 +1,38 @@
+tiel e3e-arm campaign start 2026-09-20T13:17:27+02:00 pid 111509
+cgroup=/user.slice/user-1000.slice/user@1000.service/app.slice/t9bcb-campaign.service memory.max=max
+GGUFONE_RUNTIME_DIR=/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
+VK_DRIVER_FILES=/home/rybens/.e3c_host/nvidia_egl_icd.json
+model=/var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf ngl=9 cue=json_instructed chat_format=role_split json_contract=question
+9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c  /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf
+=== chunk 001 start 2026-09-20T13:17:40+02:00
+    vram_used=1370 MiB memavail=24508432kB
+=== chunk 001 exit=0 wall=36s 2026-09-20T13:18:16+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 86, 87, 88, 89, 91, 95, 96, 99, 101, 111
+~llama_context:    Vulkan0 compute buffer size is 232.3438 MiB, matches expectation of 232.3438 MiB
+=== chunk 002 start 2026-09-20T13:18:16+02:00
+    vram_used=1360 MiB memavail=24854856kB
+=== chunk 002 exit=0 wall=35s 2026-09-20T13:18:51+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 79, 83, 84, 87, 88, 89, 90, 92, 95
+~llama_context:    Vulkan0 compute buffer size is 229.5000 MiB, matches expectation of 229.5000 MiB
+=== chunk 003 start 2026-09-20T13:18:51+02:00
+    vram_used=1296 MiB memavail=24998620kB
+=== chunk 003 exit=0 wall=36s 2026-09-20T13:19:27+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 84, 86, 87, 88, 89, 92, 93, 98
+~llama_context:    Vulkan0 compute buffer size is 227.6719 MiB, matches expectation of 227.6719 MiB
+=== chunk 004 start 2026-09-20T13:19:27+02:00
+    vram_used=1311 MiB memavail=24606972kB
+=== chunk 004 exit=0 wall=36s 2026-09-20T13:20:03+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 84, 85, 86, 88, 91, 92, 94, 95, 96, 97
+~llama_context:    Vulkan0 compute buffer size is 231.3281 MiB, matches expectation of 231.3281 MiB
+=== chunk 005 start 2026-09-20T13:20:03+02:00
+    vram_used=1301 MiB memavail=24405120kB
+=== chunk 005 exit=0 wall=37s 2026-09-20T13:20:40+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 76, 77, 81, 82, 83, 84, 85, 90, 105
+~llama_context:    Vulkan0 compute buffer size is 228.2812 MiB, matches expectation of 228.2812 MiB
+=== chunk 006 start 2026-09-20T13:20:40+02:00
+    vram_used=1302 MiB memavail=24100796kB
+=== chunk 006 exit=0 wall=37s 2026-09-20T13:21:17+02:00
+- framing: chat-template: qwen35moe / builtin · prefix tokens: 80, 82, 88, 89, 90, 92, 93, 94, 98
+~llama_context:    Vulkan0 compute buffer size is 227.9766 MiB, matches expectation of 227.9766 MiB
+tiel e3e-arm campaign done 2026-09-20T13:21:17+02:00
+9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c  /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf

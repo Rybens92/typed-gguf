@@ -1003,6 +1003,43 @@ arm's row diff): `docs/evidence/t7c926398_tiel_corrected.md`; raw
 `docs/evidence/tiel_two_step_quality.json`.
 <!-- @@T7C926398_TIEL_CORRECTED_END@@ -->
 
+<!-- @@T9BCBECFF_TIEL_E3E_START@@ — rendered by `.t9bcb/render_doc.py` from `.t9bcb/stats.json`; edit the tool, never this block. -->
+
+### 7.4.2 The E3e policy on this row: `role_split` + `json_instructed` (card `t_9bcbecff`, [host])
+
+§7.4.1's corrected row is the baseline here and is **not re-measured**: the same 60 committed items, same model file (SHA-256 `9286a94c…`, identical before and after), same placement ask (9 layers, `degraded: false`, `kv_type` auto in every chunk) and the same `--backend vulkan --threads 4` instrument were measured once more with exactly the two E3e switches of §9 added — `--chat-format role_split` and `--cue json_instructed` (contract `question`).
+
+| row | agreement | Wilson 95 % | `low_mass` | refused at the cue | coverage median | `measured` (≥ 0.10) | choice · noul · score |
+|---|---|---|---|---|---|---|---|
+| §7.4.1, **corrected / shipped cue** | 22/60 = 0.367 | 0.256 – 0.493 | 57/60 | 59/60 | 5.828e-04 | 3/60 | 7/24 · 7/18 · 8/18 |
+| **+ `role_split` + `json_instructed`** | **53/60 = 0.883** | 0.778 – 0.942 | **0/60** | **0/60** | 0.998 | **60/60** | 22/24 · 18/18 · 13/18 |
+
+Paired by item (exact McNemar + the closed-form interval, `tools/e3e_roles_decision.py`): risk difference **+0.517 [0.353…0.680]**, p = 7.842e-07 — discordant 36 challenger-only against 5 baseline-only. The two switches therefore do on this family what §9 measured on the 4B: the placement moves the question out of the assistant turn and the instructed contract gives the readout a row to read, so the collapse recorded above (59/60 refusals, `low_mass` 57/60, `measured` 3/60) becomes a fully measured row (`low_mass` 0/60, every cue verdict `answered`).
+
+**Auxiliary cells** (same instrument, same items, never this card's row):
+
+| auxiliary arm | agreement | `low_mass` | refused at the cue | coverage median | paired vs §7.4.1 |
+|---|---|---|---|---|---|
+| `role_split_only` | 35/60 = 0.583 | 60/60 | 60/60 | 2.488e-08 | +0.217 (p = 0.007) |
+| `two_step_role_split` | 35/60 = 0.583 | 60/60 | 60/60 | 2.488e-08 | +0.217 (p = 0.007) |
+
+The collapse cell reproduces §9's **non-additivity** on this family as well, with the opposite branch of the same rule: under the role split every cue row closes the turn (`<think>`), and `decide._advance_token` never advances past a cue the model closed — so `two_step` is *inert* here and the two auxiliary arms are decision-identical item by item (60/60 refusals, `low_mass` 60/60, 0.583). Neither auxiliary cell is readable as accuracy — both are `measured` 0/60 with median coverage 2.488e-08: the placement moves the question out of the assistant turn, and it is the instructed contract that puts the answer's mass on the readout row (`low_mass` 60/60 → 0/60).
+
+**No default moves.** The two switches keep the frozen defaults §9 published (`cue=shipped`, `chat_format=answer_sheet`, `json_contract=question`); this subsection is a policy measurement on one model's row, and a row measured under it is not comparable with the rows measured on the shipped prompt bytes.
+
+Full detail (per-chunk placement ledger, refusal breakdown, the item flips, the two auxiliary arms, the render path receipts): `docs/evidence/e3e_role_split_t_9bcbecff.md`; raw `docs/evidence/t9bcbecff_tiel_challenger_quality.json` + `docs/evidence/t9bcbecff_tiel_chunks/`.
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
+<!-- @@T9BCBECFF_TIEL_E3E_END@@ -->
 ### 7.5 The 20-question batch (deliverable 4)
 
 | what | value |

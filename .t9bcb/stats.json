@@ -1,0 +1,3611 @@
+{
+ "aux": {
+  "role_split_only": {
+   "cell": {
+    "agreement": 0.5833333333333334,
+    "chat_format": "role_split",
+    "ci": [
+     0.45728081022640116,
+     0.6993572144165838
+    ],
+    "closers": {
+     "closers": {
+      "<think>": 60
+     },
+     "refused": 60,
+     "refused_n": 60
+    },
+    "correct": 35,
+    "coverage": {
+     "max": 4.914094692411377e-06,
+     "min": 6.587830590348922e-10,
+     "n": 60,
+     "p50": 2.4977701715314895e-08
+    },
+    "coverage_quantiles": {
+     "max": 4.914094692411377e-06,
+     "min": 6.587830590348922e-10,
+     "n": 60,
+     "p25": 7.176557371383306e-09,
+     "p50": 2.4882606735983697e-08,
+     "p75": 1.580349506699634e-07
+    },
+    "cue": "shipped",
+    "decisions": {
+     "max_s": 1.884746191000204,
+     "median_s": 1.2225180659999069,
+     "min_s": 1.0407263480001347,
+     "n": 60
+    },
+    "device_buffers": {
+     "Vulkan0": 10,
+     "Vulkan_Host": 10
+    },
+    "devices": [
+     "CPU",
+     "CPU_Mapped",
+     "Vulkan0",
+     "Vulkan_Host"
+    ],
+    "effective_backend": "vulkan",
+    "framing": {
+     "family": "qwen35moe",
+     "kind": "builtin",
+     "labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "mixed": false,
+     "renderer": "builtin",
+     "thinking": "suppressed",
+     "warnings": [
+      "W_TEMPLATE_FALLBACK"
+     ]
+    },
+    "framing_rows": {
+     "labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "mixed": false,
+     "prefix_tokens_all": [
+      71,
+      72,
+      74,
+      75,
+      76,
+      77,
+      77,
+      78,
+      78,
+      79,
+      79,
+      79,
+      79,
+      79,
+      80,
+      80,
+      81,
+      81,
+      81,
+      81,
+      82,
+      82,
+      82,
+      83,
+      83,
+      83,
+      83,
+      83,
+      83,
+      84,
+      84,
+      84,
+      84,
+      84,
+      85,
+      85,
+      85,
+      85,
+      86,
+      86,
+      87,
+      87,
+      87,
+      87,
+      88,
+      88,
+      89,
+      89,
+      90,
+      90,
+      90,
+      91,
+      91,
+      92,
+      93,
+      93,
+      94,
+      96,
+      100,
+      106
+     ],
+     "prefix_tokens_max": 106,
+     "prefix_tokens_min": 71,
+     "surfaces": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\", \"thinking\": \"suppressed\"}": 60
+     }
+    },
+    "items": 60,
+    "json_contract": "question",
+    "kind": null,
+    "label": "aux: role_split + the shipped cue (the placement alone)",
+    "low_mass": 60,
+    "measured": 0,
+    "mismatch_warnings": [],
+    "model": "Tiel-Coder-35B-A3B (t_9bcbecff aux, role_split + shipped cue)",
+    "ok": true,
+    "path": "",
+    "per_type": {
+     "choice": {
+      "agreement": 0.5833333333333334,
+      "ci": [
+       0.3883466586522876,
+       0.7553239739018824
+      ],
+      "correct": 14,
+      "n": 24
+     },
+     "noul": {
+      "agreement": 0.5,
+      "ci": [
+       0.29031021505169974,
+       0.7096897849483003
+      ],
+      "correct": 9,
+      "n": 18
+     },
+     "score": {
+      "agreement": 0.6666666666666666,
+      "ci": [
+       0.43749467295945105,
+       0.837212252491663
+      ],
+      "correct": 12,
+      "n": 18
+     }
+    },
+    "prefix_tokens": {
+     "max": 106,
+     "min": 71
+    },
+    "refusals": 60,
+    "report_warnings": [],
+    "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_001.jsonl --chat-format role_split --gpu-layers 9 --json",
+    "suite": "quality",
+    "verdicts": {},
+    "wall_ms": 36832.014
+   },
+   "chunks": [
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 412, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 414, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 418, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 424, \"question_turn\": \"user\"}": 3,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 452, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 453, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 457, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 461, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "001",
+     "chunk_wall_s": 36.8,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 230.3125 MiB, matches expectation of 230.3125 MiB",
+     "compute_lines": 20,
+     "correct": 3,
+     "cue": "shipped",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.727,
+     "low_mass": 10,
+     "median_decision_s": 1.2301890005001042,
+     "mismatch_warnings": [],
+     "n_ctx": 189,
+     "n_prefix": 90,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      81,
+      82,
+      83,
+      84,
+      86,
+      90,
+      91,
+      94,
+      96,
+      106
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_report_001.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_placement_001.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 4,
+      "noul": 3,
+      "score": 3
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 377, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 383, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 394, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 398, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 408, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 417, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 431, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 435, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 438, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 442, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "002",
+     "chunk_wall_s": 36.5,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 227.2266 MiB, matches expectation of 227.2266 MiB",
+     "compute_lines": 20,
+     "correct": 6,
+     "cue": "shipped",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 5.499,
+     "low_mass": 10,
+     "median_decision_s": 1.2240889734999882,
+     "mismatch_warnings": [],
+     "n_ctx": 178,
+     "n_prefix": 90,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      74,
+      78,
+      79,
+      82,
+      83,
+      84,
+      84,
+      85,
+      87,
+      90
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_report_002.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_placement_002.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 3,
+      "noul": 3,
+      "score": 4
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 385, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 401, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 409, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 410, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 413, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 414, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 424, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 426, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 432, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 474, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "003",
+     "chunk_wall_s": 35.6,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 226.4531 MiB, matches expectation of 226.4531 MiB",
+     "compute_lines": 20,
+     "correct": 6,
+     "cue": "shipped",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.606,
+     "low_mass": 10,
+     "median_decision_s": 1.1768384875000493,
+     "mismatch_warnings": [],
+     "n_ctx": 159,
+     "n_prefix": 79,
+     "n_seq_max": 3,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      79,
+      81,
+      81,
+      82,
+      83,
+      83,
+      84,
+      87,
+      88,
+      93
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_report_003.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_placement_003.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 3,
+      "noul": 4,
+      "score": 3
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 406, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 410, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 411, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 413, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 414, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 442, \"question_turn\": \"user\"}": 2,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 443, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 452, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 468, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "004",
+     "chunk_wall_s": 35.0,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 229.2969 MiB, matches expectation of 229.2969 MiB",
+     "compute_lines": 20,
+     "correct": 6,
+     "cue": "shipped",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.247,
+     "low_mass": 10,
+     "median_decision_s": 1.1523686690001114,
+     "mismatch_warnings": [],
+     "n_ctx": 191,
+     "n_prefix": 90,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      79,
+      80,
+      81,
+      83,
+      86,
+      87,
+      89,
+      90,
+      91,
+      92
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_report_004.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_placement_004.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 4,
+      "noul": 3,
+      "score": 3
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 367, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 376, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 389, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 391, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 396, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 397, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 403, \"question_turn\": \"user\"}": 2,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 413, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 473, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "005",
+     "chunk_wall_s": 35.4,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 226.2500 MiB, matches expectation of 226.2500 MiB",
+     "compute_lines": 20,
+     "correct": 8,
+     "cue": "shipped",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.256,
+     "low_mass": 10,
+     "median_decision_s": 1.2088128120000192,
+     "mismatch_warnings": [],
+     "n_ctx": 156,
+     "n_prefix": 72,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      71,
+      72,
+      76,
+      77,
+      78,
+      79,
+      79,
+      80,
+      85,
+      100
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_report_005.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_placement_005.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 3,
+      "noul": 3,
+      "score": 4
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 370, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 395, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 416, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 422, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 428, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 444, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 445, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 449, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 456, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 471, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "006",
+     "chunk_wall_s": 39.5,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 226.7578 MiB, matches expectation of 226.7578 MiB",
+     "compute_lines": 20,
+     "correct": 6,
+     "cue": "shipped",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.432,
+     "low_mass": 10,
+     "median_decision_s": 1.3974595915000236,
+     "mismatch_warnings": [],
+     "n_ctx": 182,
+     "n_prefix": 87,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      75,
+      77,
+      83,
+      84,
+      85,
+      85,
+      87,
+      88,
+      89,
+      93
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_report_006.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_role_split_placement_006.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 7,
+      "noul": 2,
+      "score": 1
+     }
+    }
+   ],
+   "label": "aux: role_split + the shipped cue (the placement alone)",
+   "merged": "docs/evidence/t9bcbecff_tiel_role_split_quality.json",
+   "per_type": {
+    "choice": {
+     "baseline_agreement": 0.2916666666666667,
+     "baseline_correct": 7,
+     "baseline_only": 1,
+     "challenger_agreement": 0.5833333333333334,
+     "challenger_correct": 14,
+     "challenger_only": 8,
+     "difference": 0.2916666666666667,
+     "mcnemar_p": 0.0390625,
+     "n": 24
+    },
+    "noul": {
+     "baseline_agreement": 0.3888888888888889,
+     "baseline_correct": 7,
+     "baseline_only": 0,
+     "challenger_agreement": 0.5,
+     "challenger_correct": 9,
+     "challenger_only": 2,
+     "difference": 0.1111111111111111,
+     "mcnemar_p": 0.5,
+     "n": 18
+    },
+    "score": {
+     "baseline_agreement": 0.4444444444444444,
+     "baseline_correct": 8,
+     "baseline_only": 3,
+     "challenger_agreement": 0.6666666666666666,
+     "challenger_correct": 12,
+     "challenger_only": 7,
+     "difference": 0.2222222222222222,
+     "mcnemar_p": 0.34375,
+     "n": 18
+    }
+   },
+   "vs_baseline": {
+    "baseline": "shipped/answer_sheet",
+    "baseline_only": 4,
+    "both_correct": 18,
+    "caveat": "Wald interval on the discordant counts (optimistic near zero discordance); the exact McNemar p is the test",
+    "challenger": "shipped/role_split",
+    "challenger_only": 17,
+    "challenger_wins": true,
+    "ci": [
+     0.07737228791856071,
+     0.35596104541477264
+    ],
+    "difference": 0.21666666666666667,
+    "mcnemar_p": 0.007197380065917969,
+    "n": 60,
+    "neither_correct": 21
+   },
+   "vs_challenger": {
+    "baseline": "shipped/role_split",
+    "baseline_only": 2,
+    "both_correct": 33,
+    "caveat": "Wald interval on the discordant counts (optimistic near zero discordance); the exact McNemar p is the test",
+    "challenger": "json_instructed/role_split",
+    "challenger_only": 20,
+    "challenger_wins": true,
+    "ci": [
+     0.16690832689090399,
+     0.433091673109096
+    ],
+    "difference": 0.3,
+    "mcnemar_p": 0.00012111663818359375,
+    "n": 60,
+    "neither_correct": 5
+   }
+  },
+  "two_step_role_split": {
+   "cell": {
+    "agreement": 0.5833333333333334,
+    "chat_format": "role_split",
+    "ci": [
+     0.45728081022640116,
+     0.6993572144165838
+    ],
+    "closers": {
+     "closers": {
+      "<think>": 60
+     },
+     "refused": 60,
+     "refused_n": 60
+    },
+    "correct": 35,
+    "coverage": {
+     "max": 4.914094692411377e-06,
+     "min": 6.587830590348922e-10,
+     "n": 60,
+     "p50": 2.4977701715314895e-08
+    },
+    "coverage_quantiles": {
+     "max": 4.914094692411377e-06,
+     "min": 6.587830590348922e-10,
+     "n": 60,
+     "p25": 7.176557371383306e-09,
+     "p50": 2.4882606735983697e-08,
+     "p75": 1.580349506699634e-07
+    },
+    "cue": "two_step",
+    "decisions": {
+     "max_s": 2.124824957999863,
+     "median_s": 1.4110068849997788,
+     "min_s": 1.2556571979998807,
+     "n": 60
+    },
+    "device_buffers": {
+     "Vulkan0": 10,
+     "Vulkan_Host": 10
+    },
+    "devices": [
+     "CPU",
+     "CPU_Mapped",
+     "Vulkan0",
+     "Vulkan_Host"
+    ],
+    "effective_backend": "vulkan",
+    "framing": {
+     "family": "qwen35moe",
+     "kind": "builtin",
+     "labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "mixed": false,
+     "renderer": "builtin",
+     "thinking": "suppressed",
+     "warnings": [
+      "W_TEMPLATE_FALLBACK"
+     ]
+    },
+    "framing_rows": {
+     "labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "mixed": false,
+     "prefix_tokens_all": [
+      71,
+      72,
+      74,
+      75,
+      76,
+      77,
+      77,
+      78,
+      78,
+      79,
+      79,
+      79,
+      79,
+      79,
+      80,
+      80,
+      81,
+      81,
+      81,
+      81,
+      82,
+      82,
+      82,
+      83,
+      83,
+      83,
+      83,
+      83,
+      83,
+      84,
+      84,
+      84,
+      84,
+      84,
+      85,
+      85,
+      85,
+      85,
+      86,
+      86,
+      87,
+      87,
+      87,
+      87,
+      88,
+      88,
+      89,
+      89,
+      90,
+      90,
+      90,
+      91,
+      91,
+      92,
+      93,
+      93,
+      94,
+      96,
+      100,
+      106
+     ],
+     "prefix_tokens_max": 106,
+     "prefix_tokens_min": 71,
+     "surfaces": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\", \"thinking\": \"suppressed\"}": 60
+     }
+    },
+    "items": 60,
+    "json_contract": "question",
+    "kind": null,
+    "label": "aux: role_split + two_step (the 4B's collapse cell)",
+    "low_mass": 60,
+    "measured": 0,
+    "mismatch_warnings": [],
+    "model": "Tiel-Coder-35B-A3B (t_9bcbecff aux, role_split + two_step)",
+    "ok": true,
+    "path": "",
+    "per_type": {
+     "choice": {
+      "agreement": 0.5833333333333334,
+      "ci": [
+       0.3883466586522876,
+       0.7553239739018824
+      ],
+      "correct": 14,
+      "n": 24
+     },
+     "noul": {
+      "agreement": 0.5,
+      "ci": [
+       0.29031021505169974,
+       0.7096897849483003
+      ],
+      "correct": 9,
+      "n": 18
+     },
+     "score": {
+      "agreement": 0.6666666666666666,
+      "ci": [
+       0.43749467295945105,
+       0.837212252491663
+      ],
+      "correct": 12,
+      "n": 18
+     }
+    },
+    "prefix_tokens": {
+     "max": 106,
+     "min": 71
+    },
+    "refusals": 60,
+    "report_warnings": [],
+    "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_001.jsonl --cue two_step --chat-format role_split --gpu-layers 9 --json",
+    "suite": "quality",
+    "verdicts": {},
+    "wall_ms": 42732.9
+   },
+   "chunks": [
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 412, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 414, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 418, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 424, \"question_turn\": \"user\"}": 3,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 452, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 453, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 457, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 461, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "001",
+     "chunk_wall_s": 42.7,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 230.3125 MiB, matches expectation of 230.3125 MiB",
+     "compute_lines": 20,
+     "correct": 3,
+     "cue": "two_step",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 6.167,
+     "low_mass": 10,
+     "median_decision_s": 1.4255664395000167,
+     "mismatch_warnings": [],
+     "n_ctx": 189,
+     "n_prefix": 90,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      81,
+      82,
+      83,
+      84,
+      86,
+      90,
+      91,
+      94,
+      96,
+      106
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_report_001.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_placement_001.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 4,
+      "noul": 3,
+      "score": 3
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 377, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 383, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 394, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 398, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 408, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 417, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 431, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 435, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 438, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 442, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "002",
+     "chunk_wall_s": 40.5,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 227.2266 MiB, matches expectation of 227.2266 MiB",
+     "compute_lines": 20,
+     "correct": 6,
+     "cue": "two_step",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.801,
+     "low_mass": 10,
+     "median_decision_s": 1.4291781795000134,
+     "mismatch_warnings": [],
+     "n_ctx": 178,
+     "n_prefix": 90,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      74,
+      78,
+      79,
+      82,
+      83,
+      84,
+      84,
+      85,
+      87,
+      90
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_report_002.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_placement_002.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 3,
+      "noul": 3,
+      "score": 4
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 385, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 401, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 409, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 410, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 413, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 414, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 424, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 426, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 432, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 474, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "003",
+     "chunk_wall_s": 40.0,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 226.4531 MiB, matches expectation of 226.4531 MiB",
+     "compute_lines": 20,
+     "correct": 6,
+     "cue": "two_step",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.385,
+     "low_mass": 10,
+     "median_decision_s": 1.4055926994999481,
+     "mismatch_warnings": [],
+     "n_ctx": 159,
+     "n_prefix": 79,
+     "n_seq_max": 3,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      79,
+      81,
+      81,
+      82,
+      83,
+      83,
+      84,
+      87,
+      88,
+      93
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_report_003.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_placement_003.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 3,
+      "noul": 4,
+      "score": 3
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 406, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 410, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 411, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 413, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 414, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 442, \"question_turn\": \"user\"}": 2,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 443, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 452, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 468, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "004",
+     "chunk_wall_s": 40.3,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 229.2969 MiB, matches expectation of 229.2969 MiB",
+     "compute_lines": 20,
+     "correct": 6,
+     "cue": "two_step",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.444,
+     "low_mass": 10,
+     "median_decision_s": 1.3789260959999865,
+     "mismatch_warnings": [],
+     "n_ctx": 191,
+     "n_prefix": 90,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      79,
+      80,
+      81,
+      83,
+      86,
+      87,
+      89,
+      90,
+      91,
+      92
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_report_004.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_placement_004.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 4,
+      "noul": 3,
+      "score": 3
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 367, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 376, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 389, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 391, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 396, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 397, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 403, \"question_turn\": \"user\"}": 2,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 413, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 473, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "005",
+     "chunk_wall_s": 39.9,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 226.2500 MiB, matches expectation of 226.2500 MiB",
+     "compute_lines": 20,
+     "correct": 8,
+     "cue": "two_step",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.535,
+     "low_mass": 10,
+     "median_decision_s": 1.362694324999893,
+     "mismatch_warnings": [],
+     "n_ctx": 156,
+     "n_prefix": 72,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      71,
+      72,
+      76,
+      77,
+      78,
+      79,
+      79,
+      80,
+      85,
+      100
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_report_005.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_placement_005.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 3,
+      "noul": 3,
+      "score": 4
+     }
+    },
+    {
+     "chat_format": "role_split",
+     "chat_format_seen": {
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 370, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 395, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 416, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 422, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 428, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 444, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 445, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 449, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 456, \"question_turn\": \"user\"}": 1,
+      "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 471, \"question_turn\": \"user\"}": 1
+     },
+     "chunk": "006",
+     "chunk_wall_s": 41.3,
+     "compute_devices": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "compute_first": "~llama_context:    Vulkan0 compute buffer size is 226.7578 MiB, matches expectation of 226.7578 MiB",
+     "compute_lines": 20,
+     "correct": 6,
+     "cue": "two_step",
+     "degraded": false,
+     "device_buffers": {
+      "Vulkan0": 10,
+      "Vulkan_Host": 10
+     },
+     "effective_backend": "vulkan",
+     "framing_labels": [
+      "chat-template: qwen35moe / builtin"
+     ],
+     "items": 10,
+     "json_contract": "question",
+     "kv_type_used": "auto",
+     "load_wall_s": 4.459,
+     "low_mass": 10,
+     "median_decision_s": 1.5000980484999218,
+     "mismatch_warnings": [],
+     "n_ctx": 182,
+     "n_prefix": 87,
+     "n_seq_max": 5,
+     "ngl_requested": 9,
+     "ngl_used": 9,
+     "ok": true,
+     "prefix_tokens": [
+      75,
+      77,
+      83,
+      84,
+      85,
+      85,
+      87,
+      88,
+      89,
+      93
+     ],
+     "refusals": 10,
+     "report": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_report_006.json",
+     "sink": "docs/evidence/t9bcbecff_tiel_chunks/aux_two_step_placement_006.json",
+     "template_seen": {
+      "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+     },
+     "types": {
+      "choice": 7,
+      "noul": 2,
+      "score": 1
+     }
+    }
+   ],
+   "label": "aux: role_split + two_step (the 4B's collapse cell)",
+   "merged": "docs/evidence/t9bcbecff_tiel_two_step_quality.json",
+   "per_type": {
+    "choice": {
+     "baseline_agreement": 0.2916666666666667,
+     "baseline_correct": 7,
+     "baseline_only": 1,
+     "challenger_agreement": 0.5833333333333334,
+     "challenger_correct": 14,
+     "challenger_only": 8,
+     "difference": 0.2916666666666667,
+     "mcnemar_p": 0.0390625,
+     "n": 24
+    },
+    "noul": {
+     "baseline_agreement": 0.3888888888888889,
+     "baseline_correct": 7,
+     "baseline_only": 0,
+     "challenger_agreement": 0.5,
+     "challenger_correct": 9,
+     "challenger_only": 2,
+     "difference": 0.1111111111111111,
+     "mcnemar_p": 0.5,
+     "n": 18
+    },
+    "score": {
+     "baseline_agreement": 0.4444444444444444,
+     "baseline_correct": 8,
+     "baseline_only": 3,
+     "challenger_agreement": 0.6666666666666666,
+     "challenger_correct": 12,
+     "challenger_only": 7,
+     "difference": 0.2222222222222222,
+     "mcnemar_p": 0.34375,
+     "n": 18
+    }
+   },
+   "vs_baseline": {
+    "baseline": "shipped/answer_sheet",
+    "baseline_only": 4,
+    "both_correct": 18,
+    "caveat": "Wald interval on the discordant counts (optimistic near zero discordance); the exact McNemar p is the test",
+    "challenger": "two_step/role_split",
+    "challenger_only": 17,
+    "challenger_wins": true,
+    "ci": [
+     0.07737228791856071,
+     0.35596104541477264
+    ],
+    "difference": 0.21666666666666667,
+    "mcnemar_p": 0.007197380065917969,
+    "n": 60,
+    "neither_correct": 21
+   },
+   "vs_challenger": {
+    "baseline": "two_step/role_split",
+    "baseline_only": 2,
+    "both_correct": 33,
+    "caveat": "Wald interval on the discordant counts (optimistic near zero discordance); the exact McNemar p is the test",
+    "challenger": "json_instructed/role_split",
+    "challenger_only": 20,
+    "challenger_wins": true,
+    "ci": [
+     0.16690832689090399,
+     0.433091673109096
+    ],
+    "difference": 0.3,
+    "mcnemar_p": 0.00012111663818359375,
+    "n": 60,
+    "neither_correct": 5
+   }
+  }
+ },
+ "aux_identity": {
+  "challenger_vs_role_split_only": {
+   "decisions_identical": 38,
+   "max_abs_coverage_delta": 0.9997800189950986,
+   "n": 60,
+   "prefix_tokens_identical": 0,
+   "winner_flips": [
+    {
+     "id": "c02",
+     "left_correct": true,
+     "left_got": "billing",
+     "right_correct": false,
+     "right_got": "escalation"
+    },
+    {
+     "id": "c04",
+     "left_correct": true,
+     "left_got": "restricted",
+     "right_correct": false,
+     "right_got": "confidential"
+    },
+    {
+     "id": "c07",
+     "left_correct": true,
+     "left_got": "termination",
+     "right_correct": false,
+     "right_got": "liability"
+    },
+    {
+     "id": "c09",
+     "left_correct": true,
+     "left_got": "spam",
+     "right_correct": false,
+     "right_got": "harassment"
+    },
+    {
+     "id": "c14",
+     "left_correct": true,
+     "left_got": "capital",
+     "right_correct": false,
+     "right_got": "non_deductible"
+    },
+    {
+     "id": "c16",
+     "left_correct": true,
+     "left_got": "travel",
+     "right_correct": false,
+     "right_got": "meals"
+    },
+    {
+     "id": "c18",
+     "left_correct": true,
+     "left_got": "standup",
+     "right_correct": false,
+     "right_got": "retrospective"
+    },
+    {
+     "id": "c19",
+     "left_correct": true,
+     "left_got": "configuration",
+     "right_correct": false,
+     "right_got": "infrastructure"
+    },
+    {
+     "id": "n01",
+     "left_correct": true,
+     "left_got": "yes",
+     "right_correct": false,
+     "right_got": "no"
+    },
+    {
+     "id": "n02",
+     "left_correct": true,
+     "left_got": "yes",
+     "right_correct": false,
+     "right_got": "no"
+    },
+    {
+     "id": "n03",
+     "left_correct": true,
+     "left_got": "yes",
+     "right_correct": false,
+     "right_got": "no"
+    },
+    {
+     "id": "n04",
+     "left_correct": true,
+     "left_got": "yes",
+     "right_correct": false,
+     "right_got": "no"
+    },
+    {
+     "id": "n05",
+     "left_correct": true,
+     "left_got": "yes",
+     "right_correct": false,
+     "right_got": "no"
+    },
+    {
+     "id": "n10",
+     "left_correct": true,
+     "left_got": "yes",
+     "right_correct": false,
+     "right_got": "no"
+    },
+    {
+     "id": "n11",
+     "left_correct": true,
+     "left_got": "yes",
+     "right_correct": false,
+     "right_got": "no"
+    },
+    {
+     "id": "n13",
+     "left_correct": true,
+     "left_got": "yes",
+     "right_correct": false,
+     "right_got": "no"
+    },
+    {
+     "id": "n18",
+     "left_correct": true,
+     "left_got": "yes",
+     "right_correct": false,
+     "right_got": "no"
+    },
+    {
+     "id": "s02",
+     "left_correct": true,
+     "left_got": "3",
+     "right_correct": false,
+     "right_got": "0"
+    },
+    {
+     "id": "s08",
+     "left_correct": true,
+     "left_got": "1",
+     "right_correct": false,
+     "right_got": "0"
+    },
+    {
+     "id": "s09",
+     "left_correct": false,
+     "left_got": "0",
+     "right_correct": true,
+     "right_got": "1"
+    },
+    {
+     "id": "s13",
+     "left_correct": false,
+     "left_got": "0",
+     "right_correct": true,
+     "right_got": "1"
+    },
+    {
+     "id": "s17",
+     "left_correct": true,
+     "left_got": "2",
+     "right_correct": false,
+     "right_got": "1"
+    }
+   ]
+  },
+  "role_split_only_vs_two_step": {
+   "decisions_identical": 60,
+   "max_abs_coverage_delta": 0.0,
+   "n": 60,
+   "prefix_tokens_identical": 60,
+   "winner_flips": []
+  }
+ },
+ "baseline": {
+  "agreement": 0.36666666666666664,
+  "chat_format": null,
+  "ci": [
+   0.25620916687225426,
+   0.49316999369896963
+  ],
+  "closers": {
+   "closers": {
+    "</think>": 32,
+    "<think>": 1,
+    "<|im_end|>": 26
+   },
+   "refused": 59,
+   "refused_n": 60
+  },
+  "correct": 22,
+  "coverage": {
+   "max": 0.13100796516197669,
+   "min": 1.4424687839916204e-07,
+   "n": 60,
+   "p50": 0.0006088129123496612
+  },
+  "coverage_quantiles": {
+   "max": 0.13100796516197669,
+   "min": 1.4424687839916204e-07,
+   "n": 60,
+   "p25": 1.7414295745850498e-05,
+   "p50": 0.0005828460905406107,
+   "p75": 0.003085846421765577
+  },
+  "cue": "shipped",
+  "decisions": {
+   "max_s": 2.3504839290035306,
+   "median_s": 1.1829211839994969,
+   "min_s": 0.9749228100008622,
+   "n": 60
+  },
+  "device_buffers": {
+   "Vulkan0": 10,
+   "Vulkan_Host": 10
+  },
+  "devices": [
+   "CPU",
+   "CPU_Mapped",
+   "Vulkan0",
+   "Vulkan_Host"
+  ],
+  "effective_backend": "vulkan",
+  "framing": {
+   "family": "qwen35moe",
+   "kind": "builtin",
+   "labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "mixed": false,
+   "renderer": "builtin",
+   "thinking": "suppressed",
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ]
+  },
+  "framing_rows": {
+   "labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "mixed": false,
+   "prefix_tokens_all": [
+    74,
+    75,
+    77,
+    78,
+    79,
+    80,
+    80,
+    81,
+    81,
+    82,
+    82,
+    82,
+    82,
+    82,
+    83,
+    83,
+    84,
+    84,
+    84,
+    84,
+    85,
+    85,
+    85,
+    86,
+    86,
+    86,
+    86,
+    86,
+    86,
+    87,
+    87,
+    87,
+    87,
+    87,
+    88,
+    88,
+    88,
+    88,
+    89,
+    89,
+    90,
+    90,
+    90,
+    90,
+    91,
+    91,
+    92,
+    92,
+    93,
+    93,
+    93,
+    94,
+    94,
+    95,
+    96,
+    96,
+    97,
+    99,
+    103,
+    109
+   ],
+   "prefix_tokens_max": 109,
+   "prefix_tokens_min": 74,
+   "surfaces": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\", \"thinking\": \"suppressed\"}": 60
+   }
+  },
+  "items": 60,
+  "json_contract": null,
+  "kind": null,
+  "label": "baseline: corrected instrument, shipped cue",
+  "low_mass": 57,
+  "measured": 3,
+  "mismatch_warnings": [],
+  "model": "Tiel-Coder-35B-A3B (t_7c926398, corrected instrument)",
+  "ok": true,
+  "path": "",
+  "per_type": {
+   "choice": {
+    "agreement": 0.2916666666666667,
+    "ci": [
+     0.14914648196960875,
+     0.49167693664496637
+    ],
+    "correct": 7,
+    "n": 24
+   },
+   "noul": {
+    "agreement": 0.3888888888888889,
+    "ci": [
+     0.2030524657216362,
+     0.613809583977621
+    ],
+    "correct": 7,
+    "n": 18
+   },
+   "score": {
+    "agreement": 0.4444444444444444,
+    "ci": [
+     0.24559518127005633,
+     0.6628358435795723
+    ],
+    "correct": 8,
+    "n": 18
+   }
+  },
+  "prefix_tokens": {
+   "max": 109,
+   "min": 74
+  },
+  "refusals": 59,
+  "report_warnings": [],
+  "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_001.jsonl --gpu-layers 9 --json",
+  "suite": "quality",
+  "verdicts": {},
+  "wall_ms": 59416.854
+ },
+ "baseline_chunks": [
+  {
+   "chat_format": null,
+   "chat_format_seen": null,
+   "chunk": "001",
+   "chunk_wall_s": 59.4,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 229.8047 MiB, matches expectation of 229.8047 MiB",
+   "compute_lines": 20,
+   "correct": 1,
+   "cue": null,
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": null,
+   "kv_type_used": "auto",
+   "load_wall_s": 23.761,
+   "low_mass": 10,
+   "median_decision_s": 1.2858148569994228,
+   "mismatch_warnings": [],
+   "n_ctx": 184,
+   "n_prefix": 93,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    84,
+    85,
+    86,
+    87,
+    89,
+    93,
+    94,
+    97,
+    99,
+    109
+   ],
+   "refusals": 10,
+   "report": "docs/evidence/tiel_corrected_chunks/report_001.json",
+   "sink": "docs/evidence/tiel_corrected_chunks/placement_001.json",
+   "template_seen": null,
+   "types": {
+    "choice": 4,
+    "noul": 3,
+    "score": 3
+   }
+  },
+  {
+   "chat_format": null,
+   "chat_format_seen": null,
+   "chunk": "002",
+   "chunk_wall_s": 42.5,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 226.6523 MiB, matches expectation of 226.6523 MiB",
+   "compute_lines": 20,
+   "correct": 2,
+   "cue": null,
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": null,
+   "kv_type_used": "auto",
+   "load_wall_s": 10.943,
+   "low_mass": 9,
+   "median_decision_s": 1.1124303144988517,
+   "mismatch_warnings": [],
+   "n_ctx": 173,
+   "n_prefix": 93,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    77,
+    81,
+    82,
+    85,
+    86,
+    87,
+    87,
+    88,
+    90,
+    93
+   ],
+   "refusals": 10,
+   "report": "docs/evidence/tiel_corrected_chunks/report_002.json",
+   "sink": "docs/evidence/tiel_corrected_chunks/placement_002.json",
+   "template_seen": null,
+   "types": {
+    "choice": 3,
+    "noul": 3,
+    "score": 4
+   }
+  },
+  {
+   "chat_format": null,
+   "chat_format_seen": null,
+   "chunk": "003",
+   "chunk_wall_s": 37.2,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 225.8438 MiB, matches expectation of 225.8438 MiB",
+   "compute_lines": 20,
+   "correct": 6,
+   "cue": null,
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": null,
+   "kv_type_used": "auto",
+   "load_wall_s": 5.232,
+   "low_mass": 8,
+   "median_decision_s": 1.186549604000902,
+   "mismatch_warnings": [],
+   "n_ctx": 154,
+   "n_prefix": 82,
+   "n_seq_max": 3,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    82,
+    84,
+    84,
+    85,
+    86,
+    86,
+    87,
+    90,
+    91,
+    96
+   ],
+   "refusals": 9,
+   "report": "docs/evidence/tiel_corrected_chunks/report_003.json",
+   "sink": "docs/evidence/tiel_corrected_chunks/placement_003.json",
+   "template_seen": null,
+   "types": {
+    "choice": 3,
+    "noul": 4,
+    "score": 3
+   }
+  },
+  {
+   "chat_format": null,
+   "chat_format_seen": null,
+   "chunk": "004",
+   "chunk_wall_s": 37.2,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 228.7891 MiB, matches expectation of 228.7891 MiB",
+   "compute_lines": 20,
+   "correct": 6,
+   "cue": null,
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": null,
+   "kv_type_used": "auto",
+   "load_wall_s": 5.386,
+   "low_mass": 10,
+   "median_decision_s": 1.1123323789979622,
+   "mismatch_warnings": [],
+   "n_ctx": 186,
+   "n_prefix": 93,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    82,
+    83,
+    84,
+    86,
+    89,
+    90,
+    92,
+    93,
+    94,
+    95
+   ],
+   "refusals": 10,
+   "report": "docs/evidence/tiel_corrected_chunks/report_004.json",
+   "sink": "docs/evidence/tiel_corrected_chunks/placement_004.json",
+   "template_seen": null,
+   "types": {
+    "choice": 4,
+    "noul": 3,
+    "score": 3
+   }
+  },
+  {
+   "chat_format": null,
+   "chat_format_seen": null,
+   "chunk": "005",
+   "chunk_wall_s": 40.9,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 224.8340 MiB, matches expectation of 224.8340 MiB",
+   "compute_lines": 20,
+   "correct": 4,
+   "cue": null,
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": null,
+   "kv_type_used": "auto",
+   "load_wall_s": 5.941,
+   "low_mass": 10,
+   "median_decision_s": 1.19568962250014,
+   "mismatch_warnings": [],
+   "n_ctx": 151,
+   "n_prefix": 75,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    74,
+    75,
+    79,
+    80,
+    81,
+    82,
+    82,
+    83,
+    88,
+    103
+   ],
+   "refusals": 10,
+   "report": "docs/evidence/tiel_corrected_chunks/report_005.json",
+   "sink": "docs/evidence/tiel_corrected_chunks/placement_005.json",
+   "template_seen": null,
+   "types": {
+    "choice": 3,
+    "noul": 3,
+    "score": 4
+   }
+  },
+  {
+   "chat_format": null,
+   "chat_format_seen": null,
+   "chunk": "006",
+   "chunk_wall_s": 36.1,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 226.1484 MiB, matches expectation of 226.1484 MiB",
+   "compute_lines": 20,
+   "correct": 3,
+   "cue": null,
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": null,
+   "kv_type_used": "auto",
+   "load_wall_s": 5.554,
+   "low_mass": 10,
+   "median_decision_s": 1.1716187294987321,
+   "mismatch_warnings": [],
+   "n_ctx": 177,
+   "n_prefix": 90,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    78,
+    80,
+    86,
+    87,
+    88,
+    88,
+    90,
+    91,
+    92,
+    96
+   ],
+   "refusals": 10,
+   "report": "docs/evidence/tiel_corrected_chunks/report_006.json",
+   "sink": "docs/evidence/tiel_corrected_chunks/placement_006.json",
+   "template_seen": null,
+   "types": {
+    "choice": 7,
+    "noul": 2,
+    "score": 1
+   }
+  }
+ ],
+ "challenger": {
+  "agreement": 0.8833333333333333,
+  "chat_format": "role_split",
+  "ci": [
+   0.7782121197582914,
+   0.9423227935994396
+  ],
+  "closers": {
+   "closers": {},
+   "refused": 0,
+   "refused_n": 60
+  },
+  "correct": 53,
+  "coverage": {
+   "max": 0.9997800437826103,
+   "min": 0.7167129398356559,
+   "n": 60,
+   "p50": 0.9982254864215236
+  },
+  "coverage_quantiles": {
+   "max": 0.9997800437826103,
+   "min": 0.7167129398356559,
+   "n": 60,
+   "p25": 0.9967754228620734,
+   "p50": 0.9982119359048126,
+   "p75": 0.9988654598663879
+  },
+  "cue": "json_instructed",
+  "decisions": {
+   "max_s": 1.94428418099983,
+   "median_s": 1.2653253600000198,
+   "min_s": 1.1209839670000292,
+   "n": 60
+  },
+  "device_buffers": {
+   "Vulkan0": 10,
+   "Vulkan_Host": 10
+  },
+  "devices": [
+   "CPU",
+   "CPU_Mapped",
+   "Vulkan0",
+   "Vulkan_Host"
+  ],
+  "effective_backend": "vulkan",
+  "framing": {
+   "family": "qwen35moe",
+   "kind": "builtin",
+   "labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "mixed": false,
+   "renderer": "builtin",
+   "thinking": "suppressed",
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ]
+  },
+  "framing_rows": {
+   "labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "mixed": false,
+   "prefix_tokens_all": [
+    76,
+    77,
+    79,
+    80,
+    81,
+    82,
+    82,
+    83,
+    83,
+    84,
+    84,
+    84,
+    84,
+    84,
+    85,
+    85,
+    86,
+    86,
+    86,
+    86,
+    87,
+    87,
+    87,
+    88,
+    88,
+    88,
+    88,
+    88,
+    88,
+    89,
+    89,
+    89,
+    89,
+    89,
+    90,
+    90,
+    90,
+    90,
+    91,
+    91,
+    92,
+    92,
+    92,
+    92,
+    93,
+    93,
+    94,
+    94,
+    95,
+    95,
+    95,
+    96,
+    96,
+    97,
+    98,
+    98,
+    99,
+    101,
+    105,
+    111
+   ],
+   "prefix_tokens_max": 111,
+   "prefix_tokens_min": 76,
+   "surfaces": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\", \"thinking\": \"suppressed\"}": 60
+   }
+  },
+  "items": 60,
+  "json_contract": "question",
+  "kind": null,
+  "label": "challenger: role_split + json_instructed",
+  "low_mass": 0,
+  "measured": 60,
+  "mismatch_warnings": [],
+  "model": "Tiel-Coder-35B-A3B (t_9bcbecff, role_split + json_instructed)",
+  "ok": true,
+  "path": "",
+  "per_type": {
+   "choice": {
+    "agreement": 0.9166666666666666,
+    "ci": [
+     0.741511978067893,
+     0.9768411847029567
+    ],
+    "correct": 22,
+    "n": 24
+   },
+   "noul": {
+    "agreement": 1.0,
+    "ci": [
+     0.8241207763533425,
+     1.0
+    ],
+    "correct": 18,
+    "n": 18
+   },
+   "score": {
+    "agreement": 0.7222222222222222,
+    "ci": [
+     0.4912734343970254,
+     0.8750024662044601
+    ],
+    "correct": 13,
+    "n": 18
+   }
+  },
+  "prefix_tokens": {
+   "max": 111,
+   "min": 76
+  },
+  "refusals": 0,
+  "report_warnings": [],
+  "reproduce": "uv run ggufone bench --suite quality --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --backend vulkan --runs 1 --threads 4 --devset docs/evidence/tiel_corrected_chunks/devset_001.jsonl --cue json_instructed --chat-format role_split --gpu-layers 9 --json",
+  "suite": "quality",
+  "verdicts": {
+   "answered": 60
+  },
+  "wall_ms": 35431.195
+ },
+ "challenger_chunks": [
+  {
+   "chat_format": "role_split",
+   "chat_format_seen": {
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 432, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 434, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 438, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 444, \"question_turn\": \"user\"}": 3,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 472, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 473, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 477, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 481, \"question_turn\": \"user\"}": 1
+   },
+   "chunk": "001",
+   "chunk_wall_s": 35.4,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 232.3438 MiB, matches expectation of 232.3438 MiB",
+   "compute_lines": 20,
+   "correct": 9,
+   "cue": "json_instructed",
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": "question",
+   "kv_type_used": "auto",
+   "load_wall_s": 4.484,
+   "low_mass": 0,
+   "median_decision_s": 1.215875052499996,
+   "mismatch_warnings": [],
+   "n_ctx": 206,
+   "n_prefix": 95,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    86,
+    87,
+    88,
+    89,
+    91,
+    95,
+    96,
+    99,
+    101,
+    111
+   ],
+   "refusals": 0,
+   "report": "docs/evidence/t9bcbecff_tiel_chunks/report_001.json",
+   "sink": "docs/evidence/t9bcbecff_tiel_chunks/placement_001.json",
+   "template_seen": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+   },
+   "types": {
+    "choice": 4,
+    "noul": 3,
+    "score": 3
+   }
+  },
+  {
+   "chat_format": "role_split",
+   "chat_format_seen": {
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 397, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 403, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 414, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 418, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 428, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 437, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 451, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 455, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 458, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 462, \"question_turn\": \"user\"}": 1
+   },
+   "chunk": "002",
+   "chunk_wall_s": 34.9,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 229.5000 MiB, matches expectation of 229.5000 MiB",
+   "compute_lines": 20,
+   "correct": 9,
+   "cue": "json_instructed",
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": "question",
+   "kv_type_used": "auto",
+   "load_wall_s": 4.189,
+   "low_mass": 0,
+   "median_decision_s": 1.2465126094999732,
+   "mismatch_warnings": [],
+   "n_ctx": 195,
+   "n_prefix": 95,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    79,
+    83,
+    84,
+    87,
+    88,
+    89,
+    89,
+    90,
+    92,
+    95
+   ],
+   "refusals": 0,
+   "report": "docs/evidence/t9bcbecff_tiel_chunks/report_002.json",
+   "sink": "docs/evidence/t9bcbecff_tiel_chunks/placement_002.json",
+   "template_seen": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+   },
+   "types": {
+    "choice": 3,
+    "noul": 3,
+    "score": 4
+   }
+  },
+  {
+   "chat_format": "role_split",
+   "chat_format_seen": {
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 405, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 421, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 429, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 430, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 433, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 434, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 444, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 446, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 452, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 494, \"question_turn\": \"user\"}": 1
+   },
+   "chunk": "003",
+   "chunk_wall_s": 35.4,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 227.6719 MiB, matches expectation of 227.6719 MiB",
+   "compute_lines": 20,
+   "correct": 8,
+   "cue": "json_instructed",
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": "question",
+   "kv_type_used": "auto",
+   "load_wall_s": 4.19,
+   "low_mass": 0,
+   "median_decision_s": 1.2744346434999443,
+   "mismatch_warnings": [],
+   "n_ctx": 172,
+   "n_prefix": 84,
+   "n_seq_max": 3,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    84,
+    86,
+    86,
+    87,
+    88,
+    88,
+    89,
+    92,
+    93,
+    98
+   ],
+   "refusals": 0,
+   "report": "docs/evidence/t9bcbecff_tiel_chunks/report_003.json",
+   "sink": "docs/evidence/t9bcbecff_tiel_chunks/placement_003.json",
+   "template_seen": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+   },
+   "types": {
+    "choice": 3,
+    "noul": 4,
+    "score": 3
+   }
+  },
+  {
+   "chat_format": "role_split",
+   "chat_format_seen": {
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 426, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 430, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 431, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 433, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 434, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 462, \"question_turn\": \"user\"}": 2,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 463, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 472, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 488, \"question_turn\": \"user\"}": 1
+   },
+   "chunk": "004",
+   "chunk_wall_s": 36.1,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 231.3281 MiB, matches expectation of 231.3281 MiB",
+   "compute_lines": 20,
+   "correct": 8,
+   "cue": "json_instructed",
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": "question",
+   "kv_type_used": "auto",
+   "load_wall_s": 4.261,
+   "low_mass": 0,
+   "median_decision_s": 1.263388086999953,
+   "mismatch_warnings": [],
+   "n_ctx": 208,
+   "n_prefix": 95,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    84,
+    85,
+    86,
+    88,
+    91,
+    92,
+    94,
+    95,
+    96,
+    97
+   ],
+   "refusals": 0,
+   "report": "docs/evidence/t9bcbecff_tiel_chunks/report_004.json",
+   "sink": "docs/evidence/t9bcbecff_tiel_chunks/placement_004.json",
+   "template_seen": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+   },
+   "types": {
+    "choice": 4,
+    "noul": 3,
+    "score": 3
+   }
+  },
+  {
+   "chat_format": "role_split",
+   "chat_format_seen": {
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 387, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 396, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 409, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 411, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 416, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 417, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 423, \"question_turn\": \"user\"}": 2,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 433, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 493, \"question_turn\": \"user\"}": 1
+   },
+   "chunk": "005",
+   "chunk_wall_s": 37.0,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 228.2812 MiB, matches expectation of 228.2812 MiB",
+   "compute_lines": 20,
+   "correct": 10,
+   "cue": "json_instructed",
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": "question",
+   "kv_type_used": "auto",
+   "load_wall_s": 4.641,
+   "low_mass": 0,
+   "median_decision_s": 1.384304274499982,
+   "mismatch_warnings": [],
+   "n_ctx": 173,
+   "n_prefix": 77,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    76,
+    77,
+    81,
+    82,
+    83,
+    84,
+    84,
+    85,
+    90,
+    105
+   ],
+   "refusals": 0,
+   "report": "docs/evidence/t9bcbecff_tiel_chunks/report_005.json",
+   "sink": "docs/evidence/t9bcbecff_tiel_chunks/placement_005.json",
+   "template_seen": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+   },
+   "types": {
+    "choice": 3,
+    "noul": 3,
+    "score": 4
+   }
+  },
+  {
+   "chat_format": "role_split",
+   "chat_format_seen": {
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 390, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 415, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 436, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 442, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 448, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 464, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 465, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 469, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 476, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 491, \"question_turn\": \"user\"}": 1
+   },
+   "chunk": "006",
+   "chunk_wall_s": 36.5,
+   "compute_devices": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "compute_first": "~llama_context:    Vulkan0 compute buffer size is 227.9766 MiB, matches expectation of 227.9766 MiB",
+   "compute_lines": 20,
+   "correct": 9,
+   "cue": "json_instructed",
+   "degraded": false,
+   "device_buffers": {
+    "Vulkan0": 10,
+    "Vulkan_Host": 10
+   },
+   "effective_backend": "vulkan",
+   "framing_labels": [
+    "chat-template: qwen35moe / builtin"
+   ],
+   "items": 10,
+   "json_contract": "question",
+   "kv_type_used": "auto",
+   "load_wall_s": 5.177,
+   "low_mass": 0,
+   "median_decision_s": 1.2924035859999776,
+   "mismatch_warnings": [],
+   "n_ctx": 199,
+   "n_prefix": 92,
+   "n_seq_max": 5,
+   "ngl_requested": 9,
+   "ngl_used": 9,
+   "ok": true,
+   "prefix_tokens": [
+    80,
+    82,
+    88,
+    89,
+    90,
+    90,
+    92,
+    93,
+    94,
+    98
+   ],
+   "refusals": 0,
+   "report": "docs/evidence/t9bcbecff_tiel_chunks/report_006.json",
+   "sink": "docs/evidence/t9bcbecff_tiel_chunks/placement_006.json",
+   "template_seen": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 10
+   },
+   "types": {
+    "choice": 7,
+    "noul": 2,
+    "score": 1
+   }
+  }
+ ],
+ "devset": {
+  "baseline": [
+   "399d3ce8ca9d422aea51ea0de063e4ce8a771bd2582469eab913e78176c0e94f",
+   "399d3ce8ca9d422aea51ea0de063e4ce8a771bd2582469eab913e78176c0e94f",
+   "87273ce017fde14463f735f144d84d8df787bff536f765960da12d0263f0e8ad",
+   "87273ce017fde14463f735f144d84d8df787bff536f765960da12d0263f0e8ad",
+   "a26e98b000a9bcb9c043c13a6f272a2b2ea46a01d08727ffe090e19bf862044e",
+   "a26e98b000a9bcb9c043c13a6f272a2b2ea46a01d08727ffe090e19bf862044e",
+   "b1fab77a4ba0eada83f5ed0a1906683caf5a5800771acb86b5adb987f71564ad",
+   "b1fab77a4ba0eada83f5ed0a1906683caf5a5800771acb86b5adb987f71564ad",
+   "bd54d900caeb52fe2ce4aeb2f265656de02f40b4d6bc9543fff83f2d35df6f7f",
+   "bd54d900caeb52fe2ce4aeb2f265656de02f40b4d6bc9543fff83f2d35df6f7f",
+   "da7226541695088e12ce5681ee1774cb3b6f366839e01a36a302005b3fc14cb3",
+   "da7226541695088e12ce5681ee1774cb3b6f366839e01a36a302005b3fc14cb3"
+  ],
+  "campaign": [
+   "da7226541695088e12ce5681ee1774cb3b6f366839e01a36a302005b3fc14cb3",
+   "bd54d900caeb52fe2ce4aeb2f265656de02f40b4d6bc9543fff83f2d35df6f7f",
+   "b1fab77a4ba0eada83f5ed0a1906683caf5a5800771acb86b5adb987f71564ad",
+   "a26e98b000a9bcb9c043c13a6f272a2b2ea46a01d08727ffe090e19bf862044e",
+   "399d3ce8ca9d422aea51ea0de063e4ce8a771bd2582469eab913e78176c0e94f",
+   "87273ce017fde14463f735f144d84d8df787bff536f765960da12d0263f0e8ad"
+  ],
+  "files": 6,
+  "identical": true,
+  "receipt": "docs/evidence/t9bcbecff_tiel_chunks/devset_sha.txt"
+ },
+ "gates": {
+  "exits": [
+   "0",
+   "0"
+  ],
+  "oracle": {
+   "receipt": ".t9bcb/oracle.txt",
+   "summary": "failures: 0  skips: 0"
+  },
+  "ruff": {
+   "receipt": ".t9bcb/logs/gates_run.log",
+   "summary": "All checks passed!"
+  },
+  "suite": {
+   "receipt": ".t9bcb/gates.txt",
+   "summary": "1325 passed, 48 skipped in 40.43s"
+  },
+  "suite_post_render": {
+   "receipt": ".t9bcb/logs/final_suite.txt",
+   "summary": "1325 passed, 48 skipped in 38.18s"
+  }
+ },
+ "generated_from": {
+  "baseline": "docs/evidence/tiel_corrected_quality.json",
+  "baseline_chunks": [
+   "docs/evidence/tiel_corrected_chunks/report_001.json",
+   "docs/evidence/tiel_corrected_chunks/report_002.json",
+   "docs/evidence/tiel_corrected_chunks/report_003.json",
+   "docs/evidence/tiel_corrected_chunks/report_004.json",
+   "docs/evidence/tiel_corrected_chunks/report_005.json",
+   "docs/evidence/tiel_corrected_chunks/report_006.json"
+  ],
+  "campaign_log": ".t9bcb/logs/campaign.log",
+  "challenger": "docs/evidence/t9bcbecff_tiel_challenger_quality.json",
+  "challenger_chunks": [
+   "docs/evidence/t9bcbecff_tiel_chunks/report_001.json",
+   "docs/evidence/t9bcbecff_tiel_chunks/report_002.json",
+   "docs/evidence/t9bcbecff_tiel_chunks/report_003.json",
+   "docs/evidence/t9bcbecff_tiel_chunks/report_004.json",
+   "docs/evidence/t9bcbecff_tiel_chunks/report_005.json",
+   "docs/evidence/t9bcbecff_tiel_chunks/report_006.json"
+  ]
+ },
+ "log": {
+  "chunk_walls": {
+   "001": {
+    "exit": 0,
+    "wall_s": 36
+   },
+   "002": {
+    "exit": 0,
+    "wall_s": 35
+   },
+   "003": {
+    "exit": 0,
+    "wall_s": 36
+   },
+   "004": {
+    "exit": 0,
+    "wall_s": 36
+   },
+   "005": {
+    "exit": 0,
+    "wall_s": 37
+   },
+   "006": {
+    "exit": 0,
+    "wall_s": 37
+   }
+  },
+  "memory_max": "max",
+  "path": ".t9bcb/logs/campaign.log",
+  "sha_after": "9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c",
+  "sha_before": "9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c",
+  "sha_identical": true,
+  "sha_lines": 2
+ },
+ "paired": {
+  "baseline": "shipped/answer_sheet",
+  "baseline_only": 5,
+  "both_correct": 17,
+  "caveat": "Wald interval on the discordant counts (optimistic near zero discordance); the exact McNemar p is the test",
+  "challenger": "json_instructed/role_split",
+  "challenger_only": 36,
+  "challenger_wins": true,
+  "ci": [
+   0.3533907871426104,
+   0.679942546190723
+  ],
+  "difference": 0.5166666666666667,
+  "mcnemar_p": 7.84157236921601e-07,
+  "n": 60,
+  "neither_correct": 2,
+  "rule": "discordant-pairs"
+ },
+ "paired_items": {
+  "baseline_only": [
+   {
+    "baseline_coverage": 6.026288107248621e-05,
+    "baseline_got": "expedited",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9821635157866945,
+    "challenger_got": "freight",
+    "challenger_reliability": "ok",
+    "expected": "expedited",
+    "id": "c11",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 2.8952722438574654e-05,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9988817984635184,
+    "challenger_got": "2",
+    "challenger_reliability": "ok",
+    "expected": "1",
+    "id": "s07",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.0011613180517176251,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9989404002159288,
+    "challenger_got": "0",
+    "challenger_reliability": "ok",
+    "expected": "1",
+    "id": "s09",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.0007099126293800995,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9616227244043755,
+    "challenger_got": "3",
+    "challenger_reliability": "ok",
+    "expected": "1",
+    "id": "s10",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.0001019746262664764,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9971113389060327,
+    "challenger_got": "0",
+    "challenger_reliability": "ok",
+    "expected": "1",
+    "id": "s13",
+    "type": "score"
+   }
+  ],
+  "challenger_only": [
+   {
+    "baseline_coverage": 6.144667690643808e-06,
+    "baseline_got": "support",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9962483067407443,
+    "challenger_got": "technical",
+    "challenger_reliability": "ok",
+    "expected": "technical",
+    "id": "c01",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 1.7372500370526124e-06,
+    "baseline_got": "escalation",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9988600136673443,
+    "challenger_got": "billing",
+    "challenger_reliability": "ok",
+    "expected": "billing",
+    "id": "c02",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 0.001102771694362997,
+    "baseline_got": "confidential",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.995736562394292,
+    "challenger_got": "restricted",
+    "challenger_reliability": "ok",
+    "expected": "restricted",
+    "id": "c04",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 2.995171094515986e-06,
+    "baseline_got": "support",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9983401290530379,
+    "challenger_got": "security",
+    "challenger_reliability": "ok",
+    "expected": "security",
+    "id": "c05",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 7.14537376091563e-05,
+    "baseline_got": "changed",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9977058368886169,
+    "challenger_got": "fixed",
+    "challenger_reliability": "ok",
+    "expected": "fixed",
+    "id": "c06",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 8.631685696330632e-07,
+    "baseline_got": "liability",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9970215632537826,
+    "challenger_got": "termination",
+    "challenger_reliability": "ok",
+    "expected": "termination",
+    "id": "c07",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 3.46001313063801e-07,
+    "baseline_got": "weekend",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9981471315472497,
+    "challenger_got": "business_hours",
+    "challenger_reliability": "ok",
+    "expected": "business_hours",
+    "id": "c08",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 1.193329983831148e-05,
+    "baseline_got": "harassment",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9997800437826103,
+    "challenger_got": "spam",
+    "challenger_reliability": "ok",
+    "expected": "spam",
+    "id": "c09",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 6.448346529519986e-07,
+    "baseline_got": "non_deductible",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9986216125390703,
+    "challenger_got": "capital",
+    "challenger_reliability": "ok",
+    "expected": "capital",
+    "id": "c14",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 1.2766565082820237e-05,
+    "baseline_got": "neurology",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.998431758798095,
+    "challenger_got": "cardiology",
+    "challenger_reliability": "ok",
+    "expected": "cardiology",
+    "id": "c15",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 0.018786736969596006,
+    "baseline_got": "meals",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9973491648546059,
+    "challenger_got": "travel",
+    "challenger_reliability": "ok",
+    "expected": "travel",
+    "id": "c16",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 1.883215245510098e-05,
+    "baseline_got": "retrospective",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9994846023570283,
+    "challenger_got": "standup",
+    "challenger_reliability": "ok",
+    "expected": "standup",
+    "id": "c18",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 0.0005568792687315601,
+    "baseline_got": "infrastructure",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9956269446672085,
+    "challenger_got": "configuration",
+    "challenger_reliability": "ok",
+    "expected": "configuration",
+    "id": "c19",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 9.094930270414929e-05,
+    "baseline_got": "permissive",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9967729568760224,
+    "challenger_got": "copyleft",
+    "challenger_reliability": "ok",
+    "expected": "copyleft",
+    "id": "c20",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 8.55222455958081e-06,
+    "baseline_got": "chat",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9982254864215236,
+    "challenger_got": "sms",
+    "challenger_reliability": "ok",
+    "expected": "sms",
+    "id": "c22",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 1.4424687839916204e-07,
+    "baseline_got": "search",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.998882681494469,
+    "challenger_got": "identity",
+    "challenger_reliability": "ok",
+    "expected": "identity",
+    "id": "c23",
+    "type": "choice"
+   },
+   {
+    "baseline_coverage": 0.004469441154799772,
+    "baseline_got": "no",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.996863459088316,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n01",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.004719780930310731,
+    "baseline_got": "no",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9970423088046425,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n02",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.010829822938578941,
+    "baseline_got": "no",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9990939380695886,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n03",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.0024196643958028464,
+    "baseline_got": "no",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9983907644897807,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n04",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.13100796516197669,
+    "baseline_got": "no",
+    "baseline_reliability": "ok",
+    "challenger_coverage": 0.9987297712693467,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n05",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.00018804960445327723,
+    "baseline_got": "no",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9985615899393153,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n07",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.11280564779465221,
+    "baseline_got": "no",
+    "baseline_reliability": "ok",
+    "challenger_coverage": 0.9977028089982094,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n10",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.03068917210560325,
+    "baseline_got": "no",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9983353754446372,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n11",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.03617436676180591,
+    "baseline_got": "no",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9985627757383781,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n13",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.001972364367556408,
+    "baseline_got": "no",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9991008651173774,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n15",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.00013337888516194848,
+    "baseline_got": "no",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9988138762403272,
+    "challenger_got": "yes",
+    "challenger_reliability": "ok",
+    "expected": "yes",
+    "id": "n18",
+    "type": "noul"
+   },
+   {
+    "baseline_coverage": 0.00015908801050738757,
+    "baseline_got": "0",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9259122002329292,
+    "challenger_got": "3",
+    "challenger_reliability": "ok",
+    "expected": "3",
+    "id": "s02",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.0021964903084100945,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9963189330300944,
+    "challenger_got": "4",
+    "challenger_reliability": "ok",
+    "expected": "4",
+    "id": "s03",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.001882459633153011,
+    "baseline_got": "0",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9975992910013887,
+    "challenger_got": "4",
+    "challenger_reliability": "ok",
+    "expected": "4",
+    "id": "s04",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.013065724815548773,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.996461756812163,
+    "challenger_got": "0",
+    "challenger_reliability": "ok",
+    "expected": "0",
+    "id": "s05",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.00025363219111225834,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9751930301496748,
+    "challenger_got": "3",
+    "challenger_reliability": "ok",
+    "expected": "3",
+    "id": "s06",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 6.747884172503877e-05,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.952270111994904,
+    "challenger_got": "3",
+    "challenger_reliability": "ok",
+    "expected": "3",
+    "id": "s12",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.000678385753885392,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.999292478557555,
+    "challenger_got": "2",
+    "challenger_reliability": "ok",
+    "expected": "2",
+    "id": "s15",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.0006088129123496612,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9985677493944413,
+    "challenger_got": "0",
+    "challenger_reliability": "ok",
+    "expected": "0",
+    "id": "s16",
+    "type": "score"
+   },
+   {
+    "baseline_coverage": 0.00019904884413748323,
+    "baseline_got": "1",
+    "baseline_reliability": "low_mass",
+    "challenger_coverage": 0.9969687277656705,
+    "challenger_got": "2",
+    "challenger_reliability": "ok",
+    "expected": "2",
+    "id": "s17",
+    "type": "score"
+   }
+  ],
+  "n_shared": 60,
+  "unpaired_baseline": [],
+  "unpaired_challenger": []
+ },
+ "per_type_paired": {
+  "choice": {
+   "baseline_agreement": 0.2916666666666667,
+   "baseline_correct": 7,
+   "baseline_only": 1,
+   "challenger_agreement": 0.9166666666666666,
+   "challenger_correct": 22,
+   "challenger_only": 16,
+   "difference": 0.625,
+   "mcnemar_p": 0.000274658203125,
+   "n": 24
+  },
+  "noul": {
+   "baseline_agreement": 0.3888888888888889,
+   "baseline_correct": 7,
+   "baseline_only": 0,
+   "challenger_agreement": 1.0,
+   "challenger_correct": 18,
+   "challenger_only": 11,
+   "difference": 0.6111111111111112,
+   "mcnemar_p": 0.0009765625,
+   "n": 18
+  },
+  "score": {
+   "baseline_agreement": 0.4444444444444444,
+   "baseline_correct": 8,
+   "baseline_only": 4,
+   "challenger_agreement": 0.7222222222222222,
+   "challenger_correct": 13,
+   "challenger_only": 9,
+   "difference": 0.2777777777777778,
+   "mcnemar_p": 0.266845703125,
+   "n": 18
+  }
+ },
+ "smoke_vs_arm": {
+  "challenger_vs_challenger_arm": {
+   "flips": 0,
+   "n": 6,
+   "rows": [
+    {
+     "arm_correct": true,
+     "arm_coverage": 0.9962483067407443,
+     "arm_got": "technical",
+     "id": "c01",
+     "same": true,
+     "smoke_correct": true,
+     "smoke_coverage": 0.9962483067407443,
+     "smoke_got": "technical"
+    },
+    {
+     "arm_correct": false,
+     "arm_coverage": 0.9966506674706146,
+     "arm_got": "4",
+     "id": "s01",
+     "same": true,
+     "smoke_correct": false,
+     "smoke_coverage": 0.9966506674706146,
+     "smoke_got": "4"
+    },
+    {
+     "arm_correct": true,
+     "arm_coverage": 0.996863459088316,
+     "arm_got": "yes",
+     "id": "n01",
+     "same": true,
+     "smoke_correct": true,
+     "smoke_coverage": 0.996863459088316,
+     "smoke_got": "yes"
+    },
+    {
+     "arm_correct": true,
+     "arm_coverage": 0.9988600136673443,
+     "arm_got": "billing",
+     "id": "c02",
+     "same": true,
+     "smoke_correct": true,
+     "smoke_coverage": 0.9988600136673443,
+     "smoke_got": "billing"
+    },
+    {
+     "arm_correct": true,
+     "arm_coverage": 0.9259122002329292,
+     "arm_got": "3",
+     "id": "s02",
+     "same": true,
+     "smoke_correct": true,
+     "smoke_coverage": 0.9259122002329292,
+     "smoke_got": "3"
+    },
+    {
+     "arm_correct": true,
+     "arm_coverage": 0.9970423088046425,
+     "arm_got": "yes",
+     "id": "n02",
+     "same": true,
+     "smoke_correct": true,
+     "smoke_coverage": 0.9970423088046425,
+     "smoke_got": "yes"
+    }
+   ]
+  },
+  "collapse_vs_two_step_arm": {
+   "flips": 0,
+   "n": 6,
+   "rows": [
+    {
+     "arm_correct": true,
+     "arm_coverage": 6.889645852322363e-09,
+     "arm_got": "technical",
+     "id": "c01",
+     "same": true,
+     "smoke_correct": true,
+     "smoke_coverage": 6.889645852322363e-09,
+     "smoke_got": "technical"
+    },
+    {
+     "arm_correct": false,
+     "arm_coverage": 5.768895899467299e-07,
+     "arm_got": "4",
+     "id": "s01",
+     "same": true,
+     "smoke_correct": false,
+     "smoke_coverage": 5.768895899467299e-07,
+     "smoke_got": "4"
+    },
+    {
+     "arm_correct": false,
+     "arm_coverage": 3.9061971013267124e-07,
+     "arm_got": "no",
+     "id": "n01",
+     "same": true,
+     "smoke_correct": false,
+     "smoke_coverage": 3.9061971013267124e-07,
+     "smoke_got": "no"
+    },
+    {
+     "arm_correct": false,
+     "arm_coverage": 2.008160724785393e-09,
+     "arm_got": "escalation",
+     "id": "c02",
+     "same": true,
+     "smoke_correct": false,
+     "smoke_coverage": 2.008160724785393e-09,
+     "smoke_got": "escalation"
+    },
+    {
+     "arm_correct": false,
+     "arm_coverage": 7.407698686539978e-08,
+     "arm_got": "0",
+     "id": "s02",
+     "same": true,
+     "smoke_correct": false,
+     "smoke_coverage": 7.407698686539978e-08,
+     "smoke_got": "0"
+    },
+    {
+     "arm_correct": false,
+     "arm_coverage": 1.5217238249047936e-08,
+     "arm_got": "no",
+     "id": "n02",
+     "same": true,
+     "smoke_correct": false,
+     "smoke_coverage": 1.5217238249047936e-08,
+     "smoke_got": "no"
+    }
+   ]
+  }
+ },
+ "smokes": {
+  "challenger": {
+   "cell": "json_instructed/role_split",
+   "chat_format_seen": {
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 434, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 438, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 444, \"question_turn\": \"user\"}": 2,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 477, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": \"question\", \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 481, \"question_turn\": \"user\"}": 1
+   },
+   "closers": {
+    "closers": {},
+    "refused": 0,
+    "refused_n": 6
+   },
+   "correct": 5,
+   "device_buffers": {
+    "Vulkan0": 6,
+    "Vulkan_Host": 6
+   },
+   "effective_backend": "vulkan",
+   "items": 6,
+   "low_mass": 0,
+   "refusals": 0,
+   "rows": [
+    {
+     "correct": true,
+     "coverage": 0.9962483067407443,
+     "cue_mass": 0.9419490315968484,
+     "cue_refused": false,
+     "cue_top": "token 69685",
+     "expected": "technical",
+     "got": "technical",
+     "id": "c01",
+     "reliability": "ok",
+     "type": "choice"
+    },
+    {
+     "correct": false,
+     "coverage": 0.9966506674706146,
+     "cue_mass": 0.5759254343289033,
+     "cue_refused": false,
+     "cue_top": "token 19",
+     "expected": "3",
+     "got": "4",
+     "id": "s01",
+     "reliability": "ok",
+     "type": "score"
+    },
+    {
+     "correct": true,
+     "coverage": 0.996863459088316,
+     "cue_mass": 0.9004668005161784,
+     "cue_refused": false,
+     "cue_top": "token 9405",
+     "expected": "yes",
+     "got": "yes",
+     "id": "n01",
+     "reliability": "ok",
+     "type": "noul"
+    },
+    {
+     "correct": true,
+     "coverage": 0.9988600136673443,
+     "cue_mass": 0.9988570810615435,
+     "cue_refused": false,
+     "cue_top": "token 37355",
+     "expected": "billing",
+     "got": "billing",
+     "id": "c02",
+     "reliability": "ok",
+     "type": "choice"
+    },
+    {
+     "correct": true,
+     "coverage": 0.9259122002329292,
+     "cue_mass": 0.9167958530977641,
+     "cue_refused": false,
+     "cue_top": "token 18",
+     "expected": "3",
+     "got": "3",
+     "id": "s02",
+     "reliability": "ok",
+     "type": "score"
+    },
+    {
+     "correct": true,
+     "coverage": 0.9970423088046425,
+     "cue_mass": 0.908869194524988,
+     "cue_refused": false,
+     "cue_top": "token 9405",
+     "expected": "yes",
+     "got": "yes",
+     "id": "n02",
+     "reliability": "ok",
+     "type": "noul"
+    }
+   ],
+   "template_seen": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 6
+   }
+  },
+  "collapse": {
+   "cell": "two_step/role_split",
+   "chat_format_seen": {
+    "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 414, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 418, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 424, \"question_turn\": \"user\"}": 2,
+    "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 457, \"question_turn\": \"user\"}": 1,
+    "{\"contract\": null, \"dropped\": \"\", \"kind\": \"role_split\", \"prefix_chars\": 461, \"question_turn\": \"user\"}": 1
+   },
+   "closers": {
+    "closers": {
+     "<think>": 6
+    },
+    "refused": 6,
+    "refused_n": 6
+   },
+   "correct": 1,
+   "device_buffers": {
+    "Vulkan0": 6,
+    "Vulkan_Host": 6
+   },
+   "effective_backend": "vulkan",
+   "items": 6,
+   "low_mass": 6,
+   "refusals": 6,
+   "rows": [
+    {
+     "correct": true,
+     "coverage": 6.889645852322363e-09,
+     "cue_mass": 0.9999806514487946,
+     "cue_refused": true,
+     "cue_top": "<think>",
+     "expected": "technical",
+     "got": "technical",
+     "id": "c01",
+     "reliability": "low_mass",
+     "type": "choice"
+    },
+    {
+     "correct": false,
+     "coverage": 5.768895899467299e-07,
+     "cue_mass": 0.9999980913603383,
+     "cue_refused": true,
+     "cue_top": "<think>",
+     "expected": "3",
+     "got": "4",
+     "id": "s01",
+     "reliability": "low_mass",
+     "type": "score"
+    },
+    {
+     "correct": false,
+     "coverage": 3.9061971013267124e-07,
+     "cue_mass": 0.9999671117098629,
+     "cue_refused": true,
+     "cue_top": "<think>",
+     "expected": "yes",
+     "got": "no",
+     "id": "n01",
+     "reliability": "low_mass",
+     "type": "noul"
+    },
+    {
+     "correct": false,
+     "coverage": 2.008160724785393e-09,
+     "cue_mass": 0.9999992109335936,
+     "cue_refused": true,
+     "cue_top": "<think>",
+     "expected": "billing",
+     "got": "escalation",
+     "id": "c02",
+     "reliability": "low_mass",
+     "type": "choice"
+    },
+    {
+     "correct": false,
+     "coverage": 7.407698686539978e-08,
+     "cue_mass": 0.9999952742134365,
+     "cue_refused": true,
+     "cue_top": "<think>",
+     "expected": "3",
+     "got": "0",
+     "id": "s02",
+     "reliability": "low_mass",
+     "type": "score"
+    },
+    {
+     "correct": false,
+     "coverage": 1.5217238249047936e-08,
+     "cue_mass": 0.9999956110820739,
+     "cue_refused": true,
+     "cue_top": "<think>",
+     "expected": "yes",
+     "got": "no",
+     "id": "n02",
+     "reliability": "low_mass",
+     "type": "noul"
+    }
+   ],
+   "template_seen": {
+    "{\"family\": \"qwen35moe\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\"}": 6
+   }
+  }
+ },
+ "task": "t_9bcbecff"
+}

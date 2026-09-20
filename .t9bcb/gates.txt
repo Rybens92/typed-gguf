@@ -1,0 +1,66 @@
+........................................................................ [  5%]
+........................................ssssssss........................ [ 10%]
+................................................................s....... [ 15%]
+........................................................................ [ 20%]
+................................................s....................... [ 26%]
+........................................................................ [ 31%]
+.....ss................................................................. [ 36%]
+........................................................................ [ 41%]
+........................................................................ [ 47%]
+........................................................................ [ 52%]
+..................................sss................................... [ 57%]
+...........sssssss..................................................ssss [ 62%]
+sss.ss..........................................ss...................... [ 68%]
+.ssss................................................................... [ 73%]
+....................................s................................... [ 78%]
+........................................................................ [ 83%]
+....................................................sssss............... [ 89%]
+........................................................................ [ 94%]
+.........................s...............................ssss........... [ 99%]
+.....                                                                    [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_bench_isolation_live.py:75: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:90: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:106: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:122: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:146: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:161: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:235: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:272: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_vulkan_teardown_live.py:156: live test: pass --run-network to run
+SKIPPED [1] tests/test_cli.py:239: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:131: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:157: live test: pass --run-network to run
+SKIPPED [3] tests/test_e3e_roles.py:800: live test: pass --run-network to run
+SKIPPED [2] tests/test_engine_fork.py:561: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:581: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:625: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:651: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:703: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:743: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:81: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:102: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:118: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:133: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:150: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:178: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:195: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:232: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:252: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:219: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:235: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:33: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:40: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:51: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:80: live test: pass --run-network to run
+SKIPPED [1] tests/test_probe_pressure.py:312: no readable pid cgroup (not a container): the fork gates cannot be gated here
+SKIPPED [1] tests/test_runtime_live.py:42: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:50: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:59: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:83: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:90: live test: pass --run-network to run
+SKIPPED [1] tests/test_serving_attribution.py:546: live test: pass --run-network to run
+SKIPPED [2] tests/test_templates.py:423: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:442: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:478: live test: pass --run-network to run
+1325 passed, 48 skipped in 40.43s
