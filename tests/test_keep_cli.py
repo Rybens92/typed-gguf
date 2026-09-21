@@ -10,7 +10,10 @@ from __future__ import annotations
 import contextlib
 import json
 import pathlib
+import socket
+import subprocess
 import sys
+import time
 from collections.abc import Mapping
 from typing import Any
 
@@ -98,6 +101,52 @@ def test_keep_stop_cleans_a_stale_record_and_reports_it(keep_home: pathlib.Path,
     # a second stop is still a report, still exit 0
     assert cli.main(["keep", "stop"]) == 0
     assert "no host" in capsys.readouterr().out
+
+
+def _write_record_pointing_at(keep_home: pathlib.Path, key: identity.KeepKey,
+                              pid: int) -> pathlib.Path:
+    """The shape a `kill -9`'d host leaves: a record, and a socket file nobody listens on."""
+    state.ensure_dir(keep_home)
+    socket_file = state.socket_path(keep_home, key.digest)
+    dead = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    dead.bind(str(socket_file))
+    dead.close()                                    # the file stays; a connect is refused
+    state.write_record(state.HostRecord(
+        digest=key.digest, pid=pid, socket=str(socket_file), key=key.to_dict(), model="a",
+        model_path=key.model_path, keep_alive=600.0, started_at=0.0, loaded_at=0.0,
+        spec=str(state.spec_path(keep_home, key.digest)),
+        log=str(state.log_path(keep_home, key.digest))), keep_home)
+    return socket_file
+
+
+@pytest.mark.needs_fork
+def test_keep_stop_leaves_a_pid_the_record_cannot_prove_is_a_host(keep_home: pathlib.Path,
+                                                                 capsys) -> None:
+    """RED pin (card t_a4ebcd36): `keep stop` says what it did, and a decoy pid lives through it.
+
+    The re-gate reproduced the failure with a decoy `sleep 600` whose pid a stale record carried:
+    `keep stop --json` answered `{"stopped": true, ..., "reason": "stopped (SIGTERM)"}` and the
+    decoy's `/proc/<pid>/stat` went `R -> Z`. Nothing answers on this record's socket, so the
+    command must clean the debris, signal nothing, and put *that* in the report (the text form is
+    what a user reads: `no host was running (<reason>)`).
+    """
+    key = identity.KeepKey.of(None, model_path="/models/a.gguf")
+    decoy = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    try:
+        socket_file = _write_record_pointing_at(keep_home, key, decoy.pid)
+        assert cli.main(["keep", "stop", "--json"]) == 0
+        report = json.loads(capsys.readouterr().out)
+        time.sleep(0.2)                             # a signal would have landed by now
+        assert state.pid_alive(decoy.pid) is True, "a command that never saw a host signalled one"
+        assert cli.main(["keep", "stop"]) == 0
+        text = capsys.readouterr().out
+    finally:
+        decoy.kill()
+        decoy.wait(timeout=10.0)
+    assert report["stopped"] is False and report["cleaned"] is True
+    assert "nothing was signalled" in report["reason"]
+    assert state.read_record(keep_home) is None and not socket_file.exists()
+    assert "no host was running" in text
 
 
 # ------------------------------------------------------------------ the warm path's wiring

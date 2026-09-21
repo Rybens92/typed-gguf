@@ -190,8 +190,12 @@ class Client:
                 state.clear_record(self.home, digest=record.digest)
                 self.events.append(("cleanup", record.digest))
             elif record.digest != key.digest:
+                # verified *before* the verb touches the ledger: only a host we could see has to
+                # stop. A record nobody answers on is debris, and the swap must not read its pid
+                # as a resident model (card t_a4ebcd36).
+                held = self._verified_host(record)
                 report = self.stop()                 # one model at a time: free the device first
-                if not report.get("stopped") and state.pid_alive(record.pid):
+                if held and not report.get("stopped"):
                     raise KeepUnavailable(
                         f"spawn: the resident host (pid {record.pid}, digest {record.digest}) "
                         f"could not be stopped; refusing to load a second model")
@@ -360,7 +364,15 @@ class Client:
         return {**base, **dict(reply.get("keep") or {}), "state": "running"}
 
     def stop(self, *, grace: float | None = None) -> dict[str, Any]:
-        """`keep stop`: end the host, wait for the process, remove the ledger's entry."""
+        """`keep stop`: end the host, wait for the process, remove the ledger's entry.
+
+        The one verb that acts on the record *verifies* it first — the module's own rule is that a
+        record is a claim, not a fact. A record whose socket nobody answers on is the debris a
+        `kill -9`'d host leaves behind, and the pid it carries is exactly the part that outlives
+        the host: by the next call the kernel may have handed it to somebody else (card
+        t_a4ebcd36 — the re-gate watched a decoy process die on a stale record's pid). Debris is
+        cleaned up, nothing is signalled, and the report says which of the two it was.
+        """
         timeout = self.stop_grace if grace is None else float(grace)
         record = state.read_record(self.home)
         if record is None:
@@ -371,7 +383,13 @@ class Client:
         if pid == os.getpid():
             # a hand-written or corrupted record must never make the CLI signal itself
             reason = "the record points at this very process; refusing to signal it"
-        elif state.pid_alive(pid):
+        elif not state.pid_alive(pid):
+            pass                              # `reason` already says it: no signal either way
+        elif not self._verified_host(record):
+            reason = (f"nothing is listening on {record.socket}: the record is debris (a killed "
+                      f"host leaves one behind) and pid {pid} was not verified as a host, so "
+                      f"nothing was signalled")
+        else:
             with contextlib.suppress(OSError):
                 os.kill(pid, signal.SIGTERM)
             child = self.children.get(pid)
@@ -400,6 +418,23 @@ class Client:
         return {"stopped": stopped, "pid": pid, "reason": reason, "cleaned": cleaned}
 
     # ------------------------------------------------------------------ internals
+    def _verified_host(self, record: state.HostRecord) -> bool:
+        """Is a *host* really at the other end of this record? (a record is a claim, not a fact)
+
+        The module's rule, applied to the one verb that acts on the record. Two ways to know, and
+        neither of them is the record's `pid` field on its own — that is precisely the part of a
+        `kill -9`'d host's record that outlives the host (card t_a4ebcd36):
+
+        * this client spawned that pid: its `Popen` handle is identity, and a pid we hold a live
+          handle for cannot have been recycled (a dead child is our own zombie, which
+          `state.pid_alive` already reports as gone);
+        * something answers on the record's socket. A *busy* host still answers it: the probe only
+          has to land in the listen backlog, it never waits for a decision.
+        """
+        if record.pid in self.children:
+            return True
+        return _listening(record.socket)
+
     def _mark(self, body: dict[str, Any], *, served_by: str, keep_alive_s: float,
               keep: Mapping[str, Any] | None = None, fallback: str | None = None,
               **extra: Any) -> dict[str, Any]:

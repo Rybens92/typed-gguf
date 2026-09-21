@@ -443,9 +443,18 @@ def test_stop_of_a_host_this_client_did_not_spawn_goes_through_the_pid(keep_home
 
 @pytest.mark.needs_fork
 def test_stop_escalates_to_sigkill_when_the_host_ignores_sigterm(keep_home) -> None:
-    """A wedged host is not a host: after the grace period the pid is killed and `stop` says so."""
+    """A wedged host is not a host: after the grace period the pid is killed and `stop` says so.
+
+    The record has to *look like* a host for the signal path to run at all (card t_a4ebcd36: a pid
+    the record cannot prove is a host is never signalled) — a wedged host is wedged inside a
+    decision, not deaf on its socket, so the gate binds a listener for it.
+    """
     key = _key()
     state.ensure_dir(keep_home)
+    socket_file = state.socket_path(keep_home, key.digest)
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    listener.bind(str(socket_file))
+    listener.listen(4)
     # the child prints `ready` only *after* it ignores SIGTERM: without that handshake the SIGTERM
     # can land during interpreter start-up and kill it the default way (a flaky 0.4 s grace)
     child = subprocess.Popen([sys.executable, "-c",
@@ -459,6 +468,7 @@ def test_stop_escalates_to_sigkill_when_the_host_ignores_sigterm(keep_home) -> N
         client = client_module.Client(home=keep_home, stop_grace=0.4)
         result = client.stop()
     finally:
+        listener.close()
         child.kill()
         child.wait(timeout=10.0)
         if child.stdout is not None:
@@ -478,3 +488,108 @@ def test_stop_refuses_a_record_that_points_at_this_very_process(keep_home) -> No
     assert result["pid"] == os.getpid()
     assert result["reason"] == "the record points at this very process; refusing to signal it"
     assert os.getpid() == result["pid"], "the process under test is obviously still here"
+
+
+def _leave_debris(home: pathlib.Path, key: identity.KeepKey) -> pathlib.Path:
+    """What a `kill -9`'d host leaves behind: a record, and a socket file nobody listens on.
+
+    Bound for real and then closed, so the path *exists* (the record's `alive()` half) while a
+    connect on it is refused — the shape the reviewer reproduced with a decoy process.
+    """
+    state.ensure_dir(home)
+    socket_file = state.socket_path(home, key.digest)
+    dead = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    dead.bind(str(socket_file))
+    dead.close()
+    return socket_file
+
+
+@pytest.mark.needs_fork
+def test_stop_never_signals_a_pid_the_record_cannot_prove_is_a_host(keep_home) -> None:
+    """RED pin (card t_a4ebcd36): a stale record's pid may be somebody else's by now.
+
+    The ledger's own rule is that *a record is a claim, not a fact* — `alive()` checks the pid
+    **and** the socket — and `stop()` is the one verb that acts on the record. It used to SIGTERM
+    on `pid_alive` alone, so a `kill -9`'d host's recycled pid went to whatever now owned it (the
+    re-gate watched a decoy `sleep 600` go R -> Z). Nothing answers on this record's socket, so no
+    signal may be sent, the debris must be cleaned up, and the report has to say which it was.
+    """
+    key = _key()
+    socket_file = _leave_debris(keep_home, key)
+    decoy = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    try:
+        _write_foreign_host(keep_home, decoy.pid, key)
+        client = client_module.Client(home=keep_home, stop_grace=0.4)
+        result = client.stop()
+        time.sleep(0.2)                       # a signal would have landed by now
+        assert state.pid_alive(decoy.pid) is True, \
+            "the decoy was signalled by a record that never proved its pid was a host"
+    finally:
+        decoy.kill()
+        decoy.wait(timeout=10.0)
+    assert result["stopped"] is False and result["cleaned"] is True
+    assert state.read_record(keep_home) is None and not socket_file.exists()
+    assert ("listening" in result["reason"] and "nothing was signalled" in result["reason"]), \
+        result["reason"]
+
+
+@pytest.mark.needs_fork
+def test_a_swap_over_debris_loads_the_new_host_instead_of_refusing(make_client, keep_home) -> None:
+    """A record nobody answers on is *not* a resident model: a different key still gets a host.
+
+    The swap path refuses to load a second model only when it could not stop a *host*. Refusing on
+    the strength of a recycled pid (which is all a debris record carries) would turn the cleanup
+    into a permanent inline downgrade — and the pid under it would have been killed to get there.
+    """
+    key_a = _key("a")
+    socket_file = _leave_debris(keep_home, key_a)
+    decoy = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    try:
+        _write_foreign_host(keep_home, decoy.pid, key_a)
+        client = make_client()
+        body = client.decide(_key("b"), PAYLOAD, keep_alive=30.0, inline=Inline())
+        assert body["engine"]["keep"]["served_by"] == "host", \
+            f"the swap refused to load over debris: {body['engine']['keep']}"
+        assert state.pid_alive(decoy.pid) is True
+        host_pid = body["engine"]["keep"]["pid"]
+        assert host_pid != decoy.pid
+    finally:
+        decoy.kill()
+        decoy.wait(timeout=10.0)
+    # the debris went with the swap: the socket file is gone and the ledger entry is the new host's
+    assert not socket_file.exists()
+    record = state.read_record(keep_home)
+    assert record is not None and record.pid == host_pid
+
+
+@pytest.mark.needs_fork
+def test_a_swap_refuses_when_the_record_it_cannot_stop_still_answers(
+        make_client, keep_home) -> None:
+    """The other half of the gate: a record whose socket *answers* is not debris (card t_a4ebcd36).
+
+    `held` is what separates the two: the swap loads its own host over debris, and refuses in front
+    of a record it could not stop *whose socket answers a probe*. Here that record points at the
+    process running the gate, which `stop()` refuses to signal on purpose — so nothing was stopped
+    and nothing may be started next to it: the call answers inline and names the reason instead of
+    writing a second host under the same identity (the mutation that drops `held` survives the
+    sweep's four gate files, so this pin is what holds the branch in place).
+    """
+    key_a = _key("a")
+    state.ensure_dir(keep_home)
+    socket_file = state.socket_path(keep_home, key_a.digest)
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    listener.bind(str(socket_file))
+    listener.listen(4)                     # a host is really there: the probe answers
+    try:
+        _write_foreign_host(keep_home, os.getpid(), key_a)
+        client = make_client()
+        body = client.decide(_key("b"), PAYLOAD, keep_alive=30.0, inline=Inline())
+        keep = body["engine"]["keep"]
+        assert keep["served_by"] == "inline", keep
+        assert "refusing to load a second model" in (keep.get("fallback") or ""), keep
+        assert client.spawns == [], "a second host was started next to something that answered"
+    finally:
+        listener.close()
+    # `stop()` cleared the ledger entry of the record it refused to signal (the pre-existing
+    # teardown rule — this card's change is *what gets a signal*, not what gets cleaned).
+    assert state.read_record(keep_home) is None
