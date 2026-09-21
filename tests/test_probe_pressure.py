@@ -130,11 +130,41 @@ def test_a_transient_fork_failure_is_retried_until_the_probe_answers(
     assert seen["attempts"] == 3                           # 2 denied + 1 that got through
 
 
+def pin_the_cgroup_reading(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, *,
+                           current: int | None, maximum: int | None = 256
+                           ) -> pressure.PidHeadroom | None:
+    """Freeze the *source* of the one cgroup reading a failure message is built from.
+
+    Card t_10247273: `pressure.pressure_note()` reads `pids.current`/`pids.max` *while*
+    `pressure.spawn` builds its `SpawnBlocked` message, and the pin below used to re-read the same
+    live file afterwards and demand the exact string. Any pid the box reaps between the two reads
+    (pytest's own just-exited children, a sibling card's workers) changes one number and the gate
+    goes red on a tree where nothing moved — the CI shape answered `1 failed, 1504 passed` that
+    way, and 7/20 runs reproduce it once a churn helper forks next to the gate. Pinning the
+    *source* (a directory this test owns) rather than the value keeps the product's real reader in
+    the loop: the message and the assertion then read one moment, and the pin still proves the note
+    is in the message.
+
+    `current=None` writes no files at all — that box has no readable pid cgroup, which is the other
+    half of the note's contract (`pressure_note()` answers `''` there).
+    """
+    root = tmp_path / "cgroup"
+    root.mkdir(exist_ok=True)
+    if current is not None:
+        (root / "pids.current").write_text(f"{current}\n")
+        (root / "pids.max").write_text("max\n" if maximum is None else f"{maximum}\n")
+    real = pressure.read_pid_headroom
+    monkeypatch.setattr(pressure, "read_pid_headroom",
+                        lambda _root=pressure.PID_CGROUP_ROOT: real(root))
+    return real(root)
+
+
 def test_a_sustained_fork_block_is_named_pid_pressure_not_a_bundle(
         monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     """The box at its cap: bounded retries, then one *named* reason carrying the cgroup reading."""
     monkeypatch.setattr(pressure, "SPAWN_BACKOFF", 0)   # the wait budget is pinned separately
     seen = count_spawns(monkeypatch, always=True)
+    head = pin_the_cgroup_reading(monkeypatch, tmp_path, current=250, maximum=256)
 
     scan = isolated.scan_bundle(empty_runtime(tmp_path))
 
@@ -142,11 +172,27 @@ def test_a_sustained_fork_block_is_named_pid_pressure_not_a_bundle(
     assert pressure.E_PID_PRESSURE in scan.child_error
     assert "fork headroom" in scan.child_error
     assert seen["attempts"] == pressure.SPAWN_ATTEMPTS          # bounded, not endless
-    head = pressure.read_pid_headroom()
-    if head is not None:              # the box's own numbers, when there are any
-        assert head.describe() in scan.child_error
+    assert head is not None and head.describe() == "pids.current=250/256 (6 free)"
+    # the message carries *that* reading — the note is not a paraphrase of it
+    assert head.describe() in scan.child_error
     for lie in ("does not load on this host", "cannot open shared object", "carries no"):
         assert lie not in scan.child_error, scan.child_error
+
+
+def test_a_fork_block_on_a_box_with_no_cgroup_invents_no_numbers(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    """No readable pid cgroup: the failure carries the named reason and nothing that reads as a
+    measurement nobody took — no `; pid cgroup:` segment, no headroom number."""
+    monkeypatch.setattr(pressure, "SPAWN_BACKOFF", 0)
+    count_spawns(monkeypatch, always=True)
+    assert pin_the_cgroup_reading(monkeypatch, tmp_path, current=None) is None
+
+    scan = isolated.scan_bundle(empty_runtime(tmp_path))
+
+    assert scan.child_error is not None
+    assert pressure.E_PID_PRESSURE in scan.child_error and "fork headroom" in scan.child_error
+    assert "; pid cgroup:" not in scan.child_error, scan.child_error   # the note adds nothing
+    assert "free)" not in scan.child_error, scan.child_error           # and no invented count
 
 
 @pytest.mark.needs_fork
