@@ -1,35 +1,34 @@
 # typed-gguf
 
-**Formerly `ggufone`** — the public name changed on 2026-09-20 (card t_5f9c15fe): the import package is
-`typed_gguf`, the command is `typed-gguf`, the default data home is `~/.local/share/typed-gguf`.
-Files under `docs/evidence/` keep the old spelling: they are records of runs, not names.
+typed-gguf is a GGUF-native typed decision engine: a `state` plus typed questions in, typed
+answers with full probability distributions and confidence out, computed locally on frozen
+GGUF models. Nothing is generated.
 
-**System-One-style typed decisions on any GGUF** — inspired by the typed-decision interface (Jev);
-no affiliation, no parity claim.
+It is inspired by the System-One-style typed-decision interface (Jev). No affiliation, no parity
+claim.
 
-**GGUF-native typed decision engine** — `state` + typed questions → typed answers with full
-probability distributions and confidence, computed locally on **frozen** GGUF models.
-
-- **One pass over a shared prefix.** The state is prefilled once; every question forks the sequence
+- One pass over a shared prefix. The state is prefilled once; every question forks the sequence
   state (`llama_memory_seq_cp`) and costs only its own short suffix decode.
-- **No text generation.** Answers are read from logits over a fixed candidate set (restricted
-  softmax), never sampled or parsed.
-- **No fine-tuning. Ever.** Any GGUF llama.cpp can load is a valid backend; weights are never updated.
-  The core has zero third-party runtime dependencies (stdlib only).
-- **No compiler, ever.** `typed-gguf init` downloads a pinned official llama.cpp release bundle
-  (shared libraries driven through `ctypes`). Users never build anything.
-- **One bundle per process.** Probes (`init`'s fallback chain, `doctor`, the warm-up) run in a
-  disposable child (`typed_gguf.runtime.probe_child`) and come back as JSON. Third-party GPU
-  libraries and drivers stay out of the command process, so their teardown cannot take the
+- No text generation. Answers are read from the logits over a fixed candidate set (restricted
+  softmax), never sampled and never parsed.
+- No fine-tuning, ever. Any GGUF llama.cpp can load is a valid backend; the weights are never
+  updated. The core has zero third-party runtime dependencies (stdlib only).
+- No compiler, ever. `typed-gguf init` downloads a pinned official llama.cpp release bundle and
+  drives its shared libraries through `ctypes`, so users never build anything.
+- One bundle per process. Probes (`init`'s fallback chain, `doctor`, the warm-up) run in a
+  disposable child (`typed_gguf.runtime.probe_child`) and come back as JSON, so third-party GPU
+  libraries and drivers stay out of the command process and their teardown cannot take the
   command down with it.
 
-Default model: [`XHToken/Spark-X2.5-4B-GGUF`](https://huggingface.co/XHToken/Spark-X2.5-4B-GGUF)
-`Q8_0`, pinned by size and SHA-256.
+The default model is
+[`XHToken/Spark-X2.5-4B-GGUF`](https://huggingface.co/XHToken/Spark-X2.5-4B-GGUF) `Q8_0`, pinned
+by size and SHA-256. Its 4.38 GB of weights fit in 8 GB of VRAM, the budget most home PCs and
+gaming laptops have, so the defaults work on first use for most people.
 
 ## Quickstart
 
 v0.1.0 installs from this repository (there is no PyPI release yet) and needs nothing but
-Python 3.11+ — the core is stdlib-only and no compiler is ever invoked:
+Python 3.11+. The core is stdlib-only and no compiler is ever invoked:
 
 ```bash
 git clone https://github.com/Rybens92/typed-gguf && cd typed-gguf
@@ -68,15 +67,15 @@ pulled spark-x2.5-4b-q8_0 -> ~/.local/share/typed-gguf/models/Spark-X2.5-4B-Q8_0
   arch      spark2_5  quant Q8_0  [quant]
 ```
 
-`uv run typed-gguf doctor` reads both back — exit `0` = ready, `2` = works with warnings, `1` =
-broken. A `2` is not a failed install: on this box `doctor` reports the documented CUDA→Vulkan
+`uv run typed-gguf doctor` reads both back: exit `0` means ready, `2` works with warnings, `1`
+broken. A `2` is not a failed install. On this box `doctor` reports the documented CUDA→Vulkan
 pre-flight fallback (an NVIDIA card, a Vulkan bundle) and `model.present` until the pull lands.
 
 ### Install without a clone: `uvx`, `uv tool install`, pip
 
 The wheel carries its own pinned `runtime.lock` (the build copies the repository's into the
-package), so an installed `typed-gguf` reads its pins from itself and works from any directory —
-no checkout, and no `cd` into one:
+package), so an installed `typed-gguf` reads its pins from itself and works from any directory, with
+no checkout and no `cd` into one:
 
 ```bash
 uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf version
@@ -87,8 +86,8 @@ uv tool install --from git+https://github.com/Rybens92/typed-gguf typed-gguf   #
 pip install "typed-gguf @ git+https://github.com/Rybens92/typed-gguf"          # or a plain venv
 ```
 
-Before/without a published remote, the same thing works from a checkout — `uvx --from . …` builds the
-same wheel, lock included, and runs it from uv's cache instead of your source tree.
+Before or without a published remote, the same thing works from a checkout: `uvx --from . …` builds
+the same wheel, lock included, and runs it from uv's cache instead of your source tree.
 
 `init` from such an install, run in an empty directory (measured 2026-09-20):
 
@@ -103,12 +102,11 @@ rung: prebuilt
 ```
 
 `$TYPED_GGUF_LOCK` still points a run at a different pin, and it is used *as-is*: a path that does
-not exist is an error — one that lists every path that was searched — never a silent fallback.
-What stays repository-root-only in v0.1.0 is the development surface: the test suite and the
-oracle (`uv run pytest`, `python3 docs/verify_runtime_contract.py`) read `tests/`, `docs/evidence/`
-and `SPEC.md`, which no wheel ships.
+not exist is an error that lists every path that was searched, never a silent fallback. The test
+suite and the oracle stay repository-root-only: they read `tests/`, `docs/evidence/` and
+`SPEC.md`, none of which a wheel ships.
 
-Then ask — one state, three typed questions:
+### One state, three typed questions
 
 ```bash
 uv run typed-gguf ask \
@@ -118,7 +116,7 @@ uv run typed-gguf ask \
   --noul   "page=Should we page the on-call engineer?"
 ```
 
-The real response (this box, Vulkan, no policy flags — trimmed only where the `…` marks it):
+The real response (this box, Vulkan, no policy flags), trimmed only where the `…` marks it:
 
 ```json
 {
@@ -163,20 +161,20 @@ The real response (this box, Vulkan, no policy flags — trimmed only where the 
 }
 ```
 
-Read it as: **the decision** (`choice: billing`, `score: 0.68` on a 0–2 scale, `noul: 0.0047`),
-**the full distribution** (`probabilities`, with `legend` naming the levels of a `score`),
-**how concentrated it is** (`confidence`) and **whether the row the answer was read from is really
-an answer** (`reliability: "ok"`, `cue.verdict: "answered"`). `usage.decode_steps` counts decode
-steps consumed by the readout — nothing is generated. `engine` is the receipt for the rest:
+Read it as the decision (`choice: billing`, `score: 0.68` on a 0–2 scale, `noul: 0.0047`), the full
+distribution (`probabilities`, with `legend` naming the levels of a `score`), how concentrated it
+is (`confidence`), and whether the row the answer was read from is really an answer
+(`reliability: "ok"`, `cue.verdict: "answered"`). `usage.decode_steps` counts the decode steps the
+readout consumed; nothing is generated. `engine` is the receipt for the rest:
 
 - `engine.cue: "json_instructed"` and `engine.chat_format.kind: "role_split"` are the product
-  **defaults** since policy v2 (2026-09-20) — `json_instructed` says the ask line is a JSON
-  contract, `role_split` says the question is its own user turn rendered by the model's own chat
-  template (`question_turn: "user"`). The pre-v2 cell stays one flag away
-  (`--cue shipped --chat-format answer_sheet`) — see `docs/TEMPLATES.md` §4.
-- `engine.template` says which template produced the bytes: `kind: "gguf-renderer"` /
+  defaults since policy v2 (2026-09-20): `json_instructed` says the ask line is a JSON contract,
+  `role_split` says the question is its own user turn rendered by the model's own chat template
+  (`question_turn: "user"`). The pre-v2 cell stays one flag away
+  (`--cue shipped --chat-format answer_sheet`), see `docs/TEMPLATES.md` §4.
+- `engine.template` says which template produced the bytes. `kind: "gguf-renderer"` /
   `renderer: "internal"` is the model's own `tokenizer.chat_template` rendered by our renderer,
-  `family: "spark2_5"`, `thinking: "suppressed"` (proved on the bytes — `docs/TEMPLATES.md` §3).
+  `family: "spark2_5"`, `thinking: "suppressed"`, proved on the bytes (see `docs/TEMPLATES.md` §3).
   Templates outside the internal Jinja subset fall through the chain to llama.cpp's built-in
   templates (`renderer: "builtin"`, `W_TEMPLATE_FALLBACK`) or to `--template`, and a template
   nothing resolves is `E_TEMPLATE_UNRESOLVED` with the fix in the message.
@@ -184,7 +182,7 @@ steps consumed by the readout — nothing is generated. `engine` is the receipt 
 ### The same request as a file
 
 `run` takes a whole request (`--questions q.json`, with `--state`/`--state-json` to override the
-state; SPEC §2.5 is the schema):
+state; the request schema is in `SPEC.md`):
 
 ```json
 {
@@ -241,8 +239,8 @@ uv run typed-gguf run --questions q.json --state-id billing-incident --format ty
 Native-only keys (`engine`, `timings`, `coverage`, `reliability`, `decode_steps`, `warnings`) are
 dropped by the adapter on purpose, `usage` is reduced to its two documented counters, and an alias
 that is not in the registry (`model: "jev-latest"` and friends) is translated to the configured
-default. **No parity claim**: the confidence statistic is ours, and the one documented outlier in
-the adapter target's docs is reproduced as-is in `docs/verify_runtime_contract.py` (SPEC §2.6).
+default. No parity claim: the confidence statistic is ours, and the one documented outlier in the
+adapter target's docs is reproduced as-is in `docs/verify_runtime_contract.py`.
 
 ### Warm host: no cold start between calls
 
@@ -252,82 +250,71 @@ typed-gguf ask --state "Billing is down." --choice "area=Which?:billing|technica
 typed-gguf keep status
 ```
 
-The second call skips the model load: the first one left a **keep host** behind — a detached child
+The second call skips the model load: the first one left a keep host behind, a detached child
 process holding the model and answering `run`/`ask` over a unix socket in the data home
 (`$TYPED_GGUF_HOME/keep/`, mode 0600, never TCP). After `--keep-alive` seconds without a request it
-exits itself and frees the device.
+exits itself and frees the device. Measured on the 4B with the pinned Vulkan bundle: cold 17.50 s
+(load 2280 ms) against 2.58 s warm (load 0 ms) on the same host pid.
 
-- **One model at a time.** One host per data home. Switching models stops the old host *before* the
-  new one loads, so a swap never holds two models in RAM/VRAM.
-- **The window** is 600 s (10 min) by default and configurable: `--keep-alive 10m` / `30s` / `1h` on
-  `run`/`ask`, or `TYPED_GGUF_KEEP_ALIVE=10m` in the environment. Precedence: **flag > env >
-  default**. `--keep-alive 0` is the old behaviour exactly — answer inline and unload.
-- **The key.** A host serves one identity: the resolved model path plus its SHA (the registry's
+- One model at a time. One host per data home. Switching models stops the old host *before* the new
+  one loads, so a swap never holds two models in RAM or VRAM.
+- The window is 600 s (10 min) by default and configurable: `--keep-alive 10m` / `30s` / `1h` on
+  `run`/`ask`, or `TYPED_GGUF_KEEP_ALIVE=10m` in the environment. Precedence: flag > env > default.
+  `--keep-alive 0` is the old behaviour exactly: answer inline and unload.
+- The key. A host serves one identity: the resolved model path plus its SHA (the registry's
   recorded sha256, else the file's own size+mtime) plus the placement-affecting options (`backend`,
   `n_ctx`, `kv_type`, `n_seq_max`, `threads`, fit flags). A request with a different key gets a
   swap, never a wrong answer; `keep status` prints the key it is holding.
-- **Who answered** is in the response: `engine.keep.served_by` is `"host"` or `"inline"`, with the
-  host's pid, its one-time `model_load_ms`, the idle time left, and — when a host could not be had —
-  the named reason it fell back (`engine.keep.fallback`). The call that **spawned** the host reports
+- Who answered is in the response: `engine.keep.served_by` is `"host"` or `"inline"`, with the
+  host's pid, its one-time `model_load_ms`, the idle time left, and, when a host could not be had,
+  the named reason it fell back (`engine.keep.fallback`). The call that spawned the host reports
   that load in its own `timings.model_load_ms` (it waited for it); a warm answer reports `0.0`. With
-  `--keep-alive 0` the keep path never runs, so the response is the pre-E4 one verbatim — no
-  `engine.keep` block at all.
-- **`keep status` / `keep stop`** are the control surface. `status` reports the pid, the model, the
+  `--keep-alive 0` the keep path never runs, so the response is the pre-warm-host one verbatim,
+  with no `engine.keep` block at all.
+- `keep status` / `keep stop` are the control surface. `status` reports the pid, the model, the
   key, idle seconds left, the placement, and the device the *engine's own log* proved.
-- **Fallback policy.** If the host cannot be reached, spawns but never becomes ready, or dies with a
-  request, the client cleans up its ledger entry and answers **inline on that same call** — the CLI
+- Fallback policy. If the host cannot be reached, spawns but never becomes ready, or dies with a
+  request, the client cleans up its ledger entry and answers inline on that same call; the CLI
   never wedges on a host. Crashes inside the host are typed errors on the wire, rebuilt as the
   product's own exception type. If a platform has no unix sockets (Windows), `run`/`ask` say so by
   name (`W_KEEP_UNAVAILABLE`) and answer inline; no daemon is attempted.
 
+## Platforms
+
+`init` picks the pinned official llama.cpp bundle for the host: Linux x86_64 (cpu, vulkan, cuda-12.8),
+Windows x86_64 (cpu, vulkan, cuda-12.4) and macOS arm64/x64 (metal). The map lives in
+`src/typed_gguf/runtime/pins.py`. Anywhere else, build a runtime yourself and point
+`TYPED_GGUF_RUNTIME_DIR` at it; `doctor` probes what you point it at (rung 3).
+
+The Python package is stdlib-only and needs Python 3.11+, so installing works anywhere `uv`/`uvx`
+does. The warm host needs unix sockets: on Windows `run`/`ask` answer inline with
+`W_KEEP_UNAVAILABLE` and no daemon is attempted. CI runs on Ubuntu, and the Windows and macOS paths
+are platform-aware but not covered by that per-commit gate.
+
 ## Interfaces
 
-| command | what it does | milestone |
-| --- | --- | --- |
-| `typed-gguf init [--backend auto\|cpu\|vulkan\|cuda\|metal] [--dry-run]` | downloads, verifies, extracts and probes the pinned llama.cpp bundle; `--dry-run` prints the plan | E1a |
-| `typed-gguf doctor [--json]` | checks the bundle (files, symbols, build, `llama-fit-params`, backends, accelerator, recorded SHA) and the registry; exit 0 ok / 2 warnings / 1 broken | E1a |
-| `typed-gguf models search <q>` / `pull <repo[:quant]>` / `use <alias>` / `ls [--json]` / `rm <alias>` / `verify [alias]` / `recommend-quant [--vram GiB]` | the model registry: resume + SHA-256 verified downloads, the model author's license recorded with the file, and a quant recommendation for a VRAM budget | E1a |
-| `typed-gguf fit [<model>] [--json]` | the fit plan for this host (`n_gpu_layers`, `n_ctx`, `kv_type`, `n_seq_max`, `est_*` bytes), cached per (model SHA-256, host fingerprint) and applied on load unless `--no-fit` | E1c |
-| `typed-gguf run --questions q.json [--state …] [--format native\|typesafe] [--out r.json] [--keep-alive <dur\|0>]` | a whole request from a file | E1b |
-| `typed-gguf ask --state … --choice/--score/--noul "id=instruction:labels" [--keep-alive <dur\|0>]` | the same engine from the command line | E1b |
-| `typed-gguf bench --suite latency\|throughput\|quality\|calibration\|determinism --model <path.gguf>` | reproduces the tables in `docs/BENCHMARKS.md`; never touches the registry and never opens a socket | E2 |
-| `typed-gguf calibrate [--dry-run]` | fits the per-(model, question-type) temperature/scale on the committed dev set and keeps it only if a held-out split improves | E2.5 |
-| `typed-gguf keep status [--json]` / `stop [--json]` | the warm host: one resident model per data home, answering `run`/`ask` over a 0600 unix socket and unloading itself after `--keep-alive` | E4 |
-| `typed-gguf version [--json]` | versions, the pinned runtime tag, the installed runtime and the data home | E0 |
-| `typed-gguf serve` / `typed-gguf mcp` | the HTTP (`/health`, `/v1/models`, `/v1/decide`, `/v1/systemone`) and MCP (`typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`, `typed_gguf_fit`) surfaces are **specified in SPEC §2.9 but not implemented in v0.1.0**: both commands exit 3 with the milestone pointer | — |
+| command | what it does |
+| --- | --- |
+| `typed-gguf init [--backend auto\|cpu\|vulkan\|cuda\|metal] [--dry-run]` | downloads, verifies, extracts and probes the pinned llama.cpp bundle; `--dry-run` prints the plan |
+| `typed-gguf doctor [--json]` | checks the bundle (files, symbols, build, `llama-fit-params`, backends, accelerator, recorded SHA) and the registry; exit 0 ok / 2 warnings / 1 broken |
+| `typed-gguf models search <q>` / `pull <repo[:quant]>` / `use <alias>` / `ls [--json]` / `rm <alias>` / `verify [alias]` / `recommend-quant [--vram GiB]` | the model registry: resume + SHA-256 verified downloads, the model author's license recorded with the file, and a quant recommendation for a VRAM budget |
+| `typed-gguf fit [<model>] [--json]` | the fit plan for this host (`n_gpu_layers`, `n_ctx`, `kv_type`, `n_seq_max`, `est_*` bytes), cached per (model SHA-256, host fingerprint) and applied on load unless `--no-fit` |
+| `typed-gguf run --questions q.json [--state …] [--format native\|typesafe] [--out r.json] [--keep-alive <dur\|0>]` | a whole request from a file |
+| `typed-gguf ask --state … --choice/--score/--noul "id=instruction:labels" [--keep-alive <dur\|0>]` | the same engine from the command line |
+| `typed-gguf bench --suite latency\|throughput\|quality\|calibration\|determinism --model <path.gguf>` | reproduces the tables in `docs/BENCHMARKS.md`; never touches the registry and never opens a socket |
+| `typed-gguf calibrate [--dry-run]` | fits the per-(model, question-type) temperature/scale on the committed dev set and keeps it only if a held-out split improves |
+| `typed-gguf keep status [--json]` / `stop [--json]` | the warm host: one resident model per data home, answering `run`/`ask` over a 0600 unix socket and unloading itself after `--keep-alive` |
+| `typed-gguf version [--json]` | versions, the pinned runtime tag, the installed runtime and the data home |
+| `typed-gguf serve` / `typed-gguf mcp` | the HTTP (`/health`, `/v1/models`, `/v1/decide`, `/v1/systemone`) and MCP (`typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`, `typed_gguf_fit`) surfaces are planned and not implemented in v0.1.0: both commands exit 3 today |
 
-`python -m typed_gguf <command>` is the same CLI. Exit codes (SPEC §2.5): `0` ok, `2` user error,
-`3` runtime/model error, `4` internal (`doctor` adds `2` for "works, with warnings" and `1` for
+`python -m typed_gguf <command>` is the same CLI. Exit codes: `0` ok, `2` user error, `3`
+runtime/model error, `4` internal (`doctor` adds `2` for "works, with warnings" and `1` for
 "broken"). Every command accepts `--help`.
 
-**One interface, three shapes.** `--format native` (default) is the full response above;
+One interface, three shapes: `--format native` (default) is the full response above;
 `--format typesafe` is the compatibility adapter; and the same request/response pair is what
 `typed-gguf run --questions` and `typed-gguf ask` build internally, so anything the CLI can ask can
 be driven from a file.
-
-## Model families and templates
-
-The resolver chain is ordered and every step is published in the response
-(`engine.template`): **1.** the model's own `tokenizer.chat_template`, rendered by the internal
-renderer; **2.** `llama_chat_apply_template` — llama.cpp's built-in family templates
-(`renderer: "builtin"`, with `W_TEMPLATE_FALLBACK`); **3.** an explicit `--template plain | <builtin
-name> | <path.jinja> | <inline text>`; **4.** `E_TEMPLATE_UNRESOLVED` with the accepted forms in the
-message. `docs/TEMPLATES.md` §1–§2 is the reference.
-
-| family (arch) | measured on | template source | thinking | questions' placement |
-| --- | --- | --- | --- | --- |
-| `spark2_5` | Spark-X2.5-4B-`Q8_0` (the default) | the GGUF's own template, internal renderer, 5/5 role-split checks | hard-suppressed: `enable_thinking=false` renders a *closed* block, so no think-opener is ever present | role split renders; the shared prefix stops one byte before the template's own trailing newline (`engine.chat_format.dropped`) |
-| `qwen35` | Qwen3.5-0.8B-UD-`Q4_K_XL` (dense) | the GGUF's own template, internal renderer, 5/5 | hard-suppressed: the empty block is stripped from the generation prompt | role split renders |
-| `qwen35moe` | Occamy 1.0 (24 GB `Q4_K_L`, 48 experts) and Tiel-Coder-35B-A3B (20.8 GB) | same Qwen3.5 family template; Occamy's renders internally (5/5), **Tiel's own template is outside the internal Jinja subset** → the LLAMA built-in bridge renders it (`renderer: "builtin"`, `W_TEMPLATE_FALLBACK`) | hard (inherited) | role split renders for Occamy; for Tiel the live run goes through the built-in bridge (`--template plain` is the offline fallback) |
-| `k2-horizon` | no GGUF of this family has been run here — the row is **[recon]** from the published `moonshotai/Kimi-K2-Thinking` template | `<\|im_system\|>`/`<\|im_middle\|>` roles, no `enable_thinking` switch | **soft**: the `/no_think` marker is advisory — that family's thinking is controlled by the serving stack | the `kimi-k2` built-in covers variants our renderer rejects |
-| anything else | — | the chain above | — | if the role split cannot be rendered, the run is refused by name (`E_ROLE_SPLIT_UNSUPPORTED`, naming `--chat-format answer_sheet` / `--template plain`) instead of rendering a conversation nobody described |
-
-Notes that apply to every family: the **question id is never sent to the model** (labels are the
-option names / level numbers / `yes`·`no` the response reports back); `--readout single_token`
-scores only the first token of the label while the prompt stays byte-identical; two candidates that
-tokenize to the same sequence are `E_CANDIDATE_COLLISION` (exit 2); and a family with a hard
-thinking switch is verified by *stripping the bytes*, not by trusting the kwargs
-(`docs/TEMPLATES.md` §3).
 
 ## Fit: what this host can actually hold
 
@@ -340,94 +327,58 @@ uv run typed-gguf fit Spark-X2.5-4B-Q8_0 --json        # {n_gpu_layers, n_ctx, k
 
 `source` is `llama-fit-params` when the bundle's own tool produced the numbers, `estimate`
 otherwise (with `W_FIT_ESTIMATED`). The plan is cached per `(model sha256, host fingerprint)` and
-applied on load — `run`/`ask` honour it unless `--no-fit` is passed. Over budget, `kv_type` walks
+applied on load: `run`/`ask` honour it unless `--no-fit` is passed. Over budget, `kv_type` walks
 `f16 → q8_0 → q4_0` (each step warns `W_KV_TYPE_DOWNGRADE`) before the context shrinks; the
 estimate is cross-checked against measured load RSS within ±20 % on this box
 (`docs/TEMPLATES.md` §5).
 
 ## Limitations and known issues
 
-- **Questions inside one request are decided sequentially.** The parallelism is *per candidate
-  within a question* (branches packed into waves of `n_seq_max − 1`); there is no cross-question
-  batched decode yet, so a request's decode cost grows additively with the number of questions.
+- Questions inside one request are decided sequentially. The parallelism is *per candidate within a
+  question* (branches packed into waves of `n_seq_max − 1`); there is no cross-question batched
+  decode yet, so a request's decode cost grows additively with the number of questions.
   `usage.waves` and `usage.decode_steps` report what a request actually cost.
-- **The calibration, routing and latency/throughput/determinism tables are pre-policy-v2** until the
-  optional E2-v2 campaign re-measures them. They stay published as the policy their own report
-  names — the `shipped` cue + `answer_sheet` cell, i.e. the pre-v2 policy — and `docs/BENCHMARKS.md`
-  marks every such row rather than mixing it with a v2 one. What *is* v2: the 4B quality row (§2.3),
-  the Tiel row (§7.4.2) and the Occamy pair.
-- **`serve`/`mcp` are specified, not shipped** (SPEC §2.9); the CLI is the only interface in v0.1.0.
-- **Exotic-platform wheels are future work.** The primary distribution is the pinned prebuilt
-  llama.cpp bundle (SPEC §4, rung 1) and rung 1 is the only automated rung in v0.1.0: a
-  `llama-cpp-python` wheel matrix for platforms with no official asset was scoped but is not built by
-  this release, and the dispatch-only `wheels-fallback.yml` stub was dropped rather than shipped
-  half-built. On such a host, point `TYPED_GGUF_RUNTIME_DIR` at a runtime you built yourself and
-  `typed-gguf doctor` probes it (rung 3).
-- **Thinking suppression is prompt-level.** It is proved on the rendered bytes for the families with
-  a real switch; for `k2-horizon` the `/no_think` marker is advisory, because that family's thinking
-  is a serving-stack setting (SPEC §2.11, `docs/TEMPLATES.md` §8).
-- **Quality numbers come from our own 60-item dev set** (`src/typed_gguf/bench/devset.jsonl`, authored
-  in this repo, provenance recorded). They are measurements with Wilson intervals, not a vendor
+- The calibration, routing and latency/throughput/determinism tables are pre-policy-v2 until a later
+  re-measurement campaign re-runs them. They stay published as the policy their own report names,
+  the `shipped` cue plus the `answer_sheet` cell (that is the pre-v2 policy), and
+  `docs/BENCHMARKS.md` marks every such row rather than mixing it with a v2 one. What is v2: the 4B
+  quality row (§2.3), the Tiel row (§7.4.2) and the Occamy pair.
+- `serve`/`mcp` are specified, not shipped, so the CLI is the only interface in v0.1.0.
+- Exotic-platform wheels are future work. The primary distribution is the pinned prebuilt llama.cpp
+  bundle, and it is the only automated install path in v0.1.0: a `llama-cpp-python` wheel matrix for
+  platforms with no official asset was scoped but is not built by this release, and the
+  dispatch-only `wheels-fallback.yml` stub was dropped rather than shipped half-built. On such a
+  host, point `TYPED_GGUF_RUNTIME_DIR` at a runtime you built yourself and `typed-gguf doctor` probes
+  it (rung 3).
+- Thinking suppression is prompt-level. It is proved on the rendered bytes for the families with a
+  real switch; for `k2-horizon` the `/no_think` marker is advisory, because that family's thinking is
+  a serving-stack setting (`docs/TEMPLATES.md` §8).
+- Quality numbers come from our own 60-item dev set (`src/typed_gguf/bench/devset.jsonl`, authored in
+  this repo, provenance recorded). They are measurements with Wilson intervals, not a vendor
   comparison; `docs/BENCHMARKS.md` §4 lists what the tables deliberately do not claim.
-- **Big models on small boxes are box physics.** A 23–24 GB MoE on an 8 GB-VRAM host decides at
+- Big models on small boxes are box physics. A 23–24 GB MoE on an 8 GB-VRAM host decides at
   ~0.3 tok/s decode (measured, §6.5) and its fit plan offloads only what free VRAM allows; a host
   that can keep the weights resident turns the same command into a compute-bound run. Read
   `docs/BENCHMARKS.md` §6/§7 before blaming the engine.
-- **A cached fit plan is never re-expanded.** The plan is cached per (model SHA-256, host
-  fingerprint) under `$TYPED_GGUF_HOME/fit/` and re-checked against free device memory on every
-  load, but that check only walks the plan *down*: a plan degraded for one busy run stays degraded
-  after the device frees up (only its `budget_bytes` refreshes). Drop the cache — `--no-fit-cache`
-  on a request, `typed-gguf fit --no-cache`, or deleting `$TYPED_GGUF_HOME/fit/` — when free memory
-  returns.
-- **No CUDA row exists in the published tables** (no CUDA device was reachable when they were
-  measured); each table says `measured: false` with the reason instead of omitting the backend.
-- **`typed-gguf` is not affiliated with TypeSafe** and makes no parity claim; the `typesafe` output
-  format is a compatibility adapter (§2.6).
-- **The warm host keeps one model at a time.** A request for a different model — or for the same
-  model with placement-affecting options that differ — stops the resident host *before* the new one
-  loads, so the swap costs a full cold load and there is no set of per-model hosts. That is
-  deliberate on an 8 GB-VRAM box, where two resident models do not fit; `--keep-alive 0` turns the
-  host off entirely and `typed-gguf keep stop` frees the device right now. While a host is resident
-  its model stays in RAM/VRAM (and stays out of reach of the next call that wants a different one).
-- **The window belongs to the call that spawned the host.** A later call that merely *reuses* the
-  host does not change its `--keep-alive` (though every request does restart its countdown): the
-  resident host answers for the window it was started with until it ages out, is stopped, or a
-  different key evicts it. Nothing supervises a host that dies: the next call just pays a cold load.
-
-## Status
-
-`SPEC.md` is the contract (milestones E1a → E4 with numbered acceptance criteria); every number in
-it carries a `[executed]` / `[recon]` / `[target]` / `[UNVERIFIED]` tag. `docs/BENCHMARKS.md`
-carries the measured tables and `docs/TEMPLATES.md` the template/family contract.
-
-- **E1a (done)** — runtime + model registry: `init` (pinned prebuilt bundle, no compiler on the
-  path), `doctor`, `models {search,pull,use,ls,rm,verify,recommend-quant}`, the GGUF header reader,
-  the conservative fit planner, and the oracle green with its live section.
-- **E1b (done)** — the engine core: `run`/`ask`, `--format native|typesafe`, the fork readout (one
-  prefill per state, waves bounded by `n_seq_max`, prefix states cached on disk), the schema/error
-  catalog and the TypeSafe adapter. Numbers: `docs/evidence/e1b_perf.json`,
-  `docs/evidence/e1b_t_34abf324_engine.md`.
-- **E1c (done)** — the template resolver, provable thinking suppression and `fit`, with
-  `docs/TEMPLATES.md` as the family contract. Numbers: `docs/evidence/e1c_e2e.json`,
-  `docs/evidence/e1c_t_c8e36cad_*.md`.
-- **E2 (done)** — the five benchmark suites over the pinned runtime, the committed 60-item labeled
-  dev set, and `docs/BENCHMARKS.md`; one command reproduces each table
-  (`python3 tools/e2_reproduce.py --suite <name> --model <path.gguf>`).
-- **E2.5 (done)** — calibration, `--route auto` and bounded escalation, measured in
-  `docs/BENCHMARKS.md` §5.
-- **E3 (done)** — the 27–35B runs on this box: Occamy 1.0 (`qwen35moe`, 24 GB), the three-way
-  comparison, threads/placement recommendations and the Tiel-Coder row (§6–§7).
-- **E3e + policy v2 (done, 2026-09-20)** — the two switches that fix the question's placement and
-  the ask line (`role_split`, `json_instructed`) are the defaults; measured grounds in
-  `docs/BENCHMARKS.md` §9 and §7.4.2.
-- **E4 (done, 2026-09-20)** — the warm engine host (SPEC §2.12): a model used by `run`/`ask` stays
-  resident for `--keep-alive` (600 s default) and the next call skips the cold start. Measured on
-  the 4B with the pinned Vulkan bundle: cold **17.50 s** (load 2280 ms) → warm **2.58 s** (load
-  0 ms) on the same host pid; with `--keep-alive 5s` the host was gone 5.3 s after the window and
-  the device went 2314 → 6409 MiB free; A → B → A kept one host at a time. Gates:
-  `tests/test_keep_live.py` (7, `--run-network`) over the offline pins in `tests/test_keep*.py`.
-- **Not in v0.1.0** — the HTTP/MCP serving surface (SPEC §2.9) and the optional E2-v2 re-measurement
-  of the pre-v2 tables.
+- A cached fit plan is never re-expanded. The plan is cached per (model SHA-256, host fingerprint)
+  under `$TYPED_GGUF_HOME/fit/` and re-checked against free device memory on every load, but that
+  check only walks the plan *down*: a plan degraded for one busy run stays degraded after the device
+  frees up (only its `budget_bytes` refreshes). Drop the cache with `--no-fit-cache` on a request,
+  `typed-gguf fit --no-cache`, or by deleting `$TYPED_GGUF_HOME/fit/`, when free memory returns.
+- No CUDA row exists in the published tables (no CUDA device was reachable when they were measured);
+  each table says `measured: false` with the reason instead of omitting the backend.
+- `typed-gguf` is not affiliated with TypeSafe and makes no parity claim; the `typesafe` output
+  format is a compatibility adapter.
+- The warm host keeps one model at a time. A request for a different model, or for the same model
+  with placement-affecting options that differ, stops the resident host *before* the new one loads,
+  so the swap costs a full cold load and there is no set of per-model hosts. That is deliberate on an
+  8 GB-VRAM box, where two resident models do not fit; `--keep-alive 0` turns the host off entirely
+  and `typed-gguf keep stop` frees the device right now. While a host is resident its model stays in
+  RAM/VRAM, and stays out of reach of the next call that wants a different one.
+- The window belongs to the call that spawned the host. A later call that merely *reuses* the host
+  does not change its `--keep-alive` (though every request does restart its countdown): the resident
+  host answers for the window it was started with until it ages out, is stopped, or a different key
+  evicts it. Nothing supervises a host that dies; the next call just pays a cold load.
 
 ## Verification
 
@@ -436,31 +387,22 @@ uv run pytest -q                                    # unit gate (offline: live t
 uv run pytest -q --run-network                      # + real HF downloads / real GGUF headers
 uv run pytest -q --run-network tests/test_engine_fork.py tests/test_cli.py   # fork equivalence,
                                                     # waves, determinism, state save/load, CLI e2e
-uv run pytest -q --run-network tests/test_templates.py tests/test_fit_live.py  # E1c: the real
-                                                    # templates + the real fit plan (RSS ±20%)
-uv run pytest -q --run-network tests/test_keep_live.py -s   # E4: cold vs warm, idle unload, the
-                                                    # A→B→A swap, orphan cleanup (real 4B, ~5 min)
-uv run python tools/e1c_offline_gate.py             # every E1c test with the network disabled
+uv run pytest -q --run-network tests/test_templates.py tests/test_fit_live.py  # the real templates
+                                                    # + the real fit plan (load RSS within ±20 %)
+uv run pytest -q --run-network tests/test_keep_live.py -s   # cold vs warm, idle unload, the
+                                                    # A→B→A swap (real 4B, ~5 min)
+uv run python tools/e1c_offline_gate.py             # the template and fit gates, network off
 python3 docs/verify_runtime_contract.py             # oracle: pinned facts + formulas
 TYPED_GGUF_RUNTIME_DIR=<runtime> python3 docs/verify_runtime_contract.py   # + live ctypes probes
 ```
 
-The suite is offline by default (A7): live gates are marked and **skip by name** when they cannot
-run, and a run that skipped one exits non-zero rather than looking green — including the
-`@pytest.mark.needs_fork` gates, which skip under a starved pid cgroup
-(`pids.max` shared with sibling sandboxes) and say so instead of reporting "the backend does not
-load on this host".
+The suite is offline by default: live gates are marked and skip by name when they cannot run, and a
+run that skipped one exits non-zero rather than looking green. That includes the
+`@pytest.mark.needs_fork` gates, which skip under a starved pid cgroup (`pids.max` shared with
+sibling sandboxes) and say so instead of reporting "the backend does not load on this host".
 
-`docs/evidence/e1a_baseline.json` records this box's measured numbers (prefill tok/s, warm decode
-ms, KV footprint vs the conservative bound, the pull/resume/SHA transcript).
-
-## Verifying a claim
-
-Every number in `SPEC.md` is tagged: `[executed]` (reproduced in this repo right now), `[recon]`
-(measured once, source recorded), `[target]` (to be measured later) or `[UNVERIFIED]` (evidence
-missing; must not be quoted as fact — the tag is currently unused). Anything in the E1a evidence
-file is `[executed]` unless it says otherwise, and any statement whose tag is missing is a bug in
-the document.
+Deeper docs for contributors: `SPEC.md` is the contract, `docs/TEMPLATES.md` the template and family
+contract, and `docs/BENCHMARKS.md` the measured tables.
 
 ## License
 
@@ -471,26 +413,25 @@ MIT. The bundled/used llama.cpp release is MIT as well; model licenses are the m
 
 `typed-gguf` stands on other people's work, and says so:
 
-- **[llama.cpp](https://github.com/ggml-org/llama.cpp)** (MIT) — the inference runtime and the
-  C ABI this project drives through `ctypes` (`libllama.so` / `libggml*.so`, pinned release
-  `b11026`). `typed-gguf init` downloads the official release bundle; nothing here is built from
-  llama.cpp source.
-- **[TypeSafe](https://docs.typesafe.ai)** — the documented `state` + typed `questions` →
-  typed `answers` wire shape that the `--format typesafe` adapter mirrors, and the interface whose
-  "System One"-style typed decisions this project reimplements on frozen GGUFs. `typed-gguf` makes
-  **no parity claim** with it: the confidence statistic is our own and the documented quickstart
-  outlier is reproduced as-is in `docs/verify_runtime_contract.py`.
-- **[rorshopping/parallel-decisions](https://github.com/rorshopping/parallel-decisions)** and
-  **[TheoLeeCJ/openjev](https://github.com/TheoLeeCJ/openjev)** /
-  **[bnsd55/openjev](https://github.com/bnsd55/openjev)** — the "System One" decision-readout
-  idea (score a fixed candidate set instead of generating text) that this project exists to
-  reproduce on stock, frozen GGUFs. Their trained models are the reference point, not a
-  dependency.
-- **[harshatheg/Qwen-2.5-1B-RLCD](https://huggingface.co/harshatheg/Qwen-2.5-1B-RLCD)** —
-  RLCD-style training that demonstrated decision behaviour in a small model; cited as prior
-  art for the *frozen* variant we build.
-- **[XHToken/Spark-X2.5-4B-GGUF](https://huggingface.co/XHToken/Spark-X2.5-4B-GGUF)**
-  (Apache-2.0) — the default model, used unmodified and pinned by size + SHA-256.
+- [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT), the inference runtime and the C ABI this
+  project drives through `ctypes` (`libllama.so` / `libggml*.so`, pinned release `b11026`).
+  `typed-gguf init` downloads the official release bundle; nothing here is built from llama.cpp
+  source.
+- [TypeSafe](https://docs.typesafe.ai): the documented `state` + typed `questions` → typed `answers`
+  wire shape that the `--format typesafe` adapter mirrors, and the interface whose "System One"-style
+  typed decisions this project reimplements on frozen GGUFs. `typed-gguf` makes no parity claim with
+  it: the confidence statistic is our own and the documented quickstart outlier is reproduced as-is
+  in `docs/verify_runtime_contract.py`.
+- [rorshopping/parallel-decisions](https://github.com/rorshopping/parallel-decisions) and
+  [TheoLeeCJ/openjev](https://github.com/TheoLeeCJ/openjev) /
+  [bnsd55/openjev](https://github.com/bnsd55/openjev): the "System One" decision-readout idea (score
+  a fixed candidate set instead of generating text) that this project exists to reproduce on stock,
+  frozen GGUFs. Their trained models are the reference point, not a dependency.
+- [harshatheg/Qwen-2.5-1B-RLCD](https://huggingface.co/harshatheg/Qwen-2.5-1B-RLCD): RLCD-style
+  training that demonstrated decision behaviour in a small model; cited as prior art for the *frozen*
+  variant we build.
+- [XHToken/Spark-X2.5-4B-GGUF](https://huggingface.co/XHToken/Spark-X2.5-4B-GGUF) (Apache-2.0): the
+  default model, used unmodified and pinned by size + SHA-256.
 
 The `license` field of every pulled model is recorded in the registry and printed by
 `typed-gguf models pull` / `models ls --json`, so the model author's terms travel with the file.
