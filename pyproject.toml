@@ -27,7 +27,11 @@ dependencies = []
 network = ["hf_transfer>=0.1.6"]
 # optional compatibility runtime backend (degraded: no spark2_5, no Vulkan wheels, no fit)
 llamacpp = ["llama-cpp-python>=0.3.16"]
-dev = ["pytest>=8.0", "pytest-timeout>=2.3", "ruff>=0.6"]
+# PyYAML is the *gate's* parser, not the tool's: `tests/test_release_publish.py` reads
+# `.github/workflows/publish.yml` through it, because a release workflow that does not parse is a
+# release that cannot happen (card t_6027fb77). The packaged engine still has zero third-party
+# runtime dependencies (see `dependencies` above).
+dev = ["pytest>=8.0", "pytest-timeout>=2.3", "ruff>=0.6", "pyyaml>=6.0"]
 
 [project.scripts]
 # the console script uses the *process* entry point: a command that dlopened a bundle ends the
