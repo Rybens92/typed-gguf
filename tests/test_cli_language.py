@@ -141,3 +141,38 @@ def test_the_gate_flags_the_strings_this_card_removed(old: str) -> None:
 ))
 def test_the_gate_does_not_flag_the_product_s_own_vocabulary(plain: str) -> None:
     assert _jargon_in(plain) == [], _jargon_in(plain)
+
+
+# ------------------------------------------------------- the framing around the language
+# (Mutation sweep, card t_bf6bb78a: the language gate above asserts *substrings*, so padding and
+#  casing mutants of the framing literals survive it. These three pins are the framing, exactly.)
+def test_the_root_help_keeps_its_exact_framing(
+        capsys: pytest.CaptureFixture[str]) -> None:
+    """The header, the blank line and the `models:` footer around the descriptions."""
+    out = _help_output(capsys, ["--help"])
+    assert out.splitlines()[:4] == [f"typed-gguf {cli.__version__}",
+                                    "usage: typed-gguf <command> [options]", "", "commands:"]
+    assert "models: " + ", ".join(cli.MODELS_SUBCOMMANDS) in out.splitlines(), out
+
+
+@pytest.mark.parametrize("command", ["mcp", "ask"])
+def test_a_help_page_keeps_its_exact_framing(
+        command: str, capsys: pytest.CaptureFixture[str]) -> None:
+    """`_command_usage`'s shape: the usage line, a blank line, the description, the pointer last.
+    `mcp` is the no-flags case (nothing after the command name), `ask` the long one."""
+    out = _help_output(capsys, [command, "--help"])
+    lines = out.splitlines()
+    assert lines[0] == f"usage: typed-gguf {command} " + " ".join(cli.COMMAND_HELP[command])
+    assert lines[1] == ""
+    assert lines[2] == cli.COMMAND_DESCRIPTIONS[command]
+    assert lines[-1] == "run `typed-gguf --help` for the command list"
+
+
+def test_the_help_pages_still_carry_their_own_notes(
+        capsys: pytest.CaptureFixture[str]) -> None:
+    """A page renders `COMMAND_NOTES` as well as the description: the notes are the behaviour a
+    flag name alone does not explain (the bench preset and its soft cap)."""
+    for command, notes in cli.COMMAND_NOTES.items():
+        out = _help_output(capsys, [command, "--help"])
+        for note in notes:
+            assert note in out, (command, note[:60])
