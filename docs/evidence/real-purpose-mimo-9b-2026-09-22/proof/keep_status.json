@@ -1,0 +1,55 @@
+{
+  "schema": "typed_gguf.keep.status/v1",
+  "state": "running",
+  "pid": 69876,
+  "socket": "/work/t_d199e09c/mimo/home/keep/f6df7f6d93d238eb.sock",
+  "spec": "/work/t_d199e09c/mimo/home/keep/f6df7f6d93d238eb.spec.json",
+  "log": "/work/t_d199e09c/mimo/home/keep/f6df7f6d93d238eb.log",
+  "model": "MiMo-V2.6-Distill-Qwen-9B-Q4_K_M",
+  "model_path": "/work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+  "key": {
+    "model_path": "/work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+    "model_sha": "stat:5841049120:1790094309194734270",
+    "backend": "auto",
+    "n_ctx": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "threads": 4,
+    "fit": true,
+    "fit_target_mb": 512,
+    "fit_ctx": null,
+    "fit_cache": true
+  },
+  "key_digest": "f6df7f6d93d238eb",
+  "keep_alive_s": 60.0,
+  "uptime_s": 7.805,
+  "loaded_s": 1.185,
+  "idle_left_s": 59.826,
+  "requests": 1,
+  "model_load_ms": 1449.3314270002884,
+  "placement": {
+    "note": "fit plan: 32 layer(s) offloaded, kv_type=q4_0",
+    "n_gpu_layers": 32,
+    "kv_type": "q4_0",
+    "degraded": false,
+    "attempts": [],
+    "warnings": [],
+    "cpu_only": false
+  },
+  "devices": {
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan"
+  },
+  "version": "",
+  "error": null,
+  "loaded_at": 1790094630.9012294
+}

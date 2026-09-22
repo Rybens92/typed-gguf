@@ -1,0 +1,38 @@
+# model=/work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-IQ4_XS.gguf
+# cmd: uv run typed-gguf fit /work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-IQ4_XS.gguf --print --json --no-cache --n-ctx 4096 --fit-ctx 4096
+# nvidia-smi: 1025 MiB, 8192 MiB, 6866 MiB
+{
+  "model": "MiMo-V2.6-Distill-Qwen-9B-IQ4_XS",
+  "path": "/work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-IQ4_XS.gguf",
+  "n_gpu_layers": 32,
+  "n_ctx": 4096,
+  "kv_type": "q8_0",
+  "n_seq_max": 8,
+  "est_weights_bytes": 5215617024,
+  "est_kv_bytes": 285212672,
+  "est_total_bytes": 6055526400,
+  "backend": "cpu",
+  "source": "llama-fit-params",
+  "warnings": [
+    "W_KV_TYPE_DOWNGRADE"
+  ],
+  "notes": [
+    "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 4974 MiB, context 177 MiB, compute 529 MiB)"
+  ],
+  "arch": "qwen35",
+  "model_sha256": "eccfbc188e71dec8350fbdd5af898d2a50691ac67e077327c52baa9da1e91d90",
+  "host_fingerprint": "a8d49ce94b68e6f8",
+  "budget_bytes": 6124732416,
+  "created_at": "2026-09-22T16:34:53Z",
+  "schema": "typed_gguf.fit/v1",
+  "host": {
+    "backend": "cpu",
+    "ram_bytes": 33548619776,
+    "vram_bytes": 8589934592,
+    "vram_free_bytes": 7198474240,
+    "n_cpu": 24,
+    "fingerprint": "a8d49ce94b68e6f8"
+  },
+  "cache": null
+}
+# exit=0

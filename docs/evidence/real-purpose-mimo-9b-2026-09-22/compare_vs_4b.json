@@ -1,0 +1,1552 @@
+{
+ "schema": "typed_gguf.evidence.real_purpose_compare/v1",
+ "card": "t_d199e09c",
+ "baseline": {
+  "report": "docs/evidence/real-purpose-4b-2026-09-22/report.json",
+  "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf"
+ },
+ "compared_items": 30,
+ "agreement": {
+  "queue": {
+   "identical": 27,
+   "n": 30,
+   "rate": 0.9
+  },
+  "severity": {
+   "identical": 22,
+   "n": 30,
+   "rate": 0.7333
+  },
+  "escalate": {
+   "identical": 24,
+   "n": 30,
+   "rate": 0.8
+  }
+ },
+ "disagreements": {
+  "queue": {
+   "n": 3,
+   "mimo_only_right": 2,
+   "b4_only_right": 1,
+   "neither": 0
+  },
+  "severity": {
+   "n": 8,
+   "mimo_only_right": 3,
+   "b4_only_right": 4,
+   "neither": 1
+  },
+  "escalate": {
+   "n": 6,
+   "mimo_only_right": 2,
+   "b4_only_right": 4,
+   "neither": 0
+  }
+ },
+ "accuracy_on_common": {
+  "mimo": {
+   "queue": 0.9,
+   "severity": 0.7667,
+   "escalate": 0.8333
+  },
+  "b4": {
+   "queue": 0.8667,
+   "severity": 0.8,
+   "escalate": 0.9
+  },
+  "tiel": {
+   "queue": 0.9333,
+   "severity": 0.7667,
+   "escalate": 0.8
+  },
+  "net_delta_mimo_minus_b4": {
+   "queue": 0.0333,
+   "severity": -0.0333,
+   "escalate": -0.0667
+  }
+ },
+ "escalation_safety": {
+  "mimo": {
+   "false_negatives_total": 4,
+   "false_negatives_ids": [
+    "b03",
+    "b07",
+    "a01",
+    "p05"
+   ],
+   "false_negatives_by_trigger": {
+    "T1": 2,
+    "T4": 1,
+    "T2": 1
+   },
+   "money_legal_gold_n": 13,
+   "money_legal_false_negatives": 3,
+   "money_legal_false_negative_ids": [
+    "b03",
+    "b07",
+    "p05"
+   ],
+   "money_legal_recall": 0.7692,
+   "over_escalations": 1,
+   "over_escalation_ids": [
+    "a03"
+   ]
+  },
+  "b4": {
+   "false_negatives_total": 0,
+   "money_legal_false_negatives": 0,
+   "false_negative_ids": []
+  }
+ },
+ "escalation_contingency": {
+  "mimo": {
+   "arm": "mimo-9b-q4_k_m",
+   "gold_escalate_true": 16,
+   "gold_escalate_false": 14,
+   "false_negatives_total": 4,
+   "false_negative_ids": [
+    "b03",
+    "b07",
+    "a01",
+    "p05"
+   ],
+   "money_legal_gold": 13,
+   "money_legal_false_negatives": 3,
+   "money_legal_false_negative_ids": [
+    "b03",
+    "b07",
+    "p05"
+   ],
+   "money_legal_recall": 0.7692,
+   "over_escalations": 1,
+   "over_escalation_ids": [
+    "a03"
+   ]
+  },
+  "b4": {
+   "arm": "spark-4b-q8_0",
+   "gold_escalate_true": 16,
+   "gold_escalate_false": 14,
+   "false_negatives_total": 0,
+   "false_negative_ids": [],
+   "money_legal_gold": 13,
+   "money_legal_false_negatives": 0,
+   "money_legal_false_negative_ids": [],
+   "money_legal_recall": 1.0,
+   "over_escalations": 3,
+   "over_escalation_ids": [
+    "b02",
+    "t01",
+    "a03"
+   ]
+  },
+  "tiel": {
+   "arm": "tiel-coder-35b",
+   "gold_escalate_true": 16,
+   "gold_escalate_false": 14,
+   "false_negatives_total": 4,
+   "false_negative_ids": [
+    "b03",
+    "b05",
+    "p04",
+    "p05"
+   ],
+   "money_legal_gold": 13,
+   "money_legal_false_negatives": 4,
+   "money_legal_false_negative_ids": [
+    "b03",
+    "b05",
+    "p04",
+    "p05"
+   ],
+   "money_legal_recall": 0.6923,
+   "over_escalations": 2,
+   "over_escalation_ids": [
+    "t01",
+    "a03"
+   ]
+  }
+ },
+ "per_item": [
+  {
+   "id": "b01",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "mimo": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 0.96054,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "billing",
+    "severity_level": 1,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.00836,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "b02",
+   "gold": {
+    "queue": "billing",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.61118,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "billing",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": false
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "tiel": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.57488,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   }
+  },
+  {
+   "id": "b03",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "mimo": {
+    "queue": "account",
+    "severity_level": 1,
+    "severity_score": 1.03213,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "billing",
+    "severity_level": 1,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": false
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": false,
+    "severity": true,
+    "escalate": false
+   },
+   "tiel": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.71029,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": false
+   }
+  },
+  {
+   "id": "b04",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "mimo": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.406,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "policy",
+    "severity_level": 1,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.36331,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "b05",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "mimo": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.08484,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "billing",
+    "severity_level": 1,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.01613,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   }
+  },
+  {
+   "id": "b06",
+   "gold": {
+    "queue": "billing",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 0.80431,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "billing",
+    "severity_level": 1,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.02181,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   }
+  },
+  {
+   "id": "b07",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "mimo": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 0.96959,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "billing",
+    "severity_level": 1,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "tiel": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.00371,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "b08",
+   "gold": {
+    "queue": "billing",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "mimo": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.94013,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "billing",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.99316,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "t01",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.69323,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "technical",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "tiel": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.99869,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   }
+  },
+  {
+   "id": "t02",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.08089,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "technical",
+    "severity_level": 1,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.65273,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   }
+  },
+  {
+   "id": "t03",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.93841,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "technical",
+    "severity_level": 1,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.02525,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "t04",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "mimo": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.99039,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "account",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.99693,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "t05",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.1218,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "technical",
+    "severity_level": 2,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.99146,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "t06",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.9941,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "technical",
+    "severity_level": 1,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "technical",
+    "severity_level": 0,
+    "severity_score": 0.81077,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   }
+  },
+  {
+   "id": "t07",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.00115,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "technical",
+    "severity_level": 1,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.96525,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "t08",
+   "gold": {
+    "queue": "technical",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.68638,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "technical",
+    "severity_level": 0,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.79211,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   }
+  },
+  {
+   "id": "a01",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "mimo": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.79577,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "account",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "tiel": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.9978,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "a02",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.03494,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "account",
+    "severity_level": 0,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.00797,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "a03",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "account",
+    "severity_level": 1,
+    "severity_score": 0.7807,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "account",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": false
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": false
+   },
+   "identical": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.02354,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   }
+  },
+  {
+   "id": "a04",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "mimo": {
+    "queue": "account",
+    "severity_level": 1,
+    "severity_score": 1.36863,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "account",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.98606,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "a05",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.49905,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "account",
+    "severity_level": 0,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.14989,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "a06",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "mimo": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.91252,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "technical",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.99177,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "a07",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.16933,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "account",
+    "severity_level": 0,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.00648,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "p01",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "mimo": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.08748,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "policy",
+    "severity_level": 1,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.14214,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "p02",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "mimo": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.12827,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "policy",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "policy",
+    "severity_level": 2,
+    "severity_score": 1.4651,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   }
+  },
+  {
+   "id": "p03",
+   "gold": {
+    "queue": "policy",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "mimo": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 0.59911,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "policy",
+    "severity_level": 0,
+    "escalate": false
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "policy",
+    "severity_level": 0,
+    "severity_score": 0.19212,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "p04",
+   "gold": {
+    "queue": "policy",
+    "severity": 0,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "mimo": {
+    "queue": "policy",
+    "severity_level": 0,
+    "severity_score": 0.05672,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "policy",
+    "severity_level": 0,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "policy",
+    "severity_level": 0,
+    "severity_score": 0.06324,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   }
+  },
+  {
+   "id": "p05",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "mimo": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.28126,
+    "escalate": false
+   },
+   "b4": {
+    "queue": "technical",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": false
+   },
+   "b4_correct": {
+    "queue": false,
+    "severity": false,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": false,
+    "escalate": false
+   },
+   "tiel": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.34057,
+    "escalate": false
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   }
+  },
+  {
+   "id": "p06",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "mimo": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 0.84235,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "policy",
+    "severity_level": 0,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 0.96666,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  },
+  {
+   "id": "p07",
+   "gold": {
+    "queue": "policy",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "mimo": {
+    "queue": "policy",
+    "severity_level": 2,
+    "severity_score": 1.64846,
+    "escalate": true
+   },
+   "b4": {
+    "queue": "policy",
+    "severity_level": 2,
+    "escalate": true
+   },
+   "mimo_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "b4_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "identical": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "tiel": {
+    "queue": "policy",
+    "severity_level": 2,
+    "severity_score": 1.88585,
+    "escalate": true
+   },
+   "tiel_correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   }
+  }
+ ]
+}

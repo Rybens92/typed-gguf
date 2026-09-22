@@ -1,0 +1,224 @@
+== residency proof (card t_d199e09c) ==
+date: 2026-09-22T16:30:22Z
+model: /work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf
+size: 5841049120 bytes
+sha256: 4bca6f18c73f72270c7a20c2ea2bea581de8246e318714277120369d34048c81
+
+-- nvidia-smi before the load (desktop/voice-app floor already counted) --
+name, memory.total [MiB], memory.used [MiB], memory.free [MiB]
+NVIDIA GeForce RTX 3060 Ti, 8192 MiB, 1038 MiB, 6854 MiB
+
+-- fit plan for the placement this load will use --
+cmd: uv run typed-gguf fit /work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --print --json --no-cache --n-ctx 4096 --fit-ctx 4096 --fit-target 512
+{
+ "n_gpu_layers": 32,
+ "n_ctx": 4096,
+ "kv_type": "q4_0",
+ "n_seq_max": 8,
+ "est_weights_bytes": 5829033984,
+ "est_kv_bytes": 150994944,
+ "est_total_bytes": 6534725632,
+ "budget_bytes": 6650068992,
+ "source": "llama-fit-params",
+ "warnings": [
+  "W_KV_TYPE_DOWNGRADE"
+ ],
+ "notes": [
+  "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 5559 MiB, context 177 MiB, compute 529 MiB)"
+ ]
+}
+
+-- one real request through the driver's exact invocation --
+cmd: uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/t07.txt --model /work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/proof/t07.json --keep-alive 1m
+exit=0 wall_ms=7884
+
+-- nvidia-smi while the model is resident --
+memory.total [MiB], memory.used [MiB], memory.free [MiB]
+8192 MiB, 5907 MiB, 1985 MiB
+
+-- keep host's own placement block (from keep status --json) --
+{
+ "model": "MiMo-V2.6-Distill-Qwen-9B-Q4_K_M",
+ "model_path": "/work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+ "state": "running",
+ "pid": 69876,
+ "requests": 1,
+ "model_load_ms": 1449.3314270002884,
+ "placement": {
+  "note": "fit plan: 32 layer(s) offloaded, kv_type=q4_0",
+  "n_gpu_layers": 32,
+  "kv_type": "q4_0",
+  "degraded": false,
+  "attempts": [],
+  "warnings": [],
+  "cpu_only": false
+ },
+ "devices": {
+  "devices": [
+   "CPU",
+   "CPU_Mapped",
+   "Vulkan0",
+   "Vulkan_Host"
+  ],
+  "device_buffers": {
+   "Vulkan0": 1,
+   "Vulkan_Host": 1
+  },
+  "effective_backend": "vulkan"
+ },
+ "key": {
+  "model_path": "/work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+  "model_sha": "stat:5841049120:1790094309194734270",
+  "backend": "auto",
+  "n_ctx": null,
+  "n_seq_max": null,
+  "kv_type": "auto",
+  "threads": 4,
+  "fit": true,
+  "fit_target_mb": 512,
+  "fit_ctx": null,
+  "fit_cache": true
+ },
+ "loaded_s": 1.185
+}
+
+-- the response's own engine block (from the payload it wrote) --
+{
+ "engine.runtime": "llama.cpp b11026",
+ "engine.backend": "vulkan",
+ "engine.effective_backend": "vulkan",
+ "engine.devices": [
+  "CPU",
+  "CPU_Mapped",
+  "Vulkan0",
+  "Vulkan_Host"
+ ],
+ "engine.readout": "sequence",
+ "engine.cue": "json_instructed",
+ "engine.chat_format": {
+  "kind": "role_split",
+  "question_turn": "user",
+  "contract": "question",
+  "prefix_chars": 438,
+  "dropped": ""
+ },
+ "engine.template": {
+  "kind": "builtin",
+  "renderer": "builtin",
+  "source": "llama_chat_apply_template",
+  "family": "qwen35",
+  "thinking": "suppressed",
+  "warnings": [
+   "W_TEMPLATE_FALLBACK"
+  ],
+  "notes": [
+   "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+  ],
+  "explicit": false
+ },
+ "engine.kv_unified": true,
+ "engine.n_ctx": 256,
+ "engine.n_seq_max": 8,
+ "engine.kv_type": "q4_0",
+ "engine.n_gpu_layers": 32,
+ "engine.placement": {
+  "note": "fit plan: 32 layer(s) offloaded, kv_type=q4_0",
+  "n_gpu_layers": 32,
+  "kv_type": "q4_0",
+  "degraded": false,
+  "attempts": [],
+  "warnings": [],
+  "cpu_only": false
+ },
+ "engine.fit": {
+  "n_gpu_layers": 32,
+  "n_ctx": 4096,
+  "kv_type": "q4_0",
+  "n_seq_max": 8,
+  "est_weights_bytes": 5829033984,
+  "est_kv_bytes": 150994944,
+  "est_total_bytes": 6534725632,
+  "backend": "cpu",
+  "source": "llama-fit-params",
+  "warnings": [
+   "W_KV_TYPE_DOWNGRADE"
+  ],
+  "notes": [
+   "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 5559 MiB, context 177 MiB, compute 529 MiB)"
+  ],
+  "arch": "qwen35",
+  "model_sha256": "4bca6f18c73f72270c7a20c2ea2bea581de8246e318714277120369d34048c81",
+  "host_fingerprint": "a8d49ce94b68e6f8",
+  "budget_bytes": 6647971840,
+  "created_at": "2026-09-22T16:26:14Z",
+  "schema": "typed_gguf.fit/v1"
+ },
+ "engine.keep": {
+  "served_by": "host",
+  "keep_alive_s": 60.0,
+  "state": "running",
+  "pid": 69876,
+  "key": {
+   "model_path": "/work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+   "model_sha": "stat:5841049120:1790094309194734270",
+   "backend": "auto",
+   "n_ctx": null,
+   "n_seq_max": null,
+   "kv_type": "auto",
+   "threads": 4,
+   "fit": true,
+   "fit_target_mb": 512,
+   "fit_ctx": null,
+   "fit_cache": true
+  },
+  "key_digest": "f6df7f6d93d238eb",
+  "model": "MiMo-V2.6-Distill-Qwen-9B-Q4_K_M",
+  "model_path": "/work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+  "requests": 1,
+  "uptime_s": 7.631,
+  "idle_left_s": 59.003,
+  "loaded_at": 1790094630.9012294,
+  "placement": {
+   "note": "fit plan: 32 layer(s) offloaded, kv_type=q4_0",
+   "n_gpu_layers": 32,
+   "kv_type": "q4_0",
+   "degraded": false,
+   "attempts": [],
+   "warnings": [],
+   "cpu_only": false
+  },
+  "devices": {
+   "devices": [
+    "CPU",
+    "CPU_Mapped",
+    "Vulkan0",
+    "Vulkan_Host"
+   ],
+   "device_buffers": {
+    "Vulkan0": 1,
+    "Vulkan_Host": 1
+   },
+   "effective_backend": "vulkan"
+  },
+  "model_load_ms": 1449.3314270002884,
+  "socket": "/work/t_d199e09c/mimo/home/keep/f6df7f6d93d238eb.sock",
+  "spec": "/work/t_d199e09c/mimo/home/keep/f6df7f6d93d238eb.spec.json",
+  "log": "/work/t_d199e09c/mimo/home/keep/f6df7f6d93d238eb.log",
+  "version": "",
+  "fallback": null
+ },
+ "engine.device_buffers": {
+  "Vulkan0": 1,
+  "Vulkan_Host": 1
+ }
+}
+
+-- keep host stopped --
+{
+  "stopped": true,
+  "pid": 69876,
+  "reason": "stopped (SIGTERM)",
+  "cleaned": false
+}
+memory.total [MiB], memory.used [MiB], memory.free [MiB]
+8192 MiB, 1033 MiB, 6858 MiB

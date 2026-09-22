@@ -1,0 +1,3143 @@
+{
+ "schema": "typed_gguf.evidence.real_purpose/v1",
+ "generated": "2026-09-22",
+ "card": "t_d199e09c",
+ "purpose": "support-inbox triage: queue routing (choice) + severity (score) + human-escalation gate (noul)",
+ "arm": "mimo-v2.6-distill-qwen-9b-q4_k_m",
+ "protocol_note": "same frozen items.jsonl/questions.json as the 4B arm (docs/evidence/real-purpose-4b-2026-09-22), one `typed-gguf run --questions` per item, defaults except --threads and --fit-target (placement/performance knobs; see engine.threads / engine.fit_target_mb)",
+ "model": {
+  "path": "/work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+  "size_bytes": 5841049120,
+  "quant": "Q4_K_M",
+  "arch": "qwen35",
+  "sha256": "4bca6f18c73f72270c7a20c2ea2bea581de8246e318714277120369d34048c81",
+  "hf_repo": "bartowski/MiMo-V2.6-Distill-Qwen-9B-GGUF"
+ },
+ "engine": {
+  "version": "typed-gguf 0.1.0",
+  "model_alias": "MiMo-V2.6-Distill-Qwen-9B-Q4_K_M",
+  "runtime": "llama.cpp b11026 (bundle linux-x64-vulkan)",
+  "backend": "vulkan",
+  "effective_backend": "vulkan",
+  "fit_n_gpu_layers": 32,
+  "fit": {
+   "arch": "qwen35",
+   "n_ctx": 4096,
+   "n_seq_max": 8,
+   "kv_type": "q4_0",
+   "est_weights_bytes": 5829033984,
+   "budget_bytes": 6649020416,
+   "host_fingerprint": "a8d49ce94b68e6f8",
+   "model_sha256": "4bca6f18c73f72270c7a20c2ea2bea581de8246e318714277120369d34048c81",
+   "notes": [
+    "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 5559 MiB, context 177 MiB, compute 529 MiB)"
+   ],
+   "warnings": [
+    "W_KV_TYPE_DOWNGRADE"
+   ],
+   "created_at": "2026-09-22T16:26:14Z"
+  },
+  "readout": "sequence",
+  "cue": "json_instructed",
+  "template": {
+   "kind": "builtin",
+   "renderer": "builtin",
+   "source": "llama_chat_apply_template",
+   "family": "qwen35",
+   "thinking": "suppressed",
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "notes": [
+    "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+   ],
+   "explicit": false
+  },
+  "chat_format": {
+   "kind": "role_split",
+   "question_turn": "user",
+   "contract": "question",
+   "prefix_chars": 472,
+   "dropped": ""
+  },
+  "n_ctx_per_request": [
+   256
+  ],
+  "calibrated": [
+   "False"
+  ],
+  "coverage_floor": 0.1,
+  "warnings": [
+   "W_TEMPLATE_FALLBACK"
+  ],
+  "served_by": [
+   "host"
+  ],
+  "threads": [
+   4
+  ],
+  "fit_target_mb": [
+   512
+  ],
+  "keep_pids": [
+   68542
+  ]
+ },
+ "protocol_checks": {
+  "readout": [
+   "sequence"
+  ],
+  "cue": [
+   "json_instructed"
+  ],
+  "chat_format": [
+   "{\"contract\": \"question\", \"kind\": \"role_split\", \"question_turn\": \"user\"}"
+  ],
+  "prefix_chars_range": [
+   365,
+   473
+  ],
+  "template": [
+   "{\"family\": \"qwen35\", \"kind\": \"builtin\", \"renderer\": \"builtin\", \"source\": \"llama_chat_apply_template\", \"thinking\": \"suppressed\"}"
+  ],
+  "calibrated": [
+   "False"
+  ],
+  "coverage_floor": [
+   0.1
+  ],
+  "n_ctx_per_request": [
+   256
+  ],
+  "fit_n_gpu_layers": [
+   32
+  ],
+  "fit_n_ctx": [
+   4096
+  ],
+  "fit_kv_type": [
+   "q4_0"
+  ],
+  "fit_n_seq_max": [
+   8
+  ],
+  "fit_source": [
+   "llama-fit-params"
+  ],
+  "fit_warnings": [
+   "W_KV_TYPE_DOWNGRADE"
+  ],
+  "placement_n_gpu_layers": [
+   32
+  ],
+  "placement_kv_type": [
+   "q4_0"
+  ],
+  "placement_degraded": [
+   "False"
+  ],
+  "placement_cpu_only": [
+   "False"
+  ],
+  "placement_attempts": [
+   "[]"
+  ],
+  "effective_backend": [
+   "vulkan"
+  ],
+  "served_by": [
+   "host"
+  ],
+  "threads": [
+   4
+  ],
+  "fit_target_mb": [
+   512
+  ],
+  "keep_pids": [
+   68542
+  ],
+  "pass": {
+   "readout_sequence": true,
+   "cue_json_instructed": true,
+   "chat_format_role_split_contract_question": true,
+   "calibrated_false": true,
+   "coverage_floor_0_10": true,
+   "all_layers_offloaded": true,
+   "fit_ctx_ge_4096": true,
+   "not_degraded": true,
+   "backend_vulkan": true,
+   "one_keep_host": true
+  }
+ },
+ "run_header": {
+  "host": "HOST cbace97c0a45 2026-09-22T16:26:57Z model=/work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf home=/work/t_d199e09c/mimo/home runtime=/var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan",
+  "placement": "PLACEMENT threads=4 fit_target_mb=512 "
+ },
+ "dataset": {
+  "path": "docs/evidence/real-purpose-4b-2026-09-22/items.jsonl (byte-identical copy next to this report)",
+  "items": 30,
+  "analysed": 30,
+  "basis": "30 synthetic support-inbox messages authored 2026-09-22; labels frozen before any model call",
+  "queue_class_sizes": {
+   "billing": 8,
+   "technical": 8,
+   "account": 7,
+   "policy": 7
+  },
+  "escalate_true": 16,
+  "severity_levels": {
+   "0": 9,
+   "1": 13,
+   "2": 8
+  }
+ },
+ "results": {
+  "choice_queue": {
+   "correct": 27,
+   "n": 30,
+   "accuracy": 0.9,
+   "wilson95": [
+    0.7438,
+    0.9654
+   ],
+   "majority_baseline": 0.2667
+  },
+  "noul_escalate": {
+   "correct": 25,
+   "n": 30,
+   "accuracy": 0.8333,
+   "wilson95": [
+    0.6644,
+    0.9266
+   ],
+   "majority_baseline": 0.5333
+  },
+  "score_severity": {
+   "correct": 23,
+   "n": 30,
+   "accuracy": 0.7667,
+   "wilson95": [
+    0.5907,
+    0.8821
+   ],
+   "mae_level": 0.2667,
+   "within_one_level": 29,
+   "score_value_mae": 0.3056
+  },
+  "escalation_safety": {
+   "false_negatives_total": 4,
+   "false_negatives_ids": [
+    "b03",
+    "b07",
+    "a01",
+    "p05"
+   ],
+   "false_negatives_by_trigger": {
+    "T1": 2,
+    "T4": 1,
+    "T2": 1
+   },
+   "money_legal_gold_n": 13,
+   "money_legal_false_negatives": 3,
+   "money_legal_false_negative_ids": [
+    "b03",
+    "b07",
+    "p05"
+   ],
+   "money_legal_recall": 0.7692,
+   "over_escalations": 1,
+   "over_escalation_ids": [
+    "a03"
+   ]
+  },
+  "reliability_flags": {
+   "queue": {
+    "low_mass": 0,
+    "low_confidence": 0,
+    "other_reliability": {},
+    "refused": 0,
+    "coverage_median": 0.999006,
+    "coverage_min": 0.992582
+   },
+   "severity": {
+    "low_mass": 0,
+    "low_confidence": 0,
+    "other_reliability": {},
+    "refused": 0,
+    "coverage_median": 0.999762,
+    "coverage_min": 0.989936
+   },
+   "escalate": {
+    "low_mass": 0,
+    "low_confidence": 0,
+    "other_reliability": {},
+    "refused": 0,
+    "coverage_median": 0.999456,
+    "coverage_min": 0.992541
+   }
+  },
+  "confidence_vs_correctness": {
+   "calibrated": false,
+   "null_note": "raw probability-scale values, no calibration fitted (calibrated: false)",
+   "queue_mean_confidence_correct": 0.8232,
+   "queue_mean_confidence_wrong": 0.5008,
+   "queue_accuracy_at_threshold": {
+    "0.3": {
+     "n": 29,
+     "accuracy": 0.8966
+    },
+    "0.4": {
+     "n": 29,
+     "accuracy": 0.8966
+    },
+    "0.5": {
+     "n": 25,
+     "accuracy": 0.96
+    },
+    "0.6": {
+     "n": 23,
+     "accuracy": 0.9565
+    }
+   },
+   "escalate_accuracy_at_decisiveness": {
+    "0.6": {
+     "n": 25,
+     "accuracy": 0.84
+    },
+    "0.9": {
+     "n": 14,
+     "accuracy": 0.9286
+    },
+    "0.99": {
+     "n": 6,
+     "accuracy": 1.0
+    }
+   },
+   "escalate_mean_p_yes_gold_true": 0.7313,
+   "escalate_mean_p_yes_gold_false": 0.2726
+  },
+  "straight_through": {
+   "band": "queue confidence >= 0.5 and escalate decisiveness >= 0.9",
+   "n": 11,
+   "both_correct": 9
+  },
+  "timing": {
+   "model_load_ms_once": 1471.28,
+   "calls_paying_a_model_load": 1,
+   "prefill_ms": {
+    "median": 99.92,
+    "min": 95.69,
+    "max": 120.5
+   },
+   "questions_ms": {
+    "median": 463.12,
+    "min": 454.21,
+    "max": 613.28
+   },
+   "total_ms_engine": {
+    "median": 572.5,
+    "min": 562.65,
+    "max": 742.86
+   },
+   "wall_per_cli_call_ms": {
+    "median": 1006.0,
+    "min": 949,
+    "max": 8051,
+    "sum_s": 37.3
+   },
+   "per_item_note": "each item is its own request (own state): one prefix prefill + one candidate batch + the label decodes; nothing is generated"
+  },
+  "speed_sample": {
+   "instrument": "llama-bench, llama.cpp b11026 (bundle linux-x64-vulkan)",
+   "method": "llama-bench -m <MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf> -ngl 99 -p 0 -n 128 -r 3 -t 4 -ctk q4_0 -ctv q4_0 -fa 1 -o json",
+   "what_it_measures": "tg128: 128 tokens generated after an empty prompt, with all 32 layers on the Vulkan device (-ngl 99 = the fully-resident placement this arm measured), KV cache q4_0 (the same KV type the run's fit plan chose) and flash attention on (the engine's own ctypes binding sets LLAMA_FLASH_ATTN_TYPE_ENABLED, src/typed_gguf/engine/session.py:731, so the bench matches the engine)",
+   "why_not_a_chat_sample": "the run itself generates no free text (readout `sequence` scores fixed label candidates), so tg tok/s cannot be read off the 30 items; a bench completion is the smallest honest instrument for the 'is the full-GPU speed real' question",
+   "avg_ts": 59.810444,
+   "stddev_ts": 0.079083,
+   "samples_ts": [
+    59.9018,
+    59.765,
+    59.7646
+   ],
+   "avg_ns": 2140096939,
+   "repetitions": 128,
+   "test_time": "2026-09-22T16:28:50Z",
+   "build_number": 11026,
+   "build_commit": "b49650adb",
+   "gpu_info": "NVIDIA GeForce RTX 3060 Ti",
+   "cpu_info": "AMD Ryzen 9 3900X 12-Core Processor",
+   "model_type": "qwen35 9B Q4_K - Medium",
+   "model_size": 5830084608,
+   "model_n_params": 8953803264,
+   "n_gpu_layers": 99,
+   "type_k": "q4_0",
+   "type_v": "q4_0",
+   "flash_attn": 1,
+   "n_threads": 4,
+   "raw_file": "speed/llama_bench_tg128.json",
+   "raw": {
+    "build_commit": "b49650adb",
+    "build_number": 11026,
+    "cpu_info": "AMD Ryzen 9 3900X 12-Core Processor",
+    "gpu_info": "NVIDIA GeForce RTX 3060 Ti",
+    "backends": "Vulkan",
+    "model_filename": "/work/t_d199e09c/models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+    "model_type": "qwen35 9B Q4_K - Medium",
+    "model_size": 5830084608,
+    "model_n_params": 8953803264,
+    "n_batch": 2048,
+    "n_ubatch": 512,
+    "n_threads": 4,
+    "cpu_mask": "0x0",
+    "cpu_strict": false,
+    "poll": 50,
+    "type_k": "q4_0",
+    "type_v": "q4_0",
+    "n_gpu_layers": 99,
+    "n_cpu_moe": 0,
+    "split_mode": "layer",
+    "main_gpu": 0,
+    "no_kv_offload": false,
+    "flash_attn": 1,
+    "devices": "auto",
+    "tensor_split": "0.00",
+    "tensor_buft_overrides": "none",
+    "load_mode": "auto",
+    "lazy_mode": "auto",
+    "embeddings": false,
+    "no_op_offload": 0,
+    "no_host": false,
+    "fit_target": 0,
+    "fit_min_ctx": 0,
+    "n_prompt": 0,
+    "n_gen": 128,
+    "n_depth": 0,
+    "test_time": "2026-09-22T16:28:50Z",
+    "avg_ns": 2140096939,
+    "stddev_ns": 2828283,
+    "avg_ts": 59.810444,
+    "stddev_ts": 0.079083,
+    "samples_ns": [
+     2136832001,
+     2141723114,
+     2141735704
+    ],
+    "samples_ts": [
+     59.9018,
+     59.765,
+     59.7646
+    ]
+   }
+  }
+ },
+ "run": {
+  "run_dir": "/work/t_d199e09c/mimo",
+  "requests_exit0": 30,
+  "requests_total": 30,
+  "missing": [],
+  "run_log": "run.log next to this report (exit code + wall ms + exact command per item)"
+ },
+ "rows": [
+  {
+   "id": "b01",
+   "state": "Our finance team was charged twice for the same annual plan: 499 USD on the 3rd and again on the 5th of this month. We need the duplicate charge refunded and a corrected receipt for our books.",
+   "cue_note": "money disputed -> billing + T1 escalate",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 0.96054,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.972796,
+    "severity": 0.902648,
+    "escalate_decisiveness": 0.503399
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.979597,
+     "technical": 0.00050293,
+     "account": 0.0174959,
+     "policy": 0.00240381
+    },
+    "severity": {
+     "0": 0.0521832,
+     "1": 0.935099,
+     "2": 0.012718
+    },
+    "escalate": {
+     "yes": 0.503399,
+     "no": 0.496601
+    }
+   },
+   "coverage": {
+    "queue": 0.999665,
+    "severity": 0.999899,
+    "escalate": 0.999376
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 100.647,
+    "questions_ms": 457.73,
+    "total_ms": 567.089
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 104,
+   "input_tokens": 421,
+   "state_id": "sha256:a213bbff8ba6b0941ca430d4bb0c3c467d419a274e99abad52687b89eabce875",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 998,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/b01.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/b01.json --keep-alive 10m"
+  },
+  {
+   "id": "b02",
+   "state": "We need to update the credit card on file before the renewal on Monday. Where in the console do I change the payment method for our account?",
+   "cue_note": "payment-method request, no impact -> billing, sev 0",
+   "gold": {
+    "queue": "billing",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.61118,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.995171,
+    "severity": 0.444151,
+    "escalate_decisiveness": 0.812215
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.996378,
+     "technical": 0.000580881,
+     "account": 0.00242705,
+     "policy": 0.000614116
+    },
+    "severity": {
+     "0": 0.0182508,
+     "1": 0.352315,
+     "2": 0.629434
+    },
+    "escalate": {
+     "yes": 0.187785,
+     "no": 0.812215
+    }
+   },
+   "coverage": {
+    "queue": 0.999753,
+    "severity": 0.999525,
+    "escalate": 0.999346
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 99.7101,
+    "questions_ms": 465.169,
+    "total_ms": 573.409
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 86,
+   "input_tokens": 403,
+   "state_id": "sha256:bd24e9c7780d6abf1b2e9fe6b08da7863f85d08ab30ce03eec612d256e1f2fc5",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1002,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/b02.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/b02.json --keep-alive 10m"
+  },
+  {
+   "id": "b03",
+   "state": "Your August invoice lists 40 seats but our workspace only has 32 users. Procurement cannot pay an invoice with the wrong seat count, so please send a corrected invoice.",
+   "cue_note": "billing dispute (payment blocked) -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 1,
+    "severity_score": 1.03213,
+    "escalate": false
+   },
+   "correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.432957,
+    "severity": 0.858919,
+    "escalate_decisiveness": 0.826675
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.41734,
+     "technical": 0.00767934,
+     "account": 0.574718,
+     "policy": 0.000262666
+    },
+    "severity": {
+     "0": 0.0309627,
+     "1": 0.905946,
+     "2": 0.0630913
+    },
+    "escalate": {
+     "yes": 0.173325,
+     "no": 0.826675
+    }
+   },
+   "coverage": {
+    "queue": 0.998132,
+    "severity": 0.999888,
+    "escalate": 0.999579
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 99.9355,
+    "questions_ms": 463.316,
+    "total_ms": 572.052
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 94,
+   "input_tokens": 411,
+   "state_id": "sha256:9542959c5ddda699197e2f9bf2b15db7df8e3dd5068c14b0daa6f7f5f8c6d1a6",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1003,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/b03.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/b03.json --keep-alive 10m"
+  },
+  {
+   "id": "b04",
+   "state": "The quote we signed in July says 2,400 USD for the Enterprise tier, but the contract you sent yesterday says 3,100 USD. Our legal team needs this reconciled before we sign on Thursday.",
+   "cue_note": "pricing discrepancy -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.406,
+    "escalate": true
+   },
+   "correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.657082,
+    "severity": 0.375453,
+    "escalate_decisiveness": 0.997435
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.103365,
+     "technical": 0.00147561,
+     "account": 0.152348,
+     "policy": 0.742812
+    },
+    "severity": {
+     "0": 0.00518098,
+     "1": 0.583635,
+     "2": 0.411184
+    },
+    "escalate": {
+     "yes": 0.997435,
+     "no": 0.00256488
+    }
+   },
+   "coverage": {
+    "queue": 0.995453,
+    "severity": 0.999754,
+    "escalate": 0.999622
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 100.861,
+    "questions_ms": 468.028,
+    "total_ms": 577.319
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 104,
+   "input_tokens": 421,
+   "state_id": "sha256:b104ed012f16fbda99b73eff16e2824e3fa6338148104efc3f429f56ea4ec602",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1010,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/b04.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/b04.json --keep-alive 10m"
+  },
+  {
+   "id": "b05",
+   "state": "A refund we approved on the 12th has not reached our customer's card yet. They have written to us twice and we have run out of things to tell them.",
+   "cue_note": "money movement stalled -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.08484,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.972531,
+    "severity": 0.76133,
+    "escalate_decisiveness": 0.560071
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.979398,
+     "technical": 0.0177975,
+     "account": 0.00119889,
+     "policy": 0.00160518
+    },
+    "severity": {
+     "0": 0.0371367,
+     "1": 0.840886,
+     "2": 0.121977
+    },
+    "escalate": {
+     "yes": 0.560071,
+     "no": 0.439929
+    }
+   },
+   "coverage": {
+    "queue": 0.999667,
+    "severity": 0.999802,
+    "escalate": 0.999295
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 101.71,
+    "questions_ms": 462.909,
+    "total_ms": 573.113
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 93,
+   "input_tokens": 410,
+   "state_id": "sha256:b58e84f60084202d0e678d91677ddd141d2637564281aab6a2f31119cef032fb",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 997,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/b05.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/b05.json --keep-alive 10m"
+  },
+  {
+   "id": "b06",
+   "state": "Could you send a VAT-compliant invoice for September with our tax ID (PL5252345627) on it? Accounting needs it before their quarter closes.",
+   "cue_note": "invoice document request, no impact -> sev 0",
+   "gold": {
+    "queue": "billing",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 0.80431,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.979487,
+    "severity": 0.696541,
+    "escalate_decisiveness": 0.7152609999999999
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.984615,
+     "technical": 0.000918065,
+     "account": 0.00605015,
+     "policy": 0.00841678
+    },
+    "severity": {
+     "0": 0.198997,
+     "1": 0.797694,
+     "2": 0.00330874
+    },
+    "escalate": {
+     "yes": 0.284739,
+     "no": 0.715261
+    }
+   },
+   "coverage": {
+    "queue": 0.999567,
+    "severity": 0.999923,
+    "escalate": 0.999288
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 110.134,
+    "questions_ms": 485.211,
+    "total_ms": 603.624
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 95,
+   "input_tokens": 412,
+   "state_id": "sha256:23ab12148deb76d61ab2327dbd7c8da71e753f3c0add8385b3dbf6efd3ad84b6",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1037,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/b06.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/b06.json --keep-alive 10m"
+  },
+  {
+   "id": "b07",
+   "state": "We upgraded to the Team plan on the 18th and the prorated charge looks wrong: we were billed as if the upgrade happened on the 1st. Please check the calculation.",
+   "cue_note": "charge dispute -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 0.96959,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.833376,
+    "severity": 0.917365,
+    "escalate_decisiveness": 0.807292
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.875032,
+     "technical": 0.0112334,
+     "account": 0.111415,
+     "policy": 0.0023197
+    },
+    "severity": {
+     "0": 0.0427515,
+     "1": 0.94491,
+     "2": 0.0123389
+    },
+    "escalate": {
+     "yes": 0.192708,
+     "no": 0.807292
+    }
+   },
+   "coverage": {
+    "queue": 0.999125,
+    "severity": 0.999908,
+    "escalate": 0.999501
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 99.2537,
+    "questions_ms": 462.564,
+    "total_ms": 570.261
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 96,
+   "input_tokens": 413,
+   "state_id": "sha256:05841880ae1eef9d3b13d336e5d43fbc8b0900343253996b9cde548871c55ef2",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1007,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/b07.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/b07.json --keep-alive 10m"
+  },
+  {
+   "id": "b08",
+   "state": "Our card expired over the weekend, the renewal payment failed, and we have a suspension notice for Friday. We are mid-migration and need the workspace for two more weeks.",
+   "cue_note": "failed payment + suspension -> billing, sev 2, T1/T4",
+   "gold": {
+    "queue": "billing",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.94013,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.426483,
+    "severity": 0.918535,
+    "escalate_decisiveness": 0.998824
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.569862,
+     "technical": 0.0743382,
+     "account": 0.347082,
+     "policy": 0.00871741
+    },
+    "severity": {
+     "0": 0.00555862,
+     "1": 0.0487515,
+     "2": 0.94569
+    },
+    "escalate": {
+     "yes": 0.998824,
+     "no": 0.00117603
+    }
+   },
+   "coverage": {
+    "queue": 0.996197,
+    "severity": 0.99938,
+    "escalate": 0.999661
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 102.613,
+    "questions_ms": 465.055,
+    "total_ms": 576.454
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 92,
+   "input_tokens": 409,
+   "state_id": "sha256:53cd4932b85e309e459d3b8aed0cb06210cc768048548b75a9cb3892c86c0308",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1008,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/b08.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/b08.json --keep-alive 10m"
+  },
+  {
+   "id": "t01",
+   "state": "Since 08:00 every call to /v2/orders returns 502. Our monitoring shows the faulty responses come from your gateway, and nothing changed on our side.",
+   "cue_note": "total endpoint failure, clear owner -> technical, sev 2, no escalate",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.69323,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.996981,
+    "severity": 0.606698,
+    "escalate_decisiveness": 0.706232
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00104446,
+     "technical": 0.997736,
+     "account": 0.000884692,
+     "policy": 0.000335072
+    },
+    "severity": {
+     "0": 0.0445702,
+     "1": 0.217631,
+     "2": 0.737799
+    },
+    "escalate": {
+     "yes": 0.293768,
+     "no": 0.706232
+    }
+   },
+   "coverage": {
+    "queue": 0.999756,
+    "severity": 0.999298,
+    "escalate": 0.999358
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 100.581,
+    "questions_ms": 456.548,
+    "total_ms": 565.989
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 95,
+   "input_tokens": 412,
+   "state_id": "sha256:158f14bb5f3a7cf32cfd63964d14bbd88453a4b0819cbbf4c8807194cbf47c27",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 988,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/t01.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/t01.json --keep-alive 10m"
+  },
+  {
+   "id": "t02",
+   "state": "The CSV export in the reporting view silently drops rows older than 90 days. We can export in smaller ranges as a workaround, but our quarterly close depends on the full history.",
+   "cue_note": "data bug with workaround -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.08089,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.938781,
+    "severity": 0.769628,
+    "escalate_decisiveness": 0.809708
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00456,
+     "technical": 0.954085,
+     "account": 0.0190723,
+     "policy": 0.0222822
+    },
+    "severity": {
+     "0": 0.0363468,
+     "1": 0.846419,
+     "2": 0.117234
+    },
+    "escalate": {
+     "yes": 0.190292,
+     "no": 0.809708
+    }
+   },
+   "coverage": {
+    "queue": 0.998844,
+    "severity": 0.999819,
+    "escalate": 0.999528
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 100.235,
+    "questions_ms": 464.18,
+    "total_ms": 572.952
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 94,
+   "input_tokens": 411,
+   "state_id": "sha256:dc4f82baf66c6d373d89234f6966a9e8325036e740c08bd5f103e609f5588763",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1009,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/t02.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/t02.json --keep-alive 10m"
+  },
+  {
+   "id": "t03",
+   "state": "Your webhook delivers the same event about 5 percent of the time, so our ERP ends up with duplicate entries. We run a dedupe script, but the duplicate rate is growing.",
+   "cue_note": "integration bug, workaround exists -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.93841,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.985231,
+    "severity": 0.869668,
+    "escalate_decisiveness": 0.748328
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00523416,
+     "technical": 0.988923,
+     "account": 0.00305927,
+     "policy": 0.00278308
+    },
+    "severity": {
+     "0": 0.0742404,
+     "1": 0.913112,
+     "2": 0.0126478
+    },
+    "escalate": {
+     "yes": 0.251672,
+     "no": 0.748328
+    }
+   },
+   "coverage": {
+    "queue": 0.999377,
+    "severity": 0.999769,
+    "escalate": 0.999286
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 98.2802,
+    "questions_ms": 462.488,
+    "total_ms": 569.638
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 94,
+   "input_tokens": 411,
+   "state_id": "sha256:c61aa42ccf1467535635b48e1537ffd20f82dadda8f7051fc82e5dd6ccfd05e5",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1010,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/t03.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/t03.json --keep-alive 10m"
+  },
+  {
+   "id": "t04",
+   "state": "One of our users can see another tenant's project list after switching organisations - we have a screenshot. Our security team needs this confirmed before we let anyone use the console again.",
+   "cue_note": "cross-tenant exposure: bug (technical) + privacy escalate (T2); use blocked -> sev 2",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.99039,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.459892,
+    "severity": 0.990573,
+    "escalate_decisiveness": 0.996397
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000146143,
+     "technical": 0.594919,
+     "account": 0.35027,
+     "policy": 0.0546645
+    },
+    "severity": {
+     "0": 0.00332282,
+     "1": 0.00296217,
+     "2": 0.993715
+    },
+    "escalate": {
+     "yes": 0.996397,
+     "no": 0.00360269
+    }
+   },
+   "coverage": {
+    "queue": 0.992582,
+    "severity": 0.999654,
+    "escalate": 0.999807
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 102.197,
+    "questions_ms": 458.25,
+    "total_ms": 568.91
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 92,
+   "input_tokens": 409,
+   "state_id": "sha256:4453dc20ce6f82ab1987df0a0a60b74f968e3dbe0bfa8c5a905558b03d7efc78",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1010,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/t04.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/t04.json --keep-alive 10m"
+  },
+  {
+   "id": "t05",
+   "state": "Your Node 20 SDK fails to install: a dependency is pinned to a version that no longer exists on npm. We cannot ship our integration until it installs.",
+   "cue_note": "blocked build, clear owner -> technical, sev 2",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.1218,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.994249,
+    "severity": 0.332782,
+    "escalate_decisiveness": 0.9180644
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00116927,
+     "technical": 0.995687,
+     "account": 0.00257364,
+     "policy": 0.000570073
+    },
+    "severity": {
+     "0": 0.161507,
+     "1": 0.555188,
+     "2": 0.283304
+    },
+    "escalate": {
+     "yes": 0.0819356,
+     "no": 0.918064
+    }
+   },
+   "coverage": {
+    "queue": 0.999482,
+    "severity": 0.999715,
+    "escalate": 0.99907
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 100.307,
+    "questions_ms": 458.873,
+    "total_ms": 567.824
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 90,
+   "input_tokens": 407,
+   "state_id": "sha256:d7a56ef8f5bc16d13ec1b66ad6b1cb29558138699e8c0871e55c859ff3408e4e",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1002,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/t05.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/t05.json --keep-alive 10m"
+  },
+  {
+   "id": "t06",
+   "state": "Your status page showed all green for the 40 minutes our API calls were failing. We want to understand how that can happen.",
+   "cue_note": "observability defect, impact stated -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.9941,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.967331,
+    "severity": 0.149667,
+    "escalate_decisiveness": 0.541083
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00356829,
+     "technical": 0.975498,
+     "account": 0.0184227,
+     "policy": 0.00251084
+    },
+    "severity": {
+     "0": 0.286395,
+     "1": 0.433111,
+     "2": 0.280494
+    },
+    "escalate": {
+     "yes": 0.458917,
+     "no": 0.541083
+    }
+   },
+   "coverage": {
+    "queue": 0.999266,
+    "severity": 0.999047,
+    "escalate": 0.992541
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 97.0437,
+    "questions_ms": 463.267,
+    "total_ms": 568.875
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 84,
+   "input_tokens": 401,
+   "state_id": "sha256:2b70f71143e54fbb66f1abc5a5dfee8a52e121bfadfaefc3fe7cac0e22712007",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 998,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/t06.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/t06.json --keep-alive 10m"
+  },
+  {
+   "id": "t07",
+   "state": "Scheduled reports now arrive at 06:00 instead of 05:00. Our analysts start at 05:30 and cannot pull them earlier, so they idle for half an hour every morning.",
+   "cue_note": "regression, idle time (not blocking) -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.00115,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.764326,
+    "severity": 0.836269,
+    "escalate_decisiveness": 0.709615
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0148541,
+     "technical": 0.823244,
+     "account": 0.128488,
+     "policy": 0.0334133
+    },
+    "severity": {
+     "0": 0.0540019,
+     "1": 0.890846,
+     "2": 0.0551517
+    },
+    "escalate": {
+     "yes": 0.290385,
+     "no": 0.709615
+    }
+   },
+   "coverage": {
+    "queue": 0.997649,
+    "severity": 0.99978,
+    "escalate": 0.998274
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 102.045,
+    "questions_ms": 458.48,
+    "total_ms": 569.224
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 103,
+   "input_tokens": 420,
+   "state_id": "sha256:30fc1c2de46bc2f00c1ef785933334ce82418a7b6f88a5339af7b1252807d95a",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1005,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/t07.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/t07.json --keep-alive 10m"
+  },
+  {
+   "id": "t08",
+   "state": "Please raise our API rate limit from 100 to 400 requests per second for the Black Friday window. We already load-tested this in staging.",
+   "cue_note": "capacity request, no impact -> sev 0",
+   "gold": {
+    "queue": "technical",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.68638,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.550525,
+    "severity": 0.438197,
+    "escalate_decisiveness": 0.9768921
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0143136,
+     "technical": 0.662894,
+     "account": 0.302875,
+     "policy": 0.0199178
+    },
+    "severity": {
+     "0": 0.344078,
+     "1": 0.625465,
+     "2": 0.030457
+    },
+    "escalate": {
+     "yes": 0.0231079,
+     "no": 0.976892
+    }
+   },
+   "coverage": {
+    "queue": 0.998038,
+    "severity": 0.999849,
+    "escalate": 0.999562
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 99.6227,
+    "questions_ms": 454.209,
+    "total_ms": 562.648
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 90,
+   "input_tokens": 407,
+   "state_id": "sha256:515d6fea9006b4c30fa6da97475915a2217e9e8bbfa25321cf433c796447aa8a",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 989,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/t08.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/t08.json --keep-alive 10m"
+  },
+  {
+   "id": "a01",
+   "state": "I cannot log in any more: the SSO redirect loops back to the login page. I have a customer demo in 90 minutes and my whole team is blocked out.",
+   "cue_note": "access outage -> account, sev 2, T4 (access at risk)",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.79577,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.506913,
+    "severity": 0.748661,
+    "escalate_decisiveness": 0.513617
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00073614,
+     "technical": 0.367759,
+     "account": 0.630185,
+     "policy": 0.00132057
+    },
+    "severity": {
+     "0": 0.0366667,
+     "1": 0.130893,
+     "2": 0.83244
+    },
+    "escalate": {
+     "yes": 0.486383,
+     "no": 0.513617
+    }
+   },
+   "coverage": {
+    "queue": 0.998923,
+    "severity": 0.998021,
+    "escalate": 0.998712
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 1471.2815059992863,
+    "prefill_ms": 120.502,
+    "questions_ms": 613.285,
+    "total_ms": 742.857
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 93,
+   "input_tokens": 410,
+   "state_id": "sha256:71546bd98f25a83daa4db90cd98323f3635a9104e2c6e5a1df94281e07d0fe5a",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 8051,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/a01.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/a01.json --keep-alive 10m"
+  },
+  {
+   "id": "a02",
+   "state": "Please add two seats for our new hires and move both of them into the Analytics role.",
+   "cue_note": "seat administration -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.03494,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.995766,
+    "severity": 0.9506,
+    "escalate_decisiveness": 0.9535118
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00146294,
+     "technical": 0.00165409,
+     "account": 0.996824,
+     "policy": 5.87414e-05
+    },
+    "severity": {
+     "0": 0.967067,
+     "1": 0.030927,
+     "2": 0.00200632
+    },
+    "escalate": {
+     "yes": 0.0464882,
+     "no": 0.953512
+    }
+   },
+   "coverage": {
+    "queue": 0.999907,
+    "severity": 0.999869,
+    "escalate": 0.999484
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 95.6917,
+    "questions_ms": 473.038,
+    "total_ms": 577.143
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 75,
+   "input_tokens": 392,
+   "state_id": "sha256:b971fd0573466e232d9be0990a1f9c8ff134e77350de526ebe4f486124310e0e",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 970,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/a02.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/a02.json --keep-alive 10m"
+  },
+  {
+   "id": "a03",
+   "state": "One of our users left the company on Friday. Please deactivate their access and transfer their saved reports to me.",
+   "cue_note": "offboarding request, routine -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 1,
+    "severity_score": 0.7807,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.973434,
+    "severity": 0.404336,
+    "escalate_decisiveness": 0.975913
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00096043,
+     "technical": 0.0165021,
+     "account": 0.980076,
+     "policy": 0.00246198
+    },
+    "severity": {
+     "0": 0.308204,
+     "1": 0.602891,
+     "2": 0.0889052
+    },
+    "escalate": {
+     "yes": 0.975913,
+     "no": 0.0240867
+    }
+   },
+   "coverage": {
+    "queue": 0.99968,
+    "severity": 0.999756,
+    "escalate": 0.999632
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 97.9325,
+    "questions_ms": 457.845,
+    "total_ms": 564.273
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 79,
+   "input_tokens": 396,
+   "state_id": "sha256:622488db0af05574ee2db70c740cbc2adbec86091aaa448f68ca679a64659b65",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 954,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/a03.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/a03.json --keep-alive 10m"
+  },
+  {
+   "id": "a04",
+   "state": "Our trial ended two days early and the whole team lost access. We had agreed a two-week extension with your salesperson by email.",
+   "cue_note": "plan/access loss -> account (not billing: no charge dispute), sev 2, T4",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 1,
+    "severity_score": 1.36863,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.953851,
+    "severity": 0.39699,
+    "escalate_decisiveness": 0.980606
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00510164,
+     "technical": 0.0289101,
+     "account": 0.965388,
+     "policy": 0.000600159
+    },
+    "severity": {
+     "0": 0.0166864,
+     "1": 0.597993,
+     "2": 0.38532
+    },
+    "escalate": {
+     "yes": 0.980606,
+     "no": 0.0193943
+    }
+   },
+   "coverage": {
+    "queue": 0.999624,
+    "severity": 0.999619,
+    "escalate": 0.999633
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 96.3729,
+    "questions_ms": 458.975,
+    "total_ms": 563.882
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 84,
+   "input_tokens": 401,
+   "state_id": "sha256:d717edef4b7d26cff8d7e68322b6108245dc7823ef4bb46e1763c4c3297b3ab5",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 949,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/a04.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/a04.json --keep-alive 10m"
+  },
+  {
+   "id": "a05",
+   "state": "The owner of our workspace is a colleague who left last month. Can you transfer the admin role to me so we can manage seats ourselves?",
+   "cue_note": "admin transfer request, routine -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.49905,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.933395,
+    "severity": 0.296581,
+    "escalate_decisiveness": 0.558017
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0156201,
+     "technical": 0.0272823,
+     "account": 0.950046,
+     "policy": 0.00705155
+    },
+    "severity": {
+     "0": 0.531054,
+     "1": 0.438847,
+     "2": 0.0300995
+    },
+    "escalate": {
+     "yes": 0.441983,
+     "no": 0.558017
+    }
+   },
+   "coverage": {
+    "queue": 0.999089,
+    "severity": 0.999406,
+    "escalate": 0.998262
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 98.8639,
+    "questions_ms": 477.508,
+    "total_ms": 585.045
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 85,
+   "input_tokens": 402,
+   "state_id": "sha256:7b3d8a86f78f91db020d8fafc549f79f2988389695baccb5d754499b1d4df12e",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 992,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/a05.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/a05.json --keep-alive 10m"
+  },
+  {
+   "id": "a06",
+   "state": "You turned on mandatory two-factor authentication for all users, including our kiosk accounts that have no phone. We are locked out of 30 field devices.",
+   "cue_note": "identity policy lockout -> account, sev 2, T4",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.91252,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.634516,
+    "severity": 0.892383,
+    "escalate_decisiveness": 0.988809
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000272855,
+     "technical": 0.26179,
+     "account": 0.725887,
+     "policy": 0.0120505
+    },
+    "severity": {
+     "0": 0.0157345,
+     "1": 0.05601,
+     "2": 0.928256
+    },
+    "escalate": {
+     "yes": 0.988809,
+     "no": 0.0111912
+    }
+   },
+   "coverage": {
+    "queue": 0.998453,
+    "severity": 0.998656,
+    "escalate": 0.999606
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 106.704,
+    "questions_ms": 500.479,
+    "total_ms": 618.148
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 89,
+   "input_tokens": 406,
+   "state_id": "sha256:4496d0146db93c0c2ba5a8d99eed19d50e35f4fc3512d27be22bec2fd1806d48",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1096,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/a06.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/a06.json --keep-alive 10m"
+  },
+  {
+   "id": "a07",
+   "state": "Can we get a separate workspace for our subsidiary, with its own billing contact and seat pool?",
+   "cue_note": "workspace provisioning -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.16933,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.893755,
+    "severity": 0.747724,
+    "escalate_decisiveness": 0.768839
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0655917,
+     "technical": 0.0104541,
+     "account": 0.920316,
+     "policy": 0.00363766
+    },
+    "severity": {
+     "0": 0.831816,
+     "1": 0.167039,
+     "2": 0.00114544
+    },
+    "escalate": {
+     "yes": 0.231161,
+     "no": 0.768839
+    }
+   },
+   "coverage": {
+    "queue": 0.999115,
+    "severity": 0.999871,
+    "escalate": 0.999339
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 97.0679,
+    "questions_ms": 560.823,
+    "total_ms": 667.353
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 76,
+   "input_tokens": 393,
+   "state_id": "sha256:a9db6b651ba7b52298b7f3dba62791f53d06a30b8fc33b23cbc385ad29b34984",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1102,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/a07.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/a07.json --keep-alive 10m"
+  },
+  {
+   "id": "p01",
+   "state": "Please delete all personal data you hold for one of our customers who exercised their right to erasure. We need written confirmation within the statutory 30 days.",
+   "cue_note": "GDPR erasure -> policy, sev 1 (regulatory deadline), T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.08748,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.979784,
+    "severity": 0.757715,
+    "escalate_decisiveness": 0.986534
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000381573,
+     "technical": 0.00482786,
+     "account": 0.00995229,
+     "policy": 0.984838
+    },
+    "severity": {
+     "0": 0.0370217,
+     "1": 0.838477,
+     "2": 0.124502
+    },
+    "escalate": {
+     "yes": 0.986534,
+     "no": 0.0134657
+    }
+   },
+   "coverage": {
+    "queue": 0.99946,
+    "severity": 0.999775,
+    "escalate": 0.999531
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 99.9142,
+    "questions_ms": 462.617,
+    "total_ms": 571.12
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 89,
+   "input_tokens": 406,
+   "state_id": "sha256:6451b444ada32ebf12c35b46a0e88e02ea78125c5ac8909353f8622ffedca661",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1010,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/p01.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/p01.json --keep-alive 10m"
+  },
+  {
+   "id": "p02",
+   "state": "One of your marketing emails went to a purchased list that included our employee addresses. We consider this a breach of our data processing agreement and want it investigated.",
+   "cue_note": "DPA breach claim -> policy, sev 1, T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.12827,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.957214,
+    "severity": 0.0877531,
+    "escalate_decisiveness": 0.999242
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000228059,
+     "technical": 0.00904521,
+     "account": 0.0228161,
+     "policy": 0.967911
+    },
+    "severity": {
+     "0": 0.239949,
+     "1": 0.391835,
+     "2": 0.368216
+    },
+    "escalate": {
+     "yes": 0.999242,
+     "no": 0.000757924
+    }
+   },
+   "coverage": {
+    "queue": 0.998901,
+    "severity": 0.999258,
+    "escalate": 0.999677
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 102.947,
+    "questions_ms": 467.223,
+    "total_ms": 578.902
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 88,
+   "input_tokens": 405,
+   "state_id": "sha256:e3469ce539a0e01b94b738807df9a57680390f57ae59c55c118e844e75bfcdcf",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1017,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/p02.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/p02.json --keep-alive 10m"
+  },
+  {
+   "id": "p03",
+   "state": "Your terms say the free tier is for non-commercial use. We are a two-person startup using it for our product while we prepare a purchase order. Can we stay on the free tier until then?",
+   "cue_note": "terms question, no dispute -> policy, sev 0, no escalate",
+   "gold": {
+    "queue": "policy",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 0.59911,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.283573,
+    "severity": 0.375284,
+    "escalate_decisiveness": 0.9418463
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0507524,
+     "technical": 0.0258911,
+     "account": 0.460677,
+     "policy": 0.462679
+    },
+    "severity": {
+     "0": 0.408686,
+     "1": 0.583523,
+     "2": 0.00779146
+    },
+    "escalate": {
+     "yes": 0.0581537,
+     "no": 0.941846
+    }
+   },
+   "coverage": {
+    "queue": 0.995079,
+    "severity": 0.999801,
+    "escalate": 0.999427
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 104.975,
+    "questions_ms": 462.971,
+    "total_ms": 576.666
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 97,
+   "input_tokens": 414,
+   "state_id": "sha256:d50234dda39c929a6bb23cd10d23d383280f67574b664272df2d6a971d65e4d0",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1025,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/p03.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/p03.json --keep-alive 10m"
+  },
+  {
+   "id": "p04",
+   "state": "Please confirm that you are SOC 2 Type II certified and send the report under NDA for our vendor review.",
+   "cue_note": "compliance/legal document -> policy, sev 0 but T2 escalate",
+   "gold": {
+    "queue": "policy",
+    "severity": 0,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 0,
+    "severity_score": 0.05672,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.699057,
+    "severity": 0.919802,
+    "escalate_decisiveness": 0.667916
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00553789,
+     "technical": 0.128115,
+     "account": 0.0920541,
+     "policy": 0.774293
+    },
+    "severity": {
+     "0": 0.946534,
+     "1": 0.0502156,
+     "2": 0.00324989
+    },
+    "escalate": {
+     "yes": 0.667916,
+     "no": 0.332084
+    }
+   },
+   "coverage": {
+    "queue": 0.998128,
+    "severity": 0.999882,
+    "escalate": 0.999124
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 96.5641,
+    "questions_ms": 458.162,
+    "total_ms": 564.572
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 80,
+   "input_tokens": 397,
+   "state_id": "sha256:397c8bee03d6ee7c522cd97421f772a34310a40e1cf1892c56f4ba6ed6454d5f",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1003,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/p04.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/p04.json --keep-alive 10m"
+  },
+  {
+   "id": "p05",
+   "state": "Someone is scraping our public dataset through your API at 50 requests per second and ignoring our robots.txt. Our bandwidth bill tripled last week. Please rate-limit that client.",
+   "cue_note": "abuse report -> policy, sev 1 (cost), T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.28126,
+    "escalate": false
+   },
+   "correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.41247,
+    "severity": 0.388985,
+    "escalate_decisiveness": 0.823639
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0118822,
+     "technical": 0.559352,
+     "account": 0.185098,
+     "policy": 0.243667
+    },
+    "severity": {
+     "0": 0.0630437,
+     "1": 0.592657,
+     "2": 0.3443
+    },
+    "escalate": {
+     "yes": 0.176361,
+     "no": 0.823639
+    }
+   },
+   "coverage": {
+    "queue": 0.996856,
+    "severity": 0.999286,
+    "escalate": 0.999278
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 98.8532,
+    "questions_ms": 472.536,
+    "total_ms": 579.829
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 93,
+   "input_tokens": 410,
+   "state_id": "sha256:5b3841b09ca20ad8dc8574c43d1c1933c7fc3a7811a6aafbf98f71a7735eab0d",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1009,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/p05.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/p05.json --keep-alive 10m"
+  },
+  {
+   "id": "p06",
+   "state": "For our ISO 27001 renewal we need an export of our audit logs for the last 12 months and a signed data processing agreement.",
+   "cue_note": "compliance documents -> policy, sev 1 (renewal), T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 0.84235,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.882017,
+    "severity": 0.744445,
+    "escalate_decisiveness": 0.99481
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000290584,
+     "technical": 0.0603061,
+     "account": 0.0278903,
+     "policy": 0.911513
+    },
+    "severity": {
+     "0": 0.164009,
+     "1": 0.82963,
+     "2": 0.00636072
+    },
+    "escalate": {
+     "yes": 0.99481,
+     "no": 0.00518993
+    }
+   },
+   "coverage": {
+    "queue": 0.997755,
+    "severity": 0.999936,
+    "escalate": 0.999559
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 99.4554,
+    "questions_ms": 458.906,
+    "total_ms": 566.762
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 89,
+   "input_tokens": 406,
+   "state_id": "sha256:150f17545b59ca850c87324402668b04f0d7682b57576f055678c9fd6efa4630",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 988,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/p06.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/p06.json --keep-alive 10m"
+  },
+  {
+   "id": "p07",
+   "state": "We found personal data of one of our users in a test call response from your public API. Under GDPR we must notify our regulator, so we need your point of contact and the scope of the exposure.",
+   "cue_note": "PII exposure + regulator -> policy, sev 2, T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 2,
+    "severity_score": 1.64846,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.695136,
+    "severity": 0.603734,
+    "escalate_decisiveness": 0.997243
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000469162,
+     "technical": 0.200823,
+     "account": 0.0273558,
+     "policy": 0.771352
+    },
+    "severity": {
+     "0": 0.0873676,
+     "1": 0.176809,
+     "2": 0.735823
+    },
+    "escalate": {
+     "yes": 0.997243,
+     "no": 0.00275673
+    }
+   },
+   "coverage": {
+    "queue": 0.996226,
+    "severity": 0.989936,
+    "escalate": 0.999608
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 98.915,
+    "questions_ms": 563.02,
+    "total_ms": 670.3
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 98,
+   "input_tokens": 415,
+   "state_id": "sha256:1f63c4ca357bbc29419495e9bb5ecc53647bbcf344c32df3e58910316f43d25f",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 1100,
+   "command": "uv run typed-gguf run --questions /work/t_d199e09c/mimo/questions.json --state @/work/t_d199e09c/mimo/items/p07.txt --model /work/t_d199e09c/mimo/../models/MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf --threads 4 --fit-target 512 --out /work/t_d199e09c/mimo/out/p07.json --keep-alive 10m"
+  }
+ ]
+}
