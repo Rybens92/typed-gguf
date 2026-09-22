@@ -1,10 +1,13 @@
 """exp1 analysis: accuracy vs baseline + Wilson CI, reliability flags, confidence, timing."""
 import json
 import math
+import os
 import pathlib
 import statistics
 
-BASE = pathlib.Path("/work/t977-typed-gguf/exp1")
+_HERE = pathlib.Path(__file__).resolve().parent
+_DEFAULT = pathlib.Path("/work/t977-typed-gguf/exp1")
+BASE = pathlib.Path(os.environ.get("REAL_PURPOSE_BASE") or (_DEFAULT if (_DEFAULT / "items.jsonl").exists() else _HERE))
 FLOOR_CONF = 0.5  # "the model is confident enough to auto-act" threshold used in the report
 
 
