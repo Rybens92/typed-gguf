@@ -29,20 +29,33 @@ gaming laptops have, so the defaults work on first use for most people.
 
 ## Quickstart
 
-v0.1.0 installs from this repository (there is no PyPI release yet) and needs nothing but
-Python 3.11+. The core is stdlib-only and no compiler is ever invoked:
+v0.1.0 is on PyPI and needs nothing but Python 3.11+. The core is stdlib-only and no compiler is
+ever invoked:
+
+```bash
+uvx typed-gguf version          # run it without installing anything
+uv tool install typed-gguf      # puts the command on your `PATH`
+pip install typed-gguf          # or into a plain venv
+```
+
+`uv tool install` puts `typed-gguf` on your `PATH` from any directory, and `uvx typed-gguf …` runs a
+single command without installing anything. Then the first run:
+
+```bash
+typed-gguf init                                      # pinned runtime, ~30 MB
+typed-gguf models pull XHToken/Spark-X2.5-4B-GGUF:Q8_0   # 4.38 GB, SHA-256 verified
+```
+
+Every command below is written `uv run typed-gguf …`: that is the checkout form, and `uv run` uses
+the project's `.venv` (with a plain venv it is `.venv/bin/typed-gguf`). Installed by name, the same
+commands read `typed-gguf …`. The repository clone is the development path:
 
 ```bash
 git clone https://github.com/Rybens92/typed-gguf && cd typed-gguf
 uv sync                # or: python3 -m venv .venv && .venv/bin/pip install .
-
-uv run typed-gguf init                                      # pinned runtime, ~30 MB
-uv run typed-gguf models pull XHToken/Spark-X2.5-4B-GGUF:Q8_0   # 4.38 GB, SHA-256 verified
 ```
 
-Every command below is written `uv run typed-gguf …`: neither install line puts the console script
-on your `PATH` (`uv run` uses the project's `.venv`; with a plain venv it is `.venv/bin/typed-gguf`).
-`python -m typed_gguf …` runs the same CLI.
+`python -m typed_gguf …` runs the same CLI either way.
 
 `init` and `pull` print what they actually verified (run on this box, 2026-09-20):
 
@@ -81,6 +94,20 @@ package), so an installed `typed-gguf` reads its pins from itself and works from
 no checkout and no `cd` into one:
 
 ```bash
+uvx typed-gguf version
+uvx typed-gguf init          # pinned runtime
+uvx typed-gguf doctor --json
+
+uv tool install typed-gguf   # puts it on PATH
+pip install typed-gguf       # or a plain venv
+```
+
+A revision that is not on PyPI yet installs straight from git — `uvx --from git+…`,
+`uv tool install --from git+…`, `pip install "typed-gguf @ git+…"` — and from a checkout,
+`uvx --from . …` builds the same wheel, lock included, and runs it from uv's cache instead of your
+source tree:
+
+```bash
 uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf version
 uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf init          # pinned runtime
 uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf doctor --json
@@ -88,9 +115,6 @@ uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf doctor --json
 uv tool install --from git+https://github.com/Rybens92/typed-gguf typed-gguf   # puts it on PATH
 pip install "typed-gguf @ git+https://github.com/Rybens92/typed-gguf"          # or a plain venv
 ```
-
-The same thing works from a checkout while the repository is not published: `uvx --from . …`
-builds the same wheel, lock included, and runs it from uv's cache instead of your source tree.
 
 `init` from such an install, run in an empty directory (measured 2026-09-20):
 
