@@ -651,11 +651,16 @@ def prefix_tokens_of(result: Any) -> int | None:
 
 
 def framing_label(surface: Mapping[str, Any] | None) -> str:
-    """One line naming a framing: `plain (prompt.py E1b framing)` or the chat template's surface."""
+    """One line naming a framing: `plain (model-agnostic framing)` or the chat template's surface.
+
+    Product language only — the label lands in the report a user reads (`- framing: …`), so no
+    milestone code (card `t_bf6bb78a`; the published rows in `docs/BENCHMARKS.md` keep the label
+    they were produced with).
+    """
     if not isinstance(surface, Mapping) or not surface:
         return "unrecorded"
     if surface.get("kind") == "plain":
-        return "plain (prompt.py E1b framing)"
+        return "plain (model-agnostic framing)"
     return f"chat-template: {surface.get('family') or '?'} / {surface.get('renderer') or '?'}"
 
 
