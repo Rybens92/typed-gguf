@@ -1,0 +1,1280 @@
+{
+ "schema": "typed_gguf.evidence.devset_crosscheck/v1",
+ "generated": "2026-09-22",
+ "card": "t_977ad206",
+ "what": "replication of the published 4B quality row (docs/BENCHMARKS.md 2.3) through the same `run --questions` path the real-purpose run used",
+ "config": {
+  "devset": "src/typed_gguf/bench/devset.jsonl",
+  "items": 60,
+  "runs_per_item": 1,
+  "threads": 4,
+  "backend": "vulkan",
+  "policy": "defaults (json_instructed / role_split / question)",
+  "model": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf"
+ },
+ "results": {
+  "by_type": {
+   "choice": {
+    "n": 24,
+    "correct": 21,
+    "accuracy": 0.875,
+    "wilson95": [
+     0.69,
+     0.9566
+    ]
+   },
+   "score": {
+    "n": 18,
+    "correct": 11,
+    "accuracy": 0.6111,
+    "wilson95": [
+     0.3862,
+     0.7969
+    ]
+   },
+   "noul": {
+    "n": 18,
+    "correct": 18,
+    "accuracy": 1.0,
+    "wilson95": [
+     0.8241,
+     1.0
+    ]
+   }
+  },
+  "overall": {
+   "n": 60,
+   "correct": 50,
+   "accuracy": 0.8333,
+   "wilson95": [
+    0.7197,
+    0.9069
+   ]
+  },
+  "published_overall": {
+   "n": 60,
+   "correct": 50,
+   "accuracy": 0.8333
+  },
+  "item_identity": {
+   "got_identical": 60,
+   "correctness_identical": 60,
+   "n": 60
+  },
+  "reliability_flags": {
+   "low_mass": 0,
+   "low_confidence": 0,
+   "refused": 0,
+   "median_coverage": 0.999978
+  },
+  "timing": {
+   "wall_per_cli_call_ms_median": 526.5,
+   "wall_total_s": 39.6,
+   "total_ms_median": 172.8,
+   "prefill_ms_median": 66.85,
+   "questions_ms_median": 97.13
+  }
+ },
+ "rows": [
+  {
+   "id": "c01",
+   "type": "choice",
+   "gold": "technical",
+   "got": "technical",
+   "correct": true,
+   "published_got": "technical",
+   "published_correct": true,
+   "confidence": 0.623904,
+   "coverage": 0.999783,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 119,
+   "timings_ms": {
+    "model_load_ms": 1050.4038569997647,
+    "prefill_ms": 81.7032,
+    "questions_ms": 244.78,
+    "total_ms": 335.422
+   }
+  },
+  {
+   "id": "c02",
+   "type": "choice",
+   "gold": "billing",
+   "got": "billing",
+   "correct": true,
+   "published_got": "billing",
+   "published_correct": true,
+   "confidence": 0.878664,
+   "coverage": 0.999906,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 107,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 68.4285,
+    "questions_ms": 199.633,
+    "total_ms": 277.187
+   }
+  },
+  {
+   "id": "c03",
+   "type": "choice",
+   "gold": "mobile",
+   "got": "mobile",
+   "correct": true,
+   "published_got": "mobile",
+   "published_correct": true,
+   "confidence": 0.999653,
+   "coverage": 0.999989,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 105,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 68.3948,
+    "questions_ms": 128.823,
+    "total_ms": 205.717
+   }
+  },
+  {
+   "id": "c04",
+   "type": "choice",
+   "gold": "restricted",
+   "got": "confidential",
+   "correct": false,
+   "published_got": "confidential",
+   "published_correct": false,
+   "confidence": 0.774596,
+   "coverage": 0.999809,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 101,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.8746,
+    "questions_ms": 144.39,
+    "total_ms": 219.995
+   }
+  },
+  {
+   "id": "c05",
+   "type": "choice",
+   "gold": "security",
+   "got": "security",
+   "correct": true,
+   "published_got": "security",
+   "published_correct": true,
+   "confidence": 0.990692,
+   "coverage": 0.99995,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 94,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.5316,
+    "questions_ms": 125.015,
+    "total_ms": 201.247
+   }
+  },
+  {
+   "id": "c06",
+   "type": "choice",
+   "gold": "fixed",
+   "got": "fixed",
+   "correct": true,
+   "published_got": "fixed",
+   "published_correct": true,
+   "confidence": 0.990334,
+   "coverage": 0.999919,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 90,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.9319,
+    "questions_ms": 128.054,
+    "total_ms": 203.932
+   }
+  },
+  {
+   "id": "c07",
+   "type": "choice",
+   "gold": "termination",
+   "got": "termination",
+   "correct": true,
+   "published_got": "termination",
+   "published_correct": true,
+   "confidence": 0.999218,
+   "coverage": 0.999666,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 95,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.4799,
+    "questions_ms": 141.933,
+    "total_ms": 217.156
+   }
+  },
+  {
+   "id": "c08",
+   "type": "choice",
+   "gold": "business_hours",
+   "got": "business_hours",
+   "correct": true,
+   "published_got": "business_hours",
+   "published_correct": true,
+   "confidence": 0.699732,
+   "coverage": 0.99986,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 105,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 69.6855,
+    "questions_ms": 775.629,
+    "total_ms": 854.398
+   }
+  },
+  {
+   "id": "c09",
+   "type": "choice",
+   "gold": "spam",
+   "got": "spam",
+   "correct": true,
+   "published_got": "spam",
+   "published_correct": true,
+   "confidence": 0.98929,
+   "coverage": 0.999988,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 94,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.8414,
+    "questions_ms": 188.256,
+    "total_ms": 263.252
+   }
+  },
+  {
+   "id": "c10",
+   "type": "choice",
+   "gold": "compensation",
+   "got": "compensation",
+   "correct": true,
+   "published_got": "compensation",
+   "published_correct": true,
+   "confidence": 0.998717,
+   "coverage": 0.999912,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 98,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 68.3236,
+    "questions_ms": 154.957,
+    "total_ms": 232.319
+   }
+  },
+  {
+   "id": "c11",
+   "type": "choice",
+   "gold": "expedited",
+   "got": "expedited",
+   "correct": true,
+   "published_got": "expedited",
+   "published_correct": true,
+   "confidence": 0.995657,
+   "coverage": 0.999992,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 103,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.8797,
+    "questions_ms": 188.301,
+    "total_ms": 263.037
+   }
+  },
+  {
+   "id": "c12",
+   "type": "choice",
+   "gold": "frontend",
+   "got": "frontend",
+   "correct": true,
+   "published_got": "frontend",
+   "published_correct": true,
+   "confidence": 0.999552,
+   "coverage": 0.999983,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 103,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.4514,
+    "questions_ms": 125.813,
+    "total_ms": 200.915
+   }
+  },
+  {
+   "id": "c13",
+   "type": "choice",
+   "gold": "partnerships",
+   "got": "partnerships",
+   "correct": true,
+   "published_got": "partnerships",
+   "published_correct": true,
+   "confidence": 0.99897,
+   "coverage": 0.999901,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 98,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.4229,
+    "questions_ms": 186.218,
+    "total_ms": 260.403
+   }
+  },
+  {
+   "id": "c14",
+   "type": "choice",
+   "gold": "capital",
+   "got": "capital",
+   "correct": true,
+   "published_got": "capital",
+   "published_correct": true,
+   "confidence": 0.985611,
+   "coverage": 0.999896,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 101,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.7543,
+    "questions_ms": 245.782,
+    "total_ms": 321.232
+   }
+  },
+  {
+   "id": "c15",
+   "type": "choice",
+   "gold": "cardiology",
+   "got": "cardiology",
+   "correct": true,
+   "published_got": "cardiology",
+   "published_correct": true,
+   "confidence": 0.943441,
+   "coverage": 0.999849,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 90,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 166.941,
+    "questions_ms": 308.889,
+    "total_ms": 484.971
+   }
+  },
+  {
+   "id": "c16",
+   "type": "choice",
+   "gold": "travel",
+   "got": "travel",
+   "correct": true,
+   "published_got": "travel",
+   "published_correct": true,
+   "confidence": 0.999975,
+   "coverage": 0.999994,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 90,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.9629,
+    "questions_ms": 161.588,
+    "total_ms": 237.389
+   }
+  },
+  {
+   "id": "c17",
+   "type": "choice",
+   "gold": "midmarket",
+   "got": "midmarket",
+   "correct": true,
+   "published_got": "midmarket",
+   "published_correct": true,
+   "confidence": 0.560581,
+   "coverage": 0.999093,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 111,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 68.6736,
+    "questions_ms": 269.203,
+    "total_ms": 346.656
+   }
+  },
+  {
+   "id": "c18",
+   "type": "choice",
+   "gold": "standup",
+   "got": "retrospective",
+   "correct": false,
+   "published_got": "retrospective",
+   "published_correct": false,
+   "confidence": 0.389182,
+   "coverage": 0.988605,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 95,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.3705,
+    "questions_ms": 191.038,
+    "total_ms": 267.42
+   }
+  },
+  {
+   "id": "c19",
+   "type": "choice",
+   "gold": "configuration",
+   "got": "configuration",
+   "correct": true,
+   "published_got": "configuration",
+   "published_correct": true,
+   "confidence": 0.993803,
+   "coverage": 0.999429,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 101,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 99.8016,
+    "questions_ms": 129.42,
+    "total_ms": 238.274
+   }
+  },
+  {
+   "id": "c20",
+   "type": "choice",
+   "gold": "copyleft",
+   "got": "copyleft",
+   "correct": true,
+   "published_got": "copyleft",
+   "published_correct": true,
+   "confidence": 0.971371,
+   "coverage": 0.999789,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 100,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.8833,
+    "questions_ms": 240.266,
+    "total_ms": 317.6
+   }
+  },
+  {
+   "id": "c21",
+   "type": "choice",
+   "gold": "archive",
+   "got": "warm",
+   "correct": false,
+   "published_got": "warm",
+   "published_correct": false,
+   "confidence": 0.677465,
+   "coverage": 0.999467,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 97,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.8997,
+    "questions_ms": 142.933,
+    "total_ms": 218.709
+   }
+  },
+  {
+   "id": "c22",
+   "type": "choice",
+   "gold": "sms",
+   "got": "sms",
+   "correct": true,
+   "published_got": "sms",
+   "published_correct": true,
+   "confidence": 0.999713,
+   "coverage": 0.999955,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 105,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 69.4092,
+    "questions_ms": 140.112,
+    "total_ms": 218.591
+   }
+  },
+  {
+   "id": "c23",
+   "type": "choice",
+   "gold": "identity",
+   "got": "identity",
+   "correct": true,
+   "published_got": "identity",
+   "published_correct": true,
+   "confidence": 0.999933,
+   "coverage": 0.999989,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 94,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.8239,
+    "questions_ms": 143.939,
+    "total_ms": 220.184
+   }
+  },
+  {
+   "id": "c24",
+   "type": "choice",
+   "gold": "runbook",
+   "got": "runbook",
+   "correct": true,
+   "published_got": "runbook",
+   "published_correct": true,
+   "confidence": 1.0,
+   "coverage": 0.999997,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 99,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.8194,
+    "questions_ms": 129.086,
+    "total_ms": 204.12
+   }
+  },
+  {
+   "id": "n01",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999995,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 94,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.0667,
+    "questions_ms": 79.2872,
+    "total_ms": 153.58
+   }
+  },
+  {
+   "id": "n02",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999991,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 102,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.4988,
+    "questions_ms": 78.1573,
+    "total_ms": 151.971
+   }
+  },
+  {
+   "id": "n03",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999993,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 97,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.8341,
+    "questions_ms": 78.8115,
+    "total_ms": 152.848
+   }
+  },
+  {
+   "id": "n04",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999994,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 90,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 64.6711,
+    "questions_ms": 80.5343,
+    "total_ms": 153.346
+   }
+  },
+  {
+   "id": "n05",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999994,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 96,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.369,
+    "questions_ms": 81.2408,
+    "total_ms": 154.667
+   }
+  },
+  {
+   "id": "n06",
+   "type": "noul",
+   "gold": "no",
+   "got": "no",
+   "correct": true,
+   "published_got": "no",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999996,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 96,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.1101,
+    "questions_ms": 78.6376,
+    "total_ms": 151.852
+   }
+  },
+  {
+   "id": "n07",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999995,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 92,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.2838,
+    "questions_ms": 80.5506,
+    "total_ms": 154.922
+   }
+  },
+  {
+   "id": "n08",
+   "type": "noul",
+   "gold": "no",
+   "got": "no",
+   "correct": true,
+   "published_got": "no",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999986,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 92,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.4027,
+    "questions_ms": 78.5691,
+    "total_ms": 151.96
+   }
+  },
+  {
+   "id": "n09",
+   "type": "noul",
+   "gold": "no",
+   "got": "no",
+   "correct": true,
+   "published_got": "no",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999996,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 94,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.995,
+    "questions_ms": 81.3788,
+    "total_ms": 156.486
+   }
+  },
+  {
+   "id": "n10",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999994,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 90,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.3721,
+    "questions_ms": 82.593,
+    "total_ms": 158.649
+   }
+  },
+  {
+   "id": "n11",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999974,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 100,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.545,
+    "questions_ms": 79.8462,
+    "total_ms": 155.558
+   }
+  },
+  {
+   "id": "n12",
+   "type": "noul",
+   "gold": "no",
+   "got": "no",
+   "correct": true,
+   "published_got": "no",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999997,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 100,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.1772,
+    "questions_ms": 78.9317,
+    "total_ms": 154.291
+   }
+  },
+  {
+   "id": "n13",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999993,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 92,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.6784,
+    "questions_ms": 81.4896,
+    "total_ms": 156.443
+   }
+  },
+  {
+   "id": "n14",
+   "type": "noul",
+   "gold": "no",
+   "got": "no",
+   "correct": true,
+   "published_got": "no",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999997,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 89,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.9442,
+    "questions_ms": 80.7571,
+    "total_ms": 155.839
+   }
+  },
+  {
+   "id": "n15",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999965,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 82,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.3581,
+    "questions_ms": 79.5585,
+    "total_ms": 153.961
+   }
+  },
+  {
+   "id": "n16",
+   "type": "noul",
+   "gold": "no",
+   "got": "no",
+   "correct": true,
+   "published_got": "no",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999998,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 96,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.8748,
+    "questions_ms": 81.0479,
+    "total_ms": 157.266
+   }
+  },
+  {
+   "id": "n17",
+   "type": "noul",
+   "gold": "no",
+   "got": "no",
+   "correct": true,
+   "published_got": "no",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999997,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 96,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.6521,
+    "questions_ms": 82.2124,
+    "total_ms": 157.609
+   }
+  },
+  {
+   "id": "n18",
+   "type": "noul",
+   "gold": "yes",
+   "got": "yes",
+   "correct": true,
+   "published_got": "yes",
+   "published_correct": true,
+   "confidence": null,
+   "coverage": 0.999994,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 88,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.6079,
+    "questions_ms": 81.015,
+    "total_ms": 157.049
+   }
+  },
+  {
+   "id": "s01",
+   "type": "score",
+   "gold": "3",
+   "got": "4",
+   "correct": false,
+   "published_got": "4",
+   "published_correct": false,
+   "confidence": 0.908178,
+   "coverage": 0.995776,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 96,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.5357,
+    "questions_ms": 95.823,
+    "total_ms": 170.287
+   }
+  },
+  {
+   "id": "s02",
+   "type": "score",
+   "gold": "3",
+   "got": "1",
+   "correct": false,
+   "published_got": "1",
+   "published_correct": false,
+   "confidence": 0.720519,
+   "coverage": 0.993729,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 93,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.7439,
+    "questions_ms": 98.1037,
+    "total_ms": 173.39
+   }
+  },
+  {
+   "id": "s03",
+   "type": "score",
+   "gold": "4",
+   "got": "4",
+   "correct": true,
+   "published_got": "4",
+   "published_correct": true,
+   "confidence": 0.860609,
+   "coverage": 0.999982,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 95,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.4313,
+    "questions_ms": 98.1367,
+    "total_ms": 175.285
+   }
+  },
+  {
+   "id": "s04",
+   "type": "score",
+   "gold": "4",
+   "got": "3",
+   "correct": false,
+   "published_got": "3",
+   "published_correct": false,
+   "confidence": 0.435943,
+   "coverage": 0.986678,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 98,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.4736,
+    "questions_ms": 95.3406,
+    "total_ms": 170.791
+   }
+  },
+  {
+   "id": "s05",
+   "type": "score",
+   "gold": "0",
+   "got": "0",
+   "correct": true,
+   "published_got": "0",
+   "published_correct": true,
+   "confidence": 0.862662,
+   "coverage": 0.998924,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 85,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 64.1712,
+    "questions_ms": 96.0925,
+    "total_ms": 169.059
+   }
+  },
+  {
+   "id": "s06",
+   "type": "score",
+   "gold": "3",
+   "got": "3",
+   "correct": true,
+   "published_got": "3",
+   "published_correct": true,
+   "confidence": 0.863657,
+   "coverage": 0.999991,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 94,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.1481,
+    "questions_ms": 96.8674,
+    "total_ms": 170.866
+   }
+  },
+  {
+   "id": "s07",
+   "type": "score",
+   "gold": "1",
+   "got": "1",
+   "correct": true,
+   "published_got": "1",
+   "published_correct": true,
+   "confidence": 0.462022,
+   "coverage": 0.999991,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 103,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.4136,
+    "questions_ms": 97.0392,
+    "total_ms": 171.086
+   }
+  },
+  {
+   "id": "s08",
+   "type": "score",
+   "gold": "1",
+   "got": "1",
+   "correct": true,
+   "published_got": "1",
+   "published_correct": true,
+   "confidence": 0.566522,
+   "coverage": 0.950555,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 97,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.8885,
+    "questions_ms": 96.0335,
+    "total_ms": 171.843
+   }
+  },
+  {
+   "id": "s09",
+   "type": "score",
+   "gold": "1",
+   "got": "1",
+   "correct": true,
+   "published_got": "1",
+   "published_correct": true,
+   "confidence": 0.996971,
+   "coverage": 0.999953,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 99,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 68.0067,
+    "questions_ms": 97.2244,
+    "total_ms": 174.234
+   }
+  },
+  {
+   "id": "s10",
+   "type": "score",
+   "gold": "1",
+   "got": "3",
+   "correct": false,
+   "published_got": "3",
+   "published_correct": false,
+   "confidence": 0.709103,
+   "coverage": 0.999987,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 97,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.318,
+    "questions_ms": 96.4941,
+    "total_ms": 172.833
+   }
+  },
+  {
+   "id": "s11",
+   "type": "score",
+   "gold": "1",
+   "got": "2",
+   "correct": false,
+   "published_got": "2",
+   "published_correct": false,
+   "confidence": 0.59511,
+   "coverage": 0.790161,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 91,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.9279,
+    "questions_ms": 98.8369,
+    "total_ms": 175.076
+   }
+  },
+  {
+   "id": "s12",
+   "type": "score",
+   "gold": "3",
+   "got": "3",
+   "correct": true,
+   "published_got": "3",
+   "published_correct": true,
+   "confidence": 0.892234,
+   "coverage": 0.999995,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 95,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.4106,
+    "questions_ms": 94.9755,
+    "total_ms": 171.291
+   }
+  },
+  {
+   "id": "s13",
+   "type": "score",
+   "gold": "1",
+   "got": "0",
+   "correct": false,
+   "published_got": "0",
+   "published_correct": false,
+   "confidence": 0.553102,
+   "coverage": 0.995154,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 90,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.7972,
+    "questions_ms": 78.7322,
+    "total_ms": 153.868
+   }
+  },
+  {
+   "id": "s14",
+   "type": "score",
+   "gold": "1",
+   "got": "0",
+   "correct": false,
+   "published_got": "0",
+   "published_correct": false,
+   "confidence": 0.37589,
+   "coverage": 0.95183,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 89,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.2357,
+    "questions_ms": 96.4733,
+    "total_ms": 171.279
+   }
+  },
+  {
+   "id": "s15",
+   "type": "score",
+   "gold": "2",
+   "got": "2",
+   "correct": true,
+   "published_got": "2",
+   "published_correct": true,
+   "confidence": 0.416816,
+   "coverage": 0.999985,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 90,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.7383,
+    "questions_ms": 98.0666,
+    "total_ms": 174.539
+   }
+  },
+  {
+   "id": "s16",
+   "type": "score",
+   "gold": "0",
+   "got": "0",
+   "correct": true,
+   "published_got": "0",
+   "published_correct": true,
+   "confidence": 0.952448,
+   "coverage": 0.991671,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 91,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.1635,
+    "questions_ms": 97.592,
+    "total_ms": 172.772
+   }
+  },
+  {
+   "id": "s17",
+   "type": "score",
+   "gold": "2",
+   "got": "2",
+   "correct": true,
+   "published_got": "2",
+   "published_correct": true,
+   "confidence": 0.684478,
+   "coverage": 0.916885,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 84,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.3694,
+    "questions_ms": 94.4684,
+    "total_ms": 168.575
+   }
+  },
+  {
+   "id": "s18",
+   "type": "score",
+   "gold": "0",
+   "got": "0",
+   "correct": true,
+   "published_got": "0",
+   "published_correct": true,
+   "confidence": 0.999324,
+   "coverage": 0.999999,
+   "reliability": "ok",
+   "cue_verdict": "answered",
+   "prefix_tokens": 87,
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.3195,
+    "questions_ms": 95.1694,
+    "total_ms": 170.508
+   }
+  }
+ ]
+}

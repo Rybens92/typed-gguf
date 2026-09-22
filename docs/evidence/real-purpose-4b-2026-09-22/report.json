@@ -1,0 +1,2270 @@
+{
+ "schema": "typed_gguf.evidence.real_purpose/v1",
+ "generated": "2026-09-22",
+ "card": "t_977ad206",
+ "purpose": "support-inbox triage: queue routing (choice) + severity (score) + human-escalation gate (noul)",
+ "model": {
+  "path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "alias_in_response": "Spark-X2.5-4B-Q8_0",
+  "size_bytes": 4375021152,
+  "quant": "Q8_0",
+  "arch": "spark2_5"
+ },
+ "engine": {
+  "version": "0.1.0",
+  "runtime": "llama.cpp b11026",
+  "backend": "vulkan",
+  "fit_n_gpu_layers": 36,
+  "readout": "sequence",
+  "cue": "json_instructed",
+  "chat_format": "role_split",
+  "json_contract": "question",
+  "n_ctx_per_request": [
+   256,
+   512
+  ],
+  "calibrated": [
+   false
+  ],
+  "coverage_floor": 0.1,
+  "served_by": "host (warm keep host, one model load for the whole run)"
+ },
+ "dataset": {
+  "path": "docs/evidence/real-purpose-4b-2026-09-22/items.jsonl",
+  "items": 30,
+  "basis": "authored 2026-09-22 for this run: 30 workplace inbound messages, 4 queues (8/8/7/7), each gold label fixed by a written rubric before any model call; every item records the decisive cue. Not production traffic, not sampled from a public corpus.",
+  "queue_class_sizes": {
+   "billing": 8,
+   "technical": 8,
+   "account": 7,
+   "policy": 7
+  },
+  "escalate_true": 16,
+  "severity_levels": {
+   "0": 9,
+   "1": 13,
+   "2": 8
+  }
+ },
+ "results": {
+  "choice_queue": {
+   "correct": 26,
+   "n": 30,
+   "accuracy": 0.8667,
+   "wilson95": [
+    0.7032,
+    0.9469
+   ],
+   "majority_baseline": 0.2667
+  },
+  "noul_escalate": {
+   "correct": 27,
+   "n": 30,
+   "accuracy": 0.9,
+   "wilson95": [
+    0.7438,
+    0.9654
+   ],
+   "majority_baseline": 0.5333,
+   "false_negatives": [],
+   "false_positives": [
+    "b02",
+    "t01",
+    "a03"
+   ]
+  },
+  "score_severity": {
+   "correct": 24,
+   "n": 30,
+   "accuracy": 0.8,
+   "wilson95": [
+    0.6269,
+    0.9049
+   ],
+   "mae_levels": 0.2667,
+   "within_one_level": 28,
+   "mae_score_value": 0.3606
+  },
+  "reliability_flags": {
+   "queue": {
+    "low_mass": 0,
+    "low_confidence": 0,
+    "refused": 0,
+    "median_coverage": 0.999873,
+    "min_coverage": 0.994215
+   },
+   "severity": {
+    "low_mass": 0,
+    "low_confidence": 0,
+    "refused": 0,
+    "median_coverage": 0.999998,
+    "min_coverage": 0.999994
+   },
+   "escalate": {
+    "low_mass": 0,
+    "low_confidence": 0,
+    "refused": 0,
+    "median_coverage": 0.999992,
+    "min_coverage": 0.999973
+   }
+  },
+  "confidence_vs_correctness": {
+   "queue_mean_confidence_correct": 0.8349,
+   "queue_mean_confidence_wrong": 0.5857,
+   "queue_accuracy_by_confidence_threshold": {
+    ">=0.3": {
+     "n": 30,
+     "accuracy": 0.8667
+    },
+    ">=0.4": {
+     "n": 28,
+     "accuracy": 0.8929
+    },
+    ">=0.5": {
+     "n": 25,
+     "accuracy": 0.92
+    },
+    ">=0.6": {
+     "n": 23,
+     "accuracy": 0.9565
+    }
+   },
+   "escalate_decisiveness_threshold": {
+    ">=0.6": {
+     "n": 27,
+     "accuracy": 0.8889
+    },
+    ">=0.9": {
+     "n": 19,
+     "accuracy": 0.8947
+    },
+    ">=0.99": {
+     "n": 8,
+     "accuracy": 1.0
+    }
+   },
+   "calibration_note": "raw engine numbers; calibrated=false for every call (no temperature/scale fitted)"
+  },
+  "straight_through": {
+   "rule": "queue confidence >= 0.5 AND escalate decisiveness >= 0.9",
+   "items": 15,
+   "coverage": 0.5,
+   "queue_correct": 13,
+   "escalate_correct": 13,
+   "severity_correct": 13
+  },
+  "timing": {
+   "model_load_ms_once": 0.0,
+   "cold_start_note": "the 30-item run itself paid no model load (a warm keep host served every call); the one-off cold load measured before it in the same data home was 1182.94 ms (smoke1.json, exit 0)",
+   "prefill_ms_median": 67.33,
+   "questions_ms_median": 565.38,
+   "total_ms_median": 644.88,
+   "wall_per_cli_call_ms_median": 1005.5,
+   "wall_total_s": 35.6,
+   "calls_paying_a_model_load": 0,
+   "per_item_note": "each item is its own request (own state), so the shared prefix is per item: one prefill + one candidate batch per item; nothing is generated"
+  }
+ },
+ "rows": [
+  {
+   "id": "b01",
+   "state": "Our finance team was charged twice for the same annual plan: 499 USD on the 3rd and again on the 5th of this month. We need the duplicate charge refunded and a corrected receipt for our books.",
+   "cue_note": "money disputed -> billing + T1 escalate",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.00947,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.997374,
+    "severity": 0.965291,
+    "escalate_decisiveness": 0.943585
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.998031,
+     "technical": 0.000975911,
+     "account": 0.00092418,
+     "policy": 6.91191e-05
+    },
+    "severity": {
+     "0": 0.00683304,
+     "1": 0.976861,
+     "2": 0.016306
+    },
+    "escalate": {
+     "yes": 0.943585,
+     "no": 0.056415
+    }
+   },
+   "coverage": {
+    "queue": 0.999958,
+    "severity": 0.999999,
+    "escalate": 0.999991
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.3118,
+    "questions_ms": 453.635,
+    "total_ms": 533.33
+   },
+   "n_ctx": 512,
+   "prefix_tokens": 111,
+   "state_id": "sha256:26be54c276606535b4aabbf567c1d11dfa634d19a926b15dd73899567e14e50d",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/b01.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/b01.json --keep-alive 10m"
+  },
+  {
+   "id": "b02",
+   "state": "We need to update the credit card on file before the renewal on Monday. Where in the console do I change the payment method for our account?",
+   "cue_note": "payment-method request, no impact -> billing, sev 0",
+   "gold": {
+    "queue": "billing",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.57094,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.933706,
+    "severity": 0.477272,
+    "escalate_decisiveness": 0.632364
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.95028,
+     "technical": 0.000867741,
+     "account": 0.0488434,
+     "policy": 9.34993e-06
+    },
+    "severity": {
+     "0": 0.0805755,
+     "1": 0.26791,
+     "2": 0.651514
+    },
+    "escalate": {
+     "yes": 0.632364,
+     "no": 0.367636
+    }
+   },
+   "coverage": {
+    "queue": 0.999928,
+    "severity": 0.999996,
+    "escalate": 0.999978
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.3972,
+    "questions_ms": 1316.99,
+    "total_ms": 1396.74
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 92,
+   "state_id": "sha256:dd6926ebcbf1997033ff9ac32d60d0f2413cc423b6f5f7686f2edd8efceec5ce",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/b02.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/b02.json --keep-alive 10m"
+  },
+  {
+   "id": "b03",
+   "state": "Your August invoice lists 40 seats but our workspace only has 32 users. Procurement cannot pay an invoice with the wrong seat count, so please send a corrected invoice.",
+   "cue_note": "billing dispute (payment blocked) -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.41331,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.519753,
+    "severity": 0.269455,
+    "escalate_decisiveness": 0.83948
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.639815,
+     "technical": 0.00501056,
+     "account": 0.354885,
+     "policy": 0.000289435
+    },
+    "severity": {
+     "0": 0.0368611,
+     "1": 0.51297,
+     "2": 0.450169
+    },
+    "escalate": {
+     "yes": 0.83948,
+     "no": 0.16052
+    }
+   },
+   "coverage": {
+    "queue": 0.99958,
+    "severity": 0.999999,
+    "escalate": 0.999975
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.9346,
+    "questions_ms": 1718.83,
+    "total_ms": 1796.33
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 101,
+   "state_id": "sha256:ed59e01fca636f7a17d5dfd6c81b2e483397ef0f7780b712be3bbf1b22a7dc74",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/b03.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/b03.json --keep-alive 10m"
+  },
+  {
+   "id": "b04",
+   "state": "The quote we signed in July says 2,400 USD for the Enterprise tier, but the contract you sent yesterday says 3,100 USD. Our legal team needs this reconciled before we sign on Thursday.",
+   "cue_note": "pricing discrepancy -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.23157,
+    "escalate": true
+   },
+   "correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.944021,
+    "severity": 0.583406,
+    "escalate_decisiveness": 0.993645
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.026573,
+     "technical": 0.00217229,
+     "account": 0.0132388,
+     "policy": 0.958016
+    },
+    "severity": {
+     "0": 0.0230792,
+     "1": 0.722271,
+     "2": 0.25465
+    },
+    "escalate": {
+     "yes": 0.993645,
+     "no": 0.00635535
+    }
+   },
+   "coverage": {
+    "queue": 0.999175,
+    "severity": 0.999998,
+    "escalate": 0.999996
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 68.1651,
+    "questions_ms": 1633.04,
+    "total_ms": 1713.61
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 110,
+   "state_id": "sha256:77e4c18f9afd1a84d26a76c3b576ad4bdd9aae3a4dffe584fb2c3aed2d2b640f",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/b04.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/b04.json --keep-alive 10m"
+  },
+  {
+   "id": "b05",
+   "state": "A refund we approved on the 12th has not reached our customer's card yet. They have written to us twice and we have run out of things to tell them.",
+   "cue_note": "money movement stalled -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.39819,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.941774,
+    "severity": 0.330124,
+    "escalate_decisiveness": 0.749314
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.95633,
+     "technical": 0.0435863,
+     "account": 8.10093e-05,
+     "policy": 2.53087e-06
+    },
+    "severity": {
+     "0": 0.0241986,
+     "1": 0.553416,
+     "2": 0.422385
+    },
+    "escalate": {
+     "yes": 0.749314,
+     "no": 0.250686
+    }
+   },
+   "coverage": {
+    "queue": 0.99995,
+    "severity": 0.999997,
+    "escalate": 0.999973
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 71.0674,
+    "questions_ms": 1000.32,
+    "total_ms": 1083.18
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 99,
+   "state_id": "sha256:0819da75c17d063e1a83bb91767f3081eca39ca3cd0776512f1093aa03c14b65",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/b05.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/b05.json --keep-alive 10m"
+  },
+  {
+   "id": "b06",
+   "state": "Could you send a VAT-compliant invoice for September with our tax ID (PL5252345627) on it? Accounting needs it before their quarter closes.",
+   "cue_note": "invoice document request, no impact -> sev 0",
+   "gold": {
+    "queue": "billing",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 0.954992,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.9992,
+    "severity": 0.932067,
+    "escalate_decisiveness": 0.651973
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.9994,
+     "technical": 0.000294308,
+     "account": 0.000257326,
+     "policy": 4.83579e-05
+    },
+    "severity": {
+     "0": 0.045148,
+     "1": 0.954712,
+     "2": 0.000140472
+    },
+    "escalate": {
+     "yes": 0.348027,
+     "no": 0.651973
+    }
+   },
+   "coverage": {
+    "queue": 0.99998,
+    "severity": 0.999999,
+    "escalate": 0.999985
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 68.5755,
+    "questions_ms": 747.753,
+    "total_ms": 828.276
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 101,
+   "state_id": "sha256:c3e5a4e480281c5b6d0e320cb68d8adeb106bb8a198891e706e587d0e4514998",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/b06.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/b06.json --keep-alive 10m"
+  },
+  {
+   "id": "b07",
+   "state": "We upgraded to the Team plan on the 18th and the prorated charge looks wrong: we were billed as if the upgrade happened on the 1st. Please check the calculation.",
+   "cue_note": "charge dispute -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 0.941546,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.969692,
+    "severity": 0.907689,
+    "escalate_decisiveness": 0.907401
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.977269,
+     "technical": 0.0123645,
+     "account": 0.0102554,
+     "policy": 0.000111329
+    },
+    "severity": {
+     "0": 0.0599974,
+     "1": 0.938459,
+     "2": 0.00154349
+    },
+    "escalate": {
+     "yes": 0.907401,
+     "no": 0.0925994
+    }
+   },
+   "coverage": {
+    "queue": 0.999879,
+    "severity": 0.999999,
+    "escalate": 0.999984
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 68.0974,
+    "questions_ms": 689.87,
+    "total_ms": 769.631
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 102,
+   "state_id": "sha256:3acfa96473a420cb3e1e1bee6642da809e0ad1b780c591a83a2df0a8da1c2ec9",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/b07.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/b07.json --keep-alive 10m"
+  },
+  {
+   "id": "b08",
+   "state": "Our card expired over the weekend, the renewal payment failed, and we have a suspension notice for Friday. We are mid-migration and need the workspace for two more weeks.",
+   "cue_note": "failed payment + suspension -> billing, sev 2, T1/T4",
+   "gold": {
+    "queue": "billing",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.99924,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.308047,
+    "severity": 0.998938,
+    "escalate_decisiveness": 0.999465
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.481035,
+     "technical": 0.192903,
+     "account": 0.322382,
+     "policy": 0.00367921
+    },
+    "severity": {
+     "0": 5.12554e-05,
+     "1": 0.000656493,
+     "2": 0.999292
+    },
+    "escalate": {
+     "yes": 0.999465,
+     "no": 0.000534519
+    }
+   },
+   "coverage": {
+    "queue": 0.998501,
+    "severity": 0.999997,
+    "escalate": 0.999996
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 69.4833,
+    "questions_ms": 505.666,
+    "total_ms": 586.876
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 98,
+   "state_id": "sha256:628408d13471acffafde3fae8aeaad4b6e24badc3b3d9b701b0ebd5f8bf1194a",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/b08.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/b08.json --keep-alive 10m"
+  },
+  {
+   "id": "t01",
+   "state": "Since 08:00 every call to /v2/orders returns 502. Our monitoring shows the faulty responses come from your gateway, and nothing changed on our side.",
+   "cue_note": "total endpoint failure, clear owner -> technical, sev 2, no escalate",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.99756,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.990458,
+    "severity": 0.996737,
+    "escalate_decisiveness": 0.909799
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00715661,
+     "technical": 0.992843,
+     "account": 1.71385e-09,
+     "policy": 4.13671e-09
+    },
+    "severity": {
+     "0": 0.000266079,
+     "1": 0.00190909,
+     "2": 0.997825
+    },
+    "escalate": {
+     "yes": 0.909799,
+     "no": 0.0902009
+    }
+   },
+   "coverage": {
+    "queue": 0.999936,
+    "severity": 0.999998,
+    "escalate": 0.999991
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.9252,
+    "questions_ms": 381.559,
+    "total_ms": 460.581
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 102,
+   "state_id": "sha256:dfa1b7924d1416dc0306d4c6c9a4c46a2158622c28f7580ffe623e4f4ca59456",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/t01.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/t01.json --keep-alive 10m"
+  },
+  {
+   "id": "t02",
+   "state": "The CSV export in the reporting view silently drops rows older than 90 days. We can export in smaller ranges as a workaround, but our quarterly close depends on the full history.",
+   "cue_note": "data bug with workaround -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.44697,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.772401,
+    "severity": 0.291784,
+    "escalate_decisiveness": 0.686383
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.170687,
+     "technical": 0.829301,
+     "account": 7.91522e-07,
+     "policy": 1.14925e-05
+    },
+    "severity": {
+     "0": 0.0125892,
+     "1": 0.527856,
+     "2": 0.459555
+    },
+    "escalate": {
+     "yes": 0.313617,
+     "no": 0.686383
+    }
+   },
+   "coverage": {
+    "queue": 0.999685,
+    "severity": 0.999998,
+    "escalate": 0.999983
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.8345,
+    "questions_ms": 358.887,
+    "total_ms": 437.976
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 101,
+   "state_id": "sha256:8adb836f7fa8b4710e230f6e9fc9f6d27ad696417a51b4117dd97a340cf8c391",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/t02.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/t02.json --keep-alive 10m"
+  },
+  {
+   "id": "t03",
+   "state": "Your webhook delivers the same event about 5 percent of the time, so our ERP ends up with duplicate entries. We run a dedupe script, but the duplicate rate is growing.",
+   "cue_note": "integration bug, workaround exists -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.98003,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.670713,
+    "severity": 0.967946,
+    "escalate_decisiveness": 0.972954
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.246963,
+     "technical": 0.753034,
+     "account": 1.2166e-06,
+     "policy": 9.39763e-07
+    },
+    "severity": {
+     "0": 0.0206697,
+     "1": 0.97863,
+     "2": 0.000699825
+    },
+    "escalate": {
+     "yes": 0.0270458,
+     "no": 0.972954
+    }
+   },
+   "coverage": {
+    "queue": 0.999685,
+    "severity": 0.999999,
+    "escalate": 0.999995
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.4324,
+    "questions_ms": 523.968,
+    "total_ms": 603.538
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 101,
+   "state_id": "sha256:82c0dd53cc0be591620312ac76e8131bc813eb8bb0b6cfc3cde1703c584f10b2",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/t03.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/t03.json --keep-alive 10m"
+  },
+  {
+   "id": "t04",
+   "state": "One of our users can see another tenant's project list after switching organisations - we have a screenshot. Our security team needs this confirmed before we let anyone use the console again.",
+   "cue_note": "cross-tenant exposure: bug (technical) + privacy escalate (T2); use blocked -> sev 2",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.99947,
+    "escalate": true
+   },
+   "correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.588318,
+    "severity": 0.999307,
+    "escalate_decisiveness": 0.999873
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00530346,
+     "technical": 0.299862,
+     "account": 0.691239,
+     "policy": 0.00359561
+    },
+    "severity": {
+     "0": 6.56371e-05,
+     "1": 0.000396685,
+     "2": 0.999538
+    },
+    "escalate": {
+     "yes": 0.999873,
+     "no": 0.00012672
+    }
+   },
+   "coverage": {
+    "queue": 0.994215,
+    "severity": 0.999997,
+    "escalate": 0.999996
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 68.3774,
+    "questions_ms": 479.556,
+    "total_ms": 559.623
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 98,
+   "state_id": "sha256:8a02cd693288d123ec9a07d39a0ad72aa2d7091cbcf7cd24e5fc4ace46f4315e",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/t04.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/t04.json --keep-alive 10m"
+  },
+  {
+   "id": "t05",
+   "state": "Your Node 20 SDK fails to install: a dependency is pinned to a version that no longer exists on npm. We cannot ship our integration until it installs.",
+   "cue_note": "blocked build, clear owner -> technical, sev 2",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.99608,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.986353,
+    "severity": 0.994306,
+    "escalate_decisiveness": 0.54869
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.010235,
+     "technical": 0.989765,
+     "account": 3.0228e-09,
+     "policy": 1.2616e-08
+    },
+    "severity": {
+     "0": 0.000121639,
+     "1": 0.00367403,
+     "2": 0.996204
+    },
+    "escalate": {
+     "yes": 0.45131,
+     "no": 0.54869
+    }
+   },
+   "coverage": {
+    "queue": 0.999934,
+    "severity": 0.999999,
+    "escalate": 0.999978
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.7104,
+    "questions_ms": 355.384,
+    "total_ms": 434.844
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 98,
+   "state_id": "sha256:01bcb8bccbe71bb1be7c31a83d13e376ea9375d88dd07768f4df7ade4aa2f939",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/t05.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/t05.json --keep-alive 10m"
+  },
+  {
+   "id": "t06",
+   "state": "Your status page showed all green for the 40 minutes our API calls were failing. We want to understand how that can happen.",
+   "cue_note": "observability defect, impact stated -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.711544,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.981057,
+    "severity": 0.275167,
+    "escalate_decisiveness": 0.973751
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0142074,
+     "technical": 0.985793,
+     "account": 3.13155e-08,
+     "policy": 3.85894e-08
+    },
+    "severity": {
+     "0": 0.385839,
+     "1": 0.516778,
+     "2": 0.0973833
+    },
+    "escalate": {
+     "yes": 0.0262494,
+     "no": 0.973751
+    }
+   },
+   "coverage": {
+    "queue": 0.999941,
+    "severity": 0.999996,
+    "escalate": 0.999996
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.1467,
+    "questions_ms": 474.92,
+    "total_ms": 553.712
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 90,
+   "state_id": "sha256:1b74de99103820e7bc23b8ffee881abd995b8488ce76d8161caffd5dd19b7d8d",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/t06.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/t06.json --keep-alive 10m"
+  },
+  {
+   "id": "t07",
+   "state": "Scheduled reports now arrive at 06:00 instead of 05:00. Our analysts start at 05:30 and cannot pull them earlier, so they idle for half an hour every morning.",
+   "cue_note": "regression, idle time (not blocking) -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.808584,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.419356,
+    "severity": 0.703521,
+    "escalate_decisiveness": 0.841698
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.325257,
+     "technical": 0.564517,
+     "account": 0.00202036,
+     "policy": 0.108206
+    },
+    "severity": {
+     "0": 0.194535,
+     "1": 0.802347,
+     "2": 0.00311846
+    },
+    "escalate": {
+     "yes": 0.158302,
+     "no": 0.841698
+    }
+   },
+   "coverage": {
+    "queue": 0.99765,
+    "severity": 0.999999,
+    "escalate": 0.999978
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.3418,
+    "questions_ms": 760.255,
+    "total_ms": 839.847
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 110,
+   "state_id": "sha256:a024ea124bb6c1addab89356939e3ddc80482dc0e44fca706c01c94de20c9f77",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/t07.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/t07.json --keep-alive 10m"
+  },
+  {
+   "id": "t08",
+   "state": "Please raise our API rate limit from 100 to 400 requests per second for the Black Friday window. We already load-tested this in staging.",
+   "cue_note": "capacity request, no impact -> sev 0",
+   "gold": {
+    "queue": "technical",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 0,
+    "severity_score": 0.335737,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.667321,
+    "severity": 0.497707,
+    "escalate_decisiveness": 0.992664
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.249455,
+     "technical": 0.75049,
+     "account": 1.20927e-05,
+     "policy": 4.27541e-05
+    },
+    "severity": {
+     "0": 0.665138,
+     "1": 0.333986,
+     "2": 0.000875448
+    },
+    "escalate": {
+     "yes": 0.00733602,
+     "no": 0.992664
+    }
+   },
+   "coverage": {
+    "queue": 0.999658,
+    "severity": 0.999996,
+    "escalate": 0.999997
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.5725,
+    "questions_ms": 669.63,
+    "total_ms": 747.705
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 97,
+   "state_id": "sha256:e8cda55c730946da721c75f70400450acc8f50a9c6d923c4cb0750297e0b2096",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/t08.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/t08.json --keep-alive 10m"
+  },
+  {
+   "id": "a01",
+   "state": "I cannot log in any more: the SSO redirect loops back to the login page. I have a customer demo in 90 minutes and my whole team is blocked out.",
+   "cue_note": "access outage -> account, sev 2, T4 (access at risk)",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.9988,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.456026,
+    "severity": 0.99848,
+    "escalate_decisiveness": 0.972949
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00506539,
+     "technical": 0.402914,
+     "account": 0.592019,
+     "policy": 1.00077e-06
+    },
+    "severity": {
+     "0": 0.000184439,
+     "1": 0.000829045,
+     "2": 0.998987
+    },
+    "escalate": {
+     "yes": 0.972949,
+     "no": 0.0270509
+    }
+   },
+   "coverage": {
+    "queue": 0.998695,
+    "severity": 0.999994,
+    "escalate": 0.999994
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 72.1242,
+    "questions_ms": 440.799,
+    "total_ms": 524.398
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 99,
+   "state_id": "sha256:0887af88cdc538ca88a62aed651206f471a909f6bd4b14052e759a99060b1e3c",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/a01.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/a01.json --keep-alive 10m"
+  },
+  {
+   "id": "a02",
+   "state": "Please add two seats for our new hires and move both of them into the Analytics role.",
+   "cue_note": "seat administration -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.0437043,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.998731,
+    "severity": 0.934463,
+    "escalate_decisiveness": 0.959325
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000546901,
+     "technical": 0.000404455,
+     "account": 0.999048,
+     "policy": 2.20701e-07
+    },
+    "severity": {
+     "0": 0.956309,
+     "1": 0.0436778,
+     "2": 1.32432e-05
+    },
+    "escalate": {
+     "yes": 0.0406755,
+     "no": 0.959324
+    }
+   },
+   "coverage": {
+    "queue": 0.999993,
+    "severity": 0.999998,
+    "escalate": 0.999996
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.6271,
+    "questions_ms": 704.848,
+    "total_ms": 782.023
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 82,
+   "state_id": "sha256:5938bcd321665d7451ea318e5cdfea4fb798b18ddc4ba8b2ad0e4b8f6f0b4b97",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/a02.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/a02.json --keep-alive 10m"
+  },
+  {
+   "id": "a03",
+   "state": "One of our users left the company on Friday. Please deactivate their access and transfer their saved reports to me.",
+   "cue_note": "offboarding request, routine -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.65702,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.988682,
+    "severity": 0.575978,
+    "escalate_decisiveness": 0.973264
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000841517,
+     "technical": 0.00764601,
+     "account": 0.991512,
+     "policy": 9.56688e-07
+    },
+    "severity": {
+     "0": 0.0603,
+     "1": 0.222381,
+     "2": 0.717319
+    },
+    "escalate": {
+     "yes": 0.973264,
+     "no": 0.0267363
+    }
+   },
+   "coverage": {
+    "queue": 0.99999,
+    "severity": 0.999997,
+    "escalate": 0.999993
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.0231,
+    "questions_ms": 666.5,
+    "total_ms": 744.534
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 86,
+   "state_id": "sha256:c3bb2d4cc2769eb4954e8eb66aff4929a385b2834c34eee91f12a3f24b7f1f32",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/a03.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/a03.json --keep-alive 10m"
+  },
+  {
+   "id": "a04",
+   "state": "Our trial ended two days early and the whole team lost access. We had agreed a two-week extension with your salesperson by email.",
+   "cue_note": "plan/access loss -> account (not billing: no charge dispute), sev 2, T4",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.64142,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.910398,
+    "severity": 0.543696,
+    "escalate_decisiveness": 0.806793
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0142399,
+     "technical": 0.0487997,
+     "account": 0.932799,
+     "policy": 0.00416165
+    },
+    "severity": {
+     "0": 0.0543777,
+     "1": 0.249825,
+     "2": 0.695797
+    },
+    "escalate": {
+     "yes": 0.806793,
+     "no": 0.193207
+    }
+   },
+   "coverage": {
+    "queue": 0.999799,
+    "severity": 0.999996,
+    "escalate": 0.999988
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 64.6907,
+    "questions_ms": 401.867,
+    "total_ms": 478.364
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 90,
+   "state_id": "sha256:442ad851ba61bb8645b4dcf6232e697b2d9bedc85da7f352b3b9da2e41734b8b",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/a04.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/a04.json --keep-alive 10m"
+  },
+  {
+   "id": "a05",
+   "state": "The owner of our workspace is a colleague who left last month. Can you transfer the admin role to me so we can manage seats ourselves?",
+   "cue_note": "admin transfer request, routine -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.0612003,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.999223,
+    "severity": 0.908224,
+    "escalate_decisiveness": 0.58957
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 9.94625e-05,
+     "technical": 0.000482864,
+     "account": 0.999417,
+     "policy": 4.64055e-07
+    },
+    "severity": {
+     "0": 0.938816,
+     "1": 0.0611671,
+     "2": 1.66285e-05
+    },
+    "escalate": {
+     "yes": 0.41043,
+     "no": 0.58957
+    }
+   },
+   "coverage": {
+    "queue": 0.999994,
+    "severity": 0.999999,
+    "escalate": 0.999984
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.0519,
+    "questions_ms": 1743.07,
+    "total_ms": 1820.88
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 91,
+   "state_id": "sha256:af545905576c6fd55837881c9d27501a69f8ee4e31794960d78eccc819fef6e6",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/a05.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/a05.json --keep-alive 10m"
+  },
+  {
+   "id": "a06",
+   "state": "You turned on mandatory two-factor authentication for all users, including our kiosk accounts that have no phone. We are locked out of 30 field devices.",
+   "cue_note": "identity policy lockout -> account, sev 2, T4",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.99855,
+    "escalate": true
+   },
+   "correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.473128,
+    "severity": 0.998098,
+    "escalate_decisiveness": 0.999667
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00763451,
+     "technical": 0.604846,
+     "account": 0.386929,
+     "policy": 0.000590459
+    },
+    "severity": {
+     "0": 0.000185354,
+     "1": 0.00108244,
+     "2": 0.998732
+    },
+    "escalate": {
+     "yes": 0.999667,
+     "no": 0.000333441
+    }
+   },
+   "coverage": {
+    "queue": 0.997676,
+    "severity": 0.999997,
+    "escalate": 0.999995
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 70.6728,
+    "questions_ms": 1903.26,
+    "total_ms": 1986.29
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 95,
+   "state_id": "sha256:2aac1cafa2409eb1b7f5d479e7567bd1c8c6b38ba41b03b75a84b66463517487",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/a06.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/a06.json --keep-alive 10m"
+  },
+  {
+   "id": "a07",
+   "state": "Can we get a separate workspace for our subsidiary, with its own billing contact and seat pool?",
+   "cue_note": "workspace provisioning -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.140723,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.907858,
+    "severity": 0.788965,
+    "escalate_decisiveness": 0.984586
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0249657,
+     "technical": 0.0439609,
+     "account": 0.930893,
+     "policy": 0.000180038
+    },
+    "severity": {
+     "0": 0.85931,
+     "1": 0.140658,
+     "2": 3.25023e-05
+    },
+    "escalate": {
+     "yes": 0.0154136,
+     "no": 0.984586
+    }
+   },
+   "coverage": {
+    "queue": 0.999867,
+    "severity": 0.999998,
+    "escalate": 0.999995
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 69.3524,
+    "questions_ms": 419.652,
+    "total_ms": 501.475
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 82,
+   "state_id": "sha256:9af740fe0309591475a6cb65436c78cda9d19945f8cfa5e615585dd4df7f12ec",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/a07.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/a07.json --keep-alive 10m"
+  },
+  {
+   "id": "p01",
+   "state": "Please delete all personal data you hold for one of our customers who exercised their right to erasure. We need written confirmation within the statutory 30 days.",
+   "cue_note": "GDPR erasure -> policy, sev 1 (regulatory deadline), T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 0.948705,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.931487,
+    "severity": 0.75832,
+    "escalate_decisiveness": 0.962792
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00760902,
+     "technical": 0.00390181,
+     "account": 0.039874,
+     "policy": 0.948615
+    },
+    "severity": {
+     "0": 0.106208,
+     "1": 0.83888,
+     "2": 0.0549125
+    },
+    "escalate": {
+     "yes": 0.962792,
+     "no": 0.0372083
+    }
+   },
+   "coverage": {
+    "queue": 0.999902,
+    "severity": 0.999998,
+    "escalate": 0.999994
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.5504,
+    "questions_ms": 606.789,
+    "total_ms": 686.214
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 95,
+   "state_id": "sha256:ecb26d1756e5c930188fcdd45243ac7288c2723b36cc24600a8e2b4d60d479ea",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/p01.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/p01.json --keep-alive 10m"
+  },
+  {
+   "id": "p02",
+   "state": "One of your marketing emails went to a purchased list that included our employee addresses. We consider this a breach of our data processing agreement and want it investigated.",
+   "cue_note": "DPA breach claim -> policy, sev 1, T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 2,
+    "severity_score": 1.95525,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.978777,
+    "severity": 0.950809,
+    "escalate_decisiveness": 0.998954
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0024633,
+     "technical": 0.0026193,
+     "account": 0.0108348,
+     "policy": 0.984083
+    },
+    "severity": {
+     "0": 0.0119604,
+     "1": 0.020834,
+     "2": 0.967206
+    },
+    "escalate": {
+     "yes": 0.998954,
+     "no": 0.00104617
+    }
+   },
+   "coverage": {
+    "queue": 0.999961,
+    "severity": 0.999999,
+    "escalate": 0.999996
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.499,
+    "questions_ms": 364.839,
+    "total_ms": 442.095
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 94,
+   "state_id": "sha256:de97a6724a07bf80044acabe2a367056efd0f5bc8d3978592dd763110240daa9",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/p02.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/p02.json --keep-alive 10m"
+  },
+  {
+   "id": "p03",
+   "state": "Your terms say the free tier is for non-commercial use. We are a two-person startup using it for our product while we prepare a purchase order. Can we stay on the free tier until then?",
+   "cue_note": "terms question, no dispute -> policy, sev 0, no escalate",
+   "gold": {
+    "queue": "policy",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": null
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 0,
+    "severity_score": 0.487635,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.950276,
+    "severity": 0.270044,
+    "escalate_decisiveness": 0.996383
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0105974,
+     "technical": 0.00087085,
+     "account": 0.0258248,
+     "policy": 0.962707
+    },
+    "severity": {
+     "0": 0.513363,
+     "1": 0.48564,
+     "2": 0.000997504
+    },
+    "escalate": {
+     "yes": 0.00361698,
+     "no": 0.996383
+    }
+   },
+   "coverage": {
+    "queue": 0.999961,
+    "severity": 0.999998,
+    "escalate": 0.999997
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 66.8156,
+    "questions_ms": 699.488,
+    "total_ms": 778.042
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 104,
+   "state_id": "sha256:cf2c670d024112727bd272ea1c7e651e85ea6fd5f65c84e09df58871fa2a600b",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/p03.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/p03.json --keep-alive 10m"
+  },
+  {
+   "id": "p04",
+   "state": "Please confirm that you are SOC 2 Type II certified and send the report under NDA for our vendor review.",
+   "cue_note": "compliance/legal document -> policy, sev 0 but T2 escalate",
+   "gold": {
+    "queue": "policy",
+    "severity": 0,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 0,
+    "severity_score": 0.865513,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.665221,
+    "severity": 0.123758,
+    "escalate_decisiveness": 0.545076
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0412701,
+     "technical": 0.0288384,
+     "account": 0.180976,
+     "policy": 0.748916
+    },
+    "severity": {
+     "0": 0.415838,
+     "1": 0.30281,
+     "2": 0.281352
+    },
+    "escalate": {
+     "yes": 0.545076,
+     "no": 0.454924
+    }
+   },
+   "coverage": {
+    "queue": 0.999793,
+    "severity": 0.999996,
+    "escalate": 0.999984
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.0492,
+    "questions_ms": 523.528,
+    "total_ms": 600.781
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 86,
+   "state_id": "sha256:2dc5fa5bd88e08a3a68b17e3724e678a44360d17e5ef5f7c5a37c4f7f8c2c432",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/p04.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/p04.json --keep-alive 10m"
+  },
+  {
+   "id": "p05",
+   "state": "Someone is scraping our public dataset through your API at 50 requests per second and ignoring our robots.txt. Our bandwidth bill tripled last week. Please rate-limit that client.",
+   "cue_note": "abuse report -> policy, sev 1 (cost), T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.63702,
+    "escalate": true
+   },
+   "correct": {
+    "queue": false,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.337307,
+    "severity": 0.490083,
+    "escalate_decisiveness": 0.973405
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.344473,
+     "technical": 0.502981,
+     "account": 0.00261886,
+     "policy": 0.149928
+    },
+    "severity": {
+     "0": 0.0230362,
+     "1": 0.316908,
+     "2": 0.660056
+    },
+    "escalate": {
+     "yes": 0.973405,
+     "no": 0.0265954
+    }
+   },
+   "coverage": {
+    "queue": 0.996617,
+    "severity": 0.999997,
+    "escalate": 0.999985
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 65.8254,
+    "questions_ms": 377.394,
+    "total_ms": 455.185
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 101,
+   "state_id": "sha256:ee0637b8ab3d2c16da8481a856108156985047b0d084c2e22604c977fa8502be",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/p05.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/p05.json --keep-alive 10m"
+  },
+  {
+   "id": "p06",
+   "state": "For our ISO 27001 renewal we need an export of our audit logs for the last 12 months and a signed data processing agreement.",
+   "cue_note": "compliance documents -> policy, sev 1 (renewal), T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 0,
+    "severity_score": 0.386428,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.993681,
+    "severity": 0.420453,
+    "escalate_decisiveness": 0.818838
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00136548,
+     "technical": 0.000418033,
+     "account": 0.00295595,
+     "policy": 0.995261
+    },
+    "severity": {
+     "0": 0.613636,
+     "1": 0.386301,
+     "2": 6.35052e-05
+    },
+    "escalate": {
+     "yes": 0.818838,
+     "no": 0.181162
+    }
+   },
+   "coverage": {
+    "queue": 0.999988,
+    "severity": 0.999998,
+    "escalate": 0.999991
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 64.6755,
+    "questions_ms": 761.629,
+    "total_ms": 837.822
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 95,
+   "state_id": "sha256:f01975ea09c65e5d52fb332d55ceb639be7a828e610f0d34b0b37b9e00ae4616",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/p06.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/p06.json --keep-alive 10m"
+  },
+  {
+   "id": "p07",
+   "state": "We found personal data of one of our users in a test call response from your public API. Under GDPR we must notify our regulator, so we need your point of contact and the scope of the exposure.",
+   "cue_note": "PII exposure + regulator -> policy, sev 2, T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 2,
+    "severity_score": 1.98333,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.768824,
+    "severity": 0.978017,
+    "escalate_decisiveness": 0.999871
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00782689,
+     "technical": 0.152411,
+     "account": 0.0131436,
+     "policy": 0.826618
+    },
+    "severity": {
+     "0": 0.00201098,
+     "1": 0.0126444,
+     "2": 0.985345
+    },
+    "escalate": {
+     "yes": 0.999871,
+     "no": 0.000128573
+    }
+   },
+   "coverage": {
+    "queue": 0.99928,
+    "severity": 0.999998,
+    "escalate": 0.999996
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 67.7379,
+    "questions_ms": 523.386,
+    "total_ms": 602.898
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 105,
+   "state_id": "sha256:35bb20ec7ce189eb5bbf643a81c4d1187bfc6c8c63f85500fcf75192e580894b",
+   "calibrated": false,
+   "command": "uv run typed-gguf run --questions /work/t977-typed-gguf/exp1/questions.json --state @/work/t977-typed-gguf/exp1/items/p07.txt --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --out /work/t977-typed-gguf/exp1/out/p07.json --keep-alive 10m"
+  }
+ ]
+}

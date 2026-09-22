@@ -1,0 +1,31 @@
+{
+  "questions": {
+    "queue": {
+      "type": "choice",
+      "instructions": "Which team must fix this? Route by the function that has to act, not by the first keyword.",
+      "criteria": {
+        "billing": "charges, invoices, refunds, payment methods",
+        "technical": "product errors, bugs, outages, broken integrations",
+        "account": "login, access, seats, plans, permissions",
+        "policy": "terms, data protection, legal, abuse reports"
+      }
+    },
+    "severity": {
+      "type": "score",
+      "instructions": "How much customer impact does the message state?",
+      "criteria": [
+        "no customer impact stated: a request, question or routine report",
+        "impact stated but not blocking: delays, extra cost, duplicated work, or a regulatory deadline",
+        "blocking or immediate: work stopped, service suspended, a deadline today or tomorrow, or an active security exposure"
+      ]
+    },
+    "escalate": {
+      "type": "noul",
+      "instructions": "Must a human agent take this ticket before an automated reply is sent?",
+      "criteria": {
+        "true": "yes: money is disputed or a failed payment blocks service; legal, privacy or account-security risk; the customer asks for a person; or the customer's access is at risk",
+        "false": "no: the queue is clear and a standard or automated reply resolves it"
+      }
+    }
+  }
+}
