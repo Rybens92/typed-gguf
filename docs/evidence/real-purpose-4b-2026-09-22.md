@@ -194,13 +194,18 @@ independence of labelling.
 cd <checkout>                                   # this commit
 export TYPED_GGUF_HOME=<writable data home>     # keep socket, states, fit cache
 export TYPED_GGUF_RUNTIME_DIR=<extracted b11026 llama.cpp bundle>   # rung 3: consume a runtime
+export REAL_PURPOSE_BASE=/tmp/real-purpose-4b   # scratch dir (states, responses, run.log)
 # purpose run (30 items, ~36 s warm; needs the 4B on disk, no network):
-bash docs/evidence/real-purpose-4b-2026-09-22/run.sh    # MODEL path is a variable at the top
-python3 docs/evidence/real-purpose-4b-2026-09-22/analyze.py
+bash docs/evidence/real-purpose-4b-2026-09-22/run.sh   # BASE/MODEL/RUNTIME are env-overridable
+REAL_PURPOSE_BASE=/tmp/real-purpose-4b python3 docs/evidence/real-purpose-4b-2026-09-22/analyze.py
 # cross-check (60 items, ~40 s):
 uv run typed-gguf bench --suite quality --model <...>/Spark-X2.5-4B-Q8_0.gguf \
   --backend vulkan --runs 1 --threads 4 --items 60 --json
 ```
+
+`run.sh` exports the 30 item states from `items.jsonl` and asks the same three questions of every
+item, so a rerun on this box is the same protocol; the committed `report.json` is the run this
+document quotes.
 
 Machine-readable evidence: `report.json` (30 items: gold, got, probabilities, confidence,
 coverage, reliability, cue verdict, timings, and the exact command per item) and
