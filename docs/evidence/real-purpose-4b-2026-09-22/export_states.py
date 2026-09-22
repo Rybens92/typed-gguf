@@ -1,15 +1,13 @@
 """Write one state file per item: <BASE>/items/<id>.txt, from <BASE>/items.jsonl.
 
-BASE resolution (same rule as run.sh): $REAL_PURPOSE_BASE, else /work/t977-typed-gguf/exp1 when
-that run directory exists, else the directory this script lives in.
+BASE resolution (same rule as run.sh): $REAL_PURPOSE_BASE, else the directory this script lives in.
 """
 import json
 import os
 import pathlib
 
 HERE = pathlib.Path(__file__).resolve().parent
-DEFAULT = pathlib.Path("/work/t977-typed-gguf/exp1")
-BASE = pathlib.Path(os.environ.get("REAL_PURPOSE_BASE") or (DEFAULT if (DEFAULT / "items.jsonl").exists() else HERE))
+BASE = pathlib.Path(os.environ.get("REAL_PURPOSE_BASE") or HERE)
 
 items = [json.loads(line) for line in (BASE / "items.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
 out = BASE / "items"
