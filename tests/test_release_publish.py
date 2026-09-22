@@ -52,9 +52,12 @@ NOTES = ROOT / "docs" / f"RELEASE_NOTES_v{VERSION}.md"
 #: the docs gate that pins the notes to the packaged version, and the sentence it asks the next
 #: bump to obey ("this file pins the v0.1.0 notes: rename it with the version")
 DOCS_GATE = ROOT / "tests" / "test_public_docs.py"
-#: credential spellings a Trusted-Publishing workflow must not carry (the file may *talk* about
-#: tokens — these are the ways one becomes a credential)
-TOKEN_SURFACE = ("secrets.", "--token", "--password", "api-token", "api_token", "UV_PUBLISH_TOKEN")
+#: credential spellings a Trusted-Publishing workflow must not carry. Patterns, not literals, on
+#: purpose: the file is *allowed* to talk about tokens and secrets in prose ("no API token lives
+#: in its GitHub secrets."), while a secret *reference* or a credential argument is a second
+#: release path to leak.
+TOKEN_SURFACE = (r"secrets\.\w", r"--token\b", r"--password\b", r"api[-_]token",
+                 r"UV_PUBLISH_TOKEN")
 
 
 def _publish() -> dict:
@@ -137,7 +140,7 @@ def test_the_upload_credential_is_oidc_only() -> None:
         "the workflow's own scope is read-only; the job asks for the one extra it needs")
     assert _job().get("permissions") == {"id-token": "write"}, (
         "Trusted Publishing is the job-level `id-token: write` exchange")
-    offenders = [needle for needle in TOKEN_SURFACE if needle in WORKFLOW_TEXT]
+    offenders = [pattern for pattern in TOKEN_SURFACE if re.search(pattern, WORKFLOW_TEXT)]
     assert offenders == [], (
         f"publish.yml names a credential ({offenders}): Trusted Publishing needs no token, and "
         "a token in the workflow is a token in the release path")
@@ -184,13 +187,14 @@ def test_this_repository_has_exactly_one_publisher() -> None:
 
 
 def test_the_version_gate_passes_when_the_artifact_matches_the_tag(tmp_path) -> None:
-    result = _run_gate(tmp_path, "refs/tags/v0.1.1", "v0.1.1")
+    result = _run_gate(tmp_path, f"refs/tags/v{VERSION}", f"v{VERSION}")
     assert result.returncode == 0, _output(result)
     assert f"built version: {VERSION}" in result.stdout, _output(result)
 
 
 def test_the_version_gate_refuses_an_artifact_that_is_not_the_tag(tmp_path) -> None:
-    result = _run_gate(tmp_path, "refs/tags/v9.9.9", "v9.9.9")
+    # a tag the packaged version can never equal (derived, so the case cannot rot at a bump)
+    result = _run_gate(tmp_path, f"refs/tags/v{VERSION}.1", f"v{VERSION}.1")
     assert result.returncode != 0, (
         "a wheel that is not the release must never reach PyPI:\n" + _output(result))
     assert "::error::" in _output(result), _output(result)
@@ -204,7 +208,7 @@ def test_the_version_gate_prints_and_continues_on_a_manual_dispatch(tmp_path) ->
 
 def test_the_version_gate_fails_closed_when_nothing_was_built(tmp_path) -> None:
     """No artifact in `dist/` is not "no mismatch" — it is a run that must stop."""
-    result = _run_gate(tmp_path, "refs/tags/v0.1.1", "v0.1.1", wheels=())
+    result = _run_gate(tmp_path, f"refs/tags/v{VERSION}", f"v{VERSION}", wheels=())
     assert result.returncode != 0, _output(result)
 
 

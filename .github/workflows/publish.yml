@@ -1,0 +1,76 @@
+name: publish
+
+# Release mechanics (card t_6027fb77): the one workflow that can put an artifact on PyPI, and it
+# does it through **Trusted Publishing** — a short-lived OIDC token exchanged for an upload
+# token. No API token lives in this repository or in its GitHub secrets.
+#
+# PyPI's trusted publisher for this project is configured with four values, and this file spells
+# them: owner `Rybens92`, repository `typed-gguf`, workflow name `publish.yml`, environment
+# `pypi`. Rename the file or the environment and PyPI refuses the upload by design.
+#
+# The trigger is the GitHub Release, not the tag push: the release is the human decision that the
+# notes and the artifacts are the ones to ship, and a tag alone publishes nothing.
+# `workflow_dispatch` is the re-run path (PyPI briefly unavailable, a release that needs the
+# artifacts re-uploaded) — it builds and prints the packaged version instead of comparing it with
+# a tag, because a dispatch runs on a branch ref.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+# read-only for the repository; the job below asks for the one extra scope the exchange needs
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    name: build and publish (Trusted Publishing)
+    runs-on: ubuntu-24.04
+    # the whole job is one build plus one upload (about a minute); a hung runner must not burn 6 h
+    timeout-minutes: 15
+    # `id-token: write` *is* the credential: the job may ask GitHub for the short-lived OIDC
+    # token `uv publish` exchanges with PyPI. Nothing else here is writable.
+    permissions:
+      id-token: write
+    environment:
+      name: pypi
+      url: https://pypi.org/project/typed-gguf/
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build the sdist and the wheel
+        run: uv build
+
+      - name: Version gate (the built artifact against the release tag)
+        run: |
+          set -euo pipefail
+          # The gate measures the artifact `uv build` just produced, not `pyproject.toml`: the file
+          # that ships is the file the tag has to name. It fails closed — a `dist/` with nothing in
+          # it stops the job instead of uploading something unnamed.
+          wheel=$(ls dist/typed_gguf-*.whl)
+          built=$(basename "$wheel" | sed -E 's/^typed_gguf-([^-]+)-.*$/\1/')
+          echo "built version: $built"
+          case "${GITHUB_REF}" in
+            refs/tags/*)
+              tag="${GITHUB_REF_NAME#v}"
+              if [ "$built" != "$tag" ]; then
+                echo "::error::built $built is not the release tag $GITHUB_REF_NAME — refusing to publish"
+                exit 1
+              fi
+              echo "version gate: $GITHUB_REF_NAME is the built $built"
+              ;;
+            *)
+              # `workflow_dispatch`: there is no tag to compare against, so the run prints what it
+              # would publish and continues (the re-run path the header describes).
+              echo "not a tag ref (${GITHUB_REF:-none}) — printing the built version and continuing"
+              ;;
+          esac
+
+      - name: Publish to PyPI (Trusted Publishing — OIDC, never a token)
+        # `uv publish` uploads the PEP 740 attestations by default and that stays on: the
+        # provenance the project page shows is the reason to publish through OIDC at all.
+        run: uv publish --trusted-publishing always
