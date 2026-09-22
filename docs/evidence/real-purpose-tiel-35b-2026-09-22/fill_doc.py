@@ -7,6 +7,7 @@ docs/evidence/real-purpose-tiel-35b-2026-09-22.md in place.
 """
 import datetime as dt
 import json
+import os
 import pathlib
 import re
 import statistics
@@ -15,7 +16,7 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 DOC = HERE.parent / "real-purpose-tiel-35b-2026-09-22.md"
 TPL = HERE / "doc_template.md"
-BASE = pathlib.Path("/work/t0d5-tiel")
+BASE = pathlib.Path(os.environ.get("REAL_PURPOSE_BASE") or "/work/t0d5-tiel")   # same resolution as report_tiel.py
 DRY = "--dry-run" in sys.argv
 
 rep = json.loads((BASE / "report_tiel.json").read_text())
@@ -72,7 +73,7 @@ lines.append(f"| `severity` (score, 3 levels, argmax) | **{s['correct']}/{s['n']
 lines.append(f"| `severity` mean absolute error | {s['mae_level']:.3f} level (score value {s['score_value_mae']:.3f}) | | {s['within_one_level']}/{n} within one level |")
 lines.append("")
 lines.append(f"- **Queue errors ({len(errs_queue)}):** " + ("; ".join(f"{r['id']} {r['gold']['queue']}→{r['got']['queue']} (conf {r['confidence']['queue']:.3f})" for r in errs_queue) if errs_queue else "none"))
-lines.append(f"- **Escalate errors ({len(errs_esc)}):** " + ("; ".join(f"{r['id']} gold {r['gold']['escalate']} (T{r['gold']['escalate_trigger'] or '-'})→{r['got']['escalate']} (p {r['probabilities']['escalate']['yes']:.3f})" for r in errs_esc) if errs_esc else "none")
+lines.append(f"- **Escalate errors ({len(errs_esc)}):** " + ("; ".join(f"{r['id']} gold {r['gold']['escalate']} (trigger {r['gold']['escalate_trigger'] or '-'})→{r['got']['escalate']} (p {r['probabilities']['escalate']['yes']:.3f})" for r in errs_esc) if errs_esc else "none")
       + f" — false negatives {len(false_neg)}, over-escalations {len(false_pos)}")
 lines.append(f"- **Severity errors ({len(errs_sev)}):** " + ("; ".join(f"{r['id']} {r['gold']['severity']}→{r['got']['severity_level']} (score {r['got']['severity_score']:.3f})" for r in errs_sev) if errs_sev else "none"))
 lines.append(f"- **Honesty flags:** " + ", ".join(f"`{k}` low_mass {v['low_mass']}/{n}, low_confidence {v['low_confidence']}/{n}, refused {v['refused']}/{n}, coverage median {v['coverage_median']:.5f} (min {v['coverage_min']:.5f})" for k, v in flags.items()))
@@ -132,17 +133,22 @@ LOADS = f"{loads}/{n} calls paid a load"
 # ---------------------------------------------------------------- §5 plain language
 plain = []
 q35, q4 = res["choice_queue"], B4
+def sgn(points: float) -> str:
+    return f"{points:+.0f}"
+
+
 plain.append(f"- On the same {n} support tickets, the big model put **{q35['correct']}/{n}** in the right team queue, "
              f"**{res['noul_escalate']['correct']}/{n}** on the right \"send to a human\" decision and "
              f"**{res['score_severity']['correct']}/{n}** on the right urgency level.")
 plain.append(f"- The small model on the same tickets was {q4['queue']}/30, {q4['escalate']}/30 and {q4['severity']}/30. "
-             f"On the tickets both models saw, the bigger one was better at *routing* (+{100 * (res['choice_queue']['accuracy'] - B4['queue'] / 30):.0f} points) "
-             f"and at *urgency* (+{100 * (res['score_severity']['accuracy'] - B4['severity'] / 30):.0f} points), but **worse at the escalation gate** "
-             f"({100 * (res['noul_escalate']['accuracy'] - B4['escalate'] / 30):+.0f} points) — it missed {len(false_neg)} tickets that the policy says a human "
+             f"On the tickets both models saw, the bigger one was better at *routing* ({sgn(100 * (res['choice_queue']['accuracy'] - B4['queue'] / 30))} points) "
+             f"and worse at *urgency* ({sgn(100 * (res['score_severity']['accuracy'] - B4['severity'] / 30))} points), but **worse at the escalation gate** "
+             f"({sgn(100 * (res['noul_escalate']['accuracy'] - B4['escalate'] / 30))} points) — it missed {len(false_neg)} tickets that the policy says a human "
              f"must take (a money dispute or a legal/privacy matter), while the small model missed none.")
-plain.append(f"- Price: on this machine the big model needed about **{med_tot:.0f} seconds per ticket** against **0.65 seconds** for the small one "
-             f"(~{med_tot / 0.645:.0f}× slower) — that is the machine, not the model: it has to re-read its own weights from disk because "
-             f"this sandbox cannot hold a 20 GB model in memory; on a machine that can, the same model was measured at about 2 seconds per question.")
+plain.append(f"- Price: measured on this desktop host (memory unconstrained, `--threads 4`, 9/40 layers on the GPU), the big model needed "
+             f"about **{med_tot:.1f} s of engine time per ticket** and **{t['wall_per_cli_call_ms']['median'] / 1000:.1f} s of CLI wall** against "
+             f"**0.65 s / 1.0 s** for the small one (~{med_tot / 0.645:.0f}× slower) — that is the cost of keeping a 20.8 GB model with only 9 of its "
+             f"40 layers on an 8 GB GPU; a machine that offloads more of it answers faster.")
 plain.append(f"- Neither model warned on any ticket in this set — a confident answer is still not a guarantee that the answer is right "
              f"(the 35B was wrong on {n - res['choice_queue']['correct']} of {n} routing calls and the small model on {30 - B4['queue']} of 30).")
 d_q = res["choice_queue"]["accuracy"] - B4["queue"] / 30
@@ -151,13 +157,13 @@ ratio = med_tot / 0.645
 if false_neg:
     verdict = (f"- **Worth it?** For routing, the bigger model is a real improvement (+{100 * d_q:.0f} points here); for the escalation gate it is a "
                f"**downgrade** — it sent {len(false_neg)} money/legal tickets past a human that the policy says must reach one, which the small model never did "
-               f"on this set. So: not as a drop-in replacement on this box — keep the 4B on the safety gate (it errs toward over-escalating), and use the 35B for "
-               f"routing/urgency only once it runs on hardware that can hold a 20 GB model (here it costs ~{ratio:.0f}× the time for a few points).")
+               f"on this set. So: not as a drop-in replacement — keep the 4B on the safety gate (it errs toward over-escalating), and use the 35B for "
+               f"routing/urgency only where its ~{ratio:.0f}× per-ticket cost is paid for by something else.")
 else:
     verdict = (f"- **Worth it?** For accuracy-critical routing, yes as a proposal engine — the bigger model is measurably better here"
                + (", and it never missed a money/legal/access ticket in this set" if not false_neg else "")
-               + f"; for volume triage on this box, no — the small model answers in under a second and is within a few points, "
-                 f"so paying ~{ratio:.0f}× the compute to gain a few points is not worth it until the 35B runs on hardware that fits it.")
+               + f"; for volume triage, no — the small model answers in about a second and is within a few points, "
+                 f"so paying ~{ratio:.0f}× the time per ticket to gain a few points only pays off if the box can offload more of the 35B's layers.")
 plain.append(verdict)
 PLAIN = "\n".join(plain)
 
@@ -177,15 +183,27 @@ if partial:
                f"same protocol needs ~1 hour per 27 items. The unlimited-memory host scope the E3c/E3e Tiel campaigns ran under "
                f"(`systemd-run --user … MemoryMax=infinity`) completes all 30 calls in minutes on the same model file and placement.")
     i += 1
+else:
+    lim.append(f"{i}. **The earlier capped-sandbox pass (n = 27 of 30) is superseded by this host run — it is kept here rather than dropped.** "
+               f"In the kanban worker sandbox (8 GiB memory cgroup, 2-CPU quota) the same protocol, model file, placement (`n_gpu_layers 9`, "
+               f"`degraded: false`) and `--threads 4` cost median 77 s of engine time and 80 s of wall clock per item — the weights could not stay in "
+               f"page cache, so every request partly re-read them from disk (`docs/BENCHMARKS.md` §7.1). That pass produced 27 exit-0 responses and "
+               f"stopped with `t06`, `t07`, `t08` unmeasured (they are in the committed revision of `report_tiel.json` as `run.missing`); its per-item "
+               f"rows agreed with this run's protocol exactly. Re-running the same driver on the operator host with no memory cap finished all 30 items "
+               f"in 3.9 min of CLI wall (median {t['wall_per_cli_call_ms']['median'] / 1000:.1f} s per item, first call 55 s including the load). "
+               f"The 27-item pass therefore measures the sandbox, not the model; the numbers in §2/§3 above are the 30-item host run.")
+    i += 1
 lim.append(f"{i}. **Item authoring** is the 4B card's: 30 synthetic messages with labels frozen before any model call; no second annotator. "
            f"The 4B arm's seams (b04, p05, the b02/t01/a03 over-escalations) apply here unchanged.")
 i += 1
 lim.append(f"{i}. **n = {n} with ±{'/'.join(str(round(100 * (w - l) / 2)) for l, w in [res['choice_queue']['wilson95']])} points of Wilson width** — "
            f"point estimates are indicative; a few items decide the deltas in §3.")
 i += 1
-lim.append(f"{i}. **Timing here is a floor, not a model verdict** (see §4): the same model/placement on an unmetered host is quoted in "
-           f"`docs/BENCHMARKS.md` §7.3/§7.5 at 1.6–7.0 s per decision and 35.6 s for 20 questions. This run's 9/40-layer placement matched "
-           f"the campaigns' (`degraded: false`), so the placement is comparable; the memory condition is not.")
+lim.append(f"{i}. **Timing is host-scope for the 30-item run** (see §4): memory unconstrained, `--threads 4`, 9/40 layers on an 8 GB GPU — "
+           f"median {med_tot:.1f} s of engine time per item, inside the band the published host-scope rows quote "
+           f"(`docs/BENCHMARKS.md` §7.3/§7.5: 1.6–7.0 s per decision, 35.6 s for 20 questions). The 9/40-layer placement matched the campaigns' "
+           f"(`degraded: false`), so the placement is comparable; the earlier 77 s/item figure belongs to the capped sandbox and is kept only as a "
+           f"memory-scope artifact.")
 i += 1
 lim.append(f"{i}. **Not verified:** the `calibrated` half of the class's claims (nothing fitted here), and any of the 4B card's survey purposes "
            f"outside triage. No engine bug surfaced, so this card adds `docs/` only.")

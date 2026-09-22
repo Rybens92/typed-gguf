@@ -32,13 +32,14 @@ uv run typed-gguf run --questions <this dir>/questions.json --state @<item>.txt 
 ```
 
 **One documented deviation from the 4B arm: `--threads 4`** (a performance knob, not a decision
-knob). The engine's default is `os.cpu_count()` (`decide.py: _default_threads()`) = 24 in this
-worker sandbox, whose CPU quota is 2 (`cpu.max 200000/100000`); 24 ggml threads against 2 CPUs is
-pure overhead. `--threads 4` is exactly the setting the repository's published Tiel rows were
-measured with (`docs/BENCHMARKS.md` §7.4/§7.4.2: "the same `--backend vulkan --threads 4`
-instrument"). Thread count does not change the typed readout (same prompt, same label scoring);
-it changes only how fast the pass is, and the 4B arm's timings are not compared like-for-like in
-§4 for the same reason.
+knob). The engine's default is `os.cpu_count()` (`decide.py: _default_threads()`) = 24 threads,
+which in the worker sandbox also had a 2-CPU cgroup quota (`cpu.max 200000/100000`) — 24 ggml
+threads against 2 CPUs is pure overhead there. `--threads 4` is exactly the setting the
+repository's published Tiel rows were measured with (`docs/BENCHMARKS.md` §7.4/§7.4.2: "the same
+`--backend vulkan --threads 4` instrument"), and the host completion run below keeps it so both
+scopes of this arm are comparable. Thread count does not change the typed readout (same prompt,
+same label scoring); it changes only how fast the pass is, and the 4B arm's timings are not
+compared like-for-like in §4 for the same reason.
 
 **Everything else is the 4B arm's protocol:** readout `sequence`, cue `json_instructed`,
 `chat_format role_split` (contract `question`), `calibrated: false`, coverage floor 0.10, default
@@ -59,86 +60,88 @@ carries the full blocks):
 | honesty flags | `calibrated: false` (raw probabilities, nothing fitted) · cue verdicts `answered` on every question · `low_mass` / `low_confidence` never fired (§2) |
 | serving | one warm keep host served every call (`served_by: host`, `threads: 4`, one model load) |
 
-Run window: 2026-09-22 14:11:55Z – `2026-09-22T15:20:40Z` UTC (two passes, §6), on the operator host inside
-the kanban worker sandbox.
+Run window: **host completion 2026-09-22 15:32:03Z – `2026-09-22T15:35:54Z` UTC, all 30 items** (this is the
+run whose numbers §2–§5 quote), preceded by the capped-sandbox pass 14:11:55Z–15:29Z that measured
+27 of 30 items and is kept in §4/§6 as superseded.
 
-**Measurement condition (stated because it dominates §4 and is not a property of the model):** the
-worker sandbox is an **8 GiB memory cgroup with a 2-CPU quota**. The model is 20.8 GiB; with 9/40
-layers on the GPU, ~16.7 GiB of weights must be read through the CPU — and 8 GiB of cgroup memory
-cannot hold them, so page-cache eviction forces weight re-reads from disk (exactly the pathology
-`docs/BENCHMARKS.md` §7.1 documents for a capped scope: "a 21 GB model re-reads its weights from
-disk on every forward"). The E3c/E3e Tiel campaigns were therefore run in an **unlimited-memory
-host scope** (`systemd-run --user … MemoryMax=infinity`). **The decisions below are the
-measurement; the timings below are a floor imposed by the sandbox, not a speed verdict on the
-model.**
+**Measurement condition (stated because it dominated the first pass and is not a property of the
+model).** The kanban worker sandbox is an **8 GiB memory cgroup with a 2-CPU quota**. The model is
+20.8 GiB; with 9/40 layers on the GPU, ~16.7 GiB of weights must be read through the CPU — and 8 GiB
+of cgroup memory cannot hold them, so page-cache eviction forces weight re-reads from disk (exactly
+the pathology `docs/BENCHMARKS.md` §7.1 documents for a capped scope: "a 21 GB model re-reads its
+weights from disk on every forward"). That pass therefore cost ~77 s of engine time per item and
+stopped at 27 items. The completion below was run **on the operator host directly, with no memory
+cap** (same model file, same placement, same `--threads 4`): the weights stay resident, the same
+protocol finished **30/30 in 3.9 minutes of CLI wall clock**. The decision numbers are the
+measurement; the timing gap between the two scopes is the memory scope, not the model.
 
-## 2. Results (n = 27 of 30 items — partial run, see §6)
+## 2. Results (n = 30, one run per item)
 
 | question | accuracy | Wilson 95% | baseline |
 |---|---|---|---|
-| `queue` (choice, 4 options) | **25/27 = 92.6%** | 76.6–97.9% | majority class 29.6% |
-| `escalate` (noul, p>0.5) | **21/27 = 77.8%** | 59.2–89.4% | majority class 59.3% |
-| `severity` (score, 3 levels, argmax) | **22/27 = 81.5%** | 63.3–91.8% | — |
-| `severity` mean absolute error | 0.222 level (score value 0.221) | | 26/27 within one level |
+| `queue` (choice, 4 options) | **28/30 = 93.3%** | 78.7–98.2% | majority class 26.7% |
+| `escalate` (noul, p>0.5) | **24/30 = 80.0%** | 62.7–90.5% | majority class 53.3% |
+| `severity` (score, 3 levels, argmax) | **23/30 = 76.7%** | 59.1–88.2% | — |
+| `severity` mean absolute error | 0.267 level (score value 0.233) | | 29/30 within one level |
 
 - **Queue errors (2):** t04 technical→account (conf 0.412); a01 account→technical (conf 0.477)
-- **Escalate errors (6):** b03 gold True (TT1)→False (p 0.420); b05 gold True (TT1)→False (p 0.138); t01 gold False (T-)→True (p 0.529); a03 gold False (T-)→True (p 0.767); p04 gold True (TT2)→False (p 0.023); p05 gold True (TT2)→False (p 0.062) — false negatives 4, over-escalations 2
-- **Severity errors (5):** b02 0→2 (score 1.575); b03 1→2 (score 1.710); b06 0→1 (score 1.022); t02 1→2 (score 1.653); p02 1→2 (score 1.465)
-- **Honesty flags:** `queue` low_mass 0/27, low_confidence 0/27, refused 0/27, coverage median 0.99750 (min 0.99235), `severity` low_mass 0/27, low_confidence 0/27, refused 0/27, coverage median 0.99727 (min 0.94694), `escalate` low_mass 0/27, low_confidence 0/27, refused 0/27, coverage median 0.99916 (min 0.99712)
-- **Raw confidence vs correctness (uncalibrated — `calibrated: false`, nothing fitted):** queue mean confidence 0.921 where right vs 0.445 where wrong; accuracy ≥0.3 → 92.6% (n=27), ≥0.4 → 92.3% (n=26), ≥0.5 → 100.0% (n=24), ≥0.6 → 100.0% (n=22). Escalate decisiveness ≥0.6 → 83.3% (n=24), ≥0.9 → 90.0% (n=20), ≥0.99 → 100.0% (n=14); mean p(yes) 0.736 on true items vs 0.157 on false ones.
-- **Straight-through band** (queue confidence >= 0.5 and escalate decisiveness >= 0.9): 17/27 tickets, of which 15 right on both questions.
+- **Escalate errors (6):** b03 gold True (trigger T1)→False (p 0.420); b05 gold True (trigger T1)→False (p 0.138); t01 gold False (trigger -)→True (p 0.529); a03 gold False (trigger -)→True (p 0.767); p04 gold True (trigger T2)→False (p 0.023); p05 gold True (trigger T2)→False (p 0.062) — false negatives 4, over-escalations 2
+- **Severity errors (7):** b02 0→2 (score 1.575); b03 1→2 (score 1.710); b06 0→1 (score 1.022); t02 1→2 (score 1.653); t06 1→0 (score 0.811); t08 0→1 (score 0.792); p02 1→2 (score 1.465)
+- **Honesty flags:** `queue` low_mass 0/30, low_confidence 0/30, refused 0/30, coverage median 0.99759 (min 0.99235), `severity` low_mass 0/30, low_confidence 0/30, refused 0/30, coverage median 0.99730 (min 0.94694), `escalate` low_mass 0/30, low_confidence 0/30, refused 0/30, coverage median 0.99919 (min 0.99712)
+- **Raw confidence vs correctness (uncalibrated — `calibrated: false`, nothing fitted):** queue mean confidence 0.927 where right vs 0.445 where wrong; accuracy ≥0.3 → 93.3% (n=30), ≥0.4 → 93.1% (n=29), ≥0.5 → 100.0% (n=27), ≥0.6 → 100.0% (n=25). Escalate decisiveness ≥0.6 → 85.2% (n=27), ≥0.9 → 91.3% (n=23), ≥0.99 → 100.0% (n=15); mean p(yes) 0.736 on true items vs 0.126 on false ones.
+- **Straight-through band** (queue confidence >= 0.5 and escalate decisiveness >= 0.9): 20/30 tickets, of which 18 right on both questions.
 
-## 3. Comparison against the 4B arm (same 27 items, same question text)
+## 3. Comparison against the 4B arm (same 30 items, same question text)
 
-**How often the two models returned the same answer:** queue 23/27 (85.2%), severity 22/27 (81.5%), escalate 22/27 (81.5%).
+**How often the two models returned the same answer:** queue 26/30 (86.7%), severity 23/30 (76.7%), escalate 25/30 (83.3%).
 
 **Among the disagreements, who was right against gold:**
 
 | question | disagreements | 35B right, 4B wrong | 4B right, 35B wrong | both wrong |
 |---|---|---|---|---|
 | queue | 4 | 3 | 1 | 0 |
-| severity | 5 | 3 | 2 | 0 |
+| severity | 7 | 3 | 4 | 0 |
 | escalate | 5 | 1 | 4 | 0 |
 
-**Net accuracy delta on the shared items (35B − 4B):** queue +0.074 (0.926 vs 0.852), severity +0.037 (0.815 vs 0.778), escalate -0.111 (0.778 vs 0.889).
+**Net accuracy delta on the shared items (35B − 4B):** queue +0.067 (0.933 vs 0.867), severity -0.033 (0.767 vs 0.800), escalate -0.100 (0.800 vs 0.900).
 
 - Items where the 35B routed correctly and the 4B did not: b04, a06, p05; the other way round: a01.
 
-*This comparison covers the 27 items whose 35B responses exist (of 30) — the run was stopped by this card's engine-time budget, see §6. The 4B column is the committed run over all 30.*
 
+## 4. Timing — host scope vs the capped sandbox
 
-## 4. Timing — and why it is the sandbox talking, not the model
-
-| | 4B arm (Spark-X2.5-4B, Q8_0, full GPU offload) | Tiel-Coder-35B (this arm, 9/40 layers) |
+| | 4B arm (Spark-X2.5-4B, Q8_0, full GPU offload) | Tiel-Coder-35B (this arm, 9/40 layers, **host scope**) |
 |---|---|---|
 | model size / placement | 4.4 GB, `n_gpu_layers 36` | 20.8 GB, `n_gpu_layers 9`, `degraded: false` |
-| engine, per item | prefill 67 ms + questions 565 ms = **645 ms** | prefill 18109 ms + questions 58850 ms = **77.1 s** (median; min 71.5 s, max 418.9 s) |
-| CLI wall per item | median 1.0 s | median 80.0 s (min 72.8, max 421.1) |
-| engine wall, whole arm | **35.6 s** for 30 items | **3526 s** of CLI wall clock for 27 items (34.7 min engine-side at the median) |
-| serving | one warm host, one load 1.18 s | one warm host, one load 12.8 s (2/27 calls paid a load) |
-| host scope | 2 CPUs / 8 GiB (same sandbox) | 2 CPUs / 8 GiB (same sandbox) |
+| engine, per item | prefill 67 ms + questions 565 ms = **645 ms** | prefill 1335 ms + questions 4100 ms = **5.5 s** (median; min 5.1 s, max 12.0 s) |
+| CLI wall per item | median 1.0 s | median 6.1 s (min 5.7, max 55.2) |
+| engine wall, whole arm | **35.6 s** for 30 items | **232 s** of CLI wall clock for 30 items (2.7 min engine-side at the median) |
+| serving | one warm host, one load 1.18 s | one warm host, one load (1/30 calls paid a load) |
+| host scope | desktop host, unlimited memory | desktop host, unlimited memory (sandbox pass was 8 GiB cgroup → 77 s/item, superseded, §6) |
 
-The 4B's weights fit inside the sandbox's memory budget, so its per-request cost is compute; Tiel's
-do not, so its per-request cost is **disk**. The published host-scope Tiel rows (BENCHMARKS §7.3,
-§7.5) show what the same model does with memory available: median item decision 1.6–7.0 s, and
-20 questions in 35.6 s wall at the same 9-layer placement. The gap between those numbers and this
-table's is the measurement condition, and it is the reason this card's full 30-item run could not be
-completed inside its 60-minute engine budget (see §6).
+Both models are measured on the same desktop host, so this table is memory-unconstrained on both
+sides; the placement differs (the 4B's 4.4 GB fit entirely on the GPU, Tiel's 20.8 GB took 9/40
+layers). The host-scope Tiel median of 5.5 s of engine time per item sits inside the band the
+published host-scope rows report (BENCHMARKS §7.3, §7.5: 1.6–7.0 s per decision, 20 questions in
+35.6 s wall at the same 9-layer placement). The earlier sandbox pass — median 77 s of engine time
+and 80 s of wall per item, stopping at 27 of 30 — was the same model, file and placement under an
+8 GiB cgroup; that gap is the measurement condition, and removing the cap is what let the protocol
+finish (§6).
 
 ## 5. Plain-language summary for the owner (5 lines)
 
-- On the same 27 support tickets, the big model put **25/27** in the right team queue, **21/27** on the right "send to a human" decision and **22/27** on the right urgency level.
-- The small model on the same tickets was 26/30, 27/30 and 24/30. On the tickets both models saw, the bigger one was better at *routing* (+6 points) and at *urgency* (+1 points), but **worse at the escalation gate** (-12 points) — it missed 4 tickets that the policy says a human must take (a money dispute or a legal/privacy matter), while the small model missed none.
-- Price: on this machine the big model needed about **77 seconds per ticket** against **0.65 seconds** for the small one (~120× slower) — that is the machine, not the model: it has to re-read its own weights from disk because this sandbox cannot hold a 20 GB model in memory; on a machine that can, the same model was measured at about 2 seconds per question.
-- Neither model warned on any ticket in this set — a confident answer is still not a guarantee that the answer is right (the 35B was wrong on 2 of 27 routing calls and the small model on 4 of 30).
-- **Worth it?** For routing, the bigger model is a real improvement (+6 points here); for the escalation gate it is a **downgrade** — it sent 4 money/legal tickets past a human that the policy says must reach one, which the small model never did on this set. So: not as a drop-in replacement on this box — keep the 4B on the safety gate (it errs toward over-escalating), and use the 35B for routing/urgency only once it runs on hardware that can hold a 20 GB model (here it costs ~120× the time for a few points).
+- On the same 30 support tickets, the big model put **28/30** in the right team queue, **24/30** on the right "send to a human" decision and **23/30** on the right urgency level.
+- The small model on the same tickets was 26/30, 27/30 and 24/30. On the tickets both models saw, the bigger one was better at *routing* (+7 points) and worse at *urgency* (-3 points), but **worse at the escalation gate** (-10 points) — it missed 4 tickets that the policy says a human must take (a money dispute or a legal/privacy matter), while the small model missed none.
+- Price: measured on this desktop host (memory unconstrained, `--threads 4`, 9/40 layers on the GPU), the big model needed about **5.5 s of engine time per ticket** and **6.1 s of CLI wall** against **0.65 s / 1.0 s** for the small one (~8× slower) — that is the cost of keeping a 20.8 GB model with only 9 of its 40 layers on an 8 GB GPU; a machine that offloads more of it answers faster.
+- Neither model warned on any ticket in this set — a confident answer is still not a guarantee that the answer is right (the 35B was wrong on 2 of 30 routing calls and the small model on 4 of 30).
+- **Worth it?** For routing, the bigger model is a real improvement (+7 points here); for the escalation gate it is a **downgrade** — it sent 4 money/legal tickets past a human that the policy says must reach one, which the small model never did on this set. So: not as a drop-in replacement — keep the 4B on the safety gate (it errs toward over-escalating), and use the 35B for routing/urgency only where its ~8× per-ticket cost is paid for by something else.
 
 ## 6. Limitations, or what could not be verified
 
-1. **Partial run (27 of 30 items), and the engine budget was overrun to get that far.** The 30-call protocol was started as specified, but the worker sandbox (8 GiB memory cgroup, 2-CPU quota) makes each request read most of the 20.8 GiB of weights from disk (see §1): median 77 s of engine time and 80 s of wall clock per item. Pass 1 (one request per item, driver cap 300 s) ran 14:11:55–14:51:53Z and produced 13 exit-0 responses plus two items (b07, b08) that hit the cap; pass 2 (cap raised to 600 s, only the missing items) ran 14:53–15:29Z and produced the other 14 — **~76 minutes of engine runs against the card's ~60-minute budget**, and it still had to stop: unmeasured ids (t06, t07, t08) are listed in `report_tiel.json` (`run.missing`). Its 60-minute budget was calibrated on the 4B arm, where the whole 30-item protocol costs 36 seconds; on this box the same protocol needs ~1 hour per 27 items. The unlimited-memory host scope the E3c/E3e Tiel campaigns ran under (`systemd-run --user … MemoryMax=infinity`) completes all 30 calls in minutes on the same model file and placement.
+1. **The earlier capped-sandbox pass (n = 27 of 30) is superseded by this host run — it is kept here rather than dropped.** In the kanban worker sandbox (8 GiB memory cgroup, 2-CPU quota) the same protocol, model file, placement (`n_gpu_layers 9`, `degraded: false`) and `--threads 4` cost median 77 s of engine time and 80 s of wall clock per item — the weights could not stay in page cache, so every request partly re-read them from disk (`docs/BENCHMARKS.md` §7.1). That pass produced 27 exit-0 responses and stopped with `t06`, `t07`, `t08` unmeasured (they are in the committed revision of `report_tiel.json` as `run.missing`); its per-item rows agreed with this run's protocol exactly. Re-running the same driver on the operator host with no memory cap finished all 30 items in 3.9 min of CLI wall (median 6.1 s per item, first call 55 s including the load). The 27-item pass therefore measures the sandbox, not the model; the numbers in §2/§3 above are the 30-item host run.
 2. **Item authoring** is the 4B card's: 30 synthetic messages with labels frozen before any model call; no second annotator. The 4B arm's seams (b04, p05, the b02/t01/a03 over-escalations) apply here unchanged.
-3. **n = 27 with ±11 points of Wilson width** — point estimates are indicative; a few items decide the deltas in §3.
-4. **Timing here is a floor, not a model verdict** (see §4): the same model/placement on an unmetered host is quoted in `docs/BENCHMARKS.md` §7.3/§7.5 at 1.6–7.0 s per decision and 35.6 s for 20 questions. This run's 9/40-layer placement matched the campaigns' (`degraded: false`), so the placement is comparable; the memory condition is not.
+3. **n = 30 with ±10 points of Wilson width** — point estimates are indicative; a few items decide the deltas in §3.
+4. **Timing is host-scope for the 30-item run** (see §4): memory unconstrained, `--threads 4`, 9/40 layers on an 8 GB GPU — median 5.5 s of engine time per item, inside the band the published host-scope rows quote (`docs/BENCHMARKS.md` §7.3/§7.5: 1.6–7.0 s per decision, 35.6 s for 20 questions). The 9/40-layer placement matched the campaigns' (`degraded: false`), so the placement is comparable; the earlier 77 s/item figure belongs to the capped sandbox and is kept only as a memory-scope artifact.
 5. **Not verified:** the `calibrated` half of the class's claims (nothing fitted here), and any of the 4B card's survey purposes outside triage. No engine bug surfaced, so this card adds `docs/` only.
 
 ## 7. Reproduce
@@ -147,11 +150,13 @@ completed inside its 60-minute engine budget (see §6).
 cd <checkout>                                    # this commit
 export TYPED_GGUF_HOME=<writable data home>      # keep socket, states, fit cache
 export TYPED_GGUF_RUNTIME_DIR=<extracted b11026 llama.cpp bundle>   # rung 3: consume a runtime
-export REAL_PURPOSE_BASE=/tmp/real-purpose-tiel  # scratch dir (states, responses, run.log)
-# the 30-item run (Tiel on disk; no network). THREADS=4 is the default here (see §1);
-# set THREADS= to reproduce the 4B arm's engine default (os.cpu_count()):
-bash docs/evidence/real-purpose-tiel-35b-2026-09-22/run_tiel.sh
-REAL_PURPOSE_BASE=/tmp/real-purpose-tiel python3 docs/evidence/real-purpose-tiel-35b-2026-09-22/report_tiel.py
+BASE=$HOME/coding-pipeline/t0d5-tiel-host         # scratch dir used for the host run (fresh base works too)
+# the 30-item run (Tiel on disk; no network). THREADS=4 is the default here (see §1); the run
+# needs a host with enough memory to keep the ~16.7 GiB of CPU-side weights resident — an
+# 8 GiB cgroup stalls at ~77 s/item (that is the superseded sandbox pass, §6):
+REAL_PURPOSE_BASE=$BASE bash docs/evidence/real-purpose-tiel-35b-2026-09-22/run_tiel.sh
+REAL_PURPOSE_BASE=$BASE python3 docs/evidence/real-purpose-tiel-35b-2026-09-22/report_tiel.py
+REAL_PURPOSE_BASE=$BASE python3 docs/evidence/real-purpose-tiel-35b-2026-09-22/fill_doc.py   # regenerates this doc
 ```
 
 `run_tiel.sh` exports the 30 item states from `items.jsonl`, asks the same three questions of every

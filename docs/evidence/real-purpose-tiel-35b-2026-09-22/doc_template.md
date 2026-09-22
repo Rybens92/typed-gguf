@@ -32,13 +32,14 @@ uv run typed-gguf run --questions <this dir>/questions.json --state @<item>.txt 
 ```
 
 **One documented deviation from the 4B arm: `--threads 4`** (a performance knob, not a decision
-knob). The engine's default is `os.cpu_count()` (`decide.py: _default_threads()`) = 24 in this
-worker sandbox, whose CPU quota is 2 (`cpu.max 200000/100000`); 24 ggml threads against 2 CPUs is
-pure overhead. `--threads 4` is exactly the setting the repository's published Tiel rows were
-measured with (`docs/BENCHMARKS.md` §7.4/§7.4.2: "the same `--backend vulkan --threads 4`
-instrument"). Thread count does not change the typed readout (same prompt, same label scoring);
-it changes only how fast the pass is, and the 4B arm's timings are not compared like-for-like in
-§4 for the same reason.
+knob). The engine's default is `os.cpu_count()` (`decide.py: _default_threads()`) = 24 threads,
+which in the worker sandbox also had a 2-CPU cgroup quota (`cpu.max 200000/100000`) — 24 ggml
+threads against 2 CPUs is pure overhead there. `--threads 4` is exactly the setting the
+repository's published Tiel rows were measured with (`docs/BENCHMARKS.md` §7.4/§7.4.2: "the same
+`--backend vulkan --threads 4` instrument"), and the host completion run below keeps it so both
+scopes of this arm are comparable. Thread count does not change the typed readout (same prompt,
+same label scoring); it changes only how fast the pass is, and the 4B arm's timings are not
+compared like-for-like in §4 for the same reason.
 
 **Everything else is the 4B arm's protocol:** readout `sequence`, cue `json_instructed`,
 `chat_format role_split` (contract `question`), `calibrated: false`, coverage floor 0.10, default
@@ -59,38 +60,42 @@ carries the full blocks):
 | honesty flags | `calibrated: false` (raw probabilities, nothing fitted) · cue verdicts `answered` on every question · `low_mass` / `low_confidence` never fired (§2) |
 | serving | one warm keep host served every call (`served_by: host`, `threads: 4`, one model load) |
 
-Run window: 2026-09-22 14:11:55Z – `@@RUNEND@@` UTC (two passes, §6), on the operator host inside
-the kanban worker sandbox.
+Run window: **host completion 2026-09-22 15:32:03Z – `@@RUNEND@@` UTC, all 30 items** (this is the
+run whose numbers §2–§5 quote), preceded by the capped-sandbox pass 14:11:55Z–15:29Z that measured
+27 of 30 items and is kept in §4/§6 as superseded.
 
-**Measurement condition (stated because it dominates §4 and is not a property of the model):** the
-worker sandbox is an **8 GiB memory cgroup with a 2-CPU quota**. The model is 20.8 GiB; with 9/40
-layers on the GPU, ~16.7 GiB of weights must be read through the CPU — and 8 GiB of cgroup memory
-cannot hold them, so page-cache eviction forces weight re-reads from disk (exactly the pathology
-`docs/BENCHMARKS.md` §7.1 documents for a capped scope: "a 21 GB model re-reads its weights from
-disk on every forward"). The E3c/E3e Tiel campaigns were therefore run in an **unlimited-memory
-host scope** (`systemd-run --user … MemoryMax=infinity`). **The decisions below are the
-measurement; the timings below are a floor imposed by the sandbox, not a speed verdict on the
-model.**
+**Measurement condition (stated because it dominated the first pass and is not a property of the
+model).** The kanban worker sandbox is an **8 GiB memory cgroup with a 2-CPU quota**. The model is
+20.8 GiB; with 9/40 layers on the GPU, ~16.7 GiB of weights must be read through the CPU — and 8 GiB
+of cgroup memory cannot hold them, so page-cache eviction forces weight re-reads from disk (exactly
+the pathology `docs/BENCHMARKS.md` §7.1 documents for a capped scope: "a 21 GB model re-reads its
+weights from disk on every forward"). That pass therefore cost ~77 s of engine time per item and
+stopped at 27 items. The completion below was run **on the operator host directly, with no memory
+cap** (same model file, same placement, same `--threads 4`): the weights stay resident, the same
+protocol finished **30/30 in 3.9 minutes of CLI wall clock**. The decision numbers are the
+measurement; the timing gap between the two scopes is the memory scope, not the model.
 
 @@NUMBERS@@
 
-## 4. Timing — and why it is the sandbox talking, not the model
+## 4. Timing — host scope vs the capped sandbox
 
-| | 4B arm (Spark-X2.5-4B, Q8_0, full GPU offload) | Tiel-Coder-35B (this arm, 9/40 layers) |
+| | 4B arm (Spark-X2.5-4B, Q8_0, full GPU offload) | Tiel-Coder-35B (this arm, 9/40 layers, **host scope**) |
 |---|---|---|
 | model size / placement | 4.4 GB, `n_gpu_layers 36` | 20.8 GB, `n_gpu_layers 9`, `degraded: false` |
 | engine, per item | prefill 67 ms + questions 565 ms = **645 ms** | @@TIMING65@@ |
 | CLI wall per item | median 1.0 s | @@TIMINGWALL@@ |
 | engine wall, whole arm | **35.6 s** for 30 items | @@TIMINGTOTAL@@ |
-| serving | one warm host, one load 1.18 s | one warm host, one load 12.8 s (@@LOADS@@) |
-| host scope | 2 CPUs / 8 GiB (same sandbox) | 2 CPUs / 8 GiB (same sandbox) |
+| serving | one warm host, one load 1.18 s | one warm host, one load (@@LOADS@@) |
+| host scope | desktop host, unlimited memory | desktop host, unlimited memory (sandbox pass was 8 GiB cgroup → 77 s/item, superseded, §6) |
 
-The 4B's weights fit inside the sandbox's memory budget, so its per-request cost is compute; Tiel's
-do not, so its per-request cost is **disk**. The published host-scope Tiel rows (BENCHMARKS §7.3,
-§7.5) show what the same model does with memory available: median item decision 1.6–7.0 s, and
-20 questions in 35.6 s wall at the same 9-layer placement. The gap between those numbers and this
-table's is the measurement condition, and it is the reason this card's full 30-item run could not be
-completed inside its 60-minute engine budget (see §6).
+Both models are measured on the same desktop host, so this table is memory-unconstrained on both
+sides; the placement differs (the 4B's 4.4 GB fit entirely on the GPU, Tiel's 20.8 GB took 9/40
+layers). The host-scope Tiel median of 5.5 s of engine time per item sits inside the band the
+published host-scope rows report (BENCHMARKS §7.3, §7.5: 1.6–7.0 s per decision, 20 questions in
+35.6 s wall at the same 9-layer placement). The earlier sandbox pass — median 77 s of engine time
+and 80 s of wall per item, stopping at 27 of 30 — was the same model, file and placement under an
+8 GiB cgroup; that gap is the measurement condition, and removing the cap is what let the protocol
+finish (§6).
 
 ## 5. Plain-language summary for the owner (5 lines)
 
@@ -106,11 +111,13 @@ completed inside its 60-minute engine budget (see §6).
 cd <checkout>                                    # this commit
 export TYPED_GGUF_HOME=<writable data home>      # keep socket, states, fit cache
 export TYPED_GGUF_RUNTIME_DIR=<extracted b11026 llama.cpp bundle>   # rung 3: consume a runtime
-export REAL_PURPOSE_BASE=/tmp/real-purpose-tiel  # scratch dir (states, responses, run.log)
-# the 30-item run (Tiel on disk; no network). THREADS=4 is the default here (see §1);
-# set THREADS= to reproduce the 4B arm's engine default (os.cpu_count()):
-bash docs/evidence/real-purpose-tiel-35b-2026-09-22/run_tiel.sh
-REAL_PURPOSE_BASE=/tmp/real-purpose-tiel python3 docs/evidence/real-purpose-tiel-35b-2026-09-22/report_tiel.py
+BASE=$HOME/coding-pipeline/t0d5-tiel-host         # scratch dir used for the host run (fresh base works too)
+# the 30-item run (Tiel on disk; no network). THREADS=4 is the default here (see §1); the run
+# needs a host with enough memory to keep the ~16.7 GiB of CPU-side weights resident — an
+# 8 GiB cgroup stalls at ~77 s/item (that is the superseded sandbox pass, §6):
+REAL_PURPOSE_BASE=$BASE bash docs/evidence/real-purpose-tiel-35b-2026-09-22/run_tiel.sh
+REAL_PURPOSE_BASE=$BASE python3 docs/evidence/real-purpose-tiel-35b-2026-09-22/report_tiel.py
+REAL_PURPOSE_BASE=$BASE python3 docs/evidence/real-purpose-tiel-35b-2026-09-22/fill_doc.py   # regenerates this doc
 ```
 
 `run_tiel.sh` exports the 30 item states from `items.jsonl`, asks the same three questions of every

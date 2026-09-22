@@ -25,18 +25,18 @@
    "n_seq_max": 8,
    "kv_type": "q4_0",
    "est_weights_bytes": 22349348864,
-   "budget_bytes": 6033506304,
+   "budget_bytes": 5930745856,
    "host_fingerprint": "a8d49ce94b68e6f8",
    "model_sha256": "9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c",
    "notes": [
     "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 21314 MiB, context 142 MiB, compute 525 MiB)",
-    "device memory bound: offloading 9/40 layers within 5754 MiB (--fit-target 1024 MiB, 6778 MiB free of 8192 MiB)"
+    "device memory bound: offloading 9/40 layers within 5656 MiB (--fit-target 1024 MiB, 6680 MiB free of 8192 MiB)"
    ],
    "warnings": [
     "W_KV_TYPE_DOWNGRADE",
     "W_FIT_DOWNGRADE"
    ],
-   "created_at": "2026-09-22T14:12:16Z"
+   "created_at": "2026-09-22T15:32:25Z"
   },
   "readout": "sequence",
   "cue": "json_instructed",
@@ -81,53 +81,53 @@
  "dataset": {
   "path": "docs/evidence/real-purpose-4b-2026-09-22/items.jsonl (byte-identical copy next to this report)",
   "items": 30,
-  "analysed": 27,
+  "analysed": 30,
   "basis": "30 synthetic support-inbox messages authored 2026-09-22; labels frozen before any model call",
   "queue_class_sizes": {
    "billing": 8,
-   "technical": 5,
+   "technical": 8,
    "account": 7,
    "policy": 7
   },
   "escalate_true": 16,
   "severity_levels": {
-   "0": 8,
-   "1": 11,
+   "0": 9,
+   "1": 13,
    "2": 8
   }
  },
  "results": {
   "choice_queue": {
-   "correct": 25,
-   "n": 27,
-   "accuracy": 0.9259,
+   "correct": 28,
+   "n": 30,
+   "accuracy": 0.9333,
    "wilson95": [
-    0.7663,
-    0.9794
+    0.7868,
+    0.9815
    ],
-   "majority_baseline": 0.2963
+   "majority_baseline": 0.2667
   },
   "noul_escalate": {
-   "correct": 21,
-   "n": 27,
-   "accuracy": 0.7778,
+   "correct": 24,
+   "n": 30,
+   "accuracy": 0.8,
    "wilson95": [
-    0.5924,
-    0.8939
+    0.6269,
+    0.9049
    ],
-   "majority_baseline": 0.5926
+   "majority_baseline": 0.5333
   },
   "score_severity": {
-   "correct": 22,
-   "n": 27,
-   "accuracy": 0.8148,
+   "correct": 23,
+   "n": 30,
+   "accuracy": 0.7667,
    "wilson95": [
-    0.633,
-    0.9182
+    0.5907,
+    0.8821
    ],
-   "mae_level": 0.2222,
-   "within_one_level": 26,
-   "score_value_mae": 0.2207
+   "mae_level": 0.2667,
+   "within_one_level": 29,
+   "score_value_mae": 0.2325
   },
   "reliability_flags": {
    "queue": {
@@ -135,7 +135,7 @@
     "low_confidence": 0,
     "other_reliability": {},
     "refused": 0,
-    "coverage_median": 0.9975,
+    "coverage_median": 0.997586,
     "coverage_min": 0.992353
    },
    "severity": {
@@ -143,7 +143,7 @@
     "low_confidence": 0,
     "other_reliability": {},
     "refused": 0,
-    "coverage_median": 0.99727,
+    "coverage_median": 0.997304,
     "coverage_min": 0.946938
    },
    "escalate": {
@@ -151,103 +151,87 @@
     "low_confidence": 0,
     "other_reliability": {},
     "refused": 0,
-    "coverage_median": 0.999155,
+    "coverage_median": 0.999188,
     "coverage_min": 0.997117
    }
   },
   "confidence_vs_correctness": {
    "calibrated": false,
    "null_note": "raw probability-scale values, no calibration fitted (calibrated: false)",
-   "queue_mean_confidence_correct": 0.9213,
+   "queue_mean_confidence_correct": 0.9266,
    "queue_mean_confidence_wrong": 0.4445,
    "queue_accuracy_at_threshold": {
     "0.3": {
-     "n": 27,
-     "accuracy": 0.9259
+     "n": 30,
+     "accuracy": 0.9333
     },
     "0.4": {
-     "n": 26,
-     "accuracy": 0.9231
+     "n": 29,
+     "accuracy": 0.931
     },
     "0.5": {
-     "n": 24,
+     "n": 27,
      "accuracy": 1.0
     },
     "0.6": {
-     "n": 22,
+     "n": 25,
      "accuracy": 1.0
     }
    },
    "escalate_accuracy_at_decisiveness": {
     "0.6": {
-     "n": 24,
-     "accuracy": 0.8333
+     "n": 27,
+     "accuracy": 0.8519
     },
     "0.9": {
-     "n": 20,
-     "accuracy": 0.9
+     "n": 23,
+     "accuracy": 0.913
     },
     "0.99": {
-     "n": 14,
+     "n": 15,
      "accuracy": 1.0
     }
    },
    "escalate_mean_p_yes_gold_true": 0.7356,
-   "escalate_mean_p_yes_gold_false": 0.1569
+   "escalate_mean_p_yes_gold_false": 0.126
   },
   "straight_through": {
    "band": "queue confidence >= 0.5 and escalate decisiveness >= 0.9",
-   "n": 17,
-   "both_correct": 15
+   "n": 20,
+   "both_correct": 18
   },
   "timing": {
-   "model_load_ms_once": 24020.35,
-   "calls_paying_a_model_load": 2,
+   "model_load_ms_once": 18782.61,
+   "calls_paying_a_model_load": 1,
    "prefill_ms": {
-    "median": 18109.1,
-    "min": 16290.3,
-    "max": 114648.0
+    "median": 1334.66,
+    "min": 1243.76,
+    "max": 6636.36
    },
    "questions_ms": {
-    "median": 58850.5,
-    "min": 53764.4,
-    "max": 304192.0
+    "median": 4099.65,
+    "min": 3818.49,
+    "max": 5318.51
    },
    "total_ms_engine": {
-    "median": 77147.2,
-    "min": 71506.7,
-    "max": 418857.0
+    "median": 5479.02,
+    "min": 5078.27,
+    "max": 11969.1
    },
    "wall_per_cli_call_ms": {
-    "median": 79965,
-    "min": 72839,
-    "max": 421117,
-    "sum_s": 3525.7
+    "median": 6088.5,
+    "min": 5675,
+    "max": 55198,
+    "sum_s": 231.5
    },
    "per_item_note": "each item is its own request (own state): one prefix prefill + one candidate batch + the label decodes; nothing is generated"
   }
  },
  "run": {
-  "run_dir": "/work/t0d5-tiel",
-  "requests_exit0": 27,
+  "run_dir": "/home/rybens/coding-pipeline/t0d5-tiel-host",
+  "requests_exit0": 30,
   "requests_total": 30,
-  "missing": [
-   {
-    "id": "t06",
-    "exit": null,
-    "file": false
-   },
-   {
-    "id": "t07",
-    "exit": null,
-    "file": false
-   },
-   {
-    "id": "t08",
-    "exit": null,
-    "file": false
-   }
-  ],
+  "missing": [],
   "run_log": "run.log next to this report (exit code + wall ms + exact command per item)"
  },
  "rows": [
@@ -311,9 +295,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 18093.0,
-    "questions_ms": 62361.2,
-    "total_ms": 80471.3
+    "prefill_ms": 1344.65,
+    "questions_ms": 3950.98,
+    "total_ms": 5308.94
    },
    "n_ctx": 256,
    "prefix_tokens": 104,
@@ -338,8 +322,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 82151,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b01.json --keep-alive 10m"
+   "wall_ms": 5905,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/b01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/b01.json --keep-alive 10m"
   },
   {
    "id": "b02",
@@ -401,9 +385,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 29353.7,
-    "questions_ms": 62310.9,
-    "total_ms": 91681.1
+    "prefill_ms": 1243.76,
+    "questions_ms": 3858.15,
+    "total_ms": 5115.34
    },
    "n_ctx": 256,
    "prefix_tokens": 86,
@@ -428,8 +412,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 93312,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b02.json --keep-alive 10m"
+   "wall_ms": 5705,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/b02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/b02.json --keep-alive 10m"
   },
   {
    "id": "b03",
@@ -491,9 +475,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 18918.2,
-    "questions_ms": 59627.8,
-    "total_ms": 78562.9
+    "prefill_ms": 1764.64,
+    "questions_ms": 3982.31,
+    "total_ms": 5760.37
    },
    "n_ctx": 256,
    "prefix_tokens": 94,
@@ -518,8 +502,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 79965,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b03.json --keep-alive 10m"
+   "wall_ms": 6334,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/b03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/b03.json --keep-alive 10m"
   },
   {
    "id": "b04",
@@ -581,9 +565,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 17864.9,
-    "questions_ms": 55639.6,
-    "total_ms": 73521.6
+    "prefill_ms": 1378.95,
+    "questions_ms": 3930.79,
+    "total_ms": 5322.85
    },
    "n_ctx": 256,
    "prefix_tokens": 104,
@@ -608,8 +592,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 74831,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b04.json --keep-alive 10m"
+   "wall_ms": 5905,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/b04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/b04.json --keep-alive 10m"
   },
   {
    "id": "b05",
@@ -671,9 +655,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 17561.6,
-    "questions_ms": 55373.3,
-    "total_ms": 72951.2
+    "prefill_ms": 1299.87,
+    "questions_ms": 4051.32,
+    "total_ms": 5364.54
    },
    "n_ctx": 256,
    "prefix_tokens": 93,
@@ -698,8 +682,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 74311,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b05.json --keep-alive 10m"
+   "wall_ms": 5949,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/b05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/b05.json --keep-alive 10m"
   },
   {
    "id": "b06",
@@ -761,9 +745,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 18578.7,
-    "questions_ms": 272283.0,
-    "total_ms": 290879.0
+    "prefill_ms": 1307.58,
+    "questions_ms": 3905.06,
+    "total_ms": 5226.06
    },
    "n_ctx": 256,
    "prefix_tokens": 95,
@@ -788,8 +772,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 292206,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b06.json --keep-alive 10m"
+   "wall_ms": 5811,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/b06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/b06.json --keep-alive 10m"
   },
   {
    "id": "b07",
@@ -850,10 +834,10 @@
     "escalate": "answered"
    },
    "timings_ms": {
-    "model_load_ms": 24020.352722998723,
-    "prefill_ms": 16290.3,
-    "questions_ms": 58589.7,
-    "total_ms": 74895.7
+    "model_load_ms": 0.0,
+    "prefill_ms": 1344.08,
+    "questions_ms": 3987.49,
+    "total_ms": 5344.87
    },
    "n_ctx": 256,
    "prefix_tokens": 96,
@@ -878,8 +862,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 126290,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b07.json --keep-alive 10m"
+   "wall_ms": 5944,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/b07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/b07.json --keep-alive 10m"
   },
   {
    "id": "b08",
@@ -941,9 +925,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 18254.2,
-    "questions_ms": 57715.4,
-    "total_ms": 75986.2
+    "prefill_ms": 1339.39,
+    "questions_ms": 4128.7,
+    "total_ms": 5482.33
    },
    "n_ctx": 256,
    "prefix_tokens": 92,
@@ -968,8 +952,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 77246,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b08.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b08.json --keep-alive 10m"
+   "wall_ms": 6095,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/b08.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/b08.json --keep-alive 10m"
   },
   {
    "id": "t01",
@@ -1031,9 +1015,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 19308.7,
-    "questions_ms": 57884.8,
-    "total_ms": 77209.8
+    "prefill_ms": 1342.63,
+    "questions_ms": 4206.95,
+    "total_ms": 5562.94
    },
    "n_ctx": 256,
    "prefix_tokens": 95,
@@ -1058,8 +1042,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 78533,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t01.json --keep-alive 10m"
+   "wall_ms": 6195,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/t01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/t01.json --keep-alive 10m"
   },
   {
    "id": "t02",
@@ -1121,9 +1105,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 17453.4,
-    "questions_ms": 54465.1,
-    "total_ms": 71935.2
+    "prefill_ms": 1474.35,
+    "questions_ms": 4344.79,
+    "total_ms": 5832.63
    },
    "n_ctx": 256,
    "prefix_tokens": 94,
@@ -1148,8 +1132,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 73355,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t02.json --keep-alive 10m"
+   "wall_ms": 6456,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/t02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/t02.json --keep-alive 10m"
   },
   {
    "id": "t03",
@@ -1211,9 +1195,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 18103.4,
-    "questions_ms": 193905.0,
-    "total_ms": 212024.0
+    "prefill_ms": 1456.14,
+    "questions_ms": 4452.9,
+    "total_ms": 5922.72
    },
    "n_ctx": 256,
    "prefix_tokens": 94,
@@ -1238,8 +1222,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 213228,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t03.json --keep-alive 10m"
+   "wall_ms": 6561,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/t03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/t03.json --keep-alive 10m"
   },
   {
    "id": "t04",
@@ -1301,9 +1285,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 114648.0,
-    "questions_ms": 304192.0,
-    "total_ms": 418857.0
+    "prefill_ms": 1449.6,
+    "questions_ms": 4284.44,
+    "total_ms": 5748.49
    },
    "n_ctx": 256,
    "prefix_tokens": 92,
@@ -1328,8 +1312,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 421117,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t04.json --keep-alive 10m"
+   "wall_ms": 6384,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/t04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/t04.json --keep-alive 10m"
   },
   {
    "id": "t05",
@@ -1391,9 +1375,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 101081.0,
-    "questions_ms": 292392.0,
-    "total_ms": 393489.0
+    "prefill_ms": 1307.29,
+    "questions_ms": 4161.97,
+    "total_ms": 5482.74
    },
    "n_ctx": 256,
    "prefix_tokens": 90,
@@ -1418,8 +1402,278 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 394689,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t05.json --keep-alive 10m"
+   "wall_ms": 6089,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/t05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/t05.json --keep-alive 10m"
+  },
+  {
+   "id": "t06",
+   "state": "Your status page showed all green for the 40 minutes our API calls were failing. We want to understand how that can happen.",
+   "cue_note": "observability defect, impact stated -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 0,
+    "severity_score": 0.81077,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.996127,
+    "severity": 0.301739,
+    "escalate_decisiveness": 0.9769126
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00240833,
+     "technical": 0.997095,
+     "account": 0.000162028,
+     "policy": 0.000334586
+    },
+    "severity": {
+     "0": 0.534492,
+     "1": 0.120247,
+     "2": 0.345261
+    },
+    "escalate": {
+     "yes": 0.0230874,
+     "no": 0.976913
+    }
+   },
+   "coverage": {
+    "queue": 0.997923,
+    "severity": 0.997926,
+    "escalate": 0.999734
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 1291.95,
+    "questions_ms": 4237.23,
+    "total_ms": 5543.01
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 84,
+   "input_tokens": 401,
+   "state_id": "sha256:2b70f71143e54fbb66f1abc5a5dfee8a52e121bfadfaefc3fe7cac0e22712007",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 6141,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/t06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/t06.json --keep-alive 10m"
+  },
+  {
+   "id": "t07",
+   "state": "Scheduled reports now arrive at 06:00 instead of 05:00. Our analysts start at 05:30 and cannot pull them earlier, so they idle for half an hour every morning.",
+   "cue_note": "regression, idle time (not blocking) -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.96525,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.970549,
+    "severity": 0.877282,
+    "escalate_decisiveness": 0.999389038
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00435107,
+     "technical": 0.977912,
+     "account": 0.00162852,
+     "policy": 0.0161089
+    },
+    "severity": {
+     "0": 0.0582817,
+     "1": 0.918188,
+     "2": 0.0235304
+    },
+    "escalate": {
+     "yes": 0.000610962,
+     "no": 0.999389
+    }
+   },
+   "coverage": {
+    "queue": 0.996019,
+    "severity": 0.999655,
+    "escalate": 0.999022
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 1332.01,
+    "questions_ms": 4003.05,
+    "total_ms": 5348.29
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 103,
+   "input_tokens": 420,
+   "state_id": "sha256:30fc1c2de46bc2f00c1ef785933334ce82418a7b6f88a5339af7b1252807d95a",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 5955,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/t07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/t07.json --keep-alive 10m"
+  },
+  {
+   "id": "t08",
+   "state": "Please raise our API rate limit from 100 to 400 requests per second for the Black Friday window. We already load-tested this in staging.",
+   "cue_note": "capacity request, no impact -> sev 0",
+   "gold": {
+    "queue": "technical",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 0.79211,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.944285,
+    "severity": 0.382533,
+    "escalate_decisiveness": 0.9859152
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0236771,
+     "technical": 0.958214,
+     "account": 0.0180565,
+     "policy": 5.28323e-05
+    },
+    "severity": {
+     "0": 0.309767,
+     "1": 0.588355,
+     "2": 0.101878
+    },
+    "escalate": {
+     "yes": 0.0140848,
+     "no": 0.985915
+    }
+   },
+   "coverage": {
+    "queue": 0.997924,
+    "severity": 0.980392,
+    "escalate": 0.999283
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 1422.19,
+    "questions_ms": 4025.74,
+    "total_ms": 5461.61
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 90,
+   "input_tokens": 407,
+   "state_id": "sha256:515d6fea9006b4c30fa6da97475915a2217e9e8bbfa25321cf433c796447aa8a",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 6088,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/t08.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/t08.json --keep-alive 10m"
   },
   {
    "id": "a01",
@@ -1480,10 +1734,10 @@
     "escalate": "answered"
    },
    "timings_ms": {
-    "model_load_ms": 12828.943506000542,
-    "prefill_ms": 18109.1,
-    "questions_ms": 56186.7,
-    "total_ms": 74314.7
+    "model_load_ms": 18782.60693899938,
+    "prefill_ms": 6636.36,
+    "questions_ms": 5318.51,
+    "total_ms": 11969.1
    },
    "n_ctx": 256,
    "prefix_tokens": 93,
@@ -1508,8 +1762,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 109724,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a01.json --keep-alive 10m"
+   "wall_ms": 55198,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/a01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/a01.json --keep-alive 10m"
   },
   {
    "id": "a02",
@@ -1571,9 +1825,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 18975.7,
-    "questions_ms": 57975.9,
-    "total_ms": 76968.0
+    "prefill_ms": 1477.43,
+    "questions_ms": 4488.67,
+    "total_ms": 5979.69
    },
    "n_ctx": 256,
    "prefix_tokens": 75,
@@ -1598,8 +1852,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 78161,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a02.json --keep-alive 10m"
+   "wall_ms": 6717,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/a02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/a02.json --keep-alive 10m"
   },
   {
    "id": "a03",
@@ -1661,9 +1915,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 17915.9,
-    "questions_ms": 115828.0,
-    "total_ms": 133762.0
+    "prefill_ms": 1389.72,
+    "questions_ms": 4309.2,
+    "total_ms": 5712.2
    },
    "n_ctx": 256,
    "prefix_tokens": 79,
@@ -1688,8 +1942,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 136012,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a03.json --keep-alive 10m"
+   "wall_ms": 6328,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/a03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/a03.json --keep-alive 10m"
   },
   {
    "id": "a04",
@@ -1751,9 +2005,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 99337.7,
-    "questions_ms": 119435.0,
-    "total_ms": 218811.0
+    "prefill_ms": 1299.15,
+    "questions_ms": 4372.21,
+    "total_ms": 5684.63
    },
    "n_ctx": 256,
    "prefix_tokens": 84,
@@ -1778,8 +2032,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 229305,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a04.json --keep-alive 10m"
+   "wall_ms": 6298,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/a04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/a04.json --keep-alive 10m"
   },
   {
    "id": "a05",
@@ -1841,9 +2095,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 19910.0,
-    "questions_ms": 61330.1,
-    "total_ms": 81257.8
+    "prefill_ms": 1317.23,
+    "questions_ms": 4145.08,
+    "total_ms": 5475.71
    },
    "n_ctx": 256,
    "prefix_tokens": 85,
@@ -1868,8 +2122,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 83086,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a05.json --keep-alive 10m"
+   "wall_ms": 6087,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/a05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/a05.json --keep-alive 10m"
   },
   {
    "id": "a06",
@@ -1931,9 +2185,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 20729.8,
-    "questions_ms": 161388.0,
-    "total_ms": 182136.0
+    "prefill_ms": 1340.39,
+    "questions_ms": 4212.3,
+    "total_ms": 5565.85
    },
    "n_ctx": 256,
    "prefix_tokens": 89,
@@ -1958,8 +2212,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 183915,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a06.json --keep-alive 10m"
+   "wall_ms": 6161,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/a06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/a06.json --keep-alive 10m"
   },
   {
    "id": "a07",
@@ -2021,9 +2275,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 17575.1,
-    "questions_ms": 59554.7,
-    "total_ms": 77147.2
+    "prefill_ms": 1337.31,
+    "questions_ms": 4189.76,
+    "total_ms": 5540.37
    },
    "n_ctx": 256,
    "prefix_tokens": 76,
@@ -2048,8 +2302,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 79384,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a07.json --keep-alive 10m"
+   "wall_ms": 6140,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/a07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/a07.json --keep-alive 10m"
   },
   {
    "id": "p01",
@@ -2111,9 +2365,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 17725.3,
-    "questions_ms": 53764.4,
-    "total_ms": 71506.7
+    "prefill_ms": 1328.68,
+    "questions_ms": 4183.52,
+    "total_ms": 5525.87
    },
    "n_ctx": 256,
    "prefix_tokens": 89,
@@ -2138,8 +2392,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 72839,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p01.json --keep-alive 10m"
+   "wall_ms": 6130,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/p01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/p01.json --keep-alive 10m"
   },
   {
    "id": "p02",
@@ -2201,9 +2455,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 17926.8,
-    "questions_ms": 58850.5,
-    "total_ms": 76793.1
+    "prefill_ms": 1251.97,
+    "questions_ms": 4070.59,
+    "total_ms": 5338.13
    },
    "n_ctx": 256,
    "prefix_tokens": 88,
@@ -2228,8 +2482,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 78080,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p02.json --keep-alive 10m"
+   "wall_ms": 5967,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/p02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/p02.json --keep-alive 10m"
   },
   {
    "id": "p03",
@@ -2291,9 +2545,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 16299.6,
-    "questions_ms": 58184.7,
-    "total_ms": 74501.4
+    "prefill_ms": 1258.67,
+    "questions_ms": 3945.16,
+    "total_ms": 5217.29
    },
    "n_ctx": 256,
    "prefix_tokens": 97,
@@ -2318,8 +2572,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 75652,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p03.json --keep-alive 10m"
+   "wall_ms": 5827,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/p03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/p03.json --keep-alive 10m"
   },
   {
    "id": "p04",
@@ -2381,9 +2635,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 18514.5,
-    "questions_ms": 69537.3,
-    "total_ms": 88067.2
+    "prefill_ms": 1284.06,
+    "questions_ms": 3962.92,
+    "total_ms": 5260.6
    },
    "n_ctx": 256,
    "prefix_tokens": 80,
@@ -2408,8 +2662,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 89316,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p04.json --keep-alive 10m"
+   "wall_ms": 5852,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/p04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/p04.json --keep-alive 10m"
   },
   {
    "id": "p05",
@@ -2471,9 +2725,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 17980.3,
-    "questions_ms": 58652.0,
-    "total_ms": 76650.0
+    "prefill_ms": 1264.96,
+    "questions_ms": 3919.66,
+    "total_ms": 5198.34
    },
    "n_ctx": 256,
    "prefix_tokens": 93,
@@ -2498,8 +2752,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 77947,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p05.json --keep-alive 10m"
+   "wall_ms": 5792,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/p05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/p05.json --keep-alive 10m"
   },
   {
    "id": "p06",
@@ -2561,9 +2815,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 17779.0,
-    "questions_ms": 54992.8,
-    "total_ms": 72788.5
+    "prefill_ms": 1246.23,
+    "questions_ms": 3818.49,
+    "total_ms": 5078.27
    },
    "n_ctx": 256,
    "prefix_tokens": 89,
@@ -2588,8 +2842,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 74043,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p06.json --keep-alive 10m"
+   "wall_ms": 5675,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/p06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/p06.json --keep-alive 10m"
   },
   {
    "id": "p07",
@@ -2651,9 +2905,9 @@
    },
    "timings_ms": {
     "model_load_ms": 0.0,
-    "prefill_ms": 19914.3,
-    "questions_ms": 55717.2,
-    "total_ms": 75647.9
+    "prefill_ms": 1253.78,
+    "questions_ms": 3979.77,
+    "total_ms": 5246.84
    },
    "n_ctx": 256,
    "prefix_tokens": 98,
@@ -2678,8 +2932,8 @@
     "W_TEMPLATE_FALLBACK"
    ],
    "exit": 0,
-   "wall_ms": 76954,
-   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p07.json --keep-alive 10m"
+   "wall_ms": 5840,
+   "command": "uv run typed-gguf run --questions /home/rybens/coding-pipeline/t0d5-tiel-host/questions.json --state @/home/rybens/coding-pipeline/t0d5-tiel-host/items/p07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /home/rybens/coding-pipeline/t0d5-tiel-host/out/p07.json --keep-alive 10m"
   }
  ]
 }
