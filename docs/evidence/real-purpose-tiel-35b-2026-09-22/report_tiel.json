@@ -1,0 +1,2685 @@
+{
+ "schema": "typed_gguf.evidence.real_purpose/v1",
+ "generated": "2026-09-22",
+ "card": "t_0d5db2ef",
+ "purpose": "support-inbox triage: queue routing (choice) + severity (score) + human-escalation gate (noul)",
+ "arm": "tiel-coder-35b-a3b",
+ "protocol_note": "same frozen items.jsonl/questions.json as the 4B arm (docs/evidence/real-purpose-4b-2026-09-22), one `typed-gguf run --questions` per item, defaults except --threads (performance knob; see engine.threads)",
+ "model": {
+  "path": "/var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf",
+  "size_bytes": 22360476736,
+  "quant": "Q4_K_XL (UD)",
+  "arch": "qwen35moe",
+  "sha256": "9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c"
+ },
+ "engine": {
+  "version": "typed-gguf 0.1.0",
+  "model_alias": "Tiel-Coder-35B-A3B-UD-Q4_K_XL",
+  "runtime": "llama.cpp b11026 (bundle linux-x64-vulkan)",
+  "backend": "vulkan",
+  "effective_backend": "vulkan",
+  "fit_n_gpu_layers": 9,
+  "fit": {
+   "arch": "qwen35moe",
+   "n_ctx": 4096,
+   "n_seq_max": 8,
+   "kv_type": "q4_0",
+   "est_weights_bytes": 22349348864,
+   "budget_bytes": 6033506304,
+   "host_fingerprint": "a8d49ce94b68e6f8",
+   "model_sha256": "9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c",
+   "notes": [
+    "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 21314 MiB, context 142 MiB, compute 525 MiB)",
+    "device memory bound: offloading 9/40 layers within 5754 MiB (--fit-target 1024 MiB, 6778 MiB free of 8192 MiB)"
+   ],
+   "warnings": [
+    "W_KV_TYPE_DOWNGRADE",
+    "W_FIT_DOWNGRADE"
+   ],
+   "created_at": "2026-09-22T14:12:16Z"
+  },
+  "readout": "sequence",
+  "cue": "json_instructed",
+  "template": {
+   "kind": "builtin",
+   "renderer": "builtin",
+   "source": "llama_chat_apply_template",
+   "family": "qwen35moe",
+   "thinking": "suppressed",
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "notes": [
+    "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+   ],
+   "explicit": false
+  },
+  "chat_format": {
+   "kind": "role_split",
+   "question_turn": "user",
+   "contract": "question",
+   "prefix_chars": 472,
+   "dropped": ""
+  },
+  "n_ctx_per_request": [
+   256
+  ],
+  "calibrated": [
+   "False"
+  ],
+  "coverage_floor": 0.1,
+  "warnings": [
+   "W_TEMPLATE_FALLBACK"
+  ],
+  "served_by": [
+   "host"
+  ],
+  "threads": [
+   4
+  ]
+ },
+ "dataset": {
+  "path": "docs/evidence/real-purpose-4b-2026-09-22/items.jsonl (byte-identical copy next to this report)",
+  "items": 30,
+  "analysed": 27,
+  "basis": "30 synthetic support-inbox messages authored 2026-09-22; labels frozen before any model call",
+  "queue_class_sizes": {
+   "billing": 8,
+   "technical": 5,
+   "account": 7,
+   "policy": 7
+  },
+  "escalate_true": 16,
+  "severity_levels": {
+   "0": 8,
+   "1": 11,
+   "2": 8
+  }
+ },
+ "results": {
+  "choice_queue": {
+   "correct": 25,
+   "n": 27,
+   "accuracy": 0.9259,
+   "wilson95": [
+    0.7663,
+    0.9794
+   ],
+   "majority_baseline": 0.2963
+  },
+  "noul_escalate": {
+   "correct": 21,
+   "n": 27,
+   "accuracy": 0.7778,
+   "wilson95": [
+    0.5924,
+    0.8939
+   ],
+   "majority_baseline": 0.5926
+  },
+  "score_severity": {
+   "correct": 22,
+   "n": 27,
+   "accuracy": 0.8148,
+   "wilson95": [
+    0.633,
+    0.9182
+   ],
+   "mae_level": 0.2222,
+   "within_one_level": 26,
+   "score_value_mae": 0.2207
+  },
+  "reliability_flags": {
+   "queue": {
+    "low_mass": 0,
+    "low_confidence": 0,
+    "other_reliability": {},
+    "refused": 0,
+    "coverage_median": 0.9975,
+    "coverage_min": 0.992353
+   },
+   "severity": {
+    "low_mass": 0,
+    "low_confidence": 0,
+    "other_reliability": {},
+    "refused": 0,
+    "coverage_median": 0.99727,
+    "coverage_min": 0.946938
+   },
+   "escalate": {
+    "low_mass": 0,
+    "low_confidence": 0,
+    "other_reliability": {},
+    "refused": 0,
+    "coverage_median": 0.999155,
+    "coverage_min": 0.997117
+   }
+  },
+  "confidence_vs_correctness": {
+   "calibrated": false,
+   "null_note": "raw probability-scale values, no calibration fitted (calibrated: false)",
+   "queue_mean_confidence_correct": 0.9213,
+   "queue_mean_confidence_wrong": 0.4445,
+   "queue_accuracy_at_threshold": {
+    "0.3": {
+     "n": 27,
+     "accuracy": 0.9259
+    },
+    "0.4": {
+     "n": 26,
+     "accuracy": 0.9231
+    },
+    "0.5": {
+     "n": 24,
+     "accuracy": 1.0
+    },
+    "0.6": {
+     "n": 22,
+     "accuracy": 1.0
+    }
+   },
+   "escalate_accuracy_at_decisiveness": {
+    "0.6": {
+     "n": 24,
+     "accuracy": 0.8333
+    },
+    "0.9": {
+     "n": 20,
+     "accuracy": 0.9
+    },
+    "0.99": {
+     "n": 14,
+     "accuracy": 1.0
+    }
+   },
+   "escalate_mean_p_yes_gold_true": 0.7356,
+   "escalate_mean_p_yes_gold_false": 0.1569
+  },
+  "straight_through": {
+   "band": "queue confidence >= 0.5 and escalate decisiveness >= 0.9",
+   "n": 17,
+   "both_correct": 15
+  },
+  "timing": {
+   "model_load_ms_once": 24020.35,
+   "calls_paying_a_model_load": 2,
+   "prefill_ms": {
+    "median": 18109.1,
+    "min": 16290.3,
+    "max": 114648.0
+   },
+   "questions_ms": {
+    "median": 58850.5,
+    "min": 53764.4,
+    "max": 304192.0
+   },
+   "total_ms_engine": {
+    "median": 77147.2,
+    "min": 71506.7,
+    "max": 418857.0
+   },
+   "wall_per_cli_call_ms": {
+    "median": 79965,
+    "min": 72839,
+    "max": 421117,
+    "sum_s": 3525.7
+   },
+   "per_item_note": "each item is its own request (own state): one prefix prefill + one candidate batch + the label decodes; nothing is generated"
+  }
+ },
+ "run": {
+  "run_dir": "/work/t0d5-tiel",
+  "requests_exit0": 27,
+  "requests_total": 30,
+  "missing": [
+   {
+    "id": "t06",
+    "exit": null,
+    "file": false
+   },
+   {
+    "id": "t07",
+    "exit": null,
+    "file": false
+   },
+   {
+    "id": "t08",
+    "exit": null,
+    "file": false
+   }
+  ],
+  "run_log": "run.log next to this report (exit code + wall ms + exact command per item)"
+ },
+ "rows": [
+  {
+   "id": "b01",
+   "state": "Our finance team was charged twice for the same annual plan: 499 USD on the 3rd and again on the 5th of this month. We need the duplicate charge refunded and a corrected receipt for our books.",
+   "cue_note": "money disputed -> billing + T1 escalate",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.00836,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.999969,
+    "severity": 0.930676,
+    "escalate_decisiveness": 0.997402
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.999976,
+     "technical": 1.35232e-06,
+     "account": 1.72659e-05,
+     "policy": 4.96534e-06
+    },
+    "severity": {
+     "0": 0.0189304,
+     "1": 0.953784,
+     "2": 0.0272859
+    },
+    "escalate": {
+     "yes": 0.997402,
+     "no": 0.00259801
+    }
+   },
+   "coverage": {
+    "queue": 0.997671,
+    "severity": 0.998559,
+    "escalate": 0.998965
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 18093.0,
+    "questions_ms": 62361.2,
+    "total_ms": 80471.3
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 104,
+   "input_tokens": 421,
+   "state_id": "sha256:a213bbff8ba6b0941ca430d4bb0c3c467d419a274e99abad52687b89eabce875",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 82151,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b01.json --keep-alive 10m"
+  },
+  {
+   "id": "b02",
+   "state": "We need to update the credit card on file before the renewal on Monday. Where in the console do I change the payment method for our account?",
+   "cue_note": "payment-method request, no impact -> billing, sev 0",
+   "gold": {
+    "queue": "billing",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.57488,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.999995,
+    "severity": 0.401366,
+    "escalate_decisiveness": 0.99478266
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.999996,
+     "technical": 1.77676e-07,
+     "account": 3.04896e-06,
+     "policy": 3.25358e-07
+    },
+    "severity": {
+     "0": 0.026029,
+     "1": 0.37306,
+     "2": 0.600911
+    },
+    "escalate": {
+     "yes": 0.00521734,
+     "no": 0.994783
+    }
+   },
+   "coverage": {
+    "queue": 0.999052,
+    "severity": 0.99727,
+    "escalate": 0.999346
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 29353.7,
+    "questions_ms": 62310.9,
+    "total_ms": 91681.1
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 86,
+   "input_tokens": 403,
+   "state_id": "sha256:bd24e9c7780d6abf1b2e9fe6b08da7863f85d08ab30ce03eec612d256e1f2fc5",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 93312,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b02.json --keep-alive 10m"
+  },
+  {
+   "id": "b03",
+   "state": "Your August invoice lists 40 seats but our workspace only has 32 users. Procurement cannot pay an invoice with the wrong seat count, so please send a corrected invoice.",
+   "cue_note": "billing dispute (payment blocked) -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.71029,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.952205,
+    "severity": 0.573543,
+    "escalate_decisiveness": 0.579799
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.964154,
+     "technical": 0.00103836,
+     "account": 0.034384,
+     "policy": 0.000423726
+    },
+    "severity": {
+     "0": 0.00540692,
+     "1": 0.278898,
+     "2": 0.715695
+    },
+    "escalate": {
+     "yes": 0.420201,
+     "no": 0.579799
+    }
+   },
+   "coverage": {
+    "queue": 0.993745,
+    "severity": 0.998632,
+    "escalate": 0.99963
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 18918.2,
+    "questions_ms": 59627.8,
+    "total_ms": 78562.9
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 94,
+   "input_tokens": 411,
+   "state_id": "sha256:9542959c5ddda699197e2f9bf2b15db7df8e3dd5068c14b0daa6f7f5f8c6d1a6",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 79965,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b03.json --keep-alive 10m"
+  },
+  {
+   "id": "b04",
+   "state": "The quote we signed in July says 2,400 USD for the Enterprise tier, but the contract you sent yesterday says 3,100 USD. Our legal team needs this reconciled before we sign on Thursday.",
+   "cue_note": "pricing discrepancy -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.36331,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.995584,
+    "severity": 0.419085,
+    "escalate_decisiveness": 0.992647
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.996688,
+     "technical": 4.09211e-05,
+     "account": 0.0021135,
+     "policy": 0.00115789
+    },
+    "severity": {
+     "0": 0.0119813,
+     "1": 0.612724,
+     "2": 0.375295
+    },
+    "escalate": {
+     "yes": 0.992647,
+     "no": 0.0073528
+    }
+   },
+   "coverage": {
+    "queue": 0.995325,
+    "severity": 0.996168,
+    "escalate": 0.997851
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 17864.9,
+    "questions_ms": 55639.6,
+    "total_ms": 73521.6
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 104,
+   "input_tokens": 421,
+   "state_id": "sha256:b104ed012f16fbda99b73eff16e2824e3fa6338148104efc3f429f56ea4ec602",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 74831,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b04.json --keep-alive 10m"
+  },
+  {
+   "id": "b05",
+   "state": "A refund we approved on the 12th has not reached our customer's card yet. They have written to us twice and we have run out of things to tell them.",
+   "cue_note": "money movement stalled -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.01613,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.999947,
+    "severity": 0.865812,
+    "escalate_decisiveness": 0.861746
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.99996,
+     "technical": 7.79681e-06,
+     "account": 2.52681e-05,
+     "policy": 6.85773e-06
+    },
+    "severity": {
+     "0": 0.0366624,
+     "1": 0.910542,
+     "2": 0.052796
+    },
+    "escalate": {
+     "yes": 0.138254,
+     "no": 0.861746
+    }
+   },
+   "coverage": {
+    "queue": 0.997747,
+    "severity": 0.999048,
+    "escalate": 0.999826
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 17561.6,
+    "questions_ms": 55373.3,
+    "total_ms": 72951.2
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 93,
+   "input_tokens": 410,
+   "state_id": "sha256:b58e84f60084202d0e678d91677ddd141d2637564281aab6a2f31119cef032fb",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 74311,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b05.json --keep-alive 10m"
+  },
+  {
+   "id": "b06",
+   "state": "Could you send a VAT-compliant invoice for September with our tax ID (PL5252345627) on it? Accounting needs it before their quarter closes.",
+   "cue_note": "invoice document request, no impact -> sev 0",
+   "gold": {
+    "queue": "billing",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.02181,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.999995,
+    "severity": 0.934158,
+    "escalate_decisiveness": 0.999891682
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.999996,
+     "technical": 3.50528e-07,
+     "account": 2.32178e-06,
+     "policy": 9.46821e-07
+    },
+    "severity": {
+     "0": 0.0110446,
+     "1": 0.956105,
+     "2": 0.03285
+    },
+    "escalate": {
+     "yes": 0.000108318,
+     "no": 0.999892
+    }
+   },
+   "coverage": {
+    "queue": 0.999158,
+    "severity": 0.999371,
+    "escalate": 0.999107
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 18578.7,
+    "questions_ms": 272283.0,
+    "total_ms": 290879.0
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 95,
+   "input_tokens": 412,
+   "state_id": "sha256:23ab12148deb76d61ab2327dbd7c8da71e753f3c0add8385b3dbf6efd3ad84b6",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 292206,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b06.json --keep-alive 10m"
+  },
+  {
+   "id": "b07",
+   "state": "We upgraded to the Team plan on the 18th and the prorated charge looks wrong: we were billed as if the upgrade happened on the 1st. Please check the calculation.",
+   "cue_note": "charge dispute -> billing + T1",
+   "gold": {
+    "queue": "billing",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 1,
+    "severity_score": 1.00371,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.985605,
+    "severity": 0.988809,
+    "escalate_decisiveness": 0.91549
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.989204,
+     "technical": 0.00380686,
+     "account": 0.00351278,
+     "policy": 0.0034764
+    },
+    "severity": {
+     "0": 0.00187721,
+     "1": 0.992539,
+     "2": 0.00558372
+    },
+    "escalate": {
+     "yes": 0.91549,
+     "no": 0.08451
+    }
+   },
+   "coverage": {
+    "queue": 0.9948,
+    "severity": 0.99883,
+    "escalate": 0.999695
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 24020.352722998723,
+    "prefill_ms": 16290.3,
+    "questions_ms": 58589.7,
+    "total_ms": 74895.7
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 96,
+   "input_tokens": 413,
+   "state_id": "sha256:05841880ae1eef9d3b13d336e5d43fbc8b0900343253996b9cde548871c55ef2",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 126290,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b07.json --keep-alive 10m"
+  },
+  {
+   "id": "b08",
+   "state": "Our card expired over the weekend, the renewal payment failed, and we have a suspension notice for Friday. We are mid-migration and need the workspace for two more weeks.",
+   "cue_note": "failed payment + suspension -> billing, sev 2, T1/T4",
+   "gold": {
+    "queue": "billing",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T1"
+   },
+   "got": {
+    "queue": "billing",
+    "severity_level": 2,
+    "severity_score": 1.99316,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.879939,
+    "severity": 0.990884,
+    "escalate_decisiveness": 0.995292
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.909954,
+     "technical": 0.000406051,
+     "account": 0.0895264,
+     "policy": 0.000113465
+    },
+    "severity": {
+     "0": 0.000766648,
+     "1": 0.0053108,
+     "2": 0.993923
+    },
+    "escalate": {
+     "yes": 0.995292,
+     "no": 0.00470833
+    }
+   },
+   "coverage": {
+    "queue": 0.9981,
+    "severity": 0.946938,
+    "escalate": 0.997117
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 18254.2,
+    "questions_ms": 57715.4,
+    "total_ms": 75986.2
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 92,
+   "input_tokens": 409,
+   "state_id": "sha256:53cd4932b85e309e459d3b8aed0cb06210cc768048548b75a9cb3892c86c0308",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 77246,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/b08.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/b08.json --keep-alive 10m"
+  },
+  {
+   "id": "t01",
+   "state": "Since 08:00 every call to /v2/orders returns 502. Our monitoring shows the faulty responses come from your gateway, and nothing changed on our side.",
+   "cue_note": "total endpoint failure, clear owner -> technical, sev 2, no escalate",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.99869,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.999972,
+    "severity": 0.998589,
+    "escalate_decisiveness": 0.528789
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 4.80024e-06,
+     "technical": 0.999979,
+     "account": 2.59826e-06,
+     "policy": 1.3647e-05
+    },
+    "severity": {
+     "0": 0.000369111,
+     "1": 0.00057153,
+     "2": 0.999059
+    },
+    "escalate": {
+     "yes": 0.528789,
+     "no": 0.471211
+    }
+   },
+   "coverage": {
+    "queue": 0.997093,
+    "severity": 0.994136,
+    "escalate": 0.999726
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 19308.7,
+    "questions_ms": 57884.8,
+    "total_ms": 77209.8
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 95,
+   "input_tokens": 412,
+   "state_id": "sha256:158f14bb5f3a7cf32cfd63964d14bbd88453a4b0819cbbf4c8807194cbf47c27",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 78533,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t01.json --keep-alive 10m"
+  },
+  {
+   "id": "t02",
+   "state": "The CSV export in the reporting view silently drops rows older than 90 days. We can export in smaller ranges as a workaround, but our quarterly close depends on the full history.",
+   "cue_note": "data bug with workaround -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.65273,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.99977,
+    "severity": 0.484571,
+    "escalate_decisiveness": 0.999020582
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00013937,
+     "technical": 0.999827,
+     "account": 1.1206e-05,
+     "policy": 2.21352e-05
+    },
+    "severity": {
+     "0": 0.0036534,
+     "1": 0.339966,
+     "2": 0.65638
+    },
+    "escalate": {
+     "yes": 0.000979418,
+     "no": 0.999021
+    }
+   },
+   "coverage": {
+    "queue": 0.997127,
+    "severity": 0.991361,
+    "escalate": 0.999244
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 17453.4,
+    "questions_ms": 54465.1,
+    "total_ms": 71935.2
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 94,
+   "input_tokens": 411,
+   "state_id": "sha256:dc4f82baf66c6d373d89234f6966a9e8325036e740c08bd5f103e609f5588763",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 73355,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t02.json --keep-alive 10m"
+  },
+  {
+   "id": "t03",
+   "state": "Your webhook delivers the same event about 5 percent of the time, so our ERP ends up with duplicate entries. We run a dedupe script, but the duplicate rate is growing.",
+   "cue_note": "integration bug, workaround exists -> technical, sev 1",
+   "gold": {
+    "queue": "technical",
+    "severity": 1,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 1,
+    "severity_score": 1.02525,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.999936,
+    "severity": 0.95194,
+    "escalate_decisiveness": 0.999753116
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 2.80473e-05,
+     "technical": 0.999952,
+     "account": 9.41966e-06,
+     "policy": 1.02847e-05
+    },
+    "severity": {
+     "0": 0.00339357,
+     "1": 0.96796,
+     "2": 0.0286462
+    },
+    "escalate": {
+     "yes": 0.000246884,
+     "no": 0.999753
+    }
+   },
+   "coverage": {
+    "queue": 0.998025,
+    "severity": 0.997447,
+    "escalate": 0.997909
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 18103.4,
+    "questions_ms": 193905.0,
+    "total_ms": 212024.0
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 94,
+   "input_tokens": 411,
+   "state_id": "sha256:c61aa42ccf1467535635b48e1537ffd20f82dadda8f7051fc82e5dd6ccfd05e5",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 213228,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t03.json --keep-alive 10m"
+  },
+  {
+   "id": "t04",
+   "state": "One of our users can see another tenant's project list after switching organisations - we have a screenshot. Our security team needs this confirmed before we let anyone use the console again.",
+   "cue_note": "cross-tenant exposure: bug (technical) + privacy escalate (T2); use blocked -> sev 2",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.99693,
+    "escalate": true
+   },
+   "correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.41157,
+    "severity": 0.996585,
+    "escalate_decisiveness": 0.99853
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00019865,
+     "technical": 0.416625,
+     "account": 0.558677,
+     "policy": 0.0244988
+    },
+    "severity": {
+     "0": 0.00078889,
+     "1": 0.00148788,
+     "2": 0.997723
+    },
+    "escalate": {
+     "yes": 0.99853,
+     "no": 0.00147045
+    }
+   },
+   "coverage": {
+    "queue": 0.992886,
+    "severity": 0.985731,
+    "escalate": 0.998164
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 114648.0,
+    "questions_ms": 304192.0,
+    "total_ms": 418857.0
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 92,
+   "input_tokens": 409,
+   "state_id": "sha256:4453dc20ce6f82ab1987df0a0a60b74f968e3dbe0bfa8c5a905558b03d7efc78",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 421117,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t04.json --keep-alive 10m"
+  },
+  {
+   "id": "t05",
+   "state": "Your Node 20 SDK fails to install: a dependency is pinned to a version that no longer exists on npm. We cannot ship our integration until it installs.",
+   "cue_note": "blocked build, clear owner -> technical, sev 2",
+   "gold": {
+    "queue": "technical",
+    "severity": 2,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.99146,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.999988,
+    "severity": 0.991446,
+    "escalate_decisiveness": 0.99696065
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 4.73053e-06,
+     "technical": 0.999991,
+     "account": 1.14739e-06,
+     "policy": 2.79101e-06
+    },
+    "severity": {
+     "0": 0.00284057,
+     "1": 0.00286238,
+     "2": 0.994297
+    },
+    "escalate": {
+     "yes": 0.00303935,
+     "no": 0.996961
+    }
+   },
+   "coverage": {
+    "queue": 0.998368,
+    "severity": 0.982044,
+    "escalate": 0.999131
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 101081.0,
+    "questions_ms": 292392.0,
+    "total_ms": 393489.0
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 90,
+   "input_tokens": 407,
+   "state_id": "sha256:d7a56ef8f5bc16d13ec1b66ad6b1cb29558138699e8c0871e55c859ff3408e4e",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 394689,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/t05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/t05.json --keep-alive 10m"
+  },
+  {
+   "id": "a01",
+   "state": "I cannot log in any more: the SSO redirect loops back to the login page. I have a customer demo in 90 minutes and my whole team is blocked out.",
+   "cue_note": "access outage -> account, sev 2, T4 (access at risk)",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "got": {
+    "queue": "technical",
+    "severity_level": 2,
+    "severity_score": 1.9978,
+    "escalate": true
+   },
+   "correct": {
+    "queue": false,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.477406,
+    "severity": 0.997803,
+    "escalate_decisiveness": 0.918583
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000108657,
+     "technical": 0.608054,
+     "account": 0.391835,
+     "policy": 2.34967e-06
+    },
+    "severity": {
+     "0": 0.000737143,
+     "1": 0.000727637,
+     "2": 0.998535
+    },
+    "escalate": {
+     "yes": 0.918583,
+     "no": 0.0814169
+    }
+   },
+   "coverage": {
+    "queue": 0.998091,
+    "severity": 0.990997,
+    "escalate": 0.999155
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 12828.943506000542,
+    "prefill_ms": 18109.1,
+    "questions_ms": 56186.7,
+    "total_ms": 74314.7
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 93,
+   "input_tokens": 410,
+   "state_id": "sha256:71546bd98f25a83daa4db90cd98323f3635a9104e2c6e5a1df94281e07d0fe5a",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 109724,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a01.json --keep-alive 10m"
+  },
+  {
+   "id": "a02",
+   "state": "Please add two seats for our new hires and move both of them into the Analytics role.",
+   "cue_note": "seat administration -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.00797,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.999552,
+    "severity": 0.990359,
+    "escalate_decisiveness": 0.99020171
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000322223,
+     "technical": 5.8026e-06,
+     "account": 0.999664,
+     "policy": 8.1787e-06
+    },
+    "severity": {
+     "0": 0.993573,
+     "1": 0.00487915,
+     "2": 0.00154785
+    },
+    "escalate": {
+     "yes": 0.00979829,
+     "no": 0.990202
+    }
+   },
+   "coverage": {
+    "queue": 0.99727,
+    "severity": 0.99764,
+    "escalate": 0.99922
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 18975.7,
+    "questions_ms": 57975.9,
+    "total_ms": 76968.0
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 75,
+   "input_tokens": 392,
+   "state_id": "sha256:b971fd0573466e232d9be0990a1f9c8ff134e77350de526ebe4f486124310e0e",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 78161,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a02.json --keep-alive 10m"
+  },
+  {
+   "id": "a03",
+   "state": "One of our users left the company on Friday. Please deactivate their access and transfer their saved reports to me.",
+   "cue_note": "offboarding request, routine -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.02354,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.999949,
+    "severity": 0.973272,
+    "escalate_decisiveness": 0.767373
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 2.38046e-05,
+     "technical": 9.08094e-06,
+     "account": 0.999961,
+     "policy": 5.63443e-06
+    },
+    "severity": {
+     "0": 0.982182,
+     "1": 0.0120992,
+     "2": 0.00571924
+    },
+    "escalate": {
+     "yes": 0.767373,
+     "no": 0.232627
+    }
+   },
+   "coverage": {
+    "queue": 0.997252,
+    "severity": 0.998486,
+    "escalate": 0.999725
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 17915.9,
+    "questions_ms": 115828.0,
+    "total_ms": 133762.0
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 79,
+   "input_tokens": 396,
+   "state_id": "sha256:622488db0af05574ee2db70c740cbc2adbec86091aaa448f68ca679a64659b65",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 136012,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a03.json --keep-alive 10m"
+  },
+  {
+   "id": "a04",
+   "state": "Our trial ended two days early and the whole team lost access. We had agreed a two-week extension with your salesperson by email.",
+   "cue_note": "plan/access loss -> account (not billing: no charge dispute), sev 2, T4",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.98606,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.961293,
+    "severity": 0.983314,
+    "escalate_decisiveness": 0.964885
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.020552,
+     "technical": 0.00841097,
+     "account": 0.97097,
+     "policy": 6.72765e-05
+    },
+    "severity": {
+     "0": 0.00281273,
+     "1": 0.00831124,
+     "2": 0.988876
+    },
+    "escalate": {
+     "yes": 0.964885,
+     "no": 0.0351151
+    }
+   },
+   "coverage": {
+    "queue": 0.998814,
+    "severity": 0.978487,
+    "escalate": 0.998912
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 99337.7,
+    "questions_ms": 119435.0,
+    "total_ms": 218811.0
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 84,
+   "input_tokens": 401,
+   "state_id": "sha256:d717edef4b7d26cff8d7e68322b6108245dc7823ef4bb46e1763c4c3297b3ab5",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 229305,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a04.json --keep-alive 10m"
+  },
+  {
+   "id": "a05",
+   "state": "The owner of our workspace is a colleague who left last month. Can you transfer the admin role to me so we can manage seats ourselves?",
+   "cue_note": "admin transfer request, routine -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.14989,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.99907,
+    "severity": 0.784568,
+    "escalate_decisiveness": 0.595955
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000666119,
+     "technical": 1.27818e-05,
+     "account": 0.999303,
+     "policy": 1.85504e-05
+    },
+    "severity": {
+     "0": 0.856379,
+     "1": 0.137357,
+     "2": 0.00626468
+    },
+    "escalate": {
+     "yes": 0.404045,
+     "no": 0.595955
+    }
+   },
+   "coverage": {
+    "queue": 0.9975,
+    "severity": 0.999045,
+    "escalate": 0.999728
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 19910.0,
+    "questions_ms": 61330.1,
+    "total_ms": 81257.8
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 85,
+   "input_tokens": 402,
+   "state_id": "sha256:7b3d8a86f78f91db020d8fafc549f79f2988389695baccb5d754499b1d4df12e",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 83086,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a05.json --keep-alive 10m"
+  },
+  {
+   "id": "a06",
+   "state": "You turned on mandatory two-factor authentication for all users, including our kiosk accounts that have no phone. We are locked out of 30 field devices.",
+   "cue_note": "identity policy lockout -> account, sev 2, T4",
+   "gold": {
+    "queue": "account",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T4"
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 2,
+    "severity_score": 1.99177,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.977589,
+    "severity": 0.992398,
+    "escalate_decisiveness": 0.981744
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000540408,
+     "technical": 0.0159914,
+     "account": 0.983192,
+     "policy": 0.000276462
+    },
+    "severity": {
+     "0": 0.00315721,
+     "1": 0.00191071,
+     "2": 0.994932
+    },
+    "escalate": {
+     "yes": 0.981744,
+     "no": 0.0182562
+    }
+   },
+   "coverage": {
+    "queue": 0.998634,
+    "severity": 0.990298,
+    "escalate": 0.997405
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 20729.8,
+    "questions_ms": 161388.0,
+    "total_ms": 182136.0
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 89,
+   "input_tokens": 406,
+   "state_id": "sha256:4496d0146db93c0c2ba5a8d99eed19d50e35f4fc3512d27be22bec2fd1806d48",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 183915,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a06.json --keep-alive 10m"
+  },
+  {
+   "id": "a07",
+   "state": "Can we get a separate workspace for our subsidiary, with its own billing contact and seat pool?",
+   "cue_note": "workspace provisioning -> account, sev 0",
+   "gold": {
+    "queue": "account",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "account",
+    "severity_level": 0,
+    "severity_score": 0.00648,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.582072,
+    "severity": 0.991858,
+    "escalate_decisiveness": 0.999669405
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.309469,
+     "technical": 0.00180585,
+     "account": 0.686554,
+     "policy": 0.00217073
+    },
+    "severity": {
+     "0": 0.994572,
+     "1": 0.00437837,
+     "2": 0.00104994
+    },
+    "escalate": {
+     "yes": 0.000330595,
+     "no": 0.999669
+    }
+   },
+   "coverage": {
+    "queue": 0.997235,
+    "severity": 0.998207,
+    "escalate": 0.998221
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 17575.1,
+    "questions_ms": 59554.7,
+    "total_ms": 77147.2
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 76,
+   "input_tokens": 393,
+   "state_id": "sha256:a9db6b651ba7b52298b7f3dba62791f53d06a30b8fc33b23cbc385ad29b34984",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 79384,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/a07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/a07.json --keep-alive 10m"
+  },
+  {
+   "id": "p01",
+   "state": "Please delete all personal data you hold for one of our customers who exercised their right to erasure. We need written confirmation within the statutory 30 days.",
+   "cue_note": "GDPR erasure -> policy, sev 1 (regulatory deadline), T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.14214,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.999626,
+    "severity": 0.733842,
+    "escalate_decisiveness": 0.650088
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000108446,
+     "technical": 1.07209e-05,
+     "account": 0.000161155,
+     "policy": 0.99972
+    },
+    "severity": {
+     "0": 0.0176469,
+     "1": 0.822562,
+     "2": 0.159791
+    },
+    "escalate": {
+     "yes": 0.650088,
+     "no": 0.349912
+    }
+   },
+   "coverage": {
+    "queue": 0.992353,
+    "severity": 0.994778,
+    "escalate": 0.999781
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 17725.3,
+    "questions_ms": 53764.4,
+    "total_ms": 71506.7
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 89,
+   "input_tokens": 406,
+   "state_id": "sha256:6451b444ada32ebf12c35b46a0e88e02ea78125c5ac8909353f8622ffedca661",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 72839,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p01.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p01.json --keep-alive 10m"
+  },
+  {
+   "id": "p02",
+   "state": "One of your marketing emails went to a purchased list that included our employee addresses. We consider this a breach of our data processing agreement and want it investigated.",
+   "cue_note": "DPA breach claim -> policy, sev 1, T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 2,
+    "severity_score": 1.4651,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": false,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.998984,
+    "severity": 0.263421,
+    "escalate_decisiveness": 0.992555
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000736949,
+     "technical": 7.03686e-06,
+     "account": 1.77309e-05,
+     "policy": 0.999238
+    },
+    "severity": {
+     "0": 0.0438481,
+     "1": 0.447205,
+     "2": 0.508947
+    },
+    "escalate": {
+     "yes": 0.992555,
+     "no": 0.00744531
+    }
+   },
+   "coverage": {
+    "queue": 0.998568,
+    "severity": 0.98707,
+    "escalate": 0.997631
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 17926.8,
+    "questions_ms": 58850.5,
+    "total_ms": 76793.1
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 88,
+   "input_tokens": 405,
+   "state_id": "sha256:e3469ce539a0e01b94b738807df9a57680390f57ae59c55c118e844e75bfcdcf",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 78080,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p02.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p02.json --keep-alive 10m"
+  },
+  {
+   "id": "p03",
+   "state": "Your terms say the free tier is for non-commercial use. We are a two-person startup using it for our product while we prepare a purchase order. Can we stay on the free tier until then?",
+   "cue_note": "terms question, no dispute -> policy, sev 0, no escalate",
+   "gold": {
+    "queue": "policy",
+    "severity": 0,
+    "escalate": false,
+    "escalate_trigger": ""
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 0,
+    "severity_score": 0.19212,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.359419,
+    "severity": 0.725181,
+    "escalate_decisiveness": 0.99436335
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0829159,
+     "technical": 4.15339e-06,
+     "account": 0.397516,
+     "policy": 0.519564
+    },
+    "severity": {
+     "0": 0.816787,
+     "1": 0.174301,
+     "2": 0.00891163
+    },
+    "escalate": {
+     "yes": 0.00563665,
+     "no": 0.994363
+    }
+   },
+   "coverage": {
+    "queue": 0.998656,
+    "severity": 0.998802,
+    "escalate": 0.998856
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 16299.6,
+    "questions_ms": 58184.7,
+    "total_ms": 74501.4
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 97,
+   "input_tokens": 414,
+   "state_id": "sha256:d50234dda39c929a6bb23cd10d23d383280f67574b664272df2d6a971d65e4d0",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 75652,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p03.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p03.json --keep-alive 10m"
+  },
+  {
+   "id": "p04",
+   "state": "Please confirm that you are SOC 2 Type II certified and send the report under NDA for our vendor review.",
+   "cue_note": "compliance/legal document -> policy, sev 0 but T2 escalate",
+   "gold": {
+    "queue": "policy",
+    "severity": 0,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 0,
+    "severity_score": 0.06324,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.997339,
+    "severity": 0.925148,
+    "escalate_decisiveness": 0.9773339
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.000262083,
+     "technical": 0.000331277,
+     "account": 0.0014027,
+     "policy": 0.998004
+    },
+    "severity": {
+     "0": 0.950098,
+     "1": 0.0365667,
+     "2": 0.0133348
+    },
+    "escalate": {
+     "yes": 0.0226661,
+     "no": 0.977334
+    }
+   },
+   "coverage": {
+    "queue": 0.996731,
+    "severity": 0.997337,
+    "escalate": 0.999541
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 18514.5,
+    "questions_ms": 69537.3,
+    "total_ms": 88067.2
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 80,
+   "input_tokens": 397,
+   "state_id": "sha256:397c8bee03d6ee7c522cd97421f772a34310a40e1cf1892c56f4ba6ed6454d5f",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 89316,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p04.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p04.json --keep-alive 10m"
+  },
+  {
+   "id": "p05",
+   "state": "Someone is scraping our public dataset through your API at 50 requests per second and ignoring our robots.txt. Our bandwidth bill tripled last week. Please rate-limit that client.",
+   "cue_note": "abuse report -> policy, sev 1 (cost), T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 1.34057,
+    "escalate": false
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": false
+   },
+   "confidence": {
+    "queue": 0.578535,
+    "severity": 0.486306,
+    "escalate_decisiveness": 0.9376576
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0102206,
+     "technical": 0.301048,
+     "account": 0.00483044,
+     "policy": 0.683901
+    },
+    "severity": {
+     "0": 0.000945124,
+     "1": 0.657537,
+     "2": 0.341517
+    },
+    "escalate": {
+     "yes": 0.0623424,
+     "no": 0.937658
+    }
+   },
+   "coverage": {
+    "queue": 0.995546,
+    "severity": 0.994869,
+    "escalate": 0.999681
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 17980.3,
+    "questions_ms": 58652.0,
+    "total_ms": 76650.0
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 93,
+   "input_tokens": 410,
+   "state_id": "sha256:5b3841b09ca20ad8dc8574c43d1c1933c7fc3a7811a6aafbf98f71a7735eab0d",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 77947,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p05.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p05.json --keep-alive 10m"
+  },
+  {
+   "id": "p06",
+   "state": "For our ISO 27001 renewal we need an export of our audit logs for the last 12 months and a signed data processing agreement.",
+   "cue_note": "compliance documents -> policy, sev 1 (renewal), T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 1,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 1,
+    "severity_score": 0.96666,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.935087,
+    "severity": 0.887492,
+    "escalate_decisiveness": 0.719967
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.0364733,
+     "technical": 0.00237494,
+     "account": 0.00983677,
+     "policy": 0.951315
+    },
+    "severity": {
+     "0": 0.0541736,
+     "1": 0.924995,
+     "2": 0.0208318
+    },
+    "escalate": {
+     "yes": 0.719967,
+     "no": 0.280033
+    }
+   },
+   "coverage": {
+    "queue": 0.997853,
+    "severity": 0.99884,
+    "escalate": 0.999692
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 17779.0,
+    "questions_ms": 54992.8,
+    "total_ms": 72788.5
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 89,
+   "input_tokens": 406,
+   "state_id": "sha256:150f17545b59ca850c87324402668b04f0d7682b57576f055678c9fd6efa4630",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 74043,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p06.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p06.json --keep-alive 10m"
+  },
+  {
+   "id": "p07",
+   "state": "We found personal data of one of our users in a test call response from your public API. Under GDPR we must notify our regulator, so we need your point of contact and the scope of the exposure.",
+   "cue_note": "PII exposure + regulator -> policy, sev 2, T2",
+   "gold": {
+    "queue": "policy",
+    "severity": 2,
+    "escalate": true,
+    "escalate_trigger": "T2"
+   },
+   "got": {
+    "queue": "policy",
+    "severity_level": 2,
+    "severity_score": 1.88585,
+    "escalate": true
+   },
+   "correct": {
+    "queue": true,
+    "severity": true,
+    "escalate": true
+   },
+   "confidence": {
+    "queue": 0.831381,
+    "severity": 0.852703,
+    "escalate_decisiveness": 0.999278
+   },
+   "probabilities": {
+    "queue": {
+     "billing": 0.00117986,
+     "technical": 0.123976,
+     "account": 0.00130889,
+     "policy": 0.873536
+    },
+    "severity": {
+     "0": 0.0159493,
+     "1": 0.082249,
+     "2": 0.901802
+    },
+    "escalate": {
+     "yes": 0.999278,
+     "no": 0.000721617
+    }
+   },
+   "coverage": {
+    "queue": 0.996104,
+    "severity": 0.994453,
+    "escalate": 0.997974
+   },
+   "reliability": {
+    "queue": "ok",
+    "severity": "ok",
+    "escalate": "ok"
+   },
+   "cue_verdict": {
+    "queue": "answered",
+    "severity": "answered",
+    "escalate": "answered"
+   },
+   "timings_ms": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 19914.3,
+    "questions_ms": 55717.2,
+    "total_ms": 75647.9
+   },
+   "n_ctx": 256,
+   "prefix_tokens": 98,
+   "input_tokens": 415,
+   "state_id": "sha256:1f63c4ca357bbc29419495e9bb5ecc53647bbcf344c32df3e58910316f43d25f",
+   "template": {
+    "kind": "builtin",
+    "renderer": "builtin",
+    "source": "llama_chat_apply_template",
+    "family": "qwen35moe",
+    "thinking": "suppressed",
+    "warnings": [
+     "W_TEMPLATE_FALLBACK"
+    ],
+    "notes": [
+     "the internal renderer rejected this template; the runtime's built-in family table rendered it"
+    ],
+    "explicit": false
+   },
+   "calibrated": false,
+   "warnings": [
+    "W_TEMPLATE_FALLBACK"
+   ],
+   "exit": 0,
+   "wall_ms": 76954,
+   "command": "uv run typed-gguf run --questions /work/t0d5-tiel/questions.json --state @/work/t0d5-tiel/items/p07.txt --model /var/home/rybens/.hermes/models/Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf --threads 4 --out /work/t0d5-tiel/out/p07.json --keep-alive 10m"
+  }
+ ]
+}
