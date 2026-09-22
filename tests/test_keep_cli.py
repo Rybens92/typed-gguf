@@ -46,10 +46,11 @@ def _model_file(tmp_path: pathlib.Path) -> pathlib.Path:
 # ------------------------------------------------------------------ the surface
 def test_keep_is_a_command_with_status_and_stop(capsys) -> None:
     assert "keep" in cli.COMMANDS
-    assert cli.MILESTONES["keep"] == "E4"
     code = cli.main(["keep", "--help"])
     out = capsys.readouterr().out
-    assert code == 0 and "usage: typed-gguf keep" in out and "milestone: E4" in out
+    assert code == 0 and "usage: typed-gguf keep" in out
+    # a shipped command: its own page says what it does, and never wears the "planned" note
+    assert cli.COMMAND_DESCRIPTIONS["keep"] in out and cli.PLANNED_NOTE not in out
     assert "status" in out and "stop" in out
     # an unknown subcommand is the user's typo, not a silent no-op
     code = cli.main(["keep", "warm"])

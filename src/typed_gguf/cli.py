@@ -1,8 +1,9 @@
 """Command-line surface (SPEC 2.8). Milestone: E1a (init/doctor/models), E1b (run/ask).
 
 Implemented in E1a: `init`, `doctor`, `models {search,pull,use,ls,rm,verify,recommend-quant}`,
-`version`. The remaining commands keep the frozen names from SPEC 2.8 and exit 3 with a
-milestone pointer instead of pretending to work.
+`version`. The commands SPEC 2.8 freezes but v0.1.0 does not ship (`serve`, `mcp`) exit 3 with a
+plain "planned" message: no milestone and no SPEC pointer reaches a user (card `t_bf6bb78a`,
+gated by `tests/test_cli_language.py`).
 
 Exit codes (SPEC 2.5): 0 ok, 2 user error, 3 runtime/model error, 4 internal.
 `doctor` additionally uses 2 for "works, but warnings" and 1 for "broken" (A-E1a-3).
@@ -39,13 +40,41 @@ MODELS_SUBCOMMANDS = ("search", "pull", "use", "ls", "rm", "verify", "recommend-
 #: `typed-gguf keep <sub>` (SPEC 2.12). `_host` is the client's own spawn target — reachable,
 #: deliberately not advertised (`test_keep_cli.py` pins that).
 KEEP_SUBCOMMANDS = ("status", "stop")
-# command -> milestone that implements it (SPEC 5)
-MILESTONES = {"version": "E0", "init": "E1a", "doctor": "E1a", "models": "E1a",
-              "run": "E1b", "ask": "E1b", "fit": "E1c", "serve": "E1b", "mcp": "E1b",
-              "bench": "E2", "calibrate": "E2.5", "keep": "E4"}
-#: commands that are *specified*, not shipped in v0.1.0 (SPEC 2.9). The root help names them in the
-#: README's own words: release review F1 (card `t_a25bd190`) — "(implemented in E1b)" was the one
-#: public surface where the tool contradicted its own documentation.
+#: Command -> the one plain line the root help and that command's own `--help` print. Product
+#: language only: no milestone, no milestone code, no "(implemented in …)" note — the jargon is
+#: what card `t_bf6bb78a` took off every surface a user can reach (`tests/test_cli_language.py`
+#: is the gate that keeps it off).
+COMMAND_DESCRIPTIONS: dict[str, str] = {
+    "version": "show versions and paths",
+    "init": "install the pinned llama.cpp runtime",
+    "doctor": "check the runtime and model registry",
+    "models": "search, pull and manage GGUF models",
+    "run": "answer a batch of questions from a file",
+    "ask": "answer one question from the command line",
+    "serve": "planned; not in this version",
+    "mcp": "planned; not in this version",
+    "bench": "measure latency, throughput and quality",
+    "fit": "plan what this machine can hold",
+    "calibrate": "measure the confidence calibration",
+    "keep": "control the warm engine host",
+}
+#: One plain line per `models` subcommand for `typed-gguf models <sub> --help`. The root help names
+#: the subcommands only; these are what a reader of a subcommand's own page gets.
+MODELS_SUBCOMMAND_DESCRIPTIONS: dict[str, str] = {
+    "search": "search Hugging Face for GGUF repos",
+    "pull": "download a model into the registry",
+    "use": "set the default model",
+    "ls": "list the models in the registry",
+    "rm": "remove a model from the registry",
+    "verify": "check the registered files against their checksums",
+    "recommend-quant": "recommend a quantization for this machine",
+}
+#: The one note the two commands that are specified but not shipped get — in the root help and on
+#: their own `--help` page. They still exit 3; this is the honest form of the old milestone line.
+PLANNED_NOTE = "planned; not in this version"
+#: commands that are *specified*, not shipped in v0.1.0 (SPEC 2.9). The root help says so in plain
+#: words: release review F1 (card `t_a25bd190`) — "(implemented in E1b)" was the one public surface
+#: where the tool contradicted its own documentation.
 NOT_IMPLEMENTED = ("serve", "mcp")
 DOCTOR_SCHEMA = "typed_gguf.doctor/v1"
 MODELS_SCHEMA = "typed_gguf.models/v1"
@@ -114,9 +143,9 @@ COMMAND_NOTES: dict[str, tuple[str, ...]] = {
 
 
 def _command_usage(command: str) -> str:
-    lines = [f"usage: typed-gguf {command} " + (" ".join(COMMAND_HELP.get(command, ()) ) or ""),
+    lines = [f"usage: typed-gguf {command} " + (" ".join(COMMAND_HELP.get(command, ())) or ""),
              "",
-             f"milestone: {MILESTONES.get(command, 'E1')}"]
+             COMMAND_DESCRIPTIONS[command]]
     lines.extend(COMMAND_NOTES.get(command, ()))
     lines.append("run `typed-gguf --help` for the command list")
     return "\n".join(lines)
@@ -126,11 +155,8 @@ def _command_usage(command: str) -> str:
 def _usage() -> str:
     lines = [f"typed-gguf {__version__}", "usage: typed-gguf <command> [options]", "", "commands:"]
     for cmd in COMMANDS:
-        if cmd in NOT_IMPLEMENTED:
-            note = "specified in SPEC §2.9, not implemented in v0.1.0; exits 3"
-        else:
-            note = f"implemented in {MILESTONES.get(cmd, 'E1')}"
-        lines.append(f"  {cmd:12s} ({note})")
+        description = PLANNED_NOTE if cmd in NOT_IMPLEMENTED else COMMAND_DESCRIPTIONS[cmd]
+        lines.append(f"  {cmd:12s} - {description}")
     lines.append("")
     lines.append("models: " + ", ".join(MODELS_SUBCOMMANDS))
     return "\n".join(lines)
@@ -1893,6 +1919,9 @@ def main(argv: list[str] | None = None) -> int:
                           if flag.startswith(wanted)), wanted)
             flags = entry.removeprefix(wanted).strip()
             print(f"usage: typed-gguf models {wanted}" + (f" {flags}" if flags else ""))
+            print()
+            print(MODELS_SUBCOMMAND_DESCRIPTIONS[wanted])
+            print("run `typed-gguf --help` for the command list")
             return 0
         print(_command_usage(cmd))
         return 0
@@ -1925,8 +1954,8 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as exc:  # noqa: BLE001 - never show a traceback for an ordinary run
         print(f"error: E_INTERNAL: {exc.__class__.__name__}: {exc}", file=sys.stderr)
         return 4
-    print(f"'{cmd}' is not implemented yet (milestone {MILESTONES.get(cmd, 'E1')}); "
-          f"see SPEC.md 5", file=sys.stderr)
+    print(f"'{cmd}' is not available in this version (planned); "
+          f"run `typed-gguf --help` for the commands that are", file=sys.stderr)
     return 3
 
 

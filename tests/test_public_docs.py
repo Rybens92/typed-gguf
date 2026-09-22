@@ -117,20 +117,22 @@ def test_the_readme_keeps_the_deduplicated_shape() -> None:
 def test_the_root_help_marks_the_serving_surface_the_way_the_readme_does(
         capsys: pytest.CaptureFixture[str]) -> None:
     """Release review F1: the root help called `serve`/`mcp` *"implemented in E1b"* while the README
-    and SPEC §2.9 say they are specified, not shipped. The one public surface that contradicted the
-    honesty claim is pinned here, in the README's own words."""
+    and SPEC §2.9 say they are specified, not shipped. Card `t_bf6bb78a` then took the milestone
+    jargon off the whole surface, so the honesty claim is pinned in the README's own plain words —
+    and, because the tool no longer talks about milestones at all, in the product's own description
+    of each command (the pattern gate over every page is `tests/test_cli_language.py`)."""
     assert cli.main(["--help"]) == 0
     out = capsys.readouterr().out
     lines = {line.split()[0]: line for line in out.splitlines()
              if line.startswith("  ") and line.strip()}
     for command in ("serve", "mcp"):
         line = lines[command]
-        assert line.endswith(
-            "(specified in SPEC §2.9, not implemented in v0.1.0; exits 3)"), line
-    # …and a shipped command keeps its own milestone: the note is built from MILESTONES, so losing
-    # that lookup prints "(None)"/"XX…XX" here. (Mutation sweep, card t_a25bd190: these exact tails
-    # are what kills the padding mutants on the two branches this pass rewrote.)
-    assert lines["run"].endswith("(implemented in E1b)"), lines["run"]
+        assert line.endswith("planned; not in this version"), line
+    # …and a shipped command keeps its own description: the note is built from
+    # COMMAND_DESCRIPTIONS, so losing that lookup prints "None"/"XX…XX" here. (Mutation sweep, card
+    # t_a25bd190: these exact tails are what kills the padding mutants on the two branches this
+    # pass rewrote; the tail is spelled out rather than read from the constant on purpose.)
+    assert lines["run"].endswith("- answer a batch of questions from a file"), lines["run"]
     # …and the claim is the commands' own behaviour, not a wish: both stubs exit 3
     assert cli.main(["serve"]) == 3 and cli.main(["mcp"]) == 3
 

@@ -22,7 +22,7 @@ def test_every_command_has_a_help_page(command: str, capsys: pytest.CaptureFixtu
     assert cli.main([command, "--help"]) == 0
     out = capsys.readouterr().out
     assert f"typed-gguf {command}" in out
-    assert f"milestone: {cli.MILESTONES[command]}" in out
+    assert cli.COMMAND_DESCRIPTIONS[command] in out
 
 
 @pytest.mark.parametrize("command", ["run", "ask", "fit"])
