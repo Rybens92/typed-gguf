@@ -1,8 +1,13 @@
 # typed-gguf
 
-typed-gguf is a GGUF-native typed decision engine. You give it a `state` plus typed questions, and
-it gives back typed answers with full probability distributions and confidence, computed locally
-on frozen GGUF models. Nothing is generated.
+typed-gguf is a local alternative to Jev. You give it a `state` plus typed questions, and it gives
+back typed answers with full probability distributions and confidence, computed locally on frozen
+GGUF models. It can drive any GGUF model llama.cpp supports — not just one vendor's — and the
+core is stdlib-only: nothing is generated, nothing is fine-tuned, no compiler is ever invoked.
+
+The command line is the whole interface, and it works the same for a person at a terminal and for
+an AI agent driving it from a script: one stable, scriptable tool whose answers are JSON, and a
+whole request can come from a file instead of from flags.
 
 It is inspired by the System-One-style typed-decision interface (Jev). The project has no
 affiliation with it and makes no parity claim.
@@ -29,8 +34,8 @@ gaming laptops have, so the defaults work on first use for most people.
 
 ## Quickstart
 
-v0.1.0 is on PyPI and needs nothing but Python 3.11+. The core is stdlib-only and no compiler is
-ever invoked:
+This release is on PyPI and needs nothing but Python 3.11+. The core is stdlib-only and no compiler
+is ever invoked:
 
 ```bash
 uvx typed-gguf version          # run it without installing anything
@@ -334,7 +339,7 @@ have their own platform handling but are not exercised by that job.
 | `typed-gguf calibrate [--dry-run]` | fits the per-(model, question-type) temperature/scale on the committed dev set and keeps it only if a held-out split improves |
 | `typed-gguf keep status [--json]` / `stop [--json]` | the warm host: one resident model per data home, answering `run`/`ask` over a 0600 unix socket and unloading itself after `--keep-alive` |
 | `typed-gguf version [--json]` | versions, the pinned runtime tag, the installed runtime and the data home |
-| `typed-gguf serve` / `typed-gguf mcp` | the HTTP (`/health`, `/v1/models`, `/v1/decide`, `/v1/systemone`) and MCP (`typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`, `typed_gguf_fit`) surfaces are planned and not implemented in v0.1.0: both commands exit 3 today |
+| `typed-gguf serve` / `typed-gguf mcp` | the HTTP (`/health`, `/v1/models`, `/v1/decide`, `/v1/systemone`) and MCP (`typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`, `typed_gguf_fit`) surfaces are planned and not implemented in this release: both commands exit 3 today |
 
 `python -m typed_gguf <command>` is the same CLI. Exit codes: `0` ok, `2` user error, `3`
 runtime/model error, `4` internal (`doctor` adds `2` for "works, with warnings" and `1` for
@@ -374,10 +379,10 @@ this box (`docs/TEMPLATES.md` §5).
   the settings it was measured with, and `docs/BENCHMARKS.md` marks those tables rather than
   mixing them with current ones. Measured under the current defaults: the 4B quality table (§2.3),
   the Tiel table (§7.4.2) and the Occamy pair.
-- `serve`/`mcp` are specified, not shipped, so the CLI is the only interface in v0.1.0.
+- `serve`/`mcp` are specified, not shipped, so the CLI is the only interface today.
 - Exotic-platform wheels are future work. The pinned prebuilt llama.cpp bundle is the primary
-  distribution and the only automated install path in v0.1.0: on a platform with no official asset,
-  this release has nothing to install automatically. On such a host, point `TYPED_GGUF_RUNTIME_DIR`
+  distribution and the only automated install path: on a platform with no official asset, this
+  release has nothing to install automatically. On such a host, point `TYPED_GGUF_RUNTIME_DIR`
   at a runtime you built yourself and `typed-gguf doctor` probes it.
 - Thinking suppression happens in the prompt. For the families with a real switch it is verified on
   the rendered bytes; for `k2-horizon` the `/no_think` marker is only advisory, because that

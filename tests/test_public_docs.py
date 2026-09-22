@@ -101,7 +101,9 @@ def test_the_release_notes_keep_the_license_and_not_shipped_statements() -> None
 
 def test_the_readme_marks_the_serving_surface_as_not_shipped() -> None:
     interfaces = README.split("## Interfaces", 1)[1].split("\n## ", 1)[0]
-    assert "not implemented in v0.1.0" in interfaces
+    # card `t_c0080933` took the current-scope version numbers out of the README (the row says
+    # "this release" now), so the pinned literal moves with the wording it quotes.
+    assert "not implemented in this release" in interfaces
     # …and the claim is the CLI's own behaviour, not a wish: both commands are stubs by design
     assert cli.main(["serve"]) == 3 and cli.main(["mcp"]) == 3
 
