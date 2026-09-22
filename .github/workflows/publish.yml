@@ -49,10 +49,16 @@ jobs:
         run: |
           set -euo pipefail
           # The gate measures the artifact `uv build` just produced, not `pyproject.toml`: the file
-          # that ships is the file the tag has to name. It fails closed — a `dist/` with nothing in
-          # it stops the job instead of uploading something unnamed.
-          wheel=$(ls dist/typed_gguf-*.whl)
-          built=$(basename "$wheel" | sed -E 's/^typed_gguf-([^-]+)-.*$/\1/')
+          # that ships is the file the tag has to name. It fails closed — an empty `dist/` stops the
+          # job instead of uploading something unnamed, and a stale wheel beside the fresh one stops
+          # it too instead of making "the built version" whichever `ls` printed first.
+          shopt -s nullglob
+          wheels=(dist/typed_gguf-*.whl)
+          if [ "${#wheels[@]}" -ne 1 ]; then
+            echo "::error::expected exactly one built wheel in dist/, found ${#wheels[@]}"
+            exit 1
+          fi
+          built=$(basename "${wheels[0]}" | sed -E 's/^typed_gguf-([^-]+)-.*$/\1/')
           echo "built version: $built"
           case "${GITHUB_REF}" in
             refs/tags/*)

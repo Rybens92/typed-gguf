@@ -1,9 +1,10 @@
-# typed-gguf v0.1.0 — typed decisions on any GGUF (release-notes draft, not yet published)
+# typed-gguf v0.1.1 — typed decisions on any GGUF
 
-> Draft for the v0.1.0 release. Nothing is tagged or published yet: no git tag, no GitHub release,
-> no PyPI project (the name is reserved but unpublished), and the repository the install section
-> points at is the artifact this text ships with. Every number below is already published inside
-> this repository and marked where it was measured.
+> Release notes for the v0.1.1 build. The measured content below is the v0.1.0 material, carried
+> forward unchanged with the version bump, the README's positioning pass and the release workflow
+> this repository now has (`.github/workflows/publish.yml`, PyPI Trusted Publishing). v0.1.0 is
+> live on PyPI as `typed-gguf`. Every number below is already published inside this repository and
+> marked where it was measured.
 
 ## What this is
 
@@ -116,15 +117,16 @@ uvx --from git+https://github.com/Rybens92/typed-gguf typed-gguf doctor --json
 The honest limit, measured rather than assumed: the install itself is verified out-of-tree — the
 artifact gate installs the built wheel into a temp tool env and runs `version` / `init --dry-run` /
 `doctor --json` from a neutral cwd that carries a *decoy* lock, and a real
-`uvx --from . … typed-gguf init --backend cpu` installed build 11026 with `symbols_ok: True` — but
-the **git fetch** step of the `git+https://…` spelling needs the published repository and is
-verified **post-publish**: this checkout has no remote configured and GitHub answers that URL with
-"Repository not found" today.
+`uvx --from . … typed-gguf init --backend cpu` installed build 11026 with `symbols_ok: True`. The
+**git fetch** step of the `git+https://…` spelling needed the published repository — the
+post-publish verification this paragraph always promised — and it now has one: the tag form of the
+one-liner (`uvx --from git+https://github.com/Rybens92/typed-gguf@v0.1.0 typed-gguf version`)
+fetched, built and installed this repository's tagged wheel and printed `typed-gguf 0.1.0`.
 Receipt: `docs/evidence/v0_1_0_t_eff926f9_uvx_install.md`. What stays repository-root-only is the
 development surface — the test suite and the oracle read `tests/`, `docs/evidence/` and `SPEC.md`,
 which no wheel ships.
 
-## What v0.1.0 does not include
+## What v0.1.1 does not include
 
 - **HTTP and MCP serving.** `typed-gguf serve` and `typed-gguf mcp` are specified (SPEC §2.9:
   `/health`, `/v1/models`, `/v1/decide`, `/v1/systemone`; the `typed_gguf_*` tool set) but they are

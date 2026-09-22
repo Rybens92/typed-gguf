@@ -212,6 +212,15 @@ def test_the_version_gate_fails_closed_when_nothing_was_built(tmp_path) -> None:
     assert result.returncode != 0, _output(result)
 
 
+def test_the_version_gate_refuses_an_ambiguous_dist(tmp_path) -> None:
+    """`dist/` is ignored and keeps whatever was built last (this checkout carries the published
+    0.1.0 wheel to this day): with a stale wheel beside a fresh one, "the built version" would be
+    whichever `ls` printed first. The gate demands exactly one."""
+    result = _run_gate(tmp_path, f"refs/tags/v{VERSION}", f"v{VERSION}", wheels=(VERSION, "0.0.1"))
+    assert result.returncode != 0, (
+        "two wheels in dist/ make the gate ambiguous — it must refuse:\n" + _output(result))
+
+
 # ------------------------------------------------------------------- the version that ships
 
 
