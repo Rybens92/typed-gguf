@@ -11,7 +11,7 @@ between runs, so the plan's `n_ctx` does too (the spec says so in §0.4: 53 511 
 | `fit_v2_default_shrunk.json` | `--fit-target 5200` (a budget that cannot hold the standard): 4 096 @ q4_0, `ctx_limit 'shrunk'`, `W_CTX_BELOW_STANDARD` — graceful shrink, live |
 | `fit_v2_pin_32768.json` | `--n-ctx 32768` now really plans 32 768 (the live regression flipped) |
 | `ask_before_4096.txt` | a 5 988-token request against the 4 096 cap -> `E_CTX_TOO_SMALL` (exit 3) |
-| `ask_v2_6k_default.json` | the same request with no pins: answered, `engine.n_ctx` 50 688, `engine.fit.n_ctx` 50 620 |
+| `ask_v2_6k_default.json` | the same request with no pins: answered, `engine.n_ctx` 50 688, `engine.fit.n_ctx` 50 620 — the load dropped q8_0 -> q4_0 at context init (`placement.kv_type` q4_0 vs `engine.fit.kv_type` q8_0; the JSON's top-level warnings are `[W_KV_TYPE_DOWNGRADE, W_FIT_DOWNGRADE]`) |
 | `ask_v2_6k_state_tokens.txt` | the state's token ids (5 988 tokens) that make the request ~6 k |
 | `kv_cli_32768_f16.txt` | a live `llama-cli` load at 32 768 f16: 1 152.00 MiB (9 layers) + SWA, 1 024 cells |
 | `ac6_check.py` / `.out` | §3's formula recomputed standalone against the four pinned bytes (`OK` x4) |

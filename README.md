@@ -413,12 +413,14 @@ that needs more than the loaded context fails with `E_CTX_TOO_SMALL` naming the 
   8 GB-VRAM host decides at ~0.3 tok/s decode (measured, §6.5) and its fit plan offloads only what
   free VRAM allows; a host that can keep the weights resident turns the same command into a
   compute-bound run. Read `docs/BENCHMARKS.md` §6/§7 before blaming the engine.
-- A cached fit plan is never re-expanded. The plan is cached per (model SHA-256, host fingerprint)
-  under `$TYPED_GGUF_HOME/fit/` and re-checked against free device memory on every load, but that
-  check can keep or shrink the plan, never grow it back: a plan degraded for one busy run stays
-  degraded after the device frees up (only its `budget_bytes` refreshes). Drop the cache with
-  `--no-fit-cache` on a request, `typed-gguf fit --no-cache`, or by deleting
-  `$TYPED_GGUF_HOME/fit/`, when free memory returns.
+- A cached fit plan is never re-expanded in place. The plan is cached per (model SHA-256, host
+  fingerprint) under `$TYPED_GGUF_HOME/fit/` and re-checked against free device memory on every
+  load, but that check can keep or shrink the entry, never grow it back. The entry holds one
+  answer — the one for a call that pins nothing (no `--n-ctx`, `--kv-type`, `--fit-target`,
+  `--fit-ctx`) — and such a call recomputes the plan from scratch when the box would answer *more*
+  than the entry holds, so a plan degraded for one busy run does not stay degraded. A call that
+  pins anything is computed fresh every time. Drop the cache with `--no-fit-cache` on a request,
+  `typed-gguf fit --no-cache`, or by deleting `$TYPED_GGUF_HOME/fit/`, to force a full plan.
 - No CUDA row exists in the published tables (no CUDA device was reachable when they were measured);
   each table says `measured: false` with the reason instead of omitting the backend.
 - `typed-gguf` is not affiliated with TypeSafe and makes no parity claim; the `typesafe` output

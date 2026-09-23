@@ -269,7 +269,7 @@ A plan below `STANDARD_N_CTX` is **valid** and loadable; it is reported, never r
 
 | flag | after v2 |
 | --- | --- |
-| `--n-ctx N` on `fit`/`run`/`ask` | a **pin**: `chosen = min(N, cap)` (also never above the model window), **no grow**, `ctx_limit = "pinned"`; if it does not fit, shrink to fit with today's note, never below the floor; `--n-ctx 32768` on this box now really loads 32 768 instead of being capped at 4 096 |
+| `--n-ctx N` on `fit`/`run`/`ask` | a **pin**: `chosen = min(N, cap)` (also never above the model window), **no grow**, `ctx_limit = "pinned"`; if it does not fit, shrink to fit with today's note, never below the floor; a pin that had to shrink reports `ctx_limit = "shrunk"`, not `"pinned"` (`test_ac8_a_pin_above_every_rung_shrinks_to_that_rung_never_below_the_floor` pins it); `--n-ctx 32768` on this box now really loads 32 768 instead of being capped at 4 096 |
 | `--fit-ctx N` | unchanged: the shrink **floor** (default `DEFAULT_N_CTX = 4096`); a user who wants "never below 32k" passes `--fit-ctx 32768` — today's code already does that (probe E1: `ask --n-ctx 32768 --fit-ctx 32768` loaded 32 768) |
 | `--fit-target MIB` | unchanged: the margin kept free; it is the *only* operator-controlled reserve |
 | `--n-seq-max N` | unchanged; `kv_unified=True` means KV cells are `n_ctx`, not `n_ctx × n_seq_max` (`fit.py:30-36`, test-pinned) |
