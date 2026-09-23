@@ -191,6 +191,16 @@ quote-style = "double"
 # reporting paths (rounding, `suppress` guards, wait constants) and cross-process wire behaviour the
 # offline selection cannot see (it is covered by `tests/test_keep_live.py`, deliberately not
 # selected). Receipts and the full triage: `docs/evidence/v0_1_0_t_7e24cea4_warm_host.md` §4.
+# Card t_176614c6 (FIX, the UX trio) retargeted the pair for one Tier-M run at the module it
+# changes — `source_paths = ["src/typed_gguf/keep/client.py"]` with
+# `pytest_add_cli_args_test_selection = ["tests/test_keep_client.py"]`, `--max-children 2`, driver
+# `.e2e/t_176614c6-live/mutmut_sweep.sh` (that file carries the retargeted pair; the values here are
+# this repo's standing pair, restored after the run): 829 mutants, **506 killed = 61.0 %**, 317
+# survived, 6 timeouts, 0 in the "no tests" bucket. The selection is one of the module's four gate
+# files, so most survivors are behaviour the *other* three assert (report strings, `child`-handle
+# branches, CLI wiring) plus equivalent mutants on the pre-existing `suppress(OSError)` and
+# `child = self.children.get(pid)` lines; the drain itself (`_busy` + the `stop(drain=True)` budget)
+# has no behavioural survivor. See `.gauntlet/t_176614c6-ux-trio.qa.md`.
 source_paths = ["src/typed_gguf/runtime/fit.py"]
 also_copy = ["src/typed_gguf", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
