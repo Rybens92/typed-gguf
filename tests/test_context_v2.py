@@ -192,6 +192,60 @@ def test_ac9_the_binary_path_at_exactly_the_standard_carries_no_warning() -> Non
     assert "W_CTX_BELOW_STANDARD" in one_below.warnings
 
 
+# ------------------------------------- AC-8 (🔴 fix) the *binary* path and a pin that had to shrink
+# Card `t_dd15582e` (found live by `t_80a03123`, repros B1/B2): `plan_for_model` handed the binary
+# the already-shrunk `preliminary.n_ctx` as if it were the request, so a pin that had to shrink came
+# back `"pinned"` — no shrink note, no `W_CTX_BELOW_STANDARD` — while the same request unpinned (and
+# the same pin one chain step earlier, on the estimate path) said `"shrunk"`. §5.5: the *request*
+# must reach the label and the note; the plan's own numbers do not move.
+def test_ac8_a_pin_that_had_to_shrink_says_so_on_the_binary_path(tmp_path) -> None:
+    model = swa_model()
+    table = "Host 4096 512 256\n"                 # the table shape the E1c pins use
+
+    def binary(argv: list[str]) -> str:
+        return table
+
+    # B1: the box's cap is the reason, and the landing point is still *above* the standard.
+    above = fit.plan_for_model(model, BOX, home=tmp_path / "home", runtime_dir="/fake/rt",
+                               runner=binary, n_ctx=1_048_576)
+    assert above.source == "llama-fit-params"     # the binary path, not the estimate fallback
+    assert above.n_ctx == fit.max_fit_n_ctx(model, "q4_0", budget(BOX)) == 103807
+    assert above.ctx_limit == "shrunk"            # was "pinned" before the fix
+    assert any(note.startswith("n_ctx shrunk 1048576 -> 103807 ") for note in above.notes)
+    assert "W_CTX_BELOW_STANDARD" not in above.warnings    # above the standard: nothing degraded
+
+    # B2: the same shape one rung lower — the shrink crosses the standard, so §5.4 warns.
+    tight = model.weights_bytes + fit.OVERHEAD_BYTES + 300 * MIB
+    below = fit.plan_for_model(model, BOX, home=tmp_path / "home", runtime_dir="/fake/rt",
+                               runner=binary, budget_bytes=tight, n_ctx=32768)
+    assert below.source == "llama-fit-params"
+    assert below.n_ctx == 27268 < fit.STANDARD_N_CTX
+    assert below.ctx_limit == "shrunk"            # was "pinned" before the fix
+    assert any(note.startswith("n_ctx shrunk 32768 -> 27268 ") for note in below.notes)
+    assert "W_CTX_BELOW_STANDARD" in below.warnings
+
+    # control: the pin fits — still `"pinned"`, still no arithmetic note (§5.5).
+    honored = fit.plan_for_model(model, BOX, home=tmp_path / "home", runtime_dir="/fake/rt",
+                                 runner=binary, n_ctx=32768)
+    assert (honored.n_ctx, honored.ctx_limit) == (32768, "pinned")
+    assert not any(note.startswith("n_ctx shrunk") for note in honored.notes)
+
+
+def test_ac8_the_estimate_path_warns_for_the_same_pin() -> None:
+    """The asymmetry one chain step earlier: the estimate path's *label* was already `"shrunk"`,
+    but a shrunken pin below the standard stayed silent (§5.4) — so one request would report
+    differently depending on whether the bundle ran at all."""
+    model = swa_model()
+    tight = model.weights_bytes + fit.OVERHEAD_BYTES + 300 * MIB
+    plan = fit.estimate_plan(model, BOX, n_ctx=32768, budget_bytes=tight)
+    assert (plan.n_ctx, plan.ctx_limit) == (27268, "shrunk")
+    assert "W_CTX_BELOW_STANDARD" in plan.warnings
+    assert any(note.startswith("n_ctx shrunk 32768 -> 27268 ") for note in plan.notes)
+    honored = fit.estimate_plan(model, BOX, n_ctx=8192)            # a pin that fits: unchanged
+    assert (honored.n_ctx, honored.ctx_limit) == (8192, "pinned")
+    assert "W_CTX_BELOW_STANDARD" not in honored.warnings
+
+
 def test_ac4_a_plan_the_weights_alone_overrun_is_still_returned_with_the_note() -> None:
     """§5.4: `insufficient` fires unchanged; v2 does not turn it into an exception."""
     model = swa_model()
