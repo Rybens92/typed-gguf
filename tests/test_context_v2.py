@@ -230,6 +230,18 @@ def test_ac8_a_pin_that_had_to_shrink_says_so_on_the_binary_path(tmp_path) -> No
     assert (honored.n_ctx, honored.ctx_limit) == (32768, "pinned")
     assert not any(note.startswith("n_ctx shrunk") for note in honored.notes)
 
+    # §5.2/§5.5: the model's own window capping a pin — the two paths must keep saying the same
+    # thing, whatever the label is (a hand-mutation of `fit.py:1013`'s `min(requested, window)`
+    # named this: dropping it made the table path answer `"standard"` where the estimate says
+    # `"pinned"`). Reported as agreement, not as a new literal.
+    narrow = swa_model(n_ctx_train=32768)
+    windowed = fit.plan_for_model(narrow, BOX, home=tmp_path / "home", runtime_dir="/fake/rt",
+                                  runner=binary, n_ctx=65536)
+    estimate = fit.estimate_plan(narrow, BOX, n_ctx=65536)
+    assert windowed.n_ctx == estimate.n_ctx == 32768          # never above the window
+    assert windowed.ctx_limit == estimate.ctx_limit
+    assert "W_CTX_BELOW_STANDARD" not in windowed.warnings
+
 
 def test_ac8_the_estimate_path_warns_for_the_same_pin() -> None:
     """The asymmetry one chain step earlier: the estimate path's *label* was already `"shrunk"`,
@@ -283,6 +295,9 @@ def test_ac8_a_pin_above_every_rung_shrinks_to_that_rung_never_below_the_floor()
     plan = fit.estimate_plan(model, BOX, n_ctx=1_048_576)
     assert plan.n_ctx == fit.max_fit_n_ctx(model, "q4_0", budget(BOX)) == 103807
     assert plan.ctx_limit == "shrunk"
+    # ... and the shrink is what is reported: 103 807 is *above* the standard, so no §5.4 warning
+    # (the survivor a hand-mutation of `fit.py:571`'s second conjunct named, card t_dd15582e).
+    assert "W_CTX_BELOW_STANDARD" not in plan.warnings
 
 
 # ------------------------------------------------------------ AC-11 (🟡) plan fields
