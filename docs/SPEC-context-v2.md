@@ -80,7 +80,7 @@ explains the number (`standard_n_ctx`, `ctx_limit`, warnings, notes).
 | `ModelFacts` reads `context_length` into `n_ctx_train` but **nothing sizes from it** | `fit.py:136-138` |
 | `estimate_plan` shrinks only: ladder f16→q8_0→q4_0, then `n_ctx` down to `floor` (`max(floor, min(requested, shrunk))`) | `fit.py:367-431` (`:373`, `:382-400`) |
 | `run_llama_fit_params` passes `--fit on --fit-target MIB --fit-ctx min(min_ctx, 512) --fit-print on -c <plan> -ngl <layers>` | `fit.py:750-782` (`:769-773`) |
-| `plan_for_model` chain: cache → binary table → estimate; `n_ctx: int = DEFAULT_N_CTX` | `fit.py:886-920` |
+| `plan_for_model` chain: cache → binary table → estimate; `n_ctx: int = DEFAULT_N_CTX`; the binary probe is **seeded with `estimate_plan`'s shrunken answer** (§3.1) | `fit.py:886-920` (`:909-916`) |
 | `replan_for_host` re-validates a cached plan against live free memory and only ever shrinks | `fit.py:594-633` |
 | The engine caps **every** request at the plan: `n_ctx_cap = plan.n_ctx` | `src/typed_gguf/cli.py:1008-1012`, `:1034` |
 | `plan_context`: `n_ctx = options.n_ctx or (prefix + max_question + CONTEXT_MARGIN=32)`, then `min(n_ctx, n_ctx_cap)` | `src/typed_gguf/engine/decide.py:249-279` (`:275-277`, `CONTEXT_MARGIN` at `:52`) |
@@ -126,7 +126,36 @@ kv_bytes(n_ctx, kv) = n_global * b * n_ctx
 | 131 072 | 18 432.0 / 9 792.0 / 5 184.0 | 4 716.0 / 2 505.4 / **1 326.4** | 1296+30.38 (`d3`) |
 
 Numbers recomputed by `/tmp/t_context_v2/v2_plan_probe.py` and quoted verbatim from
-`v2_plan_probe.out`; the 4 096/32 768/131 072 rows are *measured* loads, not estimates.
+`v2_plan_probe.out`; the 4 096/32 768/131 072 rows are *measured* loads, not estimates. The
+"today" column is `kv_bytes_per_token` (`fit.py:361-364`) — the formula `estimate_plan` uses, and
+the one the rung test in `_kv_from_budget` (`fit.py:842-844`) uses for **every** rung except the
+number it merely *reports* for f16 (where it substitutes the binary's measured context,
+`fit.py:845-846`; so `fit --json` at the 4 096 default already shows the honest 252 MiB —
+`e0b_ask_nctx32768_defaultplan.json` has `est_kv_bytes = 264241152` while still deciding on the
+576 MiB figure).
+
+### 3.1 The conservative number does not just pick a rung — it picks the question
+
+`plan_for_model` (`fit.py:909-916`) seeds the binary measurement with the **estimate's own answer**:
+
+```
+preliminary = estimate_plan(model, host, n_ctx=<requested or 4096>, ...)   # fit.py:910-912
+plan        = run_llama_fit_params(..., n_ctx=preliminary.n_ctx, ...)      # fit.py:913-916
+```
+
+So on this box the binary is only ever asked about the ctx that the 4×-over formula could afford:
+the coordinator's dry probe and our reproductions of `fit --n-ctx 32768` all answer ~25 500-26 300
+tokens at q4_0 (25 556 / 26 290 measured), and the *table* that comes back is measured at that ctx.
+The binary's own capability — 37 376 tokens at f16 with the same model and box (`c2` log) — is never
+reached, and the plan's `_kv_from_budget` then confirms q4_0 by the same over-counting formula. Both
+seams must move for v2 to work: the KV math (`estimate_plan`, `_kv_from_budget`) **and** the seed
+(`plan_for_model` must probe at the policy's ctx, not at the shrunken estimate's).
+
+P1's own note proves the seed: `memory table from b11026-linux-x64-vulkan/llama-fit-params
+(model 4506 MiB, context 1035 MiB, compute 306 MiB)` — 1 035 MiB is the **f16** KV for 26 290 cells,
+i.e. the binary was asked at the shrunken ctx, not at 32 768. And the same plan *reports*
+`est_kv_bytes = 1 090 298 880` (1 040 MiB — our q4_0 formula) while the binary's measured q4_0 KV at
+that ctx is ≈290 MiB: the over-count is reported as well as used.
 
 **Why this is a v2 blocker, not a cleanup:** `estimate_plan` charges 147 456 B/token at f16 —
 4× the real global cost — so on this box it answers "32k does not fit, q4_0 and 26 719 tokens"
@@ -345,7 +374,8 @@ evidence (do not touch), **R** = review (assert the new numbers).
 | `runtime/fit.py:477-479` `_kv_bytes_for` | all-layer | M: delegate to the SWA-aware function (used by `degrade_ladder`) |
 | `runtime/fit.py:835-849` `_kv_from_budget` | all-layer | M: same delegation (SWA models only) |
 | `runtime/fit.py:62-65` `FIT_FIELDS`/`to_dict`/`from_dict` | 9 fields | M: add `standard_n_ctx`, `ctx_limit` (back-compatible reads) |
-| `runtime/fit.py:886-920` `plan_for_model` | `n_ctx: int = DEFAULT_N_CTX` | M: default `None` = policy; `replan_for_host(..., min_ctx=…)` unchanged (shrink-only) |
+| `runtime/fit.py:886-920` `plan_for_model` | `n_ctx: int = DEFAULT_N_CTX`; **seeds the binary probe with `estimate_plan`'s shrunken answer** (§3.1) | M: default `None` = policy; probe the binary at the *policy's* ctx, not at the estimate's; `replan_for_host(..., min_ctx=…)` unchanged (shrink-only) |
+| `runtime/fit.py:841-846` `_kv_from_budget` rung test | rung chosen by the all-layer formula; the binary's measured context only *reported* for f16 | M: SWA-aware formula for every rung; keep substituting `binary_context` as the reported f16 number |
 | `runtime/fit.py:750-782` `run_llama_fit_params` | `-c <plan>` | K: signature keeps `n_ctx: int`; callers pass the resolved value. `--fit-ctx max(min_ctx, 512)` unchanged |
 | `engine/decide.py:249-279` `plan_context` | request-sized | M: §5.6 load-sizing rule |
 | `engine/decide.py:522-545` `_guard_context` | unchanged | M: only the tail hint of §6.3 |
@@ -614,6 +644,7 @@ a `git diff --stat` inside the docs test is the cheapest guard (AC-15).
 | `p0_default.json` | `fit --json --no-cache` today: 4 096 @ f16, 36/36 layers |
 | `p1_nctx32768.json` | today with `--n-ctx 32768`: **26 290 @ q4_0**, `W_KV_TYPE_DOWNGRADE` |
 | `p2_nctx1m.json` | today with `--n-ctx 1048576`: 26 467 @ q4_0 (the shrink is requested-ctx independent) |
+| coordinator's dry probe (card body, 2026-09-23 11:46Z) | `fit --n-ctx 32768` at vram_free 6 714 MiB → **25 556 @ q4_0**, est_kv ≈ 1 010 MiB, est_total ≈ 5 823 MiB against a 5 690 MiB budget — our re-runs put the same command at 26 290 / 26 719 (the estimate *is* the answer, §3.1; the ≥budget est_total is the table-weights vs tensor-weights gap, §8.3) |
 | `e0b_ask_nctx32768_defaultplan.json` | today's live cap: `ask --n-ctx 32768` → `engine.n_ctx 4096` |
 | `e1_ask_32k.json` | engine at the standard via `--n-ctx 32768 --fit-ctx 32768`: `engine.n_ctx 32768`, q4_0, 35/36, load 1 047.94 ms |
 | `w1_cold.json`, `w2_warm.json` | warm-host pair at the 32k plan: wall 6.29 s / 0.71 s |
