@@ -516,8 +516,11 @@ def _cmd_doctor(args: list[str]) -> int:
               f"backend={report['backend'] or 'none'}  "
               f"backends={','.join(runtime['backends']) or 'none'}")
         if runtime.get("fallback_reason"):
+            # the report builds `working_backend` from the live probe (None when there is no
+            # bundle to ask); the record's own key is `backend_working` and is not in the report
             print(f"  fallback: {runtime['backend_requested']} -> "
-                  f"{runtime['backend_working']} [{runtime.get('fallback_reason_code')}]")
+                  f"{runtime.get('working_backend') or 'none'} "
+                  f"[{runtime.get('fallback_reason_code')}]")
         print(f"  model:   {report['model'].get('alias') or '<none>'}")
     return int(report["exit_code"])
 
