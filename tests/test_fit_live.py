@@ -241,11 +241,22 @@ def test_the_live_answer_carries_the_template_and_the_fit_plan() -> None:
     assert engine["template"]["warnings"] == []
     assert engine["fit"]["kv_type"] in fit.KV_DOWNGRADE_ORDER
     assert engine["kv_type"] == engine["fit"]["kv_type"]
-    # no template fallback, no estimate — a low-mass note is the engine's own diagnostic and is
-    # allowed (the readout math never hides it). v2 (§5.3): the plan aims at the standard and may
-    # legally leave f16 to reach it, so the *downgrade* warning is allowed exactly when the rung
-    # moved — the warning must tell the truth, and nothing else may appear.
-    assert ("W_KV_TYPE_DOWNGRADE" in response["warnings"]) == (engine["fit"]["kv_type"] != "f16")
+    # v2 (§5.3): the plan aims at the standard and may legally leave f16 to reach it, so the
+    # *plan's* downgrade warning is allowed exactly when the plan's rung moved — the warning must
+    # tell the truth. The plan's list is `engine["fit"]["warnings"]`, NOT the response's:
+    # `response["warnings"]` is the *engine/load* list (request + template + the load's own
+    # placement + device evidence). The receipt shows both (`ask_v2_6k_default.json:66` =
+    # `[W_KV_TYPE_DOWNGRADE]` on the plan, `:127` = `[W_KV_TYPE_DOWNGRADE, W_FIT_DOWNGRADE]` on the
+    # load, which had *also* dropped q8_0 -> q4_0 at context init) — so reading the plan's warning
+    # off the load's list passes only when the load happens to degrade again, and fails whenever the
+    # plan's q8_0 loads cleanly (review t_b5a47c87, the deterministic device-path failure). A tight
+    # box adds its own codes to that list (`W_FIT_DOWNGRADE` when the plan itself had to be
+    # re-placed onto fewer layers), which is why only the relation below is asserted there.
+    assert (("W_KV_TYPE_DOWNGRADE" in engine["fit"]["warnings"])
+            == (engine["fit"]["kv_type"] != "f16"))
+    # ... and the load's own list may speak a downgrade of its own (the placement block is where
+    # that is accounted for); it may never claim a template fallback or an estimate — the plan above
+    # is a real binary plan, not a fallback.
     assert not set(response["warnings"]) & {"W_TEMPLATE_FALLBACK", "W_FIT_ESTIMATED"}
     answer = response["answers"]["area"]
     assert answer["choice"] in ("billing", "technical")
