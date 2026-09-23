@@ -33,8 +33,19 @@ def _key(model: str = "a", **changes: object) -> identity.KeepKey:
 
 
 def _inline_body(model: str = "a") -> dict:
+    """A minimal decision body — the shape the CLI's own inline callable hands the client.
+
+    The production fallback is not a stub: `cli.decide_payload_warm` gives the client
+    `lambda: decide_payload(payload, …)`, the *same* function that answers a cold `ask`, so a
+    caller the ledger's host could not serve still gets the payload's own answers. This double
+    mirrors that with the single `q` the shared PAYLOAD asks — answered the way the fake host
+    answers it (`{"type": "noul", "noul": 0.5, …}`) — because an `"answers": {}` here contradicted
+    the design the race gate pins and made the gate's own assertion fail on the designed
+    `spawn:` fallback (F1, card t_2aadab60).
+    """
     return {"model": model, "engine": {"backend": "cpu", "backend_source": "explicit"},
-            "answers": {}, "usage": {}, "timings": {"model_load_ms": 5.0}, "warnings": []}
+            "answers": {"q": {"type": "noul", "noul": 0.5, "probabilities": {"yes": 1.0}}},
+            "usage": {}, "timings": {"model_load_ms": 5.0}, "warnings": []}
 
 
 class Inline:
