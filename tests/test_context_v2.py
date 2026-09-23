@@ -15,6 +15,8 @@ The live half (AC-16, the engine's own `llama_kv_cache` lines) is in `tests/test
 """
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 
 from tests.fake_engine import FakeSession
@@ -244,6 +246,77 @@ def test_ac13_a_stored_plan_comes_back_re_validated_for_the_box_now(tmp_path) ->
     live = fit.plan_for_model(model, BOX, home=tmp_path, runtime_dir=None, use_cache=True)
     assert live.n_ctx < 300_000                             # the ROOMY growth answer, not reused
     assert live.standard_n_ctx == 32768
+
+
+# ------------------------------------- AC-13 (🔴 fix) the *hit* branch and the call's own knobs
+# Review `t_b5a47c87` minor 1/2 (card `t_af88fa8c`): the cache key is `(model sha256, host
+# fingerprint)` only, so a hit used to answer the call's own knobs with the stored plan (and a
+# pinned run used to overwrite the entry a later `ask`/`run` takes its load size from). The
+# invariant: a knob-carrying call is answered from its own question, cold *or* warm; a no-knob
+# call gets the box's policy answer.
+def test_ac13_a_cache_hit_is_re_validated_for_the_box_now(tmp_path) -> None:
+    """The **hit** branch: the same `(sha256, fingerprint)` on the write and on the read.
+
+    The entry was written on this box while it was quiet; the reading now is a busy one, so the
+    plan that comes back must be re-placed for the free memory that exists *now* — and the context
+    is still not re-sized by that re-plan (§5.7, `test_ac13_re_validation_never_grows_a_plan…`).
+    """
+    home = tmp_path / "home"
+    model = swa_model()
+    stored = fit.estimate_plan(model, BOX)
+    fit.store_plan(stored, home=home)
+    busy = dataclasses.replace(BOX, vram_free_bytes=2000 * MIB)   # same identity, less free now
+    live = fit.plan_for_model(model, busy, home=home, runtime_dir=None, use_cache=True)
+    assert live.n_ctx == stored.n_ctx                             # not re-sized by the re-plan
+    assert (live.ctx_limit, live.standard_n_ctx) == ("grown", 32768)
+    assert live.n_gpu_layers < stored.n_gpu_layers                # re-placed for the free reading
+    assert "re-planned for free device memory" in " ".join(live.notes)
+    assert live.budget_bytes == budget(busy)
+    assert fit.load_cached(model.sha256, busy.fingerprint, home).to_dict() == live.to_dict()
+
+
+def test_a_pin_on_a_warm_policy_entry_is_still_a_pin(tmp_path) -> None:
+    """The reviewer's probe case 2: a policy answer in the cache must not swallow an `--n-ctx`."""
+    home = tmp_path / "home"
+    model = swa_model()
+    policy = fit.plan_for_model(model, BOX, home=home, runtime_dir=None)
+    assert (policy.n_ctx, policy.ctx_limit) == (53511, "grown")   # cold, and now cached
+    pinned = fit.plan_for_model(model, BOX, home=home, runtime_dir=None, n_ctx=32768)
+    assert (pinned.n_ctx, pinned.kv_type, pinned.ctx_limit) == (32768, "q8_0", "pinned")
+    # ... and the pinned run did not overwrite the entry a later no-knob call reads
+    assert fit.load_cached(model.sha256, BOX.fingerprint, home).n_ctx == policy.n_ctx
+
+
+def test_a_warm_policy_entry_does_not_swallow_the_other_explicit_knobs(tmp_path) -> None:
+    """Same invariant for the rest of the knob set: `--kv-type`, `--fit-target`, `--fit-ctx`."""
+    home = tmp_path / "home"
+    model = swa_model()
+    fit.plan_for_model(model, BOX, home=home, runtime_dir=None)
+    q4 = fit.plan_for_model(model, BOX, home=home, runtime_dir=None, kv_type="q4_0")
+    assert (q4.kv_type, q4.n_ctx) == ("q4_0", fit.max_fit_n_ctx(model, "q4_0", budget(BOX)))
+    assert "W_KV_TYPE_DOWNGRADE" not in q4.warnings               # the caller's own rung
+    tight = fit.plan_for_model(model, BOX, home=home, runtime_dir=None, fit_target_mb=5200,
+                               min_ctx=8192)
+    assert tight.budget_bytes == budget(BOX, 5200) < budget(BOX)
+    assert tight.n_ctx == 8192                                    # the caller's floor wins
+    assert tight.n_ctx < fit.STANDARD_N_CTX
+    assert "W_CTX_BELOW_STANDARD" in tight.warnings
+
+
+@pytest.mark.parametrize("foreign_n_ctx", [4096, 65536])
+def test_a_no_knob_call_never_takes_a_pinned_entry_for_the_boxes_answer(tmp_path,
+                                                                        foreign_n_ctx: int) -> None:
+    """The reviewer's probe case 4: before the fix every `fit --n-ctx N` wrote its pin into the one
+    cache entry, so a later no-knob `fit`/`ask`/`run` was answered with it (4 096 `pinned`, or a
+    65 536 pin above the policy). A no-knob call gets the policy's own answer, and heals the entry.
+    """
+    home = tmp_path / "home"
+    model = swa_model()
+    fit.store_plan(fit.estimate_plan(model, BOX, n_ctx=foreign_n_ctx), home=home)
+    live = fit.plan_for_model(model, BOX, home=home, runtime_dir=None)
+    assert live.ctx_limit == "grown"                              # §5.2-§5.4, not the foreign pin
+    assert live.n_ctx == fit.estimate_plan(model, BOX).n_ctx == 53511
+    assert fit.load_cached(model.sha256, BOX.fingerprint, home).n_ctx == live.n_ctx
 
 
 # ----------------------------------------------------- AC-9 (🟡) the load uses the plan size
