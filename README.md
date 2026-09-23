@@ -138,6 +138,113 @@ not exist is an error that lists every path that was searched, never a silent fa
 suite and the oracle only run from a repository checkout: they read `tests/`, `docs/evidence/` and
 `SPEC.md`, none of which a wheel ships.
 
+### Your first query, step by step
+
+Five steps from a fresh install to a typed answer — and to asking several questions in one call.
+Every command below is a real run on an 8 GB-VRAM box, trimmed to the fields that matter.
+
+**1. Check what you have.** `uv run typed-gguf doctor` — exit `0` is ready, `2` is working with
+warnings, `1` is broken; a `2` is not a failed install. The report names the runtime it found, the
+backends it can drive here, and whether a model is present.
+
+**2. Get the model.** The default is a 4B model in Q8_0: 4.38 GB of weights, which fits in the 8 GB
+of VRAM most home boxes have.
+
+```bash
+uv run typed-gguf init                                          # pinned llama.cpp runtime, ~30 MB
+uv run typed-gguf models pull XHToken/Spark-X2.5-4B-GGUF:Q8_0   # 4.38 GB, SHA-256 verified
+```
+
+`pull` prints what it wrote and verified:
+
+```
+pulled spark-x2.5-4b-q8_0 -> ~/.local/share/typed-gguf/models/Spark-X2.5-4B-Q8_0.gguf
+  sha256    5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2 (verified against lfs.oid)
+```
+
+Any GGUF llama.cpp can load works the same way: `--model <path.gguf>` overrides the registry entry.
+
+**3. See what your box can hold.** `uv run typed-gguf fit` prints the plan a call that pins no
+context of its own will load with:
+
+```
+model: spark-x2.5-4b-q8_0
+n_gpu_layers: 36
+n_ctx: 42374 (standard 32768, grown from the box's free memory)
+kv_type: q8_0
+```
+
+The standard window is 32 768 tokens; this box had room for more and grew to 42 374, offloaded 36
+layers to the GPU, and stepped the KV cache down to `q8_0` because `f16` did not fit beside the
+weights.
+
+**4. Ask your first question.** One state, one `--choice` question:
+
+```bash
+uv run typed-gguf ask \
+  --state "The billing page is blank for every user since 09:12. No deploy in the last 24h, and the API is healthy on synthetic traffic." \
+  --choice "area=Which team owns this?:billing|technical|platform"
+```
+
+```json
+{
+  "answers": {
+    "area": {"type": "choice", "choice": "billing",
+             "probabilities": {"billing": 0.60465, "technical": 0.210293, "platform": 0.185057},
+             "confidence": 0.406975, "reliability": "ok"}
+  },
+  "usage": {"input_tokens": 148, "questions": 1, "decode_steps": 5}
+}
+```
+
+Read it as four things:
+
+- the **answer**: `choice: "billing"` is one label picked out of the three you offered;
+- the **full distribution**: `probabilities` shows where the mass sat — 0.60 billing, 0.21
+  technical, 0.19 platform — so a close call looks like one;
+- **how sure**: `confidence: 0.406975` is how concentrated that distribution is (a soft answer
+  here), and `reliability: "ok"` says the scores read as an answer rather than a refusal;
+- **nothing was generated**: the label was read from the model's own scores over your three labels,
+  and `usage.decode_steps: 5` is what the run spent.
+
+**5. Ask several questions at once.** Repeat `--choice` (or `--score`, `--noul`) once per question:
+
+```bash
+uv run typed-gguf ask \
+  --state "The billing page is blank for every user since 09:12. No deploy in the last 24h, and the API is healthy on synthetic traffic." \
+  --choice "area=Which team owns this?:billing|technical|platform" \
+  --choice "next=What happens next?:monitor|investigate|escalate" \
+  --noul   "page=Should we page the on-call engineer?"
+```
+
+```json
+{
+  "answers": {
+    "area": {"choice": "billing", "probabilities": {"billing": 0.60465, "technical": 0.210293, "platform": 0.185057}, "confidence": 0.406975, "reliability": "ok"},
+    "next": {"choice": "investigate", "probabilities": {"monitor": 0.0665881, "investigate": 0.87807, "escalate": 0.0553424}, "confidence": 0.817104, "reliability": "ok"},
+    "page": {"noul": 0.295352, "probabilities": {"yes": 0.295352, "no": 0.704648}, "reliability": "ok"}
+  },
+  "usage": {"questions": 3, "decode_steps": 14, "waves": 6},
+  "timings": {"model_load_ms": 0.0, "prefill_ms": 85.5565, "questions_ms": 2637.04, "total_ms": 2733.11}
+}
+```
+
+Each flag is one question, and the answer comes back under the id you chose — `area`, `next`, `page`
+here — so a caller reads them by name. Ids must be unique within one call; a repeated one stops with
+`E_QID_INVALID`. The state is prefilled once for all three, and the questions are decided one after
+another — for a larger set, put the same request in a file: `run --questions q.json`.
+
+**Where next.** The other question types are in
+[One state, three typed questions](#one-state-three-typed-questions) below — the same state with a
+`--score` and a `--noul`, and the response untrimmed. From here:
+
+- repeat calls are fast: the host stays warm between calls, and the second example above loaded
+  nothing at all (`model_load_ms: 0.0`);
+- pin your own window with `--n-ctx 32768` instead of taking the box's plan;
+- `--out r.json` writes the whole response to a file, `--format typesafe` prints the adapter's shape;
+- `uv run typed-gguf doctor` if a call is unhappy: `E_CTX_TOO_SMALL` names the `--n-ctx` that fixes
+  it, and a host with no usable GPU falls back to CPU with a warning rather than failing.
+
 ### One state, three typed questions
 
 ```bash
