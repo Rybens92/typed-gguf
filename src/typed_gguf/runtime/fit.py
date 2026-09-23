@@ -21,7 +21,9 @@ Two sources, in the order SPEC 2.10 gives them:
    failed). That path always carries `W_FIT_ESTIMATED`.
 
 The plan is cached per `(model sha256, host fingerprint)` under `<data-home>/fit/`, and applied
-on load unless `--no-fit`.
+on load unless `--no-fit`. One entry holds one answer — the *policy's*: a call that carries
+explicit knobs (`n_ctx`, `kv_type`, `min_ctx`, `fit_target_mb`, `budget_bytes`, `n_seq_max`) is
+answered from scratch on the cold and the warm path (`is_policy_call`, card t_af88fa8c).
 
 **KV accounting (two numbers, on purpose).** The *planner* of E1a
 (`registry/recommend.py`) charges KV conservatively as 1 byte per element for both q8_0 and
@@ -1073,6 +1075,53 @@ def store_plan(plan: FitPlan, home: pathlib.Path | None = None) -> pathlib.Path:
     return path
 
 
+#: The `ctx_limit` labels a *policy* plan can carry (SPEC-context-v2 §5.1). Anything else in a
+#: cache entry is a caller's own answer, not the box's: `"pinned"` came from an explicit `--n-ctx`
+#: and `""` from a payload written before v2 (card t_af88fa8c).
+POLICY_LIMITS: tuple[str, ...] = ("standard", "grown", "shrunk", "window")
+
+
+def is_policy_call(*, n_ctx: int | None = None, kv_type: str | None = "auto",
+                   n_seq_max: int = DEFAULT_N_SEQ_MAX,
+                   fit_target_mb: int = DEFAULT_FIT_TARGET_MB,
+                   min_ctx: int | None = None, budget_bytes: int | None = None) -> bool:
+    """Whether a call asks the box's *policy* question — no explicit knob anywhere.
+
+    The cache key is `(model sha256, host fingerprint)` and nothing else, so the entry can hold one
+    answer: the policy's (§5.2-§5.4). `n_ctx` (§5.5), `kv_type`, `min_ctx`, `fit_target_mb`,
+    `budget_bytes` and `n_seq_max` are the caller's own words; a call that speaks any of them is
+    computed from scratch on the cold **and** the warm path, and never writes the entry either
+    (card t_af88fa8c: a hit used to answer a pinned call with the stored plan, and a pinned run
+    used to overwrite the entry a later `ask`/`run` takes its *load size* from).
+    """
+    return (n_ctx is None and kv_type in ("auto", None) and min_ctx is None
+            and budget_bytes is None and int(n_seq_max) == DEFAULT_N_SEQ_MAX
+            and int(fit_target_mb) == DEFAULT_FIT_TARGET_MB)
+
+
+def cache_entry_is_stale(model: ModelFacts, cached: FitPlan, host: HostFacts, *,
+                         n_ctx: int | None = None, kv_type: str | None = "auto",
+                         n_seq_max: int = DEFAULT_N_SEQ_MAX,
+                         fit_target_mb: int = DEFAULT_FIT_TARGET_MB,
+                         min_ctx: int | None = None,
+                         budget_bytes: int | None = None) -> bool:
+    """Whether a cache entry answers *less* than this box's policy does now (card t_af88fa8c).
+
+    A hit is a candidate, not an answer — and `replan_for_host` only ever *shrinks* (there is no
+    upward rung), so an entry written while the desktop was busy would cap every later `ask`/`run`
+    load below the policy's own answer, and `E_CTX_TOO_SMALL`'s "`--n-ctx` bigger" hint could not
+    be honoured without `--no-fit-cache`. The policy's arithmetic (`estimate_plan`) is free, so a
+    policy call recomputes when the entry sits below it — and when the entry was never a policy
+    answer at all (`ctx_limit` outside :data:`POLICY_LIMITS`; see :func:`is_policy_call`). A free
+    device that moved *down* is not stale: `replan_for_host` re-places the stored plan for it.
+    """
+    if cached.ctx_limit not in POLICY_LIMITS:
+        return True
+    now = estimate_plan(model, host, n_ctx=n_ctx, n_seq_max=n_seq_max, kv_type=kv_type,
+                        fit_target_mb=fit_target_mb, min_ctx=min_ctx, budget_bytes=budget_bytes)
+    return now.n_ctx > cached.n_ctx
+
+
 def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | None = None,
                    runtime_dir: str | os.PathLike[str] | None = None, use_cache: bool = True,
                    runner: Callable[[list[str]], str] | None = None,
@@ -1092,10 +1141,21 @@ def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | N
     plan that was honest when it was written cannot OOM the box after the desktop grew
     (card t_8cb0a05e; the fresh reading comes from the caller's `host`). A plan computed from
     fresh probe numbers was already planned against them.
+
+    The cache holds the *policy's* answer for this `(model, host)` pair, so only a call that pins
+    nothing reads or writes it: a call carrying explicit knobs is answered from its own question
+    (`is_policy_call`, card t_af88fa8c), and a policy call whose entry is below the policy's own
+    answer for the box now recomputes instead of inheriting the stale one
+    (`cache_entry_is_stale`). Repeated identical *policy* calls are still a hit.
     """
-    if use_cache and model.sha256:
+    cacheable = bool(use_cache and model.sha256 and is_policy_call(
+        n_ctx=n_ctx, kv_type=kv_type, n_seq_max=n_seq_max, fit_target_mb=fit_target_mb,
+        min_ctx=min_ctx, budget_bytes=budget_bytes))
+    if cacheable:
         cached = load_cached(model.sha256, host.fingerprint, home)
-        if cached is not None:
+        if cached is not None and not cache_entry_is_stale(
+                model, cached, host, n_ctx=n_ctx, kv_type=kv_type, n_seq_max=n_seq_max,
+                fit_target_mb=fit_target_mb, min_ctx=min_ctx, budget_bytes=budget_bytes):
             fresh = replan_for_host(model, cached, host, fit_target_mb=fit_target_mb,
                                     min_ctx=min_ctx)
             if fresh.to_dict() != cached.to_dict():
@@ -1112,7 +1172,7 @@ def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | N
                                 budget_bytes=budget_bytes, runner=runner,
                                 pinned=pinned) or preliminary
     plan = replan_for_host(model, plan, host, fit_target_mb=fit_target_mb, min_ctx=min_ctx)
-    if use_cache and model.sha256:
+    if cacheable:
         store_plan(plan, home)
     return plan
 
