@@ -677,6 +677,25 @@ def plan_device_bytes(plan: FitPlan, model: ModelFacts) -> int:
     return weights + plan.est_kv_bytes
 
 
+def _may_replace_stored(candidate: FitPlan, previous: FitPlan | None,
+                        model: ModelFacts) -> bool:
+    """May `candidate` be written into the cache where `previous` sits? (card t_176614c6(c))
+
+    The entry holds the box's *policy* answer for `(model, host)`, and every hit re-validates it
+    against the device memory free *right now* (`replan_for_host`) — so the stored plan is a
+    candidate, not a promise. A re-plan is shrink-only, which made writing *its* answer back turn a
+    busy moment into the box's permanent answer: measured live on the operator's box, a resident 4B
+    host turned the stored 36-layer grown plan into a 0-layer CPU plan, that plan was written over
+    the entry, and it stayed 0 layers after `keep stop` — every later `ask` ran the model on the
+    CPU (~20-44 s) until the entry was deleted by hand. Only a plan that asks the device for at
+    least as much as the entry it would replace may land there; the plan a call *returns* is still
+    the one this reading allows.
+    """
+    if previous is None:
+        return True
+    return plan_device_bytes(candidate, model) >= plan_device_bytes(previous, model)
+
+
 def _kv_bytes_for(model: ModelFacts, kv_type: str, n_ctx: int) -> int:
     """KV bytes for one rung of a plan (SWA-aware — see :func:`kv_bytes`)."""
     return kv_bytes(model, n_ctx, kv_type)
@@ -1238,10 +1257,13 @@ def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | N
     the rung it reports is still re-derived from the budget.
 
     A cache hit is a *candidate*, not an answer: the cached plan is re-validated against the
-    device memory free right now (`replan_for_host`) and the shrunken plan is written back, so a
+    device memory free right now (`replan_for_host`) and *that* plan is what this call gets, so a
     plan that was honest when it was written cannot OOM the box after the desktop grew
-    (card t_8cb0a05e; the fresh reading comes from the caller's `host`). A plan computed from
-    fresh probe numbers was already planned against them.
+    (card t_8cb0a05e; the fresh reading comes from the caller's `host`). The re-plan is written
+    back only when it asks the device for at least as much as the entry does
+    (`_may_replace_stored`): a re-plan is shrink-only, so writing a busy reading back would make
+    that reading the box's answer for good (card t_176614c6(c)). A plan computed from fresh probe
+    numbers was already planned against them.
 
     The cache holds the *policy's* answer for this `(model, host)` pair, so only a call that pins
     nothing reads or writes it: a call carrying explicit knobs is answered from its own question
@@ -1259,7 +1281,7 @@ def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | N
                 fit_target_mb=fit_target_mb, min_ctx=min_ctx, budget_bytes=budget_bytes):
             fresh = replan_for_host(model, cached, host, fit_target_mb=fit_target_mb,
                                     min_ctx=min_ctx)
-            if fresh.to_dict() != cached.to_dict():
+            if fresh.to_dict() != cached.to_dict() and _may_replace_stored(fresh, cached, model):
                 store_plan(fresh, home)
             return fresh
     preliminary = estimate_plan(model, host, n_ctx=n_ctx, n_seq_max=n_seq_max,

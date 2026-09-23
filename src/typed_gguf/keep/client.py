@@ -12,6 +12,11 @@ decide(key, payload, keep_alive, inline)
     nothing                  -> spawn (detached, its own session), wait until ready, send
 ```
 
+A swap waits for a decision the outgoing host is *already* running (`stop(drain=True)`, card
+t_176614c6a): SIGTERM is deferred inside the host to the end of that decision, so the answer is
+delivered and the host exits by itself — killing it at the 5 s grace destroyed an answer a caller
+was waiting for. `keep stop` stays immediate: the human typing it wants the host gone.
+
 **The fallback policy** (decided here, documented in README + SPEC 2.12):
 
 * a **transport** failure — no socket, connection refused, the host died or closed mid-request, a
@@ -133,6 +138,7 @@ class Client:
                  spawn: Callable[..., subprocess.Popen] | None = None,
                  timeout: float = REQUEST_TIMEOUT, spawn_timeout: float = SPAWN_TIMEOUT,
                  ping_timeout: float = PING_TIMEOUT, stop_grace: float = STOP_GRACE,
+                 drain_grace: float | None = None,
                  clock: Callable[[], float] = time.time) -> None:
         self.home = home
         self.host_command = tuple(host_command)
@@ -142,6 +148,14 @@ class Client:
         self.spawn_timeout = float(spawn_timeout)
         self.ping_timeout = float(ping_timeout)
         self.stop_grace = float(stop_grace)
+        #: What a **swap** may wait for a decision already in flight before the SIGKILL (card
+        #: t_176614c6(a)); `None` follows `timeout`, i.e. the same ceiling this client gives its own
+        #: requests (the production value is `REQUEST_TIMEOUT`). SIGTERM is not urgent by design —
+        #: the host's handler is deferred to the end of the decision, which is what lets the answer
+        #: be sent — so SIGKILLing at the 5 s grace killed an answer a caller was waiting for: the
+        #: live case (`t_6a330eff`, 3b) lost the in-flight answer, its client fell back inline and
+        #: *both* overlapping calls ended in `E_BACKEND_OOM`.
+        self.drain_grace = float(self.timeout if drain_grace is None else drain_grace)
         self.clock = clock
         #: every lifecycle step, in order (`spawn`, `ready`, `reuse`, `stop`, `cleanup`, `inline`).
         #: An event log is what makes "B was stopped *before* A loaded" an assertion, not a hope.
@@ -194,7 +208,10 @@ class Client:
                 # stop. A record nobody answers on is debris, and the swap must not read its pid
                 # as a resident model (card t_a4ebcd36).
                 held = self._verified_host(record)
-                report = self.stop()                 # one model at a time: free the device first
+                # one model at a time: free the device first. `drain=True` because *this* call owns
+                # the release (card t_176614c6(a)): a decision already in flight is allowed to
+                # finish and answer, instead of being SIGKILLed mid-prefill at the 5 s grace.
+                report = self.stop(drain=True)
                 if held and not report.get("stopped"):
                     raise KeepUnavailable(
                         f"spawn: the resident host (pid {record.pid}, digest {record.digest}) "
@@ -382,7 +399,7 @@ class Client:
                     "detail": f"{exc.__class__.__name__}: {exc}"}
         return {**base, **dict(reply.get("keep") or {}), "state": "running"}
 
-    def stop(self, *, grace: float | None = None) -> dict[str, Any]:
+    def stop(self, *, grace: float | None = None, drain: bool = False) -> dict[str, Any]:
         """`keep stop`: end the host, wait for the process, remove the ledger's entry.
 
         The one verb that acts on the record *verifies* it first — the module's own rule is that a
@@ -391,6 +408,12 @@ class Client:
         the host: by the next call the kernel may have handed it to somebody else (card
         t_a4ebcd36 — the re-gate watched a decoy process die on a stale record's pid). Debris is
         cleaned up, nothing is signalled, and the report says which of the two it was.
+
+        `drain=True` is the **swap**'s half (card t_176614c6(a)): a host that is *busy* (a decision
+        in flight — a ping it does not answer in `ping_timeout`) is given this client's own request
+        ceiling (`drain_grace`) to finish, answer and exit by itself, instead of the 5 s grace that
+        SIGKILLed the answer. A host that answers is ended exactly as before: `keep stop` stays the
+        verb a human types when they want the host gone now.
         """
         timeout = self.stop_grace if grace is None else float(grace)
         record = state.read_record(self.home)
@@ -409,6 +432,11 @@ class Client:
                       f"host leaves one behind) and pid {pid} was not verified as a host, so "
                       f"nothing was signalled")
         else:
+            if drain and self._busy(record):
+                # the release is ours and the host is mid-decision: wait for the answer it owes,
+                # then let its own loop exit (the same handshake `keep stop` would take)
+                timeout = self.drain_grace
+                self.events.append(("drain", pid))
             with contextlib.suppress(OSError):
                 os.kill(pid, signal.SIGTERM)
             child = self.children.get(pid)
@@ -453,6 +481,28 @@ class Client:
         if record.pid in self.children:
             return True
         return _listening(record.socket)
+
+    def _busy(self, record: state.HostRecord) -> bool:
+        """Is a decision in flight on this host right now? (the drain's question, card t_176614c6a)
+
+        The serve loop is single-threaded, so an *answered* ping proves nothing is being decided;
+        a ping that does not come back inside `ping_timeout` means the loop is inside a decision
+        (the probe connection only has to land in the listen backlog — a busy host never reads it).
+        A host that is gone or refused answers `False`: that is not a decision to wait for, it is
+        the debris path, and `stop` already told them apart (a record is a claim, not a fact).
+        """
+        try:
+            self._call(record, {"schema": host_module.REQUEST_SCHEMA, "op": "ping",
+                                "key": record.digest}, timeout=self.ping_timeout)
+        except TransportError as exc:
+            # the module's own split (`_abandon`): `refused`/`gone` = nothing is there, `timeout`/
+            # `garbled` = a host that did not answer *this* probe — a busy serve loop. (`host.read_line`
+            # turns its own read timeout into "no line", so an unanswered ping arrives here as
+            # `garbled`, not as `timeout`: both mean the loop never got to read the request.)
+            return exc.kind not in ("refused", "gone")
+        except (OSError, ValueError, json.JSONDecodeError):
+            return False
+        return False
 
     def _mark(self, body: dict[str, Any], *, served_by: str, keep_alive_s: float,
               keep: Mapping[str, Any] | None = None, fallback: str | None = None,

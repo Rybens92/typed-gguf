@@ -13,7 +13,9 @@
    single-threaded *on purpose*: requests are serialized (a queue in the listen backlog), because
    one context and one device are being shared;
 5. **exit by itself** — after `keep_alive` seconds without a request (the deadline restarts on
-   every answered request), or on `{"op": "stop"}`, or on SIGTERM. The model is freed, the socket
+   every answered request), or on `{"op": "stop"}`, or on SIGTERM, or after answering a request
+   that proved this placement cannot serve one (`UNSERVABLE_CODES`: a `ready` record over a dead
+   context is a promise the host cannot keep — card t_176614c6(b)). The model is freed, the socket
    and the record are removed, and the process ends through `runtime.teardown`'s `os._exit`
    discipline (the CLI half does that part) so a third-party ICD destructor cannot rewrite the
    exit status of a process that ran a decision.
@@ -29,6 +31,7 @@ import os
 import pathlib
 import signal
 import socket
+import sys
 import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -48,6 +51,13 @@ MAX_LINE = 1 << 20
 IDLE_POLL = 0.25
 #: The listen backlog: how many clients may queue behind the one being served.
 LISTEN_BACKLOG = 8
+#: The typed codes that mean **this host cannot serve its own load**: the model is resident, but the
+#: device refuses the allocation every request needs (`E_BACKEND_OOM` — the plan fitted the weights
+#: and its KV estimate, the per-request context did not). A host that keeps a `ready` record over
+#: that answers *every* future request with the same instant refusal, so it leaves the ledger
+#: instead and the next call cold-starts (card t_176614c6(b), from the live finding in t_6a330eff:
+#: `ready`, 36 layers, and ~170-190 ms `E_BACKEND_OOM` per request until a human typed `keep stop`).
+UNSERVABLE_CODES: frozenset[str] = frozenset({"E_BACKEND_OOM"})
 
 
 @dataclass(frozen=True)
@@ -162,6 +172,9 @@ class Server:
         self.requests = 0
         self.last_used: float | None = None
         self.stopping = False
+        #: The typed code that proved this placement cannot serve a request ("" while it can). Kept
+        #: for the log line below: the record is exactly what must *not* outlive such a host.
+        self.unservable = ""
         self.started_at = self.clock()
         self.loaded_at = self.started_at
 
@@ -192,6 +205,11 @@ class Server:
                     break
                 with conn:
                     op = self._serve_connection(conn)
+                if self.stopping:
+                    # SIGTERM during the decision, or a decision that proved this host cannot serve
+                    # (card t_176614c6(b)): the answer above is already out, and nothing is left to
+                    # report — no further record write, no new countdown, just the exit path.
+                    break
                 if op == "stop":
                     self.stopping = True
                     break
@@ -244,6 +262,16 @@ class Server:
             with contextlib.suppress(ValueError, OSError):    # not the main thread / not allowed
                 signal.signal(signum, stop)
 
+    @staticmethod
+    def _warn(message: str) -> None:
+        """One line into this host's own log (`<digest>.log`) — the only post-mortem it leaves.
+
+        The *record* cannot carry it: leaving the ledger is the point (card t_176614c6(b)). The log
+        is the file the spawning client already quotes when a host cannot start, so a human asking
+        "why did the warm host vanish?" finds the reason in it.
+        """
+        print(f"keep: {message}", file=sys.stderr, flush=True)
+
     # ------------------------------------------------------------------ one request
     def _serve_connection(self, conn: socket.socket) -> str:
         try:
@@ -288,7 +316,17 @@ class Server:
         try:
             body = self.loaded.decide(payload)
         except TypedGgufError as exc:
-            return _error(exc.code, str(exc), exc.exit_code), "decide"
+            code = str(getattr(exc, "code", "E_INTERNAL"))
+            if code in UNSERVABLE_CODES:
+                # The request's own answer is the typed error; the *host* must not survive it
+                # (card t_176614c6(b)): the loop breaks right after this reply, `_cleanup` frees
+                # the model and drops the record, and the next call cold-starts instead of meeting
+                # the same instant refusal again.
+                self.stopping = True
+                self.unservable = code
+                self._warn(f"{code}: this placement cannot serve a request ({exc}); leaving the "
+                           f"ledger — the next call will cold-start")
+            return _error(code, str(exc), exc.exit_code), "decide"
         except Exception as exc:                     # noqa: BLE001 - the CLI must not wedge
             return _error("E_INTERNAL", f"{exc.__class__.__name__}: {exc}", 4), "decide"
         return {"ok": True, "response": body, "keep": self.status()}, "decide"
