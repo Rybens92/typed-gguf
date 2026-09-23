@@ -22,6 +22,7 @@ operator's bundle, and injected host facts.
 """
 from __future__ import annotations
 
+import dataclasses
 import json
 import pathlib
 from types import SimpleNamespace
@@ -121,6 +122,28 @@ def test_the_context_ladder_is_kv_then_ctx_then_layers_then_cpu_only() -> None:
     ]
     assert rungs[-1].n_gpu_layers == 0
     assert len({(r.kv_type, r.n_ctx, r.n_gpu_layers) for r in rungs}) == len(rungs)
+
+
+def test_the_ladder_reads_a_negative_layer_count_as_every_layer_and_still_reaches_zero() -> None:
+    """The layer side of the ladder: `-1` means all of them, thin plans still end at CPU-only.
+
+    Three pins the card's Tier-M sweep found surviving on `fit.context_ladder` (mutants 43, 77 and
+    83): `planned_layers` really consulting the model, the `layers > 0` guard's thin end, and
+    `max(1, layers // 2)`.
+    """
+    model = tiny_model()
+    plan = fit.estimate_plan(model, gpu_host(), n_ctx=32768, n_seq_max=3)
+
+    all_layers = dataclasses.replace(plan, n_gpu_layers=-1)     # llama.cpp's "offload everything"
+    walked = [r.n_gpu_layers for r in fit.context_ladder(all_layers, model, n_ctx=32768,
+                                                         min_ctx=4096, kv_type="f16")]
+    assert walked == [model.n_layer] * 5 + [model.n_layer // 2, 0]
+
+    for thin, expected in ((3, [3, 1, 0]), (1, [1, 0]), (0, [0])):
+        rungs = fit.context_ladder(dataclasses.replace(plan, n_gpu_layers=thin), model,
+                                   n_ctx=4096, min_ctx=4096, kv_type="f16", degrade=True)
+        assert list(dict.fromkeys(r.n_gpu_layers for r in rungs)) == expected
+        assert rungs[-1].n_gpu_layers == 0
 
 
 def test_the_context_ladder_never_walks_a_rung_twice_or_upwards() -> None:
