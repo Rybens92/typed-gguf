@@ -336,7 +336,10 @@ label-rendering codes) — extra codes only, never a redefinition of one above.
 Warnings: `W_LOW_MASS`, `W_LOW_CONFIDENCE`, `W_UNKNOWN_OPTION`, `W_TRUNCATED_STATE`,
 `W_KV_TYPE_DOWNGRADE`, `W_VULKAN_WARMUP`, `W_TEMPLATE_FALLBACK`, `W_FIT_ESTIMATED`, `W_FIT_DOWNGRADE`,
 `W_BACKEND_OOM`, `W_BACKEND_MISMATCH`, `W_CUE_REFUSED`, `W_JSON_EMPTY_VALUE`, `W_JSON_WRONG_FIELD`,
-`W_ESCALATED` (`errors.WARNING_CODES`).
+`W_ESCALATED`, `W_CTX_BELOW_STANDARD` (`errors.WARNING_CODES`). The last one is v2
+(2026-09-23, `docs/SPEC-context-v2.md` §5.4): the fit plan had to size the context below the
+standard 32 768 because the box could not hold it — valid and loadable, the numbers ride in the
+plan's `notes`.
 
 ### 2.6 TypeSafe adapter (`--format typesafe`)
 
@@ -668,10 +671,19 @@ end-to-end run on the pinned default model.
 - **A-E1c-3** Post-cue degenerate output (a model that would start reasoning after the cue) never
   affects the readout: answers come from the cue position, proven with a synthetic logits fixture.
 - **A-E1c-4** `typed-gguf fit` returns `{n_gpu_layers, n_ctx, kv_type, n_seq_max, est_weights_bytes,
-  est_kv_bytes, est_total_bytes, backend, source}`; `source` is `llama-fit-params` when the binary ran,
-  `estimate` otherwise (`W_FIT_ESTIMATED`); cached per (model sha, host fingerprint).
+  est_kv_bytes, est_total_bytes, backend, source, standard_n_ctx, ctx_limit}`; `source` is
+  `llama-fit-params` when the binary ran, `estimate` otherwise (`W_FIT_ESTIMATED`); cached per
+  (model sha, host fingerprint). **v2 (2026-09-23, `docs/SPEC-context-v2.md`):** without `--n-ctx`
+  the plan aims at the standard `n_ctx = 32 768`, grows to the largest context the box holds at the
+  top rung that reaches it (bounded by the model's own window), and shrinks below the standard with
+  `W_CTX_BELOW_STANDARD` when nothing above the floor (`--fit-ctx`) fits; `--n-ctx N` is a pin
+  (`min(N, cap)`, never grown) and `ctx_limit` reports which of these happened.
 - **A-E1c-5** Fit plan applied on load unless `--no-fit`; over-budget plans downgrade kv_type first
-  (`f16 → q8_0 → q4_0`) with `W_KV_TYPE_DOWNGRADE`.
+  (`f16 → q8_0 → q4_0`) with `W_KV_TYPE_DOWNGRADE`. **v2:** with a plan applied the *load* uses the
+  plan's `n_ctx` unless the request pins `options.n_ctx` (then `min(pin, plan.n_ctx)`); the plan
+  stays the request ceiling and a request over the *loaded* context still raises `E_CTX_TOO_SMALL`
+  (never a truncation). The KV estimate models sliding-window attention (`window + n_ubatch` cells
+  on the SWA layers) and is byte-identical to the all-layer formula for models without a window.
 - **A-E1c-6** The fit plan's estimate is cross-checked against the measured load RSS within ±20%
   **[target]**.
 - **A-E1c-7** Equivalence (A-E1b-2) holds for the hybrid `qwen35` **and** the default `spark2_5`

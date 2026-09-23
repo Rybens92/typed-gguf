@@ -1,0 +1,4 @@
+# cmd: uv run typed-gguf ask --state @state_6k.txt --choice 'area=…:billing|technical' --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --n-ctx 4096 --no-fit-cache --keep-alive 0 --threads 4
+# state_6k.txt = 24 454 bytes = 5 988 tokens (llama-tokenize)
+# exit 3 (the pre-v2 4 096 default is exactly this plan: fit_before_default_4096.json)
+error: E_CTX_TOO_SMALL: the prompt needs 6133 tokens (prefix 6051 + longest question 50 + margin 32) but the context holds 4096; this host is loaded with n_ctx=4096; pass --n-ctx 6133 to reload bigger

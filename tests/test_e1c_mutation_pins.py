@@ -486,8 +486,12 @@ def test_the_binary_plan_sums_the_table_and_notes_where_it_came_from() -> None:
     assert plan.est_kv_bytes == 512 * MIB                 # the binary's own context number
     assert plan.est_total_bytes == (4096 + 512 + 128) * MIB
     assert plan.warnings == ()
-    assert plan.notes == ("memory table from llama-b11026-bin-ubuntu-x64-cpu/llama-fit-params "
-                          "(model 4096 MiB, context 512 MiB, compute 128 MiB)",)
+    # v2 (SPEC-context-v2 §5.3.3): the table note stays first, the policy's arithmetic note joins it
+    assert plan.notes[0] == ("memory table from llama-b11026-bin-ubuntu-x64-cpu/llama-fit-params "
+                             "(model 4096 MiB, context 512 MiB, compute 128 MiB)")
+    assert plan.standard_n_ctx == fit.STANDARD_N_CTX == 32768
+    assert plan.ctx_limit == "shrunk"                 # the fixture's 32768 window is not reached
+    assert any(note.startswith("n_ctx shrunk 32768 -> ") for note in plan.notes[1:])
     assert plan.n_gpu_layers == 0 and plan.n_ctx == 4096 and plan.n_seq_max == 8
     assert plan.backend == "cpu" and plan.kv_type == "f16"
 
@@ -634,10 +638,11 @@ def test_fit_plan_round_trips_through_its_own_json() -> None:
     assert isinstance(restored.warnings, tuple) and "W_FIT_ESTIMATED" in restored.warnings
 
 
-def test_fit_fields_are_exactly_the_nine_documented_names() -> None:
+def test_fit_fields_are_exactly_the_documented_names() -> None:
+    """AC-11 (SPEC-context-v2 §5.1): the nine original names, then the two v2 policy fields."""
     assert tuple(fit.FIT_FIELDS) == ("n_gpu_layers", "n_ctx", "kv_type", "n_seq_max",
                                      "est_weights_bytes", "est_kv_bytes", "est_total_bytes",
-                                     "backend", "source")
+                                     "backend", "source", "standard_n_ctx", "ctx_limit")
 
 
 def test_load_cached_rejects_a_foreign_schema_version(tmp_path: pathlib.Path) -> None:

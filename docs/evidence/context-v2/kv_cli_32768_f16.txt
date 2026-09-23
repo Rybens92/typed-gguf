@@ -1,0 +1,11 @@
+# cmd: <runtime>/llama-cli -m /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf -c 32768 -b 32768 -ub 512 -ngl 99 -p hi -n 1 \
+#        --no-warmup -v   (b11026-linux-x64-vulkan; the run then waits on stdin — the load
+#        lines below are what it proves, and it was stopped)
+# AC-6 (32768, f16) = 1321205760 B = 1260 MiB = 1152.00 (non-SWA) + 108 MiB (SWA, 1024 cells)
+# 0.00.464.800 I llama_kv_cache_iswa: creating non-SWA KV cache, size = 32768 cells
+
+# 0.00.464.957 I llama_kv_cache:    Vulkan0 KV buffer size =     0.00 MiB
+
+# 0.00.464.963 I llama_kv_cache: size = 1152.00 MiB ( 32768 cells,   9 layers,  1/1 seqs), K (f16):  576.00 MiB, V (f16):  576.00 MiB
+
+# 0.00.464.964 I llama_kv_cache_iswa: creating     SWA KV cache, size = 1024 cells

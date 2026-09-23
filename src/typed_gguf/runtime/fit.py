@@ -541,7 +541,8 @@ def estimate_plan(model: ModelFacts, host: HostFacts, *, n_ctx: int | None = Non
     ladder = list(KV_DOWNGRADE_ORDER if kv_type in ("auto", None) else
                   KV_DOWNGRADE_ORDER[KV_DOWNGRADE_ORDER.index(kv_type):])
     pinned = n_ctx is not None
-    target = max(1, int(n_ctx)) if pinned else policy_target(model)
+    requested = max(int(n_ctx), floor) if pinned else 0
+    target = policy_target(model) if not pinned else requested
     if pinned and window is not None:
         target = min(target, window)
     warnings: list[str] = []
@@ -554,7 +555,7 @@ def estimate_plan(model: ModelFacts, host: HostFacts, *, n_ctx: int | None = Non
             cap = min(cap, window)
         if cap >= target:
             chosen_kv = candidate
-            chosen_ctx = cap if not pinned else min(int(n_ctx), cap)
+            chosen_ctx = cap if not pinned else min(requested, cap)
             downgraded = index > 0
             break
         if index == len(ladder) - 1:

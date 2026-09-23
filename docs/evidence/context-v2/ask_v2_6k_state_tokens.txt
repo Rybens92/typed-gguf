@@ -1,0 +1,5 @@
+# the AC-16 request's state, tokenized with the bundle's own tokenizer
+# cmd: <runtime>/llama-tokenize -m /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf -f state_6k.txt --ids
+tokens: 5988   (state_6k.txt is 24 454 bytes of incident reports)
+first ids: [50132, 3678, 220, 29, 29, 30, 404, 7242, 67, 31, 25, 645,
+last ids:  220, 30, 32, 34, 1505, 95375, 410, 275, 40256, 3593, 27, 198]

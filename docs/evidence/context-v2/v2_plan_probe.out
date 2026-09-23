@@ -1,0 +1,23 @@
+model: {'path': '/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf', 'arch': 'spark2_5', 'n_ctx_train': 1048576, 'weights_MiB': 4167.2, 'layers': 36, 'kv_head': 4, 'key': 256, 'value': 256}
+swa: {'window': 512, 'n_swa_layers': 27, 'n_global_layers': 9, 'has_swa': True}
+host: {'vram_free_MiB': 6673, 'budget_MiB': 5649}
+
+KV MiB at n_ctx (the pre-v2 all-layer formula vs the SWA-aware one):
+   n_ctx  f16_today f16_real  q8_0_today q8_0_real  q4_0_today q4_0_real
+    4096       576.0      252.0       306.0      133.9       162.0       70.9
+   32768      4608.0     1260.0      2448.0      669.4      1296.0      354.4
+   65536      9216.0     2412.0      4896.0     1281.4      2592.0      678.4
+  131072     18432.0     4716.0      9792.0     2505.4      5184.0     1326.4
+
+largest n_ctx this box holds per KV (policy target 32768, window cap applied):
+    f16: raw   24513  window-capped   24513  (total 5649 MiB of 5649 MiB)
+   q8_0: raw   48853  window-capped   48853  (total 5649 MiB of 5649 MiB)
+   q4_0: raw   95008  window-capped   95008  (total 5649 MiB of 5649 MiB)
+
+v2 semantics (executed by this checkout):
+  n_ctx   48853  kv_type  q8_0  standard_n_ctx 32768  ctx_limit 'grown'  warnings ['W_KV_TYPE_DOWNGRADE', 'W_FIT_ESTIMATED']   <- no flags
+  n_ctx   32768  kv_type  q8_0  standard_n_ctx 32768  ctx_limit 'pinned'  warnings ['W_KV_TYPE_DOWNGRADE', 'W_FIT_ESTIMATED']   <- --n-ctx 32768
+  n_ctx   65536  kv_type  q4_0  standard_n_ctx 32768  ctx_limit 'pinned'  warnings ['W_KV_TYPE_DOWNGRADE', 'W_FIT_ESTIMATED']   <- --n-ctx 65536
+  n_ctx    8192  kv_type   f16  standard_n_ctx 32768  ctx_limit 'pinned'  warnings ['W_FIT_ESTIMATED']   <- --n-ctx 8192
+
+note: a report, not a receipt — the live `fit --json` runs are in docs/evidence/context-v2/. Free device memory moves between runs (6673 MiB here).

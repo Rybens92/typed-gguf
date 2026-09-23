@@ -297,7 +297,10 @@ exits itself and frees the device. Measured on the 4B with the pinned Vulkan bun
 - The key. A host serves one identity: the resolved model path plus its SHA (the registry's
   recorded sha256, else the file's own size+mtime) plus the placement-affecting options (`backend`,
   `n_ctx`, `kv_type`, `n_seq_max`, `threads`, fit flags). A request with a different key gets a
-  swap, never a wrong answer; `keep status` prints the key it is holding.
+  swap, never a wrong answer; `keep status` prints the key it is holding. `n_ctx` in the key is the
+  *request's* option (`--n-ctx`), not the plan's context: with nothing pinned the load size follows
+  the plan, so two same-key calls share one host and the response's `engine.n_ctx` reports what was
+  really loaded (SPEC-context-v2 §6.2).
 - Who answered is in the response: `engine.keep.served_by` is `"host"` or `"inline"`, with the
   host's pid, its one-time `model_load_ms`, the idle time left, and, when a host could not be had,
   the named reason it fell back (`engine.keep.fallback`). The call that spawned the host reports
@@ -332,7 +335,7 @@ have their own platform handling but are not exercised by that job.
 | `typed-gguf init [--backend auto\|cpu\|vulkan\|cuda\|metal] [--dry-run]` | downloads, verifies, extracts and probes the pinned llama.cpp bundle; `--dry-run` prints the plan |
 | `typed-gguf doctor [--json]` | checks the bundle (files, symbols, build, `llama-fit-params`, backends, accelerator, recorded SHA) and the registry; exit 0 ok / 2 warnings / 1 broken |
 | `typed-gguf models search <q>` / `pull <repo[:quant]>` / `use <alias>` / `ls [--json]` / `rm <alias>` / `verify [alias]` / `recommend-quant [--vram GiB]` | the model registry: resume + SHA-256 verified downloads, the model author's license recorded with the file, and a quant recommendation for a VRAM budget |
-| `typed-gguf fit [<model>] [--json]` | the fit plan for this host (`n_gpu_layers`, `n_ctx`, `kv_type`, `n_seq_max`, `est_*` bytes), cached per (model SHA-256, host fingerprint) and applied on load unless `--no-fit` |
+| `typed-gguf fit [<model>] [--json]` | the fit plan for this host (`n_gpu_layers`, `n_ctx` — standard 32 768, grown into the box's room, shrunk with `W_CTX_BELOW_STANDARD`; `kv_type`, `n_seq_max`, `standard_n_ctx`, `ctx_limit`, `est_*` bytes), cached per (model SHA-256, host fingerprint) and applied on load unless `--no-fit` |
 | `typed-gguf run --questions q.json [--state …] [--format native\|typesafe] [--out r.json] [--keep-alive <dur\|0>]` | a whole request from a file |
 | `typed-gguf ask --state … --choice/--score/--noul "id=instruction:labels" [--keep-alive <dur\|0>]` | the same engine from the command line |
 | `typed-gguf bench --suite latency\|throughput\|quality\|calibration\|determinism --model <path.gguf>` | reproduces the tables in `docs/BENCHMARKS.md`; never touches the registry and never opens a socket |
@@ -365,6 +368,20 @@ applied on load: `run`/`ask` honour it unless `--no-fit` is passed. Over budget,
 `f16 → q8_0 → q4_0` (each step warns `W_KV_TYPE_DOWNGRADE`) before the context shrinks; the
 estimate is cross-checked against the memory the process actually used at load, within ±20 % on
 this box (`docs/TEMPLATES.md` §5).
+
+**Context sizing v2** (`docs/SPEC-context-v2.md`, ratified 2026-09-23). With no `--n-ctx` a plan
+aims at the standard **32 768** tokens, **grows** to the largest context this box holds at the top
+KV rung that reaches it (never above the model's own window), and **shrinks** — KV ladder first,
+then context below the standard with `W_CTX_BELOW_STANDARD` — when it cannot. `fit --json` carries
+`standard_n_ctx` and `ctx_limit` (`standard` / `grown` / `shrunk` / `pinned` / `window`) and the
+human output names both, e.g. `n_ctx: 49763 (standard 32768, grown from the box's free memory)`.
+The KV estimate models sliding-window attention (`window + n_ubatch` cells on the SWA layers), so a
+windowed model is no longer charged ~4× its real cache — models without a window keep the previous
+formula byte for byte. With a plan applied, `run`/`ask` **load** at the plan's context unless the
+request pins `--n-ctx` (then `min(pin, plan)`, and the pin is what re-keys a warm host); `--no-fit`
+restores the `prefix + question + margin` sizing. The request-fit guard is unchanged: a request
+that needs more than the loaded context fails with `E_CTX_TOO_SMALL` naming the reload handle
+(`--n-ctx`), never a truncation.
 
 ## Limitations and known issues
 
