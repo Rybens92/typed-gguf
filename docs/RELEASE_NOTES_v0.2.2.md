@@ -306,7 +306,7 @@ the default model's authors (Apache-2.0).
 
 - **Offline suite, the shape CI runs** — `env -u PYTHONPATH TYPED_GGUF_TEST_BLOCK_NET=1
   TYPED_GGUF_BENCH_RUNTIME_DIR=<offline bundle> uv run --extra dev pytest -q -rs --timeout=120` →
-  **1 640 passed, 57 skipped, 0 failed** in 46 s. The skips are the live cases that want a GPU, a
+  **1 640 passed, 57 skipped, 0 failed** in 43 s. The skips are the live cases that want a GPU, a
   model file or `--run-network`; nothing in the suite touches the network. The 29 tests between
   v0.2.1's 1 611 and this build's 1 640 are the offline pins of the two fixes above — the
   concurrent-cold-spawn race, the race gate's bounded wait, and the context ladder's own rung walk.
