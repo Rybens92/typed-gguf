@@ -1,0 +1,191 @@
+{
+  "model": "Spark-X2.5-4B-Q8_0",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "vulkan",
+    "backend_source": "bundle",
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan",
+    "readout": "sequence",
+    "cue": "json_instructed",
+    "chat_format": {
+      "kind": "role_split",
+      "question_turn": "user",
+      "contract": "question",
+      "prefix_chars": 926,
+      "dropped": "\n"
+    },
+    "kv_unified": true,
+    "n_ctx": 4096,
+    "n_seq_max": 8,
+    "prefix_tokens": 224,
+    "state_id": "sha256:3214b8330ef09f29d0e75451ee95d3645cd262f0810717d978cd325293e4a4ba",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "spark2_5",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "q4_0",
+    "n_gpu_layers": 0,
+    "placement": {
+      "note": "no layers offloaded: the weights stay on the host (n_gpu_layers=0, kv_type=q4_0)",
+      "n_gpu_layers": 0,
+      "kv_type": "q4_0",
+      "degraded": false,
+      "attempts": [],
+      "warnings": [],
+      "cpu_only": false
+    },
+    "fit": {
+      "n_gpu_layers": 0,
+      "n_ctx": 4096,
+      "kv_type": "q4_0",
+      "n_seq_max": 8,
+      "est_weights_bytes": 4369416192,
+      "est_kv_bytes": 74317824,
+      "est_total_bytes": 5152571392,
+      "backend": "cpu",
+      "source": "llama-fit-params",
+      "standard_n_ctx": 32768,
+      "ctx_limit": "shrunk",
+      "warnings": [
+        "W_KV_TYPE_DOWNGRADE",
+        "W_CTX_BELOW_STANDARD",
+        "W_FIT_DOWNGRADE"
+      ],
+      "notes": [
+        "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 4167 MiB, context 252 MiB, compute 676 MiB)",
+        "n_ctx shrunk 32768 -> 4096 to fit the budget (0 MiB); raise --fit-target, lower --fit-ctx or use a smaller quant",
+        "device memory bound: offloading 0/36 layers within 0 MiB (--fit-target 1024 MiB, 414 MiB free of 8192 MiB)"
+      ],
+      "arch": "spark2_5",
+      "model_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+      "host_fingerprint": "eb9f25a70307873f",
+      "budget_bytes": 0,
+      "created_at": "2026-09-23T18:22:54Z",
+      "schema": "typed_gguf.fit/v1"
+    },
+    "escalations": {
+      "enabled": false,
+      "limit": 0,
+      "threshold": 0.5,
+      "target": null,
+      "count": 0,
+      "decisions": [],
+      "skipped": []
+    }
+  },
+  "answers": {
+    "ship": {
+      "type": "choice",
+      "choice": "hold",
+      "probabilities": {
+        "ship": 0.00259673,
+        "hold": 0.966895,
+        "rollback": 0.0305083
+      },
+      "confidence": 0.950342,
+      "coverage": 0.999966,
+      "reliability": "ok",
+      "cue": {
+        "refused": false,
+        "token": 7988,
+        "closer": null,
+        "mass": 0.996302,
+        "verdict": "answered",
+        "next": null
+      },
+      "decode_steps": 4
+    },
+    "soak": {
+      "type": "score",
+      "score": 1.43199,
+      "probabilities": {
+        "0": 0.413731,
+        "1": 0.0415076,
+        "2": 0.28375,
+        "3": 0.221058,
+        "4": 0.0399523
+      },
+      "confidence": 0.267164,
+      "legend": {
+        "0": "0",
+        "1": "0.25",
+        "2": "0.5",
+        "3": "0.75",
+        "4": "1"
+      },
+      "coverage": 0.999996,
+      "reliability": "ok",
+      "cue": {
+        "refused": false,
+        "token": 29,
+        "closer": null,
+        "mass": 0.41373,
+        "verdict": "answered",
+        "next": null
+      },
+      "decode_steps": 5
+    },
+    "green": {
+      "type": "noul",
+      "noul": 0.00147733,
+      "probabilities": {
+        "yes": 0.00147733,
+        "no": 0.998523
+      },
+      "coverage": 0.99999,
+      "reliability": "ok",
+      "cue": {
+        "refused": false,
+        "token": 1643,
+        "closer": null,
+        "mass": 0.998513,
+        "verdict": "answered",
+        "next": null
+      },
+      "decode_steps": 2
+    }
+  },
+  "usage": {
+    "input_tokens": 431,
+    "output_tokens": 11,
+    "questions": 3,
+    "forks": 10,
+    "prefill_tokens": 224,
+    "decode_steps": 11,
+    "waves": 4
+  },
+  "timings": {
+    "model_load_ms": 703.652,
+    "prefill_ms": 381.144,
+    "questions_ms": 6865.22,
+    "total_ms": 7260.6
+  },
+  "warnings": [],
+  "calibrated": false,
+  "calibration": {
+    "source": "",
+    "applied": false,
+    "model": null,
+    "params_hash": "",
+    "temperatures": {},
+    "confidence_modes": {},
+    "accepted_types": []
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "model": "Spark-X2.5-4B-Q8_0",
+  "path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "n_gpu_layers": 36,
+  "n_ctx": 47621,
+  "kv_type": "q8_0",
+  "n_seq_max": 8,
+  "est_weights_bytes": 4724883456,
+  "est_kv_bytes": 992771712,
+  "est_total_bytes": 6066830976,
+  "backend": "cpu",
+  "source": "llama-fit-params",
+  "standard_n_ctx": 32768,
+  "ctx_limit": "grown",
+  "warnings": [
+    "W_KV_TYPE_DOWNGRADE"
+  ],
+  "notes": [
+    "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 4506 MiB, context 1791 MiB, compute 333 MiB)",
+    "n_ctx 32768 -> 47621: the box holds more (fit-target 1024 MiB kept free, kv_type q8_0)"
+  ],
+  "arch": "spark2_5",
+  "model_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+  "host_fingerprint": "eb9f25a70307873f",
+  "budget_bytes": 5846859776,
+  "created_at": "2026-09-23T18:22:48Z",
+  "schema": "typed_gguf.fit/v1",
+  "host": {
+    "backend": "cpu",
+    "ram_bytes": 33548627968,
+    "vram_bytes": 8589934592,
+    "vram_free_bytes": 6920601600,
+    "n_cpu": 24,
+    "fingerprint": "eb9f25a70307873f"
+  },
+  "cache": "/var/home/rybens/.local/share/typed-gguf/fit/5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2.eb9f25a70307873f.json"
+}
