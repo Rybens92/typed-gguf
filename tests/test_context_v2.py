@@ -170,6 +170,28 @@ def test_ac9_the_binary_path_below_the_standard_carries_the_same_warning() -> No
     assert "W_CTX_BELOW_STANDARD" not in pinned.warnings
 
 
+def test_ac9_the_binary_path_at_exactly_the_standard_carries_no_warning() -> None:
+    """§5.4 on the *table* path at its boundary: the rule is *below* the standard, not *at* it.
+
+    `plan_for_model` reaches this shape on a roomy box — the policy's own 32 768 handed to the
+    table path with `pinned=False` — and `n_ctx == policy_target(model) ==` the standard must stay
+    warning-free; one token less must warn. Reading the same line as `<=` would flag every
+    standard-sized plan (mutation gap at `fit.py:1001`, receipt
+    `docs/evidence/context-v2/mutation.md`)."""
+    model = swa_model()
+    table = "Host 4096 512 128\n"                       # the table shape the E1c pins use
+    assert fit.policy_target(model) == fit.STANDARD_N_CTX  # the boundary *is* the target
+    at_standard = fit.plan_from_binary(model, BOX, table=table, n_ctx=fit.STANDARD_N_CTX,
+                                       n_seq_max=8, runtime_dir=None, budget_bytes=budget(BOX))
+    assert at_standard.n_ctx == fit.STANDARD_N_CTX == 32768
+    assert at_standard.ctx_limit == "standard"
+    assert "W_CTX_BELOW_STANDARD" not in at_standard.warnings
+    one_below = fit.plan_from_binary(model, BOX, table=table, n_ctx=fit.STANDARD_N_CTX - 1,
+                                     n_seq_max=8, runtime_dir=None, budget_bytes=budget(BOX))
+    assert one_below.ctx_limit == "shrunk"
+    assert "W_CTX_BELOW_STANDARD" in one_below.warnings
+
+
 def test_ac4_a_plan_the_weights_alone_overrun_is_still_returned_with_the_note() -> None:
     """§5.4: `insufficient` fires unchanged; v2 does not turn it into an exception."""
     model = swa_model()
