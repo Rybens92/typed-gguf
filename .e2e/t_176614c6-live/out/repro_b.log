@@ -1,0 +1,18 @@
+=== t0 21:02:58 quiet start
+no host was running (no host)
+--- smi: 1244 MiB, 6647 MiB
+=== t1 21:02:58 the 4B host becomes resident (36 layers)
+exit=0 wall_ms=17114 smi=5334 MiB, 2558 MiB
+=== t2 21:03:16 the card is taken (hog holds 2200 MiB for 120 s)
+92138, 4072 MiB
+hog: exit=1 smi=5334 MiB, 2558 MiB
+=== t3 21:03:18 request 1 on the 'ready' host
+exit=0 wall_ms=1166
+
+=== t4 21:03:19 request 2 on the same 'ready' host
+exit=0 wall_ms=1281
+
+=== t5 21:03:20 cleanup
+stopped the warm host (pid 92138) and cleaned up its record
+--- smi after: 1255 MiB, 6636 MiB
+=== t6 21:03:22 done

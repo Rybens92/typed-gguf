@@ -1,0 +1,55 @@
+{
+  "schema": "typed_gguf.keep.status/v1",
+  "state": "running",
+  "pid": 90024,
+  "socket": "/work/t176614c6-live/home/keep/bd9f9cb5f62a8f0a.sock",
+  "spec": "/work/t176614c6-live/home/keep/bd9f9cb5f62a8f0a.spec.json",
+  "log": "/work/t176614c6-live/home/keep/bd9f9cb5f62a8f0a.log",
+  "model": "Ling-3.0-tiny-Q5_K_M",
+  "model_path": "/var/home/rybens/.hermes/models/Ling-3.0-tiny-Q5_K_M.gguf",
+  "key": {
+    "model_path": "/var/home/rybens/.hermes/models/Ling-3.0-tiny-Q5_K_M.gguf",
+    "model_sha": "stat:5635443616:1788473147415654269",
+    "backend": "auto",
+    "n_ctx": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "threads": null,
+    "fit": true,
+    "fit_target_mb": null,
+    "fit_ctx": null,
+    "fit_cache": true
+  },
+  "key_digest": "bd9f9cb5f62a8f0a",
+  "keep_alive_s": 600.0,
+  "uptime_s": 66.826,
+  "loaded_s": 56.047,
+  "idle_left_s": 599.828,
+  "requests": 1,
+  "model_load_ms": 3535.213486997236,
+  "placement": {
+    "note": "fit plan: 21 layer(s) offloaded, kv_type=q4_0",
+    "n_gpu_layers": 21,
+    "kv_type": "q4_0",
+    "degraded": false,
+    "attempts": [],
+    "warnings": [],
+    "cpu_only": false
+  },
+  "devices": {
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan"
+  },
+  "version": "",
+  "error": null,
+  "loaded_at": 1790197115.951456
+}

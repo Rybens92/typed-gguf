@@ -1,0 +1,55 @@
+{
+  "schema": "typed_gguf.keep.status/v1",
+  "state": "running",
+  "pid": 98913,
+  "socket": "/work/t176614c6-live/home/keep/674075b9cf1676ec.sock",
+  "spec": "/work/t176614c6-live/home/keep/674075b9cf1676ec.spec.json",
+  "log": "/work/t176614c6-live/home/keep/674075b9cf1676ec.log",
+  "model": "Spark-X2.5-4B-Q8_0",
+  "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "key": {
+    "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+    "model_sha": "stat:4375021152:1788794522828377135",
+    "backend": "auto",
+    "n_ctx": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "threads": null,
+    "fit": true,
+    "fit_target_mb": null,
+    "fit_ctx": null,
+    "fit_cache": true
+  },
+  "key_digest": "674075b9cf1676ec",
+  "keep_alive_s": 600.0,
+  "uptime_s": 15.747,
+  "loaded_s": 10.356,
+  "idle_left_s": 599.861,
+  "requests": 1,
+  "model_load_ms": 1368.8087269983953,
+  "placement": {
+    "note": "fit plan: 36 layer(s) offloaded, kv_type=q8_0",
+    "n_gpu_layers": 36,
+    "kv_type": "q4_0",
+    "degraded": false,
+    "attempts": [],
+    "warnings": [],
+    "cpu_only": false
+  },
+  "devices": {
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan"
+  },
+  "version": "",
+  "error": null,
+  "loaded_at": 1790198123.6774838
+}

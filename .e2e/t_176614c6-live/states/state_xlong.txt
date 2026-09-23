@@ -1,0 +1,306 @@
+Support-desk note 1: the desk handled 7 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 2: the configuration store recorded 4126 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 3: the node pool held 6 hosts at 31 % average CPU and 44 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 12 ms.
+
+Metric sweep 4: the invoices route kept serving 1348 requests per minute with a p50 of 114 ms and a p99 of 334 ms; the saturation gauge on the edge stayed at 35 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 5: the desk handled 6 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 6: the configuration store recorded 4178 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 7: the node pool held 7 hosts at 35 % average CPU and 48 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 11 ms.
+
+Metric sweep 8: the invoices route kept serving 1496 requests per minute with a p50 of 118 ms and a p99 of 338 ms; the saturation gauge on the edge stayed at 32 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 9: the desk handled 10 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 10: the configuration store recorded 4230 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 11: the node pool held 8 hosts at 28 % average CPU and 52 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 10 ms.
+
+Metric sweep 12: the invoices route kept serving 1644 requests per minute with a p50 of 113 ms and a p99 of 342 ms; the saturation gauge on the edge stayed at 36 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 13: the desk handled 9 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 14: the configuration store recorded 4282 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 15: the node pool held 6 hosts at 32 % average CPU and 43 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 9 ms.
+
+Metric sweep 16: the invoices route kept serving 1792 requests per minute with a p50 of 117 ms and a p99 of 346 ms; the saturation gauge on the edge stayed at 33 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 17: the desk handled 8 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 18: the configuration store recorded 4334 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 19: the node pool held 7 hosts at 36 % average CPU and 47 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 13 ms.
+
+Metric sweep 20: the invoices route kept serving 1940 requests per minute with a p50 of 112 ms and a p99 of 350 ms; the saturation gauge on the edge stayed at 37 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 21: the desk handled 7 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 22: the configuration store recorded 4386 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 23: the node pool held 8 hosts at 29 % average CPU and 51 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 12 ms.
+
+Metric sweep 24: the invoices route kept serving 2088 requests per minute with a p50 of 116 ms and a p99 of 354 ms; the saturation gauge on the edge stayed at 34 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 25: the desk handled 6 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 26: the configuration store recorded 4438 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 27: the node pool held 6 hosts at 33 % average CPU and 42 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 11 ms.
+
+Metric sweep 28: the invoices route kept serving 2236 requests per minute with a p50 of 111 ms and a p99 of 358 ms; the saturation gauge on the edge stayed at 31 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 29: the desk handled 10 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 30: the configuration store recorded 4490 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 31: the node pool held 7 hosts at 37 % average CPU and 46 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 10 ms.
+
+Metric sweep 32: the invoices route kept serving 2384 requests per minute with a p50 of 115 ms and a p99 of 362 ms; the saturation gauge on the edge stayed at 35 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 33: the desk handled 9 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 34: the configuration store recorded 4542 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 35: the node pool held 8 hosts at 30 % average CPU and 50 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 9 ms.
+
+Metric sweep 36: the invoices route kept serving 2532 requests per minute with a p50 of 110 ms and a p99 of 366 ms; the saturation gauge on the edge stayed at 32 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+The write-up below is a chronological reconstruction of the billing platform incident, assembled from the on-call log, the deploy records and the service telemetry for the window 08:40-11:20 on 2026-09-23.
+At 08:40 the operator on shift took over a quiet board: four open tickets, all waiting on customers, no active alerts, and the usual nightly batch finished at 04:12 with no retries.
+Between 08:40 and 09:00 the platform handled 41 208 billing page views and 8 731 invoice PDF downloads; the p50 first-byte time was 118 ms and p99 340 ms, both inside the normal band.
+The scheduled maintenance window at 08:50 touched only the analytics replica: it was stopped, a read-only index was rebuilt, and it rejoined the cluster at 09:04 with zero lag.
+Deploy records show the only production change in the window is billing-service 4.2, released at 09:05 to all twelve pods by the standard rolling update; the rollout gate reported healthy and no pod restarted afterwards.
+Support telemetry counts 14 inbound tickets between 09:12 and 09:40, all of them with the same subject line ('invoice list is empty') and the same browser family; no ticket reports an error page, a login failure or a payment failure.
+The support desk agent asked each reporter for a screenshot; every screenshot shows the invoice list frame rendered, with the filter bar, with an empty table body and no error banner. The page returns HTTP 200 and paints in under 400 ms.
+The on-call engineer opened the invoices service logs at 09:20 and read the list endpoint returning HTTP 200 with a JSON body whose data key holds an empty array; nothing in the access log for the endpoint is a 4xx or 5xx in the whole window.
+A dump of the invoices service process at 09:26 shows an internal call to the refunds API rejected with HTTP 422; the reply text is 'schema mismatch: field refund_reason_code is not accepted by this version'. The invoices list is rendered from the collection that call populates, which is why it is empty.
+The payments database was probed at 09:33: both replicas report a replication lag of 0 ms, no lock waits above 5 ms, and the invoice rows for the affected customers are present and readable through a direct query.
+The edge load balancer was checked at 09:38: p99 latency 84 ms for the invoices route, zero timeouts in the 09:00-09:35 window, no 5xx returned to any client, and the autoscaler stayed at the floor of four instances.
+DNS was checked at 09:44: the billing.example.com records are unchanged since 2026-09-01; the TTL is 300 s and the resolver pool answered consistently during the incident window.
+The CDN was checked at 09:47: the cache hit rate for the invoice route is 96.4 %, identical to the previous day, and the origin shield logged no purge, no revalidation storm and no 5xx from the origin.
+A memory profile of the invoices service taken at 09:52 shows a flat heap of 412 MiB, no GC pressure and no connection-pool exhaustion; the service's own health endpoint answers 200 within 9 ms throughout.
+A packet capture on the service mesh sidecar at 10:05 shows no packet loss on the internal refunds call; the TCP retransmission rate is 0.01 %, the TLS handshake succeeds, and the only anomaly in the capture is the RFC 7807 problem body the refunds API returns with the 422.
+DECIDING FACT (recorded verbatim in the on-call log at 10:11): the 09:41 analysis of the two changed components establishes that billing-service 4.2 sends the new refund payload with the field name refund_reason_code, while the invoices service of this deployment still accepts refund_reason; the mismatch introduced by our own 09:05 deploy is therefore the root cause of the empty invoice list, and every other subsystem measured in this window was healthy.
+The 10:11 entry also notes what this rules out explicitly: the hosting infrastructure was healthy (no host event, no noisy neighbour, no throttling), the external payment provider logged no incident and answered within its contract, and the network path was clean.
+After the root cause was agreed, the review at 10:40 assigned the rollback of billing-service to 4.1 to the payments platform team, with a contract test between the two services added as a follow-up.
+The rollback began at 10:52 and finished at 11:07; the invoice list returned to normal for all 14 reporters, and the support desk confirmed the fix with each of them by 11:20.
+Post-incident bookkeeping records the impact: 14 customers affected, 0 payments lost, 0 invoice PDFs corrupted, and 2 hours 8 minutes from first report to confirmation.
+Nothing in the reconstructed timeline points at the database, the edge, DNS, the CDN, the mesh, the host or the external provider: each of those was measured inside the window and each of them was healthy.
+
+APPENDIX — INTERVAL SWEEPS
+
+Support-desk note 37: the desk handled 8 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 38: the configuration store recorded 4594 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 39: the node pool held 6 hosts at 34 % average CPU and 41 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 13 ms.
+
+Metric sweep 40: the invoices route kept serving 2680 requests per minute with a p50 of 114 ms and a p99 of 330 ms; the saturation gauge on the edge stayed at 36 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 41: the desk handled 7 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 42: the configuration store recorded 4646 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 43: the node pool held 7 hosts at 38 % average CPU and 45 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 12 ms.
+
+Metric sweep 44: the invoices route kept serving 2828 requests per minute with a p50 of 118 ms and a p99 of 334 ms; the saturation gauge on the edge stayed at 33 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 45: the desk handled 6 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 46: the configuration store recorded 4698 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 47: the node pool held 8 hosts at 31 % average CPU and 49 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 11 ms.
+
+Metric sweep 48: the invoices route kept serving 2976 requests per minute with a p50 of 113 ms and a p99 of 338 ms; the saturation gauge on the edge stayed at 37 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 49: the desk handled 10 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 50: the configuration store recorded 4750 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 51: the node pool held 6 hosts at 35 % average CPU and 53 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 10 ms.
+
+Metric sweep 52: the invoices route kept serving 3124 requests per minute with a p50 of 117 ms and a p99 of 342 ms; the saturation gauge on the edge stayed at 34 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 53: the desk handled 9 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 54: the configuration store recorded 4802 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 55: the node pool held 7 hosts at 28 % average CPU and 44 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 9 ms.
+
+Metric sweep 56: the invoices route kept serving 3272 requests per minute with a p50 of 112 ms and a p99 of 346 ms; the saturation gauge on the edge stayed at 31 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 57: the desk handled 8 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 58: the configuration store recorded 4854 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 59: the node pool held 8 hosts at 32 % average CPU and 48 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 13 ms.
+
+Metric sweep 60: the invoices route kept serving 3420 requests per minute with a p50 of 116 ms and a p99 of 350 ms; the saturation gauge on the edge stayed at 35 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 61: the desk handled 7 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 62: the configuration store recorded 4906 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 63: the node pool held 6 hosts at 36 % average CPU and 52 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 12 ms.
+
+Metric sweep 64: the invoices route kept serving 3568 requests per minute with a p50 of 111 ms and a p99 of 354 ms; the saturation gauge on the edge stayed at 32 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 65: the desk handled 6 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Support-desk note 1: the desk handled 7 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 2: the configuration store recorded 4126 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 3: the node pool held 6 hosts at 31 % average CPU and 44 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 12 ms.
+
+Metric sweep 4: the invoices route kept serving 1348 requests per minute with a p50 of 114 ms and a p99 of 334 ms; the saturation gauge on the edge stayed at 35 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 5: the desk handled 6 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 6: the configuration store recorded 4178 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 7: the node pool held 7 hosts at 35 % average CPU and 48 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 11 ms.
+
+Metric sweep 8: the invoices route kept serving 1496 requests per minute with a p50 of 118 ms and a p99 of 338 ms; the saturation gauge on the edge stayed at 32 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 9: the desk handled 10 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 10: the configuration store recorded 4230 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 11: the node pool held 8 hosts at 28 % average CPU and 52 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 10 ms.
+
+Metric sweep 12: the invoices route kept serving 1644 requests per minute with a p50 of 113 ms and a p99 of 342 ms; the saturation gauge on the edge stayed at 36 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 13: the desk handled 9 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 14: the configuration store recorded 4282 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 15: the node pool held 6 hosts at 32 % average CPU and 43 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 9 ms.
+
+Metric sweep 16: the invoices route kept serving 1792 requests per minute with a p50 of 117 ms and a p99 of 346 ms; the saturation gauge on the edge stayed at 33 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 17: the desk handled 8 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 18: the configuration store recorded 4334 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 19: the node pool held 7 hosts at 36 % average CPU and 47 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 13 ms.
+
+Metric sweep 20: the invoices route kept serving 1940 requests per minute with a p50 of 112 ms and a p99 of 350 ms; the saturation gauge on the edge stayed at 37 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 21: the desk handled 7 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 22: the configuration store recorded 4386 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 23: the node pool held 8 hosts at 29 % average CPU and 51 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 12 ms.
+
+Metric sweep 24: the invoices route kept serving 2088 requests per minute with a p50 of 116 ms and a p99 of 354 ms; the saturation gauge on the edge stayed at 34 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 25: the desk handled 6 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 26: the configuration store recorded 4438 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 27: the node pool held 6 hosts at 33 % average CPU and 42 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 11 ms.
+
+Metric sweep 28: the invoices route kept serving 2236 requests per minute with a p50 of 111 ms and a p99 of 358 ms; the saturation gauge on the edge stayed at 31 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 29: the desk handled 10 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 30: the configuration store recorded 4490 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 31: the node pool held 7 hosts at 37 % average CPU and 46 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 10 ms.
+
+Metric sweep 32: the invoices route kept serving 2384 requests per minute with a p50 of 115 ms and a p99 of 362 ms; the saturation gauge on the edge stayed at 35 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 33: the desk handled 9 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 34: the configuration store recorded 4542 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 35: the node pool held 8 hosts at 30 % average CPU and 50 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 9 ms.
+
+Metric sweep 36: the invoices route kept serving 2532 requests per minute with a p50 of 110 ms and a p99 of 366 ms; the saturation gauge on the edge stayed at 32 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+The write-up below is a chronological reconstruction of the billing platform incident, assembled from the on-call log, the deploy records and the service telemetry for the window 08:40-11:20 on 2026-09-23.
+At 08:40 the operator on shift took over a quiet board: four open tickets, all waiting on customers, no active alerts, and the usual nightly batch finished at 04:12 with no retries.
+Between 08:40 and 09:00 the platform handled 41 208 billing page views and 8 731 invoice PDF downloads; the p50 first-byte time was 118 ms and p99 340 ms, both inside the normal band.
+The scheduled maintenance window at 08:50 touched only the analytics replica: it was stopped, a read-only index was rebuilt, and it rejoined the cluster at 09:04 with zero lag.
+Deploy records show the only production change in the window is billing-service 4.2, released at 09:05 to all twelve pods by the standard rolling update; the rollout gate reported healthy and no pod restarted afterwards.
+Support telemetry counts 14 inbound tickets between 09:12 and 09:40, all of them with the same subject line ('invoice list is empty') and the same browser family; no ticket reports an error page, a login failure or a payment failure.
+The support desk agent asked each reporter for a screenshot; every screenshot shows the invoice list frame rendered, with the filter bar, with an empty table body and no error banner. The page returns HTTP 200 and paints in under 400 ms.
+The on-call engineer opened the invoices service logs at 09:20 and read the list endpoint returning HTTP 200 with a JSON body whose data key holds an empty array; nothing in the access log for the endpoint is a 4xx or 5xx in the whole window.
+A dump of the invoices service process at 09:26 shows an internal call to the refunds API rejected with HTTP 422; the reply text is 'schema mismatch: field refund_reason_code is not accepted by this version'. The invoices list is rendered from the collection that call populates, which is why it is empty.
+The payments database was probed at 09:33: both replicas report a replication lag of 0 ms, no lock waits above 5 ms, and the invoice rows for the affected customers are present and readable through a direct query.
+The edge load balancer was checked at 09:38: p99 latency 84 ms for the invoices route, zero timeouts in the 09:00-09:35 window, no 5xx returned to any client, and the autoscaler stayed at the floor of four instances.
+DNS was checked at 09:44: the billing.example.com records are unchanged since 2026-09-01; the TTL is 300 s and the resolver pool answered consistently during the incident window.
+The CDN was checked at 09:47: the cache hit rate for the invoice route is 96.4 %, identical to the previous day, and the origin shield logged no purge, no revalidation storm and no 5xx from the origin.
+A memory profile of the invoices service taken at 09:52 shows a flat heap of 412 MiB, no GC pressure and no connection-pool exhaustion; the service's own health endpoint answers 200 within 9 ms throughout.
+A packet capture on the service mesh sidecar at 10:05 shows no packet loss on the internal refunds call; the TCP retransmission rate is 0.01 %, the TLS handshake succeeds, and the only anomaly in the capture is the RFC 7807 problem body the refunds API returns with the 422.
+DECIDING FACT (recorded verbatim in the on-call log at 10:11): the 09:41 analysis of the two changed components establishes that billing-service 4.2 sends the new refund payload with the field name refund_reason_code, while the invoices service of this deployment still accepts refund_reason; the mismatch introduced by our own 09:05 deploy is therefore the root cause of the empty invoice list, and every other subsystem measured in this window was healthy.
+The 10:11 entry also notes what this rules out explicitly: the hosting infrastructure was healthy (no host event, no noisy neighbour, no throttling), the external payment provider logged no incident and answered within its contract, and the network path was clean.
+After the root cause was agreed, the review at 10:40 assigned the rollback of billing-service to 4.1 to the payments platform team, with a contract test between the two services added as a follow-up.
+The rollback began at 10:52 and finished at 11:07; the invoice list returned to normal for all 14 reporters, and the support desk confirmed the fix with each of them by 11:20.
+Post-incident bookkeeping records the impact: 14 customers affected, 0 payments lost, 0 invoice PDFs corrupted, and 2 hours 8 minutes from first report to confirmation.
+Nothing in the reconstructed timeline points at the database, the edge, DNS, the CDN, the mesh, the host or the external provider: each of those was measured inside the window and each of them was healthy.
+
+APPENDIX — INTERVAL SWEEPS
+
+Support-desk note 37: the desk handled 8 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 38: the configuration store recorded 4594 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 39: the node pool held 6 hosts at 34 % average CPU and 41 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 13 ms.
+
+Metric sweep 40: the invoices route kept serving 2680 requests per minute with a p50 of 114 ms and a p99 of 330 ms; the saturation gauge on the edge stayed at 36 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 41: the desk handled 7 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 42: the configuration store recorded 4646 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 43: the node pool held 7 hosts at 38 % average CPU and 45 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 12 ms.
+
+Metric sweep 44: the invoices route kept serving 2828 requests per minute with a p50 of 118 ms and a p99 of 334 ms; the saturation gauge on the edge stayed at 33 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 45: the desk handled 6 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 46: the configuration store recorded 4698 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 47: the node pool held 8 hosts at 31 % average CPU and 49 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 11 ms.
+
+Metric sweep 48: the invoices route kept serving 2976 requests per minute with a p50 of 113 ms and a p99 of 338 ms; the saturation gauge on the edge stayed at 37 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 49: the desk handled 10 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 50: the configuration store recorded 4750 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 51: the node pool held 6 hosts at 35 % average CPU and 53 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 10 ms.
+
+Metric sweep 52: the invoices route kept serving 3124 requests per minute with a p50 of 117 ms and a p99 of 342 ms; the saturation gauge on the edge stayed at 34 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 53: the desk handled 9 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 54: the configuration store recorded 4802 reads and 12 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 55: the node pool held 7 hosts at 28 % average CPU and 44 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 3 ms with no burst above 9 ms.
+
+Metric sweep 56: the invoices route kept serving 3272 requests per minute with a p50 of 112 ms and a p99 of 346 ms; the saturation gauge on the edge stayed at 31 % and the queue depth never exceeded 6. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 57: the desk handled 8 tickets in the interval; 2 of them concern the invoice list, 0 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 58: the configuration store recorded 4854 reads and 16 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 59: the node pool held 8 hosts at 32 % average CPU and 48 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 4 ms with no burst above 13 ms.
+
+Metric sweep 60: the invoices route kept serving 3420 requests per minute with a p50 of 116 ms and a p99 of 350 ms; the saturation gauge on the edge stayed at 35 % and the queue depth never exceeded 4. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 61: the desk handled 7 tickets in the interval; 2 of them concern the invoice list, 1 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+
+Audit entry 62: the configuration store recorded 4906 reads and 14 writes in the interval, all of them by the analytics pipeline; the billing-service configuration key set is unchanged from the previous day, and the feature-flag service reports no flag flipped for the billing or invoices namespaces in the whole window.
+
+Capacity note 63: the node pool held 6 hosts at 36 % average CPU and 52 % average memory; no host crossed its pressure threshold, no pod was evicted, and the scheduler placed every pod inside its declared limits. Disk latency on the invoice storage class averaged 2 ms with no burst above 12 ms.
+
+Metric sweep 64: the invoices route kept serving 3568 requests per minute with a p50 of 111 ms and a p99 of 354 ms; the saturation gauge on the edge stayed at 32 % and the queue depth never exceeded 5. The service mesh reported 11 healthy endpoints for the invoices service and no circuit breaker opened during the interval.
+
+Support-desk note 65: the desk handled 6 tickets in the interval; 2 of them concern the invoice list, 2 concern invoice PDF downloads and 1 are unrelated questions about billing addresses. No ticket in the interval reports a failed payment, a login problem or a data-loss claim, and every ticket about the invoice list carries the same empty-table screenshot.
+

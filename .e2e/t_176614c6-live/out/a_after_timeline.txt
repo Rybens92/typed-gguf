@@ -1,0 +1,282 @@
+--- t=1 21:14:53.473 smi=5170 MiB, 2722 MiB
+  97886       00:23 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:23 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97908       00:23 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+  98284       00:00 bash runbg.sh a_after_first -- python3 tg.py ask --state @states/state_xlong.txt
+  98290       00:00 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+--- t=2 21:14:54.505 smi=7625 MiB, 266 MiB
+  97886       00:24 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:24 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97908       00:24 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+  98284       00:01 bash runbg.sh a_after_first -- python3 tg.py ask --state @states/state_xlong.txt
+  98290       00:01 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98318       00:00 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:00 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+--- t=3 21:14:55.537 smi=7625 MiB, 266 MiB
+  97886       00:25 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:25 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97908       00:25 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+  98284       00:02 bash runbg.sh a_after_first -- python3 tg.py ask --state @states/state_xlong.txt
+  98290       00:02 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98318       00:01 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:01 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+--- t=4 21:14:56.568 smi=7625 MiB, 266 MiB
+  97886       00:26 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:26 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97908       00:26 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+  98284       00:03 bash runbg.sh a_after_first -- python3 tg.py ask --state @states/state_xlong.txt
+  98290       00:03 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98318       00:02 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:02 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+--- t=5 21:14:57.598 smi=7625 MiB, 266 MiB
+  97886       00:27 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:27 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97908       00:27 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+  98284       00:04 bash runbg.sh a_after_first -- python3 tg.py ask --state @states/state_xlong.txt
+  98290       00:04 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98318       00:03 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:03 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+--- t=6 21:14:58.631 smi=7625 MiB, 266 MiB
+  97886       00:28 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:28 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97908       00:28 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+  98284       00:05 bash runbg.sh a_after_first -- python3 tg.py ask --state @states/state_xlong.txt
+  98290       00:05 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98318       00:04 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:04 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+--- t=7 21:14:59.693 smi=7625 MiB, 266 MiB
+  97886       00:29 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:29 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97908       00:29 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+  98284       00:06 bash runbg.sh a_after_first -- python3 tg.py ask --state @states/state_xlong.txt
+  98290       00:06 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98318       00:05 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:05 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+--- t=8 21:15:00.725 smi=2144 MiB, 5747 MiB
+  97886       00:30 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:30 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97908       00:30 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+  98318       00:06 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:06 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+--- t=9 21:15:01.757 smi=1073 MiB, 6818 MiB
+  97886       00:31 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:31 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:07 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:07 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:00 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=10 21:15:02.788 smi=1073 MiB, 6818 MiB
+  97886       00:32 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:32 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:08 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:08 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:01 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=11 21:15:03.821 smi=1073 MiB, 6818 MiB
+  97886       00:33 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:33 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:09 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:09 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:03 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=12 21:15:04.853 smi=1085 MiB, 6807 MiB
+  97886       00:35 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:35 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:10 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:10 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:04 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=13 21:15:05.884 smi=5168 MiB, 2723 MiB
+  97886       00:36 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:36 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:11 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:11 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:05 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=14 21:15:06.916 smi=7807 MiB, 84 MiB
+  97886       00:37 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:37 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:12 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:12 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:06 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=15 21:15:07.952 smi=7810 MiB, 82 MiB
+  97886       00:38 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:38 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:14 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:14 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:07 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=16 21:15:08.984 smi=7810 MiB, 82 MiB
+  97886       00:39 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:39 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:15 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:15 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:08 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=17 21:15:10.020 smi=7810 MiB, 82 MiB
+  97886       00:40 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:40 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:16 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:16 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:09 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=18 21:15:11.053 smi=7812 MiB, 80 MiB
+  97886       00:41 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:41 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:17 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:17 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:10 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=19 21:15:12.089 smi=7812 MiB, 80 MiB
+  97886       00:42 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:42 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:18 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:18 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:11 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=20 21:15:13.124 smi=7812 MiB, 80 MiB
+  97886       00:43 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:43 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:19 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:19 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:12 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=21 21:15:14.158 smi=7812 MiB, 80 MiB
+  97886       00:44 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:44 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:20 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:20 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:13 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=22 21:15:15.192 smi=7812 MiB, 79 MiB
+  97886       00:45 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:45 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:21 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:21 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:14 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=23 21:15:16.226 smi=7821 MiB, 70 MiB
+  97886       00:46 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:46 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:22 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:22 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:15 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=24 21:15:17.278 smi=7821 MiB, 70 MiB
+  97886       00:47 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:47 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:23 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:23 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:16 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=25 21:15:18.310 smi=7821 MiB, 70 MiB
+  97886       00:48 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:48 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:24 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:24 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:17 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=26 21:15:19.341 smi=7825 MiB, 66 MiB
+  97886       00:49 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:49 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:25 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:25 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:18 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=27 21:15:20.393 smi=7825 MiB, 66 MiB
+  97886       00:50 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:50 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:26 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:26 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:19 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=28 21:15:21.424 smi=7825 MiB, 66 MiB
+  97886       00:51 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:51 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:27 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:27 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:20 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=29 21:15:22.456 smi=7829 MiB, 63 MiB
+  97886       00:52 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:52 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98318       00:28 bash runbg.sh a_after_second -- python3 tg.py ask --state @states/state_xlong.tx
+  98320       00:28 python3 tg.py ask --state @states/state_xlong.txt --choice cause=What is the roo
+  98475       00:21 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=30 21:15:23.486 smi=1113 MiB, 6778 MiB
+  97886       00:53 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:53 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98475       00:22 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+  98902       00:00 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:00 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+--- t=31 21:15:24.518 smi=1077 MiB, 6814 MiB
+  97886       00:54 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:54 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:01 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:01 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:00 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=32 21:15:25.549 smi=1073 MiB, 6818 MiB
+  97886       00:55 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:55 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:02 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:02 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:02 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=33 21:15:26.580 smi=1073 MiB, 6818 MiB
+  97886       00:56 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:56 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:03 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:03 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:03 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=34 21:15:27.614 smi=1085 MiB, 6807 MiB
+  97886       00:57 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:57 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:04 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:04 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:04 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=35 21:15:28.646 smi=5168 MiB, 2723 MiB
+  97886       00:58 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:58 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:05 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:05 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:05 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=36 21:15:29.680 smi=7611 MiB, 281 MiB
+  97886       00:59 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       00:59 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:06 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:06 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:06 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=37 21:15:30.712 smi=7613 MiB, 278 MiB
+  97886       01:00 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       01:00 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:07 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:07 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:07 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=38 21:15:31.744 smi=7613 MiB, 278 MiB
+  97886       01:01 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       01:01 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:08 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:08 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:08 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=39 21:15:32.777 smi=7613 MiB, 278 MiB
+  97886       01:02 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       01:02 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:09 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:09 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:09 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=40 21:15:33.813 smi=7614 MiB, 278 MiB
+  97886       01:03 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       01:03 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:10 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:10 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:10 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=41 21:15:34.853 smi=7614 MiB, 278 MiB
+  97886       01:05 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       01:05 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:11 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:11 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:11 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=42 21:15:35.889 smi=7614 MiB, 278 MiB
+  97886       01:06 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       01:06 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:12 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:12 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:12 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=43 21:15:36.923 smi=7618 MiB, 273 MiB
+  97886       01:07 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       01:07 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:13 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:13 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:13 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=44 21:15:37.960 smi=7621 MiB, 270 MiB
+  97886       01:08 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       01:08 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:14 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:14 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:14 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home
+--- t=45 21:15:39.199 smi=7353 MiB, 538 MiB
+  97886       01:09 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  97890       01:09 bash -c source /tmp/hermes-snap-6d2de07dadf4.sh >/dev/null 2>&1 || true export A
+  98902       00:15 bash runbg.sh a_after_third -- python3 tg.py ask --state @states/state_short.txt
+  98904       00:15 python3 tg.py ask --state @states/state_short.txt --choice cause=What is the roo
+  98913       00:15 /usr/local/bin/python3 -m typed_gguf keep _host --spec /work/t176614c6-live/home

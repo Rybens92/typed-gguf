@@ -1,0 +1,29 @@
+{
+ "arch": "spark2_5",
+ "backend": "cpu",
+ "budget_bytes": 5867831296,
+ "created_at": "2026-09-23T21:01:28Z",
+ "ctx_limit": "grown",
+ "est_kv_bytes": 980198784,
+ "est_total_bytes": 6050063744,
+ "est_weights_bytes": 4724883456,
+ "host_fingerprint": "eb9f25a70307873f",
+ "kv_type": "q8_0",
+ "model_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+ "n_ctx": 46979,
+ "n_gpu_layers": 0,
+ "n_seq_max": 8,
+ "notes": [
+  "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 4506 MiB, context 1764 MiB, compute 329 MiB)",
+  "n_ctx 32768 -> 46979: the box holds more (fit-target 1024 MiB kept free, kv_type q8_0)",
+  "CPU only: no weights are offloaded to the device",
+  "re-planned for free device memory: 1498 MiB budget (driver reported 2522 MiB free of 8192 MiB, --fit-target 1024 MiB); n_gpu_layers 36 -> 0, kv_type q8_0 -> q8_0"
+ ],
+ "schema": "typed_gguf.fit/v1",
+ "source": "llama-fit-params",
+ "standard_n_ctx": 32768,
+ "warnings": [
+  "W_KV_TYPE_DOWNGRADE",
+  "W_FIT_DOWNGRADE"
+ ]
+}

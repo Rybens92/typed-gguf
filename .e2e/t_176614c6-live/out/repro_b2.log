@@ -1,0 +1,20 @@
+--- smi quiet: 1256 MiB, 6635 MiB
+=== v1_nctx51200_t0 21:03:55
+first: exit=0 wall_ms=17565 smi=5343 MiB, 2548 MiB
+
+second: exit=0 wall_ms=1332
+
+status: running pid 92562 requests 2 placement {"note": "fit plan: 36 layer(s) offloaded, kv_type=f16", "n_gpu_layers": 36, "kv_type": "q4_0", "degraded": false, "attempts": [], "warnings": [], "cpu_only": false}
+=== v2_nctx65536_t0 21:04:15
+first: exit=0 wall_ms=17874 smi=5340 MiB, 2552 MiB
+
+second: exit=0 wall_ms=1552
+
+status: running pid 92847 requests 2 placement {"note": "fit plan: 36 layer(s) offloaded, kv_type=f16", "n_gpu_layers": 36, "kv_type": "q4_0", "degraded": false, "attempts": [], "warnings": [], "cpu_only": false}
+=== v3_default_t0 21:04:35
+first: exit=0 wall_ms=16773 smi=5186 MiB, 2706 MiB
+
+second: exit=0 wall_ms=1384
+
+status: running pid 93108 requests 2 placement {"note": "fit plan: 36 layer(s) offloaded, kv_type=f16", "n_gpu_layers": 36, "kv_type": "q4_0", "degraded": false, "attempts": [], "warnings": [], "cpu_only": false}
+=== done 21:04:54

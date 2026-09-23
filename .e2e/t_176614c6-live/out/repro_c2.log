@@ -1,0 +1,18 @@
+=== t0 21:01:24 quiet start
+no host was running (no host)
+--- smi: 1254 MiB, 6638 MiB
+=== t1 21:01:24 step 1: quiet fit (the policy's own answer)
+plan: answer=None
+=== t2 21:01:28 step 2: the 4B host becomes resident
+exit=0 wall_ms=16823
+--- smi: 5369 MiB, 2522 MiB
+=== t3 21:01:45 step 3: fit again, host resident (depleted device)
+plan: answer=None
+=== t4 21:01:48 step 4: keep stop -> fit on the quiet box again
+stopped the warm host (pid 91402) and cleaned up its record
+--- smi: 1269 MiB, 6622 MiB
+plan: answer=None
+=== t5 21:01:52 step 5: ask the 4B on the entry that survived
+exit=0 wall_ms=25756
+no host was running (no host)
+=== t6 21:02:18 done

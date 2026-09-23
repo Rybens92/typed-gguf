@@ -1,0 +1,25 @@
+=== [after] t0 21:14:29 quiet start
+--- smi: 1073 MiB, 6818 MiB
+=== [after] t1 prime: the 4B host on the default key (12.8k state, cold)
+prime: exit=0 wall_ms=23384 smi=5170 MiB, 2722 MiB
+=== [after] t2 ask A (resident key, 12.8k) ...
+=== [after] t3 ask B (--n-ctx 32768 -> the swap) at +0.5 s ...
+B(swap): exit=0 wall_ms=29234
+A(first): exit=0 wall_ms=7179
+--- A stderr:
+
+--- B stderr:
+
+--- A answer delivered: YES
+A [answer engine.fit]: {"n_gpu_layers": 36, "n_ctx": 56616, "kv_type": "q8_0", "budget_bytes": 6075449344, "est_weights_bytes": 4725932032, "est_kv_bytes": 1168929792, "est_total_bytes": 6299612160, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE"]}
+    note: memory table from b11026-linux-x64-vulkan/llama-fit-params (model 4507 MiB, context 2106 MiB, compute 386 MiB)
+    note: n_ctx 32768 -> 56616: the box holds more (fit-target 1024 MiB kept free, kv_type q8_0)
+B [answer engine.fit]: {"n_gpu_layers": 36, "n_ctx": 56616, "kv_type": "q8_0", "budget_bytes": 6075449344, "est_weights_bytes": 4725932032, "est_kv_bytes": 1168929792, "est_total_bytes": 6299612160, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE"]}
+    note: memory table from b11026-linux-x64-vulkan/llama-fit-params (model 4507 MiB, context 2106 MiB, compute 386 MiB)
+    note: n_ctx 32768 -> 56616: the box holds more (fit-target 1024 MiB kept free, kv_type q8_0)
+=== [after] t4 request 3 on whatever is resident now (is it serving?)
+third: exit=0 wall_ms=16045
+
+status: running pid 98913 requests 1
+--- smi after: 1073 MiB, 6818 MiB
+=== [after] done 21:15:39

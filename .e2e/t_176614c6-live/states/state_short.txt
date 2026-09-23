@@ -1,0 +1,1 @@
+SINCE 09:12 the invoices list on billing.example.com is blank for every customer. The 09:05 deploy of billing-service 4.2 shipped a price-book lookup that never finds the cache entry; the payments database, the network and the refund flow are all healthy.

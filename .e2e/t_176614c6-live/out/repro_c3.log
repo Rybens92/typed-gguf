@@ -1,0 +1,29 @@
+=== t0 21:15:57 quiet start
+no host was running (no host)
+--- smi: 1085 MiB, 6806 MiB
+=== t1 21:15:57 step 1: quiet fit (the policy's own answer)
+=== t2 21:16:00 step 2: the 4B host becomes resident
+exit=0 wall_ms=15993
+--- smi: 5180 MiB, 2712 MiB
+=== t3 21:16:16 step 3: fit again, host resident (depleted device)
+=== t4 21:16:20 step 4: keep stop -> fit on the quiet box again
+stopped the warm host (pid 99349) and cleaned up its record
+--- smi: 1085 MiB, 6806 MiB
+=== t5 21:16:23 step 5: ask the 4B on the entry that survived
+exit=0 wall_ms=15940
+no host was running (no host)
+=== t6 21:16:39 done
+--- the four plan readings that decide this receipt:
+step1_quiet_fit: {"n_gpu_layers": 36, "n_ctx": 55974, "kv_type": "q8_0", "budget_bytes": 6062866432, "est_weights_bytes": 4725932032, "est_kv_bytes": 1156356864, "est_total_bytes": 6281796352, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE"]}
+step3_fit_resident: {"n_gpu_layers": 0, "n_ctx": 55974, "kv_type": "q8_0", "budget_bytes": 1769996288, "est_weights_bytes": 4725932032, "est_kv_bytes": 1156356864, "est_total_bytes": 6281796352, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE", "W_FIT_DOWNGRADE"]}
+step4_after_keepstop: {"n_gpu_layers": 36, "n_ctx": 55974, "kv_type": "q8_0", "budget_bytes": 6062866432, "est_weights_bytes": 4725932032, "est_kv_bytes": 1156356864, "est_total_bytes": 6281796352, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE"]}
+step5_ask [answer engine.fit]: {"n_gpu_layers": 36, "n_ctx": 55974, "kv_type": "q8_0", "budget_bytes": 6062866432, "est_weights_bytes": 4725932032, "est_kv_bytes": 1156356864, "est_total_bytes": 6281796352, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE"]}
+repro_c3.sh: line 53: ask: command not found
+repro_c3.sh: line 53: run: command not found
+--- the cache entry itself, at each step (the file in home/fit that / reads):
+-- step1
+entry.5c2c3c190e43: {"n_gpu_layers": 36, "n_ctx": 55974, "kv_type": "q8_0", "budget_bytes": 6062866432, "est_weights_bytes": 4725932032, "est_kv_bytes": 1156356864, "est_total_bytes": 6281796352, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE"]}
+-- step3
+entry.5c2c3c190e43: {"n_gpu_layers": 36, "n_ctx": 55974, "kv_type": "q8_0", "budget_bytes": 6062866432, "est_weights_bytes": 4725932032, "est_kv_bytes": 1156356864, "est_total_bytes": 6281796352, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE"]}
+-- step4
+entry.5c2c3c190e43: {"n_gpu_layers": 36, "n_ctx": 55974, "kv_type": "q8_0", "budget_bytes": 6062866432, "est_weights_bytes": 4725932032, "est_kv_bytes": 1156356864, "est_total_bytes": 6281796352, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE"]}

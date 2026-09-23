@@ -1,0 +1,17 @@
+=== t0 21:06:16 quiet start
+--- smi: 1233 MiB, 6659 MiB
+=== t1 21:06:17 home A: the product host (default policy, 36 layers)
+A: exit=0 wall_ms=17895 smi=5419 MiB, 2473 MiB
+=== t2 21:06:35 home B: the second tenant takes what is left of the card
+B: exit=0 wall_ms=43174 smi=6524 MiB, 1368 MiB
+
+=== t3 21:07:18 request 1 on host A (the card is gone)
+ask1: exit=0 wall_ms=1371
+
+=== t4 21:07:19 request 2 on the same host (is it still 'ready'?)
+ask2: exit=0 wall_ms=867
+
+status: state=running pid=93852 requests=3 placement={"note": "fit plan: 36 layer(s) offloaded, kv_type=q8_0", "n_gpu_layers": 36, "kv_type": "q4_0", "degraded": false, "attempts": [], "warnings": [], "cpu_only": false}
+=== t5 21:07:20 cleanup
+--- smi after: 1161 MiB, 6730 MiB
+=== done 21:07:21

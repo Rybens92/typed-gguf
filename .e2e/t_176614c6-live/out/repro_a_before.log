@@ -1,0 +1,26 @@
+=== [before] t0 21:10:36 quiet start
+--- smi: 1085 MiB, 6806 MiB
+=== [before] t1 prime: the 4B host on the default key (12.8k state, cold)
+prime: exit=0 wall_ms=24140 smi=5182 MiB, 2709 MiB
+=== [before] t2 ask A (resident key, 12.8k) ...
+=== [before] t3 ask B (--n-ctx 32768 -> the swap) at +0.5 s ...
+B(swap): exit=3 wall_ms=16856
+A(first): exit=0 wall_ms=31019
+--- A stderr:
+load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = NVIDIA GeForce RTX 3060 Ti (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0 | warp size: 32 | shared memory: 49152 | int dot: 1 | matrix cores: NV_coopmat2
+load_backend: loaded Vulkan backend from /var/home/rybens/.local/share/ggufone/runtime/b1
+--- B stderr:
+error: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=0, kv_type=q8_0, needed ~653 MiB); the driver reports 262 MiB free; tried 4 placement(s) down to CPU-only, none fit: ctx kv_type=q8_0 n_ctx=32768 -> oom; ctx kv_type=q4_0 n_ctx=32768 -> oom; ctx kv_type=q4_0 n_ctx=16384 -> oom; ctx kv_type=q4_0 n_ctx=4096 -> oom; the backend asked for a 653 MiB allocation; backend log: 'gg
+--- A answer delivered: YES
+A [answer engine.fit]: {"n_gpu_layers": 36, "n_ctx": 55974, "kv_type": "q8_0", "budget_bytes": 6062866432, "est_weights_bytes": 4725932032, "est_kv_bytes": 1156356864, "est_total_bytes": 6281796352, "ctx_limit": "grown", "source": "llama-fit-params", "warnings": ["W_KV_TYPE_DOWNGRADE"]}
+    note: memory table from b11026-linux-x64-vulkan/llama-fit-params (model 4507 MiB, context 2079 MiB, compute 381 MiB)
+    note: n_ctx 32768 -> 55974: the box holds more (fit-target 1024 MiB kept free, kv_type q8_0)
+B: unreadable ([Errno 2] No such file or directory: 'out/a_before_second.json')
+=== [before] t4 request 3 on whatever is resident now (is it serving?)
+third: exit=0 wall_ms=15848
+
+status: running pid 96784 requests 1
+--- smi after: 1085 MiB, 6806 MiB
+=== [before] done 21:11:48

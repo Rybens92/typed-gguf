@@ -1,0 +1,23 @@
+=== t0 20:58:35 keep stop
+no host was running (no host)
+--- smi quiet: 1155 MiB, 6737 MiB
+--- fit dir: 
+=== t1 20:58:35 phase 1: Ling resident (policy call, cold)
+exit=0 wall_ms=66906
+--- smi with A resident: 5801 MiB, 2090 MiB
+--- plans now: b20a30eb9fe1b67356cb25f65aa9cad1a7c58263c8edf16b183e47183c05677d.eb9f25a70307873f.json
+=== t2 20:59:42 phase 2: swap -> 4B (policy call) while A resident
+exit=0 wall_ms=20039
+--- smi after swap: 5251 MiB, 2640 MiB
+--- plans after swap: 5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2.eb9f25a70307873f.json
+b20a30eb9fe1b67356cb25f65aa9cad1a7c58263c8edf16b183e47183c05677d.eb9f25a70307873f.json
+=== t3 21:00:03 phase 3: keep stop -> what the box plans for the 4B when quiet
+stopped the warm host (pid 90682) and cleaned up its record
+--- smi quiet: 1154 MiB, 6737 MiB
+--- plans after quiet fit: 5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2.eb9f25a70307873f.json
+b20a30eb9fe1b67356cb25f65aa9cad1a7c58263c8edf16b183e47183c05677d.eb9f25a70307873f.json
+=== t4 21:00:07 phase 4: the 4B again, quiet box (the compare run)
+exit=0 wall_ms=19686
+--- smi after quiet ask: 5420 MiB, 2472 MiB
+stopped the warm host (pid 90999) and cleaned up its record
+=== t5 21:00:27 done

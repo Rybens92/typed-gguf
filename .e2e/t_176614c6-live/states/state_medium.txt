@@ -1,0 +1,43 @@
+INCIDENT WRITE-UP — invoice list empty (billing.example.com), severity 2, opened 09:14 by the support desk after 14 customers reported a blank list.
+
+TIMELINE
+09:05 deploy billing-service 4.2 rolled out to all 12 pods; the rollout reported healthy.
+09:12 first support ticket: 'the invoices page is empty, no error shown'.
+09:14 the on-call engineer reproduced the blank list in staging and production.
+09:20 the application logs showed the invoices list endpoint returning HTTP 200 with data: [] .
+09:26 a dump of the invoices service showed the refund payload it posts internally failing validation with HTTP 422; the reply carries the message 'schema mismatch: field refund_reason_code is not accepted by this version'.
+The payments database was probed at 09:33: both replicas report a replication lag of 0 ms, no lock waits above 5 ms, and the invoice rows for the affected customers are present and readable through a direct query.
+The edge load balancer was checked at 09:38: p99 latency 84 ms for the invoices route, zero timeouts in the 09:00-09:35 window, no 5xx returned to any client, and the autoscaler stayed at the floor of four instances.
+DNS and the CDN were checked at 09:44: the billing.example.com records are unchanged since 2026-09-01, the cache hit rate for the invoice route is 96.4 % (identical to the previous day), and the origin shield logged no purge and no revalidation storm.
+The service mesh was checked at 09:52: the internal refunds call completes its TLS handshake, the retransmission rate on that path is 0.01 %, no circuit breaker opened, and the only anomaly in the capture is the RFC 7807 problem body the refunds API returns with the 422.
+Host telemetry for the window shows no host event, no noisy neighbour and no throttling; the node pool held six hosts at 31 % average CPU and 44 % average memory, no pod was evicted and every pod sat inside its declared limits.
+The twelve pods of billing-service 4.2 all report healthy liveness and readiness probes, a flat heap of 412 MiB, no connection-pool exhaustion and a health endpoint that answers 200 in 9 ms throughout the window.
+The refund flow itself was exercised end to end at 09:58 against a staging tenant: with the 4.1 payload the invoices list populates; with the 4.2 payload the refunds API answers 422 and the list stays empty. That reproduces the production symptom exactly.
+Contract history: the invoices service has accepted the field name refund_reason since the 2026-06 release, and the refund contract test that would have caught the renamed field was disabled in the 4.2 branch because it depended on a fixture the team was rewriting.
+
+HYPOTHESES RULED OUT
+- Database replication lag: ruled out, replica lag stayed at 0 ms for the whole window.
+- Load balancer timeouts: ruled out, the edge logged zero timeouts and p99 was 84 ms.
+- DNS or CDN regression: ruled out, no record changed since 2026-09-01.
+- Cache corruption in the CDN: ruled out, the cache hit rate is normal and the blank page is produced by the application itself (HTTP 200 with an empty array).
+- Our own application code: the invoices handler was unchanged for three weeks before 09:05.
+
+REMAINING HYPOTHESIS AND THE DECIDING EVIDENCE
+The only subsystem that changed at 09:05 is billing-service 4.2, and its 09:26 dump proves it: the service posts a refund payload whose field refund_reason_code is rejected by the invoices service with HTTP 422 ('schema mismatch'), and the invoices list is then rendered from an empty collection. The failure is therefore a contract mismatch between two of our own services introduced by the 09:05 deploy — not infrastructure, not the network, not the database, and not a third-party provider.
+
+NEXT STEPS AGREED IN THE 10:40 REVIEW
+1. Roll billing-service back to 4.1 (owner: payments platform team).
+2. Re-issue the refund payload with the field name the invoices service accepts.
+3. Add a contract test between the two services before the next release.
+
+METRICS FOR THE WINDOW (all from the platform dashboards, no manual sampling)
+Invoices route: 41 208 page views, p50 first byte 118 ms, p99 340 ms, zero 5xx.
+Refunds API: 318 calls, 14 of them HTTP 422 (4.4 %), all from billing-service 4.2.
+Support: 14 tickets with the same subject, 0 tickets about payments, 0 about logins.
+Database: replica lag 0 ms on both replicas, no lock wait above 5 ms, no deadlock.
+Edge: zero timeouts, autoscaler at the floor of four instances, no 5xx to any client.
+Hosting: six hosts, 31 % average CPU, 44 % average memory, no eviction, no host event.
+
+REVIEW NOTES
+The reviewers agreed that nothing about the symptom is infrastructure-shaped: a blank list served as HTTP 200 with an empty array is an application-level empty collection, and the only place that collection is built is the invoices service's refunds call.
+They also agreed that the fix belongs to the payments platform team because the payload changed in their release, while the invoices service kept its contract.

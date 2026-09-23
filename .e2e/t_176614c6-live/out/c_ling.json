@@ -1,0 +1,196 @@
+{
+  "model": "Ling-3.0-tiny-Q5_K_M",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "vulkan",
+    "backend_source": "bundle",
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan",
+    "readout": "sequence",
+    "cue": "json_instructed",
+    "chat_format": {
+      "kind": "role_split",
+      "question_turn": "user",
+      "contract": "question",
+      "prefix_chars": 5289,
+      "dropped": ""
+    },
+    "kv_unified": true,
+    "n_ctx": 4096,
+    "n_seq_max": 8,
+    "prefix_tokens": 1365,
+    "state_id": "sha256:8c0e24a588c52cf33f5a6de9294b93200b632d2a3ebfcfedfe82582d33c0e610",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": null,
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "q4_0",
+    "n_gpu_layers": 21,
+    "placement": {
+      "note": "fit plan: 21 layer(s) offloaded, kv_type=q4_0",
+      "n_gpu_layers": 21,
+      "kv_type": "q4_0",
+      "degraded": false,
+      "attempts": [],
+      "warnings": [],
+      "cpu_only": false
+    },
+    "fit": {
+      "n_gpu_layers": 21,
+      "n_ctx": 4096,
+      "kv_type": "q4_0",
+      "n_seq_max": 8,
+      "est_weights_bytes": 5627707392,
+      "est_kv_bytes": 622854144,
+      "est_total_bytes": 6593445888,
+      "backend": "cpu",
+      "source": "llama-fit-params",
+      "standard_n_ctx": 32768,
+      "ctx_limit": "shrunk",
+      "warnings": [
+        "W_KV_TYPE_DOWNGRADE",
+        "W_CTX_BELOW_STANDARD",
+        "W_FIT_DOWNGRADE"
+      ],
+      "notes": [
+        "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 5367 MiB, context 46 MiB, compute 327 MiB)",
+        "n_ctx shrunk 32768 -> 4096 to fit the budget (5711 MiB); raise --fit-target, lower --fit-ctx or use a smaller quant",
+        "device memory bound: offloading 21/24 layers within 5711 MiB (--fit-target 1024 MiB, 6735 MiB free of 8192 MiB)"
+      ],
+      "arch": "bailingmoe3",
+      "model_sha256": "b20a30eb9fe1b67356cb25f65aa9cad1a7c58263c8edf16b183e47183c05677d",
+      "host_fingerprint": "eb9f25a70307873f",
+      "budget_bytes": 5988417536,
+      "created_at": "2026-09-23T20:58:42Z",
+      "schema": "typed_gguf.fit/v1"
+    },
+    "keep": {
+      "served_by": "host",
+      "keep_alive_s": 600.0,
+      "state": "running",
+      "pid": 90024,
+      "key": {
+        "model_path": "/var/home/rybens/.hermes/models/Ling-3.0-tiny-Q5_K_M.gguf",
+        "model_sha": "stat:5635443616:1788473147415654269",
+        "backend": "auto",
+        "n_ctx": null,
+        "n_seq_max": null,
+        "kv_type": "auto",
+        "threads": null,
+        "fit": true,
+        "fit_target_mb": null,
+        "fit_ctx": null,
+        "fit_cache": true
+      },
+      "key_digest": "bd9f9cb5f62a8f0a",
+      "model": "Ling-3.0-tiny-Q5_K_M",
+      "model_path": "/var/home/rybens/.hermes/models/Ling-3.0-tiny-Q5_K_M.gguf",
+      "requests": 1,
+      "uptime_s": 66.653,
+      "idle_left_s": 544.137,
+      "loaded_at": 1790197115.951456,
+      "placement": {
+        "note": "fit plan: 21 layer(s) offloaded, kv_type=q4_0",
+        "n_gpu_layers": 21,
+        "kv_type": "q4_0",
+        "degraded": false,
+        "attempts": [],
+        "warnings": [],
+        "cpu_only": false
+      },
+      "devices": {
+        "devices": [
+          "CPU",
+          "CPU_Mapped",
+          "Vulkan0",
+          "Vulkan_Host"
+        ],
+        "device_buffers": {
+          "Vulkan0": 1,
+          "Vulkan_Host": 1
+        },
+        "effective_backend": "vulkan"
+      },
+      "model_load_ms": 3535.213486997236,
+      "socket": "/work/t176614c6-live/home/keep/bd9f9cb5f62a8f0a.sock",
+      "spec": "/work/t176614c6-live/home/keep/bd9f9cb5f62a8f0a.spec.json",
+      "log": "/work/t176614c6-live/home/keep/bd9f9cb5f62a8f0a.log",
+      "version": "",
+      "fallback": null
+    },
+    "escalations": {
+      "enabled": false,
+      "limit": 0,
+      "threshold": 0.5,
+      "target": null,
+      "count": 0,
+      "decisions": [],
+      "skipped": []
+    }
+  },
+  "answers": {
+    "cause": {
+      "type": "choice",
+      "choice": "deploy",
+      "probabilities": {
+        "deploy": 0.998959,
+        "infra": 0.00103931,
+        "provider": 1.28511e-06
+      },
+      "confidence": 0.998439,
+      "coverage": 0.999886,
+      "reliability": "ok",
+      "cue": {
+        "refused": false,
+        "token": 93531,
+        "closer": null,
+        "mass": 0.999884,
+        "verdict": "answered",
+        "next": null
+      },
+      "decode_steps": 4
+    }
+  },
+  "usage": {
+    "input_tokens": 1430,
+    "output_tokens": 4,
+    "questions": 1,
+    "forks": 3,
+    "prefill_tokens": 1365,
+    "decode_steps": 4,
+    "waves": 2
+  },
+  "timings": {
+    "model_load_ms": 3535.213486997236,
+    "prefill_ms": 37012.1,
+    "questions_ms": 18361.7,
+    "total_ms": 55391.6
+  },
+  "warnings": [],
+  "calibrated": false,
+  "calibration": {
+    "source": "",
+    "applied": false,
+    "model": null,
+    "params_hash": "",
+    "temperatures": {},
+    "confidence_modes": {},
+    "accepted_types": []
+  }
+}
