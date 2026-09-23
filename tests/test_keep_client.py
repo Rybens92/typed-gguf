@@ -839,3 +839,114 @@ def test_a_swap_refuses_when_the_record_it_cannot_stop_still_answers(
     # `stop()` cleared the ledger entry of the record it refused to signal (the pre-existing
     # teardown rule — this card's change is *what gets a signal*, not what gets cleaned).
     assert state.read_record(keep_home) is None
+
+
+# ------------------------------- a swap vs. a decision in flight (card t_176614c6(a), case 3b)
+BUSY_HOST = '''"""A host with (or without) a decision in flight, for the swap gates below.
+
+The production serve loop is single-threaded: while a decision runs, nothing is accepted, so a
+*ping* goes unanswered; SIGTERM is deferred to the moment the decision is done; and the decision's
+answer is sent *before* the loop notices the signal (SPEC 2.12, `keep.host.Server.serve`). These
+three properties are what the swap has to respect, and this script has exactly them.
+"""
+import pathlib
+import signal
+import socket
+import sys
+import time
+
+sock_path, marker, decision_s, mode = (sys.argv[1], pathlib.Path(sys.argv[2]),
+                                       float(sys.argv[3]), sys.argv[4])
+stopping: list[int] = []
+signal.signal(signal.SIGTERM, lambda *_: stopping.append(1))
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+sock.bind(sock_path)
+sock.listen(8)
+if mode == "busy":
+    time.sleep(decision_s)                     # the decision the caller is waiting for
+    marker.write_text("answered", encoding="utf-8")
+    while not stopping:                        # ... and only then does the loop see the signal
+        time.sleep(0.02)
+    sys.exit(0)
+conn, _ = sock.accept()                        # idle: it answers a ping right away ...
+conn.sendall(b'{"ok": true, "keep": {}}\\n')
+while True:                                    # ... and then ignores SIGTERM forever
+    time.sleep(0.2)
+'''
+
+
+def _start_stand_in(keep_home: pathlib.Path, key: identity.KeepKey, *, mode: str,
+                    decision_s: float = 1.5) -> tuple[subprocess.Popen, pathlib.Path]:
+    """A foreign host (no `Popen` of ours) bound on the identity's socket + its ledger record."""
+    state.ensure_dir(keep_home)
+    socket_file = state.socket_path(keep_home, key.digest)
+    marker = keep_home / "answered.marker"
+    marker.unlink(missing_ok=True)
+    child = subprocess.Popen([sys.executable, "-c", BUSY_HOST, str(socket_file), str(marker),
+                              str(decision_s), mode])
+    deadline = time.monotonic() + 5.0
+    while time.monotonic() < deadline and not socket_file.exists():
+        time.sleep(0.01)
+    _write_foreign_host(keep_home, child.pid, key)
+    return child, marker
+
+
+@pytest.mark.needs_fork
+def test_a_swap_waits_for_a_decision_in_flight_instead_of_killing_it(make_client,
+                                                                     keep_home) -> None:
+    """RED pin (card t_176614c6(a)): a swap must not SIGKILL an answer out of existence.
+
+    Live case (`t_6a330eff`, case 3b): a swap SIGTERMed the resident host while its decision was
+    still running; the decision outlasted `STOP_GRACE` (5 s), so the swap escalated to SIGKILL
+    mid-prefill, and the answer that caller was waiting for was gone — its client fell back inline
+    and both calls ended in `E_BACKEND_OOM`. SIGTERM alone is enough: the host finishes the
+    decision, answers at its end and exits by itself, so a swap only has to *wait* for that (the
+    same ceiling this client gives its own requests). An idle host is untouched: the wait is for a
+    decision that is really in flight (the ping below answers → the old 5 s grace path).
+    """
+    client = make_client(stop_grace=0.3, ping_timeout=0.2)
+    child, marker = _start_stand_in(keep_home, _key("a"), mode="busy", decision_s=1.2)
+    try:
+        body = client.decide(_key("b"), PAYLOAD, keep_alive=30.0, inline=Inline())
+    finally:
+        child.kill()
+        child.wait(timeout=10.0)
+    assert marker.exists(), "the in-flight decision was killed before it could answer"
+    keep = body["engine"]["keep"]
+    assert keep["served_by"] == "host", keep
+    assert ("drain", child.pid) in client.events, client.events
+    assert state.read_record(keep_home) is not None, "the new host took over the ledger"
+    client.stop(grace=1.0)
+
+
+@pytest.mark.needs_fork
+def test_a_stop_still_kills_a_host_that_answers_and_ignores_sigterm(keep_home) -> None:
+    """The drain is for a *busy* host only: an answering (wedged) one still goes at `stop_grace`."""
+    key = _key()
+    child, _marker = _start_stand_in(keep_home, key, mode="idle")
+    try:
+        client = client_module.Client(home=keep_home, stop_grace=0.3, drain_grace=10.0,
+                                      ping_timeout=0.5)
+        report = client.stop()
+    finally:
+        child.kill()
+        child.wait(timeout=10.0)
+    assert report == {"stopped": True, "pid": child.pid, "reason": "killed (SIGKILL)",
+                      "cleaned": True}, report
+    assert ("drain", child.pid) not in client.events
+    assert state.read_record(keep_home) is None
+
+
+def test_a_swap_gets_the_request_ceiling_to_drain_a_decision(keep_home) -> None:
+    """The wait a swap is allowed is the ceiling this client gives its own requests.
+
+    A decision may take as long as `timeout` (that is what the client tells its own caller), so the
+    drain follows `timeout` unless a caller overrides it — the live swap used the same 900 s this
+    client would have given the answer it was waiting for.
+    """
+    assert client_module.Client(home=keep_home).drain_grace == client_module.REQUEST_TIMEOUT
+    assert client_module.Client(home=keep_home, timeout=42.0).drain_grace == 42.0
+    assert client_module.Client(home=keep_home, drain_grace=7.5).drain_grace == 7.5
+    # `keep stop`'s own grace is *not* what a swap waits with: the two budgets stay independent.
+    settled = client_module.Client(home=keep_home, stop_grace=0.5)
+    assert settled.drain_grace == client_module.REQUEST_TIMEOUT

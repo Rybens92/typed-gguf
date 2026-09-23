@@ -364,7 +364,11 @@ def test_ac13_a_cache_hit_is_re_validated_for_the_box_now(tmp_path) -> None:
     assert live.n_gpu_layers < stored.n_gpu_layers                # re-placed for the free reading
     assert "re-planned for free device memory" in " ".join(live.notes)
     assert live.budget_bytes == budget(busy)
-    assert fit.load_cached(model.sha256, busy.fingerprint, home).to_dict() == live.to_dict()
+    # Updated by card t_176614c6(c): the *entry* keeps the answer that was honest when the box was
+    # quiet (`stored`), because a re-plan is shrink-only and writing its answer back made a busy
+    # moment permanent. The plan this call *returns* is still the one the reading allows (above).
+    assert fit.load_cached(model.sha256, busy.fingerprint, home).to_dict() == stored.to_dict()
+    assert fit.load_cached(model.sha256, busy.fingerprint, home).n_gpu_layers == stored.n_gpu_layers
 
 
 def test_a_pin_on_a_warm_policy_entry_is_still_a_pin(tmp_path) -> None:
@@ -466,6 +470,52 @@ def test_a_use_cache_false_call_leaves_the_entry_alone(tmp_path) -> None:
     live = fit.plan_for_model(model, busy, home=home, runtime_dir=None, use_cache=False)
     assert (live.n_ctx, live.ctx_limit) == (4096, "shrunk")       # the box it was handed, not BOX
     assert fit.load_cached(model.sha256, BOX.fingerprint, home).to_dict() == policy.to_dict()
+
+
+# ------------------------------------- AC-13 (🔴 fix, card t_176614c6(c)) the *write-back* rule
+# The write-back exists so a plan that fitted when it was written cannot OOM the box after the
+# desktop grew — but `replan_for_host` is shrink-only, so writing *its* answer back turned a busy
+# moment into the box's permanent answer: measured live (4B host resident, `fit <4B>`), the stored
+# 36-layer grown plan became a 0-layer CPU plan and stayed that way after `keep stop`. The entry
+# holds the box's policy answer; a moment's reading is answered by the plan the call *returns*.
+def test_a_re_plan_capped_by_a_busy_device_never_replaces_the_stored_plan(tmp_path) -> None:
+    """RED pin (card t_176614c6(c)): a busy reading is an answer for *now*, not the box's answer.
+
+    Measured on the operator's box (4B, RTX 3060 Ti 8 GiB) before the fix: with a warm host
+    resident, `fit <4B>` ran the load-time `replan_for_host` against the depleted reading, took the
+    stored 36-layer grown answer down to **0 layers (CPU)** — and *wrote that back*. After
+    `keep stop` the entry still said 0 layers (a re-plan never climbs back), so the next `ask` ran
+    the model on the CPU (~20-44 s) for as long as the entry lived.
+    """
+    home = tmp_path / "home"
+    model = swa_model()
+    stored = fit.estimate_plan(model, BOX)
+    fit.store_plan(stored, home=home)
+    busy = dataclasses.replace(BOX, vram_free_bytes=2000 * MIB)   # same identity, less free now
+    live = fit.plan_for_model(model, busy, home=home, runtime_dir=None, use_cache=True)
+    assert live.n_gpu_layers < stored.n_gpu_layers                # re-placed for the free reading
+    assert live.budget_bytes == budget(busy)                      # ... and honest about the budget
+    # the *entry* keeps the box's own answer: a narrower plan must not displace a wider one
+    assert fit.load_cached(model.sha256, busy.fingerprint, home).to_dict() == stored.to_dict()
+    # ... which is what lets the very next quiet call climb back without recomputing anything
+    quiet = fit.plan_for_model(model, BOX, home=home, runtime_dir=None)
+    assert quiet.to_dict() == stored.to_dict()
+
+
+def test_a_re_plan_that_only_refreshes_the_budget_is_still_written(tmp_path) -> None:
+    """The other side of the same rule: an *equal* device footprint still lands in the entry.
+
+    The guard is `>=` on what the plan asks the device for, not "a re-plan is never written": a hit
+    that re-places nothing but the budget (the box grew, the plan did not) is still the box's own
+    answer and must be stored, or every later call would re-read the device for nothing.
+    """
+    home = tmp_path / "home"
+    model = swa_model()
+    stored = fit.estimate_plan(model, BOX)
+    fit.store_plan(dataclasses.replace(stored, budget_bytes=1), home=home)
+    live = fit.plan_for_model(model, BOX, home=home, runtime_dir=None, use_cache=True)
+    assert live.budget_bytes == budget(BOX)
+    assert fit.load_cached(model.sha256, BOX.fingerprint, home).to_dict() == live.to_dict()
 
 
 # ----------------------------------------------------- AC-9 (🟡) the load uses the plan size
