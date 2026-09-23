@@ -95,6 +95,63 @@ def test_doctor_fails_when_the_recorded_sha_is_missing(tmp_path: pathlib.Path,
     assert check["status"] == "warn"
 
 
+GPU_HOST = pins.fake_host(system="linux", machine="x86_64", has_nvidia_smi=True)
+
+
+def fallback_record() -> str:
+    """A runtime record as `init` writes it after a cuda -> vulkan fallback (the live box)."""
+    reason = ("pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, "
+              "libcublas.so.12, libcuda.so.1, which this host cannot load")
+    return json.dumps({
+        "schema": "typed_gguf.runtime/v1", "variant": "linux-x64-vulkan", "build": 11026,
+        "backend_requested": "cuda", "backend_working": "vulkan",
+        "fallback_reason": reason, "fallback_reason_code": "system_libs_missing",
+        "fallback_attempts": [{"backend": "cuda", "variant": "linux-x64-cuda-12.8",
+                               "code": "system_libs_missing", "reason": reason}]})
+
+
+def write_fallback_record() -> None:
+    store.data_home().mkdir(parents=True, exist_ok=True)
+    store.runtime_record_path().write_text(fallback_record())
+
+
+def test_doctor_human_output_prints_the_fallback_and_the_model_line(tmp_path: pathlib.Path,
+                                                                   monkeypatch: pytest.MonkeyPatch,
+                                                                   capsys) -> None:
+    """The human branch read `runtime['backend_working']`; the report only ever builds
+    `working_backend` — so any record carrying a fallback_reason died with E_INTERNAL/exit 4,
+    the report stopping right after the `runtime:` line."""
+    monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
+    rt = make_runtime(tmp_path)
+    (rt / "libggml-vulkan.so").write_bytes(b"\x7fELF fake\n")
+    monkeypatch.setenv("TYPED_GGUF_RUNTIME_DIR", str(rt))
+    write_fallback_record()
+
+    assert cli.main(["doctor"]) == 2
+
+    captured = capsys.readouterr()
+    assert "E_INTERNAL" not in captured.err
+    assert captured.err == ""
+    assert "  fallback: cuda -> vulkan [system_libs_missing]" in captured.out
+    assert "  model:   " in captured.out                       # the trailing summary line
+
+
+def test_doctor_human_output_survives_a_fallback_record_without_a_live_probe(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch, capsys) -> None:
+    """No bundle to probe (`TYPED_GGUF_RUNTIME_DIR` unset, empty home): `working_backend` is
+    None, so the defensive read must print a placeholder rather than `None` — or crash."""
+    monkeypatch.setattr(pins, "current_host", lambda: GPU_HOST)
+    write_fallback_record()
+
+    assert cli.main(["doctor"]) == 1                            # runtime.present fails
+
+    captured = capsys.readouterr()
+    assert "E_INTERNAL" not in captured.err
+    assert captured.err == ""
+    assert "  fallback: cuda -> none [system_libs_missing]" in captured.out
+    assert "  model:   " in captured.out
+
+
 def test_models_search_text_mode(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
     monkeypatch.setattr(cli.hf, "search", lambda query, limit=20: [
         {"id": "acme/gguf-one", "downloads": 12, "likes": 3, "tags": ["gguf"]}])
