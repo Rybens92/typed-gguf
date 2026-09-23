@@ -161,6 +161,21 @@ _RACE_EXIT_WAIT_S = 5.0
 _RACE_EXIT_POLL_S = 0.05
 
 
+def _an_answered_body(body: dict) -> None:
+    """The race gate's reading of one body (card t_2aadab60) — one predicate, both paths.
+
+    Kept apart from the loop that uses it so that the *meaning* of "an answer" can be pinned
+    without a fork. A body must carry an answer, and a body the ledger's host did not serve must
+    name the designed fallback that served it instead (`spawn:` / `transport:`) — the shared
+    assertion of the race gate, where a caller is served either way.
+    """
+    assert body["answers"], "an answer, not an empty stub"
+    keep = body["engine"]["keep"]
+    if keep["served_by"] == "inline":
+        fallback = keep["fallback"] or ""
+        assert fallback.startswith(("spawn", "transport")), fallback
+
+
 def _one_host_survives(spawned: list[int], winner: int, *,
                        alive: Callable[[int], bool] = state.pid_alive,
                        timeout: float = _RACE_EXIT_WAIT_S,
@@ -228,10 +243,7 @@ def test_two_simultaneous_cold_callers_both_answer_and_one_host_survives(
     served = [body["engine"]["keep"]["served_by"] for body in answers]
     assert set(served) <= {"host", "inline"}, served
     for body in answers:
-        assert body["answers"], "an answer, not an empty stub"
-        if body["engine"]["keep"]["served_by"] == "inline":
-            fallback = body["engine"]["keep"]["fallback"] or ""
-            assert fallback.startswith(("spawn", "transport")), fallback
+        _an_answered_body(body)
     # the ledger names the one host that is still there, and it answers on its own socket
     record = state.read_record(keep_home)
     assert record is not None and state.alive(record), "a race left no usable host"
@@ -284,6 +296,41 @@ def test_the_race_gate_waits_a_bounded_while_for_the_loser_to_leave() -> None:
 
     assert 0.0 < _RACE_EXIT_WAIT_S <= 5.0, "the bound is the card's: ≤5 s (t_e9fbe07f)"
     assert 0.0 < _RACE_EXIT_POLL_S <= 0.05, "25–50 ms steps"
+
+
+def test_the_race_gates_inline_stub_is_an_answer_not_an_empty_stub(keep_home) -> None:
+    """Pin (card t_2aadab60): the fallback double must carry an answer — F1, pinned fork-free.
+
+    F1 (captured `/work/t_e9fbe07f/loop5/fail-99.log`): when the losing racer's client takes the
+    *designed* `spawn:` fallback, the client returns its `inline` callable's body verbatim — and
+    the gate's own `Inline()` answered nothing (`"answers": {}`), so the gate's assertion
+    contradicted the very design it pins (t_9249bb0c: every caller gets an answer). Production's
+    fallback is `decide_payload` (`cli.decide_payload_warm` hands the client exactly that lambda),
+    which answers the payload's questions: the double has to be that shape, or the assertion is
+    untestable on the path it is about.
+
+    Both halves read the same on a starved box as on an idle one — no fork, no host, no clock:
+
+    * the double answers every question the gate's own payload asks (a partial answer would make
+      `assert body["answers"]` pass on less than an answer);
+    * the gate's reading (now `_an_answered_body`) passes on a fallback body the *client* marked,
+      and still fails an empty stub — so the predicate cannot quietly go vacuous.
+    """
+    stub = _inline_body()
+    assert set(stub["answers"]) == set(PAYLOAD["questions"]), (
+        "the Inline double must answer the payload's own questions, as `decide_payload` does")
+    for qid, question in PAYLOAD["questions"].items():
+        assert stub["answers"][qid]["type"] == question["type"], stub["answers"][qid]
+
+    marked = client_module.Client(home=keep_home)._mark(
+        json.loads(json.dumps(stub)), served_by="inline", keep_alive_s=30.0,
+        fallback="spawn: the host exited with code 3 (the losing racer)")
+    _an_answered_body(marked)
+
+    empty = json.loads(json.dumps(marked))
+    empty["answers"] = {}
+    with pytest.raises(AssertionError, match="an answer, not an empty stub"):
+        _an_answered_body(empty)
 
 
 @pytest.mark.needs_fork
@@ -468,6 +515,9 @@ def test_a_log_tail_is_quoted_when_the_host_cannot_start(make_client, keep_home,
     assert inline.calls == 1 and body["engine"]["keep"]["served_by"] == "inline"
     fallback = body["engine"]["keep"]["fallback"]
     assert fallback.startswith("spawn") and "E_RUNTIME_MISSING" in fallback
+    # …and the fallback answers: the body the client returns is the inline callable's, so this is
+    # the real (non-fork) shape F1 measured (card t_2aadab60)
+    _an_answered_body(body)
 
 
 def test_host_errors_are_typed_errors_again(keep_home: pathlib.Path) -> None:
