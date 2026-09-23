@@ -5,6 +5,6 @@ One prefill over a shared prefix, one fork per question, no text generation,
 no fine-tuning. See SPEC.md.
 """
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 __all__ = ["__version__"]

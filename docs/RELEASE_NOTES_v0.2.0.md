@@ -1,10 +1,11 @@
-# typed-gguf v0.1.1 — typed decisions on any GGUF
+# typed-gguf v0.2.0 — typed decisions on any GGUF
 
-> Release notes for the v0.1.1 build. The measured content below is the v0.1.0 material, carried
-> forward unchanged with the version bump, the README's positioning pass and the release workflow
-> this repository now has (`.github/workflows/publish.yml`, PyPI Trusted Publishing). v0.1.0 is
-> live on PyPI as `typed-gguf`. Every number below is already published inside this repository and
-> marked where it was measured.
+> Release notes for the v0.2.0 build. What is new here is **context sizing v2** — the context a call
+> plans, grows into and loads with, including the `--n-ctx` pin — the three fixes listed below it,
+> and a step-by-step walkthrough of a first query in `README.md`. Everything the earlier releases
+> measured (the quality tables, the warm-host numbers, the install receipts) is carried forward
+> unchanged; every number in it is already published inside this repository and marked where it was
+> measured. v0.1.1 is live on PyPI as `typed-gguf`.
 
 ## What this is
 
@@ -25,7 +26,45 @@ Three properties are the point of the project:
   the parallel readout is *exactly* the sequential one — the proof-of-concept measured
   `max |Δ| = 0.00e+00` against a fresh sequential decode on the same context (SPEC §2.4, A4).
 
-## The headline of this build: the warm engine host
+## The headline of this build: context sizing v2
+
+The context a call runs in decides what it can read, and it used to be sized from the request
+(`prefix + question + margin`) — so two questions about the same long state could be sized
+differently, and a plan was a number nobody could read. It is now planned from the box:
+
+- **The standard is 32 768 tokens.** With no `--n-ctx`, a plan aims at the standard whatever size
+  the request itself is.
+- **It grows when there is room.** The plan takes the largest context this box holds at the top KV
+  rung that reaches it, and never above the model's own window. On the 8 GB-VRAM reference box the
+  default plan is **49 763** tokens — `n_ctx: 49763 (standard 32768, grown from the box's free
+  memory)`.
+- **It shrinks gracefully, with a warning.** When the box cannot hold the standard, the KV rung
+  steps down first (`f16 → q8_0 → q4_0`, each step naming `W_KV_TYPE_DOWNGRADE`), then the context
+  itself goes below the standard and the plan carries `W_CTX_BELOW_STANDARD`. Measured live: a
+  budget that cannot hold the standard (`--fit-target 5200`) plans 4 096 tokens at `q4_0`,
+  `ctx_limit shrunk`, warning present — a smaller answer, never a broken one.
+- **`--n-ctx` is a pin.** A pinned window is answered as asked (`min(pin, plan)`), the plan reports
+  `ctx_limit pinned`, and the pin is what re-keys a warm host. `--no-fit` restores the
+  request-sized behaviour for anyone who wants the old arithmetic.
+- **The load follows the plan.** A call that pins nothing loads at the plan's context instead of at
+  its own request size, so the plan and the load are one number — plus at most one 256-cell block
+  of the runtime's own cache padding.
+- **Nothing is truncated, silently or otherwise.** A request that does not fit the loaded context
+  fails with `E_CTX_TOO_SMALL`, naming the `--n-ctx` that fixes it.
+- **Windowed models are charged honestly.** The KV estimate models sliding-window attention
+  (`window + n_ubatch` cells on the windowed layers), so a sliding-window model is no longer
+  charged roughly four times its real cache. Models without a window keep the previous formula byte
+  for byte.
+
+`fit` prints the plan in one line and `fit --json` carries the machine-readable form
+(`standard_n_ctx`, and `ctx_limit` = `standard` / `grown` / `shrunk` / `pinned` / `window`), cached
+per (model SHA-256, host fingerprint) under the data home. The policy itself is written down in
+`docs/SPEC-context-v2.md`; the live receipts are in `docs/evidence/context-v2/README.md` — the
+grown default, the shrunk one, a `--n-ctx 32768` pin that really plans 32 768, and a ~6 000-token
+request answered at `engine.n_ctx` 50 688 against a plan of 50 620 (the runtime pads the cache to a
+256-cell block, +68 cells; the fit-target margin absorbs it).
+
+## The warm engine host (unchanged since v0.1.1)
 
 `run`/`ask` no longer pay the load twice. The first call leaves a **keep host** behind — a detached
 child process holding the loaded model and answering over a `0600` unix socket in the data home
@@ -59,6 +98,24 @@ The knobs:
 
 Receipts: `docs/evidence/v0_1_0_t_7e24cea4_warm_host.md` (the gate table, the two bugs the live
 gates found, the Tier-M sweep over `src/typed_gguf/keep`); offline pins in `tests/test_keep*.py`.
+
+## The three fixes in this build
+
+- **A cached plan can no longer cap a later call.** The plan cache is keyed by model and host, so
+  it holds one answer: the one for a request that pins nothing. A request carrying its own knobs
+  (`--n-ctx`, `--kv-type`, `--fit-target`) is now computed from scratch instead of being answered
+  from — or written into — that entry, and a request that pins nothing recomputes whenever the
+  cached entry answers *less* than the box would plan now. An entry written while the desktop was
+  busy no longer holds every later load below the standard, and `--no-fit-cache` is an escape hatch
+  rather than a requirement.
+- **The live KV check reads the plan's own warning list.** The live gate compared a plan-level
+  step-down against the request's warning list; those two lists answer different questions (what
+  the plan sized against what the load did), and the comparison could pass or fail for the wrong
+  reason. A verification fix, not a behaviour change.
+- **`typed-gguf doctor` no longer dies on a fallback record.** The human-readable report indexed a
+  key the report never builds, so any record carrying a fallback reason raised `KeyError`,
+  truncated the report and exited 4. It reads the report's own key now, and prints `none` when
+  there is no probe to ask.
 
 ## Measured highlights
 
@@ -126,7 +183,7 @@ Receipt: `docs/evidence/v0_1_0_t_eff926f9_uvx_install.md`. What stays repository
 development surface — the test suite and the oracle read `tests/`, `docs/evidence/` and `SPEC.md`,
 which no wheel ships.
 
-## What v0.1.1 does not include
+## What v0.2.0 does not include
 
 - **HTTP and MCP serving.** `typed-gguf serve` and `typed-gguf mcp` are specified (SPEC §2.9:
   `/health`, `/v1/models`, `/v1/decide`, `/v1/systemone`; the `typed_gguf_*` tool set) but they are
@@ -159,6 +216,31 @@ wire shape this adapter mirrors — **no affiliation, no parity claim**), the "S
 decision-readout line of work (`rorshopping/parallel-decisions`, `TheoLeeCJ/openjev`,
 `bnsd55/openjev`), the RLCD prior art that showed decision behaviour in a small frozen model, and
 the default model's authors (Apache-2.0).
+
+## Verification
+
+- **Offline suite, the shape CI runs** — `env -u PYTHONPATH TYPED_GGUF_TEST_BLOCK_NET=1
+  TYPED_GGUF_BENCH_RUNTIME_DIR=<offline bundle> uv run --extra dev pytest -q -rs --timeout=120` →
+  **1 609 passed, 57 skipped, 0 failed** in 43 s. The skips are the live cases that want a GPU, a
+  model file or `--run-network`; nothing in the suite touches the network.
+- **The two release gates.** `tests/test_public_docs.py` (17 tests) pins this file, the README and
+  the packaged version together, including the numbers nobody may re-quote from memory. The second
+  gate, `tests/test_release_publish.py` (15 tests), parses the publish workflow, executes its
+  version gate against a fake `dist/`, and pins the four spellings of one version: `pyproject.toml`,
+  `typed_gguf.__version__`, the name of these notes and the tag the release must carry. From this
+  checkout, `uv run typed-gguf version` prints `typed-gguf 0.2.0`.
+- **The live context receipts** (`docs/evidence/context-v2/`) — the default plan grown to 49 763
+  tokens (`ctx_limit grown`), the shrunk one (`--fit-target 5200` → 4 096 @ `q4_0`,
+  `W_CTX_BELOW_STANDARD`), a `--n-ctx 32768` pin that really plans 32 768, and the ~6 000-token
+  request answered at `engine.n_ctx` 50 688 against a plan of 50 620 — that last one is the exact
+  plan-versus-load equality, with the 256-cell pad written down rather than glossed over.
+- **Mutation sweep over the module this build rewrote** (`src/typed_gguf/runtime/fit.py`, 2 267
+  mutants, soft threshold): 1 335 killed / 805 survived = **62.4 %**, the card's whole changed
+  surface scored. The sweep's one semantic gap — the equality boundary of the below-standard
+  warning — was closed with a test that fails on that mutant and on nothing else. Receipt:
+  `docs/evidence/context-v2/mutation.md`.
+- **Independent review** — approve at the v2 head, on a reviewer's own device path and their own
+  re-run of the gates; the findings that review raised are the three fixes above.
 
 ## Reproduce
 
