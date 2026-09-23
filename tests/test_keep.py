@@ -9,6 +9,7 @@ import json
 import os
 import pathlib
 import socket
+import threading
 
 import pytest
 
@@ -261,6 +262,97 @@ def test_clear_record_leaves_another_hosts_record_alone(tmp_path: pathlib.Path) 
     state.write_record(record, tmp_path)
     assert state.clear_record(tmp_path, digest="notthat") is False
     assert state.read_record(tmp_path) == record
+
+
+# ------------------------------------------------------- two writers, one target (card t_9249bb0c)
+class _HookedReplace:
+    """`state.os` with a single hooked `replace`; every other name is the real module's.
+
+    The hook is the *interleaving*, not a mock of the write: writer A reaches its `os.replace` and
+    waits there, writer B then runs its whole `tmp + write + fsync + os.replace` to the same
+    target, and only then does A's replace run. That is the shape two cold callers produce when
+    they race for one ledger target on a slow box (card t_9249bb0c found it live: 4 runs of 5).
+    """
+
+    def __init__(self, stalled: threading.Event, other_done: threading.Event,
+                 first: str, second: str) -> None:
+        self._stalled = stalled
+        self._other_done = other_done
+        self._first = first
+        self._second = second
+        self._saw_first = False
+
+    def __getattr__(self, name: str) -> object:
+        return getattr(os, name)
+
+    def replace(self, source: object, target: object) -> None:
+        """The one called function: hold the first writer here until the second is finished."""
+        name = threading.current_thread().name
+        if name == self._first and not self._saw_first:
+            self._saw_first = True
+            self._stalled.set()
+            assert self._other_done.wait(10.0), "the second writer never reached its own replace"
+        os.replace(source, target)                  # type: ignore[arg-type]
+        if name == self._second:
+            self._other_done.set()
+
+
+@pytest.mark.parametrize("writer", ["record", "spec"])
+def test_two_writers_staging_one_target_do_not_share_a_file(
+        writer: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """RED pin (card t_9249bb0c): the staging name is per-writer, so a racer's replace cannot
+    remove the other's staging file — and a raw `FileNotFoundError` never escapes the ledger.
+
+    The ledger's two writers of `_write_private` are exercised by name here: the **record**
+    (`state.write_record`, written by the host and by the client) and the **spec**
+    (`keep.host.HostSpec.save`, written by a spawning client before its child starts). Both build
+    the same final path in this gate and are interleaved *inside* the write; with one shared
+    `<name>.tmp`, the second writer's replace removes the first's staging file and the first's own
+    replace then raises ENOENT on a designed path — the live `E_INTERNAL` of the finding. The last
+    replace still wins deterministically, and what it leaves behind is a whole file, not a half.
+    """
+    from typed_gguf.keep import host as host_module
+
+    if writer == "record":
+        target = state.state_path(tmp_path)
+
+        def staged(index: int) -> None:
+            state.write_record(_record(tmp_path, model=f"w{index}"), tmp_path)
+    else:
+        key = identity.KeepKey.of(_request(), model_path="/models/a.gguf", model_sha="dead",
+                                  fit={"fit_enabled": True})
+        target = state.spec_path(tmp_path, key.digest)
+
+        def staged(index: int) -> None:
+            host_module.HostSpec(
+                key=key, digest=key.digest, model=f"s{index}", model_path=key.model_path,
+                keep_alive=30.0, spec_path=str(target),
+                socket_path=str(state.socket_path(tmp_path, key.digest)),
+                log_path=str(state.log_path(tmp_path, key.digest)), payload={}).save()
+
+    stalled, other_done = threading.Event(), threading.Event()
+    monkeypatch.setattr(state, "os", _HookedReplace(stalled, other_done, "stall", "rush"))
+    failures: list[BaseException] = []
+
+    def run(index: int) -> None:
+        try:
+            staged(index)
+        except BaseException as exc:                     # noqa: BLE001 - the finding, not a plan
+            failures.append(exc)
+
+    first = threading.Thread(target=run, args=(1,), name="stall")
+    first.start()
+    assert stalled.wait(10.0), "the first writer never reached its replace"
+    second = threading.Thread(target=run, args=(2,), name="rush")
+    second.start()
+    second.join(15.0)
+    first.join(15.0)
+    assert failures == [], f"a staged write raised {[repr(exc) for exc in failures]}"
+    kept = json.loads(target.read_text(encoding="utf-8"))
+    assert kept["model"] == ("w1" if writer == "record" else "s1"), \
+        "the write that replaced last owns the file"
+    assert [name for name in os.listdir(target.parent) if name.endswith(".tmp")] == [], \
+        "a staging file was left behind"
 
 
 # ------------------------------------------------------------------ the host record's own report

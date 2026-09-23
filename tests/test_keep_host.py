@@ -316,6 +316,31 @@ def test_a_host_whose_socket_is_taken_by_a_live_host_refuses(keep_home: pathlib.
     first.join()
 
 
+def test_a_host_that_loses_the_socket_race_leaves_the_winners_record_alone(
+        keep_home: pathlib.Path) -> None:
+    """RED pin (card t_9249bb0c): the loser of the socket race writes *nothing* to the ledger.
+
+    Two cold callers spawn two hosts on one identity; one binds, the other is refused. That loser
+    used to publish its own `failed` record over the winner's `ready` one — the resident model then
+    vanished from the ledger, and the loser's caller cleaned up a *live* host's socket on the next
+    call (two models, SPEC 2.12). The loser's failure still travels: its own log, which the spawning
+    client quotes in the fallback string. The winner's entry must read exactly as before.
+    """
+    spec = _spec(keep_home)
+    first = Running(keep_home, spec, _loaded(FakeHandle()))
+    before = state.read_record(keep_home)
+    assert before is not None and before.state == "ready"
+
+    loser = host_module.Server(spec, load=lambda: _loaded(FakeHandle()))
+    assert loser.serve() == 4, "a host that cannot bind still fails, and says so by exit code"
+    assert loser.bind_owned_elsewhere is True and loser.bind_error is not None
+    after = state.read_record(keep_home)
+    assert after is not None and after.pid == before.pid and after.state == "ready", \
+        "the losing racer erased the resident host from the ledger"
+    first.call({"schema": host_module.REQUEST_SCHEMA, "op": "stop", "key": spec.digest})
+    first.join()
+
+
 def test_a_host_that_cannot_load_leaves_a_readable_failed_record(keep_home: pathlib.Path) -> None:
     """`_fail`: the failure is readable in the ledger — code, message and the process exit code.
 

@@ -13,6 +13,7 @@ import pathlib
 import socket
 import subprocess
 import sys
+import threading
 import time
 
 import pytest
@@ -147,6 +148,111 @@ def test_a_stale_socket_is_cleaned_up_and_the_call_still_answers(make_client, ke
     again = client.decide(key, PAYLOAD, keep_alive=30.0, inline=inline)
     assert again["engine"]["keep"]["served_by"] == "host" and inline.calls == 1
     client.stop()
+
+
+@pytest.mark.needs_fork
+def test_two_simultaneous_cold_callers_both_answer_and_one_host_survives(
+        make_client, keep_home) -> None:
+    """RED pin (card t_9249bb0c): two cold callers racing one data home — every caller answers.
+
+    The live finding: `keep stop`, then two identical `ask`s fired at once. One pays the cold start
+    and answers; the other died in ~140–215 ms with `E_INTERNAL: FileNotFoundError … .spec.json.tmp
+    -> .spec.json` — a raw traceback on a designed path, no `--out`, no inline fallback, no typed
+    code. Two racers write the *same* staging file for the spec (and, when they are different
+    states, for the record), and the winner's `os.replace` removes it under the loser's feet.
+
+    What the gate demands after the fix: no caller raises, every caller gets an *answer*, whoever
+    is not served by the ledger's host says so with the designed fallback (`spawn:` / `transport:`),
+    and exactly one host is left running — SPEC 2.12's "one host per data home" survives the race.
+    """
+    racers = 2
+    clients = [make_client() for _ in range(racers)]
+    inline = [Inline() for _ in range(racers)]
+    key = _key()
+    start = threading.Barrier(racers)
+    answers: list[dict] = []
+    failures: list[BaseException] = []
+
+    def race(index: int) -> None:
+        start.wait(30.0)
+        try:
+            answers.append(clients[index].decide(key, PAYLOAD, keep_alive=30.0,
+                                                 inline=inline[index]))
+        except BaseException as exc:                  # noqa: BLE001 - the finding, not a plan
+            failures.append(exc)
+
+    threads = [threading.Thread(target=race, args=(index,), name=f"racer-{index}")
+               for index in range(racers)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(180.0)
+    assert failures == [], f"a cold caller died on a designed path: {[repr(e) for e in failures]}"
+    assert len(answers) == racers, "every racing caller must come back with an answer"
+    served = [body["engine"]["keep"]["served_by"] for body in answers]
+    assert set(served) <= {"host", "inline"}, served
+    for body in answers:
+        assert body["answers"], "an answer, not an empty stub"
+        if body["engine"]["keep"]["served_by"] == "inline":
+            fallback = body["engine"]["keep"]["fallback"] or ""
+            assert fallback.startswith(("spawn", "transport")), fallback
+    # the ledger names the one host that is still there, and it answers on its own socket
+    record = state.read_record(keep_home)
+    assert record is not None and state.alive(record), "a race left no usable host"
+    assert client_module._listening(record.socket), record.socket
+    spawned = [spawn["pid"] for client in clients for spawn in client.spawns]
+    alive = [pid for pid in spawned if state.pid_alive(pid)]
+    assert alive == [record.pid], (
+        f"the race left {len(alive)} host(s) for one data home ({alive}, ledger {record.pid})"
+        f" — SPEC 2.12 allows one")
+
+
+@pytest.mark.needs_fork
+def test_simultaneous_cold_callers_for_two_states_never_share_a_record(
+        make_client, keep_home) -> None:
+    """The same race with two *different* states: both answer *now*, not after an idle window.
+
+    Different keys mean different specs and sockets, but the record (`keep/host.json`) is one file
+    for the whole data home, so the two spawning hosts stage over each other. The card's finding
+    reports the raw `E_INTERNAL` here too. The timing is part of the claim: before the fix the loser
+    sat next to the winner until its own `keep_alive` ran out (30 s here — minutes in the live
+    shape), because a record for another digest was simply ignored; a caller that lost the race is
+    now stopped by name and answers inline instead.
+    """
+    racers = 2
+    clients = [make_client() for _ in range(racers)]
+    inline = [Inline() for _ in range(racers)]
+    keys = [_key("a"), _key("b")]
+    start = threading.Barrier(racers)
+    answers: list[dict] = []
+    failures: list[BaseException] = []
+
+    def race(index: int) -> None:
+        start.wait(30.0)
+        try:
+            answers.append(clients[index].decide(keys[index], PAYLOAD, keep_alive=30.0,
+                                                 inline=inline[index]))
+        except BaseException as exc:                  # noqa: BLE001 - the finding, not a plan
+            failures.append(exc)
+
+    threads = [threading.Thread(target=race, args=(index,), name=f"racer-{index}")
+               for index in range(racers)]
+    started = time.monotonic()
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(180.0)
+    elapsed = time.monotonic() - started
+    assert failures == [], f"a cold caller died on a designed path: {[repr(e) for e in failures]}"
+    assert len(answers) == racers
+    assert elapsed < 15.0, (
+        f"the losers of the race waited {elapsed:.1f}s for another host's keep-alive window "
+        f"instead of answering inline (keep_alive was 30 s)")
+    assert set(body["engine"]["keep"]["served_by"] for body in answers) <= {"host", "inline"}
+    record = state.read_record(keep_home)
+    if record is not None:
+        assert record.digest in {key.digest for key in keys}, record.digest
+        assert state.alive(record), "the ledger kept a record of a host that is gone"
 
 
 @pytest.mark.needs_fork
