@@ -383,12 +383,12 @@ def test_a_host_that_cannot_load_leaves_a_readable_failed_record(keep_home: path
 def test_a_decision_that_cannot_allocate_leaves_the_ledger(keep_home: pathlib.Path) -> None:
     """RED pin (card t_176614c6(b)): a host that cannot serve must never sit there saying `ready`.
 
-    The field case (`t_6a330eff`, finding b) left a host whose record said `ready` and which answered
-    *every* request with an instant (~170-190 ms) `E_BACKEND_OOM` — the weights were resident, but
-    the context every request needs no longer fitted on the card — and it did that until a human
-    typed `keep stop`. The typed error is still the answer to the request that hit it; what must not
-    survive is the *host*: it leaves the ledger (and its socket, spec and model) behind, so the next
-    call cold-starts instead of being refused again in 170 ms.
+    The field case (`t_6a330eff`, finding b) left a host whose record said `ready` and which
+    answered *every* request with an instant (~170-190 ms) `E_BACKEND_OOM` — the weights were
+    resident, but the context every request needs no longer fitted on the card — and it did that
+    until a human typed `keep stop`. The typed error is still the answer to the request that hit it;
+    what must not survive is the *host*: it leaves the ledger (and its socket, spec and model)
+    behind, so the next call cold-starts instead of being refused again in 170 ms.
     """
     spec = _spec(keep_home)
     handle = FakeHandle()
@@ -412,7 +412,7 @@ def test_a_decision_that_cannot_allocate_leaves_the_ledger(keep_home: pathlib.Pa
 
 def test_a_typed_error_that_is_not_about_the_device_keeps_the_host_serving(
         keep_home: pathlib.Path) -> None:
-    """The other side: a refused *decision* is not a broken host — it stays and answers the next one.
+    """The other side: a refused *decision* is not a broken host — it stays and answers the next.
 
     (`E_CTX_TOO_SMALL` for a state the loaded context cannot hold is a property of that request,
     not of the placement, and `keep` exists precisely so the next request does not pay the load.)

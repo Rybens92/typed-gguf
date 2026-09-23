@@ -495,10 +495,11 @@ class Client:
             self._call(record, {"schema": host_module.REQUEST_SCHEMA, "op": "ping",
                                 "key": record.digest}, timeout=self.ping_timeout)
         except TransportError as exc:
-            # the module's own split (`_abandon`): `refused`/`gone` = nothing is there, `timeout`/
-            # `garbled` = a host that did not answer *this* probe — a busy serve loop. (`host.read_line`
-            # turns its own read timeout into "no line", so an unanswered ping arrives here as
-            # `garbled`, not as `timeout`: both mean the loop never got to read the request.)
+            # the module's own split (`_abandon`): `refused`/`gone` = nothing is there,
+            # `timeout`/`garbled` = a host that did not answer *this* probe — a busy serve
+            # loop. (`host.read_line` turns its own read timeout into "no line", so an
+            # unanswered ping arrives here as `garbled`, not as `timeout`: both mean the loop
+            # never got to read the request.)
             return exc.kind not in ("refused", "gone")
         except (OSError, ValueError, json.JSONDecodeError):
             return False

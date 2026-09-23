@@ -868,10 +868,14 @@ if mode == "busy":
     while not stopping:                        # ... and only then does the loop see the signal
         time.sleep(0.02)
     sys.exit(0)
-conn, _ = sock.accept()                        # idle: it answers a ping right away ...
-conn.sendall(b'{"ok": true, "keep": {}}\\n')
-while True:                                    # ... and then ignores SIGTERM forever
-    time.sleep(0.2)
+while True:                                    # idle: answer every probe, including the
+    conn, _ = sock.accept()                    # liveness check that only connects and closes
+    try:
+        conn.sendall(b'{"ok": true, "keep": {}}\\n')
+    except OSError:
+        pass                                   # ... and then ignore SIGTERM forever
+    finally:
+        conn.close()
 '''
 
 
