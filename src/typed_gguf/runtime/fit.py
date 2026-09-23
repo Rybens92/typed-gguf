@@ -568,9 +568,12 @@ def estimate_plan(model: ModelFacts, host: HostFacts, *, n_ctx: int | None = Non
             downgraded = index > 0
     if downgraded:
         warnings.append("W_KV_TYPE_DOWNGRADE")
-    if not pinned and chosen_ctx < policy_target(model):
-        # §5.4: a plan below the *standard* — when a smaller model window is the reason, §5.2 is
-        # explicit that nothing was degraded (no warning, the window simply is the ceiling).
+    if chosen_ctx < target and chosen_ctx < STANDARD_N_CTX:
+        # §5.4: a plan below the *standard* warns — when a smaller model window is the reason,
+        # §5.2 is explicit that nothing was degraded (the window simply is the ceiling), and a pin
+        # that *fits* is the caller's own word. Both keep `chosen == target`, and a pin that had to
+        # shrink below the standard is the one case §5.5 sends here too (card t_dd15582e): the rule
+        # is the same one the table path applies, so no bundle ever changes the report.
         warnings.append("W_CTX_BELOW_STANDARD")
     if window is not None and window < STANDARD_N_CTX and not pinned:
         notes.append(f"the model's own window is {window} tokens (standard {STANDARD_N_CTX}); "
@@ -929,13 +932,16 @@ def run_llama_fit_params(model: ModelFacts, host: HostFacts, *,
                          n_ctx: int, n_seq_max: int, fit_target_mb: int = DEFAULT_FIT_TARGET_MB,
                          min_ctx: int = DEFAULT_N_CTX, budget_bytes: int | None = None,
                          runner: Callable[[list[str]], str] | None = None,
-                         timeout: float = DEFAULT_TIMEOUT, pinned: bool = False) -> FitPlan | None:
+                         timeout: float = DEFAULT_TIMEOUT, pinned: bool = False,
+                         requested_n_ctx: int | None = None) -> FitPlan | None:
     """Run the bundle's own tool (SPEC 2.10 flags); `None` when it cannot run/parse.
 
     `-ngl` is the layer count the current budget can actually hold (never an unconditional full
     offload: on a busy desktop that asks the tool about a placement that cannot exist, which is
     how `--fit-target` came to be ignored — card t_8cb0a05e). `pinned` says how the caller derived
     `n_ctx` (`--n-ctx` vs the v2 policy); it only labels the plan's `ctx_limit` (§5.1).
+    `requested_n_ctx` carries the pin the caller asked for when `n_ctx` is already the shrunken
+    answer (card t_dd15582e); it is forwarded, never used to size anything here.
     """
     binary = fit_binary(runtime_dir)
     if runner is None and binary is None:
@@ -957,7 +963,8 @@ def run_llama_fit_params(model: ModelFacts, host: HostFacts, *,
         return None
     return plan_from_binary(model, host, table=table, n_ctx=n_ctx, n_seq_max=n_seq_max,
                             runtime_dir=runtime_dir, budget_bytes=budget,
-                            fit_target_mb=fit_target_mb, pinned=pinned)
+                            fit_target_mb=fit_target_mb, pinned=pinned,
+                            requested_n_ctx=requested_n_ctx)
 
 
 def _run(argv: list[str], timeout: float) -> str | None:
@@ -975,7 +982,7 @@ def plan_from_binary(model: ModelFacts, host: HostFacts, *, table: str, n_ctx: i
                      n_seq_max: int, runtime_dir: str | os.PathLike[str] | None,
                      budget_bytes: int | None = None, kv_type: str = "auto",
                      fit_target_mb: int = DEFAULT_FIT_TARGET_MB,
-                     pinned: bool = False) -> FitPlan:
+                     pinned: bool = False, requested_n_ctx: int | None = None) -> FitPlan:
     """Turn a parsed table into a plan whose `est_*` numbers are the binary's own.
 
     The caller's `--fit-target` bounds the plan here too (the table itself is measured for a full
@@ -985,6 +992,11 @@ def plan_from_binary(model: ModelFacts, host: HostFacts, *, table: str, n_ctx: i
     The context *decision* stays the caller's (`n_ctx` is the resolved v2 policy answer or the
     pin), so this is also where the plan gets its `standard_n_ctx` / `ctx_limit` label and the
     policy's arithmetic note (§5.1/§5.3.3).
+
+    `requested_n_ctx` is the value the caller's `--n-ctx` *asked for*, when `n_ctx` is already the
+    shrunken answer: `plan_for_model` resolves the pin before it gets here, so without it a pin that
+    had to shrink would be relabelled `"pinned"` with no note and no `W_CTX_BELOW_STANDARD` (card
+    t_dd15582e, SPEC-context-v2 §5.5). Omitted (the default) it means "`n_ctx` *is* the request".
     """
     rows = parse_fit_table(table)
     weights = sum(row.model_bytes for row in rows)
@@ -993,14 +1005,21 @@ def plan_from_binary(model: ModelFacts, host: HostFacts, *, table: str, n_ctx: i
     budget = budget_bytes if budget_bytes is not None else fit_budget(host, fit_target_mb)
     chosen_kv, kv_total = _kv_from_budget(model, n_ctx, budget, context, kv_type)
     window = model_window(model)
-    target = min(int(n_ctx), window) if pinned and window is not None else (
-        int(n_ctx) if pinned else policy_target(model))
+    # The *request* the label and the note must speak about. `n_ctx` alone is the plan's own
+    # number, and a caller that had to shrink the pin already did so before it got here
+    # (`plan_for_model`, card t_dd15582e) — which is why it can hand the pin over separately.
+    requested = int(n_ctx) if requested_n_ctx is None else int(requested_n_ctx)
+    target = policy_target(model) if not pinned else (
+        requested if window is None else min(requested, window))
     warnings: list[str] = []
     if chosen_kv != "f16" and chosen_kv != kv_type:
         warnings.append("W_KV_TYPE_DOWNGRADE")
-    if not pinned and int(n_ctx) < policy_target(model):
-        # §5.4, the same rule as the estimate path: a plan below the standard warns; a smaller
-        # model window is not a degradation (§5.2/AC-5) and a pin is the caller's own word.
+    if int(n_ctx) < target and int(n_ctx) < STANDARD_N_CTX:
+        # §5.4, the same rule as the estimate path: a plan below the standard warns — whether the
+        # target it fell short of was the standard (unpinned) or the caller's own pin (§5.5: a pin
+        # that *had* to shrink is reported as shrunk, never relabelled as if it had fitted). A
+        # smaller model window is not a degradation (§5.2/AC-5) and a pin that fits is the caller's
+        # own word: neither one lands below `target`, so neither warns.
         warnings.append("W_CTX_BELOW_STANDARD")
     notes = [f"memory table from {pathlib.Path(str(runtime_dir or 'llama-fit-params')).name}/"
              f"llama-fit-params (model {weights / MIB:.0f} MiB, context "
@@ -1170,7 +1189,12 @@ def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | N
                                 min_ctx=min_ctx if min_ctx is not None else (
                                     int(n_ctx) if pinned else DEFAULT_N_CTX),
                                 budget_bytes=budget_bytes, runner=runner,
-                                pinned=pinned) or preliminary
+                                pinned=pinned,
+                                # `preliminary.n_ctx` is already the *shrunk* pin, so the request
+                                # goes over separately: the binary path's label and note must speak
+                                # about what the caller asked for, not about the answer it got
+                                # (card t_dd15582e; §5.5 "a pin that had to shrink").
+                                requested_n_ctx=int(n_ctx) if pinned else None) or preliminary
     plan = replan_for_host(model, plan, host, fit_target_mb=fit_target_mb, min_ctx=min_ctx)
     if cacheable:
         store_plan(plan, home)
