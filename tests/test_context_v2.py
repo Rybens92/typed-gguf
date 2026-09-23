@@ -16,6 +16,7 @@ The live half (AC-16, the engine's own `llama_kv_cache` lines) is in `tests/test
 from __future__ import annotations
 
 import dataclasses
+import pathlib
 
 import pytest
 
@@ -317,6 +318,63 @@ def test_a_no_knob_call_never_takes_a_pinned_entry_for_the_boxes_answer(tmp_path
     assert live.ctx_limit == "grown"                              # §5.2-§5.4, not the foreign pin
     assert live.n_ctx == fit.estimate_plan(model, BOX).n_ctx == 53511
     assert fit.load_cached(model.sha256, BOX.fingerprint, home).n_ctx == live.n_ctx
+
+
+# ------------------------------------- AC-13 (🟡 fix) the *stale* branch: the box moved up
+# Review `t_b5a47c87` minor 1 (card `t_af88fa8c`): the entry holds the policy's answer for
+# `(model, host-fingerprint)`, and the fingerprint cannot see the desktop — so a plan written while
+# the box was busy is exactly the entry a later roomy `ask`/`run` takes its *load size* from, while
+# `replan_for_host` only ever shrinks. `cache_entry_is_stale` is what heals that; these are the
+# reviewer's probe cases 1-3 and 6 (`/work/probe_cache_refresh.py`, 6/6) as repo tests.
+def test_ac13_a_policy_entry_below_the_boxes_answer_is_recomputed_and_healed(tmp_path) -> None:
+    """Probe cases 1-3: busy box writes 4 096 `shrunk` -> a roomy policy call grows and heals."""
+    home = tmp_path / "home"
+    model = swa_model()
+    busy = dataclasses.replace(BOX, vram_free_bytes=2000 * MIB)   # one identity, less free now
+    assert busy.fingerprint == BOX.fingerprint
+    stored = fit.plan_for_model(model, busy, home=home, runtime_dir=None)
+    assert (stored.n_ctx, stored.ctx_limit) == (4096, "shrunk")   # the busy box's own answer
+    assert fit.load_cached(model.sha256, BOX.fingerprint, home).n_ctx == 4096
+    live = fit.plan_for_model(model, BOX, home=home, runtime_dir=None)
+    assert live.n_ctx > stored.n_ctx                              # the branch under test
+    assert (live.n_ctx, live.ctx_limit) == (53511, "grown")       # the policy's answer *now*
+    assert fit.load_cached(model.sha256, BOX.fingerprint, home).to_dict() == live.to_dict()
+
+
+def test_ac13_a_repeat_policy_call_on_the_boxes_own_answer_is_a_hit(tmp_path, monkeypatch) -> None:
+    """`cache_entry_is_stale` is strictly `>` (§5.7): an entry that *is* the box's answer is a hit.
+
+    The recomputed plan is identical, so no assertion on its *value* can separate "recomputed" from
+    "hit" — only the work is different: the stale branch re-runs `estimate_plan` and rewrites the
+    entry, the hit branch re-places the stored plan and writes only when it changed. Counting the
+    writes is what makes a `>` -> `>=` mutant in that comparison fail here.
+    """
+    home = tmp_path / "home"
+    model = swa_model()
+    written: list[int] = []
+    real_store = fit.store_plan
+
+    def counting_store(plan: fit.FitPlan, plan_home: pathlib.Path | None = None) -> pathlib.Path:
+        written.append(plan.n_ctx)
+        return real_store(plan, plan_home)
+
+    monkeypatch.setattr(fit, "store_plan", counting_store)
+    cold = fit.plan_for_model(model, BOX, home=home, runtime_dir=None)
+    assert written == [cold.n_ctx]                                # the cold policy answer is stored
+    again = fit.plan_for_model(model, BOX, home=home, runtime_dir=None)
+    assert again.to_dict() == cold.to_dict()
+    assert written == [cold.n_ctx]                                # a hit: no recompute, no rewrite
+
+
+def test_a_use_cache_false_call_leaves_the_entry_alone(tmp_path) -> None:
+    """Probe case 6: `--no-cache` answers from the box it was handed and never touches the entry."""
+    home = tmp_path / "home"
+    model = swa_model()
+    policy = fit.plan_for_model(model, BOX, home=home, runtime_dir=None)
+    busy = dataclasses.replace(BOX, vram_free_bytes=2000 * MIB)
+    live = fit.plan_for_model(model, busy, home=home, runtime_dir=None, use_cache=False)
+    assert (live.n_ctx, live.ctx_limit) == (4096, "shrunk")       # the box it was handed, not BOX
+    assert fit.load_cached(model.sha256, BOX.fingerprint, home).to_dict() == policy.to_dict()
 
 
 # ----------------------------------------------------- AC-9 (🟡) the load uses the plan size
