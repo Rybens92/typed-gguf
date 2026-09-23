@@ -1,9 +1,10 @@
 # SPEC — context sizing v2: standard 32k, grow into the room, shrink gracefully
 
-Status: **DRAFT — awaiting owner ratification** (this document is the gate for the TDD card; no
-implementation may start from it until the owner signs `Status: APPROVED` and answers §11).
+Status: **APPROVED — ratified by the owner on 2026-09-23**. §11 is resolved (decisions recorded
+there) and this document is the implementation contract for the v2 policy. Implementation card:
+`t_ca1d4231` (typed-gguf, kanban board of this box).
 Card: `t_3d521f79` (typed-gguf, kanban board of this box).
-Date: 2026-09-23. Author: code-spec. Host: `NVIDIA GeForce RTX 3060 Ti 8192 MiB`, 31 GiB RAM,
+Date: 2026-09-23. Ratified: 2026-09-23. Author: code-spec. Host: `NVIDIA GeForce RTX 3060 Ti 8192 MiB`, 31 GiB RAM,
 pinned runtime `llama.cpp b11026` (linux-x64-vulkan) at
 `/home/rybens/.local/share/typed-gguf/runtime/b11026-linux-x64-vulkan`.
 Probe evidence: `/tmp/t_context_v2/` (index in Appendix A; every number below is quoted from a
@@ -601,27 +602,32 @@ a `git diff --stat` inside the docs test is the cheapest guard (AC-15).
 
 ---
 
-## 11. Open decisions for the owner (max 5)
+## 11. Owner decisions — **Resolved 2026-09-23** (ratified with `Status: APPROVED`)
 
-* **D1 — Load = plan size?** The default `ask`/`run` will load the model at the plan's context
-  (32 768+, on this box ~53 000) instead of `prefix + question + margin`. Benefit: any request up to
-  the standard works, and the standard is real. Cost: every cold start allocates the KV
-  (669 MiB if the plan stops at the standard q8_0; 1 040 MiB at the measured growth answer 52 601)
-  for the host's lifetime. Recommended: **yes** (§5.6). Escape hatches: `--n-ctx` pins, `--no-fit`
-  restores request sizing.
-* **D2 — Overhead reserve.** Keep `OVERHEAD_BYTES = 512 MiB` (v2 answer on this box: `q8_0`,
-  ~53 500 ctx — more context, near-lossless KV) or cut it to the measured compute (~260 MiB; answer
-  becomes `f16`, ~32 500 ctx — better KV precision, less context, and 200 MiB less headroom than
-  the 512 policy). Recommended: **keep 512 for this card**; revisit with the measurements in §8.2
-  once the owner has used the v2 default for a while.
-* **D3 — Does `recommend-quant` follow the standard?** Its default ctx (4096) is part of SPEC §6's
-  executed reference values. Recommended: **no** in this card; a dedicated card re-pins
-  `recommend_quant` + the oracle + SPEC §6 + BENCHMARKS prose together.
-* **D4 — Warning name.** `W_CTX_BELOW_STANDARD` (recommended, says what happened) vs
-  `W_CTX_SHRUNK`. Trivial; the first is proposed.
-* **D5 — Growth ceiling.** The card's rule is "up to the model window". On a big-VRAM box that can
-  allocate a very large KV for a small request. Recommended: ship the rule as written; a
-  `--ctx-max N` cap is the follow-up if it ever bites.
+Every decision below was answered by the owner on 2026-09-23 and is binding for the implementation
+card (`t_ca1d4231`). The recommended option won in all five; the "Recommended" wording is kept so
+the reasoning stays auditable.
+
+* **D1 — Load = plan size? — RESOLVED 2026-09-23: YES.** The default `ask`/`run` loads the model at
+  the plan's context (32 768+, on this box ~53 000) instead of `prefix + question + margin`. Benefit:
+  any request up to the standard works, and the standard is real. Cost: every cold start allocates
+  the KV (669 MiB if the plan stops at the standard q8_0; 1 040 MiB at the measured growth answer
+  52 601) for the host's lifetime. Escape hatches: `--n-ctx` pins, `--no-fit` restores request
+  sizing. Implementation: §5.6.
+* **D2 — Overhead reserve. — RESOLVED 2026-09-23: keep `OVERHEAD_BYTES = 512 MiB`.** (v2 answer on
+  this box: `q8_0`, ~53 500 ctx — more context, near-lossless KV.) Cutting it to the measured
+  compute (~260 MiB) would answer `f16`, ~32 500 ctx — better KV precision, less context, and
+  200 MiB less headroom; revisit with the measurements in §8.2 once the v2 default has been used
+  for a while.
+* **D3 — Does `recommend-quant` follow the standard? — RESOLVED 2026-09-23: NO, not in this card.**
+  Its default ctx (4096) is part of SPEC §6's executed reference values. A dedicated card re-pins
+  `recommend_quant` + the oracle + SPEC §6 + BENCHMARKS prose together. The path stays frozen here
+  (§7.1 `registry/recommend.py:32` = K).
+* **D4 — Warning name. — RESOLVED 2026-09-23: `W_CTX_BELOW_STANDARD`** (says what happened); it
+  joins `WARNING_CODES` (§5.1, §7.3).
+* **D5 — Growth ceiling. — RESOLVED 2026-09-23: ship the rule as written** — the ceiling is
+  `min(model window, box capacity)`; a `--ctx-max N` cap is explicitly **not** in this card (it is
+  the first follow-up, §12).
 
 ---
 

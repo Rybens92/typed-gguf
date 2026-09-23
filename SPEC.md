@@ -173,7 +173,9 @@ and reads logits — all verified on this box).
 **Context parameters typed-gguf sets explicitly** (never inherited blindly):
 
 ```
-n_ctx        prefix tokens + longest question suffix + margin (32)
+n_ctx        with a fit plan (the default): plan.n_ctx — standard 32 768, grown when the box holds
+             more, shrunk with W_CTX_BELOW_STANDARD when it does not; with --no-fit (or no plan):
+             prefix tokens + longest question suffix + margin (32)     [v2 amendment, see below]
 n_batch      >= sum of candidate tokens in the largest wave (default 512)
 n_ubatch     512
 n_seq_max    1 + max_candidates_per_question  (waves, §2.3); never above the model's capability
@@ -186,6 +188,15 @@ flash_attn   "auto"
 offload_kqv  per fit plan
 no_perf      False (we need timings)
 ```
+
+**Context sizing v2 (ratified 2026-09-23) — `docs/SPEC-context-v2.md`.** The `n_ctx` row above is
+amended by that document's §6.1: with a fit plan applied (the default), the context is sized by the
+plan — `n_ctx = plan.n_ctx` (standard 32 768, grown when the box holds more, shrunk with
+`W_CTX_BELOW_STANDARD` when it does not), unless the request pins `options.n_ctx`, in which case
+`n_ctx = min(options.n_ctx, plan.n_ctx)`. The `prefix + longest question + margin` formula stays the
+rule for `--no-fit` and for the *request-fit guard*: a request whose needs exceed the loaded context
+raises `E_CTX_TOO_SMALL` with the three token counts — never a truncation. `plan.n_ctx` remains the
+ceiling (`A-E1c-5`). Full policy, constants, semantics and acceptance criteria: `docs/SPEC-context-v2.md`.
 
 **Capability probe (pre-flight, no model load).** `arch` is read from the GGUF metadata (§2.7) and the
 runtime must prove it can run it: the probe scans `libllama.so` for the arch's implementation symbol
