@@ -15,6 +15,7 @@ import subprocess
 import sys
 import threading
 import time
+from collections.abc import Callable
 
 import pytest
 
@@ -150,6 +151,35 @@ def test_a_stale_socket_is_cleaned_up_and_the_call_still_answers(make_client, ke
     client.stop()
 
 
+#: The cold-spawn race's exit window (card t_e9fbe07f). The losing racer is still on the process
+#: table when both answers come back — measured on this box it leaves 0.2–0.3 ms *after* the
+#: sample, and a loaded box repeats the loss 20/25 times — so the gate waits for it instead of
+#: photo-finishing it. 5 s is not a latency promise (a loser lives ~10²ms here): it is the ceiling
+#: that still fails a host which *survives* the race, which is the invariant SPEC 2.12 pins. The
+#: step is the product's own `state.wait_pid_gone` interval.
+_RACE_EXIT_WAIT_S = 5.0
+_RACE_EXIT_POLL_S = 0.05
+
+
+def _one_host_survives(spawned: list[int], winner: int, *,
+                       alive: Callable[[int], bool] = state.pid_alive,
+                       timeout: float = _RACE_EXIT_WAIT_S,
+                       step: float = _RACE_EXIT_POLL_S) -> list[int]:
+    """The pids of `spawned` still alive once the losers have had a bounded chance to leave.
+
+    Returns the *last reading*: `[winner]` when the race really left one host standing (what the
+    gate demands) and anything else — `[winner, loser]`, say — when a loser is still there at the
+    deadline, which the caller's own assertion must then fail on. `alive` is injectable so the
+    wait's semantics can be pinned without spawning anything (the unit test just below the gate).
+    """
+    deadline = time.monotonic() + timeout
+    while True:
+        living = [pid for pid in spawned if alive(pid)]
+        if living == [winner] or time.monotonic() >= deadline:
+            return living
+        time.sleep(step)
+
+
 @pytest.mark.needs_fork
 def test_two_simultaneous_cold_callers_both_answer_and_one_host_survives(
         make_client, keep_home) -> None:
@@ -164,6 +194,12 @@ def test_two_simultaneous_cold_callers_both_answer_and_one_host_survives(
     What the gate demands after the fix: no caller raises, every caller gets an *answer*, whoever
     is not served by the ledger's host says so with the designed fallback (`spawn:` / `transport:`),
     and exactly one host is left running — SPEC 2.12's "one host per data home" survives the race.
+
+    "Exactly one host left running" is read *after a bounded wait* (card t_e9fbe07f): the losing
+    racer is still unwinding when the answers come back, so the gate waits for it to leave the
+    process table (through the zombie window) instead of sampling `pid_alive` in a photo-finish —
+    `_one_host_survives` carries the bound and why it is that size. A loser that never dies still
+    fails, at the bound.
     """
     racers = 2
     clients = [make_client() for _ in range(racers)]
@@ -201,7 +237,9 @@ def test_two_simultaneous_cold_callers_both_answer_and_one_host_survives(
     assert record is not None and state.alive(record), "a race left no usable host"
     assert client_module._listening(record.socket), record.socket
     spawned = [spawn["pid"] for client in clients for spawn in client.spawns]
-    alive = [pid for pid in spawned if state.pid_alive(pid)]
+    # a *wait*, not a sample: the loser is unwinding when the answers come in, so it gets the
+    # bounded window `_one_host_survives` documents before the invariant below is read (t_e9fbe07f)
+    alive = _one_host_survives(spawned, record.pid)
     assert alive == [record.pid], (
         f"the race left {len(alive)} host(s) for one data home ({alive}, ledger {record.pid})"
         f" — SPEC 2.12 allows one")
