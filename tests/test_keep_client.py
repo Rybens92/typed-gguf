@@ -207,6 +207,47 @@ def test_two_simultaneous_cold_callers_both_answer_and_one_host_survives(
         f" — SPEC 2.12 allows one")
 
 
+def test_the_race_gate_waits_a_bounded_while_for_the_loser_to_leave() -> None:
+    """Pin (card t_e9fbe07f): the race gate waits out a loser — and only for a bounded while.
+
+    The gate above used to sample `state.pid_alive` the instant both answers were in, which is a
+    photo-finish rather than a check: measured on this box the losing racer left the process table
+    0.2–0.3 ms *after* that sample, and one loaded box turned the same shape red 20/25 runs (the
+    coordinator's: 12/25 solo, 3/3 inside the full suite). The wait carries two semantics that must
+    stay apart, and both are exercised here on a synthetic predicate — no fork, no spawned process,
+    no waiting on a real clock — so this pin reads the same on a starved box as on an idle one:
+
+    * a loser that leaves the process table a few polls later is waited for, and the gate then
+      reads exactly one host (the shape the flake was);
+    * a loser that *never* leaves still fails, at the bound and not past it — a host that survived
+      the race must never pass, or "the gate waits" would license a second resident model;
+    * the bound itself stays ≤5 s in ≤50 ms steps, so a wedged loser cannot turn a red gate into a
+      hung one.
+    """
+    winner, loser = 101, 202
+    polls = {"loser": 0}
+
+    def alive(pid: int) -> bool:
+        if pid == winner:
+            return True
+        polls["loser"] += 1
+        return polls["loser"] <= 3               # the loser is still unwinding for three polls
+
+    assert _one_host_survives([winner, loser], winner, alive=alive, timeout=5.0,
+                              step=0.001) == [winner]
+    assert polls["loser"] >= 4, "the wait must poll for the loser, not assume it has left"
+
+    started = time.monotonic()
+    living = _one_host_survives([winner, loser], winner, alive=lambda _pid: True, timeout=0.15,
+                                step=0.01)
+    elapsed = time.monotonic() - started
+    assert living == [winner, loser], "a host that never exits must still fail the gate"
+    assert 0.15 <= elapsed < 1.0, f"the wait is bounded, but it ran for {elapsed:.3f}s"
+
+    assert 0.0 < _RACE_EXIT_WAIT_S <= 5.0, "the bound is the card's: ≤5 s (t_e9fbe07f)"
+    assert 0.0 < _RACE_EXIT_POLL_S <= 0.05, "25–50 ms steps"
+
+
 @pytest.mark.needs_fork
 def test_simultaneous_cold_callers_for_two_states_never_share_a_record(
         make_client, keep_home) -> None:
