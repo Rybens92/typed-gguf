@@ -1664,7 +1664,10 @@ def fit_human_lines(plan: fit.FitPlan, *,
         else:
             lines.append(f"{key}: {_render(value)}")
     for key, value in (extra or {}).items():
-        lines.append(f"{key}: {_render(value) if not isinstance(value, (bool, type(None))) else value}")
+        if isinstance(value, (bool, type(None))):
+            lines.append(f"{key}: {value}")
+        else:
+            lines.append(f"{key}: {_render(value)}")
     for note in plan.notes:
         lines.append(f"note: {note}")
     return lines

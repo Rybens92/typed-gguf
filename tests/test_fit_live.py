@@ -91,8 +91,16 @@ def test_the_pinned_default_model_gets_a_plan_from_the_binary() -> None:
     assert plan.est_kv_bytes > 0 and plan.est_total_bytes > plan.est_weights_bytes
     if fit.fit_binary(_runtime_dir()) is not None:
         assert plan.source == "llama-fit-params"
-        assert plan.warnings == ()
+        # v2 (§5.3): the plan aims at the standard and grows, so leaving f16 for a deeper rung is
+        # a legal way to reach it — the binary's table weights sit ~8 % above the tensor index
+        # (§8.3), which is exactly why `_kv_from_budget` may pick q8_0 where the estimate said
+        # f16. The rung and its warning must agree; nothing else may warn here.
+        assert set(plan.warnings) <= {"W_KV_TYPE_DOWNGRADE"}
+        assert (plan.kv_type == "f16") == (plan.warnings == ())
         assert "llama-fit-params" in " ".join(plan.notes)
+        assert plan.standard_n_ctx == fit.STANDARD_N_CTX == 32768
+        assert plan.ctx_limit in {"standard", "grown"}
+        assert plan.n_ctx >= fit.STANDARD_N_CTX          # a roomy host reaches the standard
     else:                                                   # pragma: no cover - bundle present
         assert plan.source == "estimate"
         assert "W_FIT_ESTIMATED" in plan.warnings
@@ -118,15 +126,25 @@ def test_the_tensor_index_matches_the_binary_s_model_row() -> None:
 @pytest.mark.model
 def test_the_estimate_alone_still_answers_the_contract() -> None:
     """`source=estimate` (no runtime handed in) keeps every field and warns."""
-    plan = fit.plan_for_path(_model(), host=_roomy_host(), runtime_dir=None,
+    model_path = _model()
+    plan = fit.plan_for_path(model_path, host=_roomy_host(), runtime_dir=None,
                              use_cache=False, home=None)
     assert plan.source == "estimate"
     assert plan.warnings == ("W_FIT_ESTIMATED",)
     assert plan.kv_type == "f16"
     per_token = fit.kv_bytes_per_token(36, 4, 256, 256, fit.KV_BYTES_PER_ELEMENT["f16"])
     assert per_token == 147456                              # SPEC 2.4, executed
-    assert plan.est_kv_bytes == per_token * plan.n_ctx
-    print(f"\nestimate: kv {plan.est_kv_bytes / 1024 ** 2:.0f} MiB for {plan.n_ctx} ctx tokens")
+    # v2 (§3, AC-6/AC-7): the pinned 4B is a sliding-window model, so its real cache is the SWA
+    # model — `per_token * n_ctx` is the all-layer figure and is the wrong prediction *for it*.
+    # Both facts are pinned: the per-layer oracle keeps SPEC 2.4 byte-exact, and the plan uses
+    # the SWA-aware model (strictly less).
+    model = fit.ModelFacts.read(model_path, want_sha256=False)
+    assert model.has_swa and model.sliding_window == 512
+    assert model.n_swa_layers == 27 and model.n_layer == 36
+    assert plan.est_kv_bytes == fit.kv_bytes(model, plan.n_ctx, plan.kv_type)
+    assert plan.est_kv_bytes < per_token * plan.n_ctx
+    print(f"\nestimate: kv {plan.est_kv_bytes / 1024 ** 2:.0f} MiB for {plan.n_ctx} ctx tokens "
+          f"(all-layer oracle would say {per_token * plan.n_ctx / 1024 ** 2:.0f} MiB)")
 
 
 # ------------------------------------------------------- A-E1c-6: RSS cross-check
@@ -160,10 +178,24 @@ def test_the_plan_is_applied_on_load_unless_no_fit() -> None:
     fitted = cli.decide_payload(payload, home=None)
     assert "fit" in fitted["engine"]
     assert fitted["engine"]["fit"]["source"] in ("llama-fit-params", "estimate")
-    # the plan's context ceiling caps the request (the engine never allocates more than planned)
+    # v2 (§5.6, D1 = YES): with nothing pinned the LOAD is the plan's own context — the plan is
+    # both the ceiling and the size, and it is at or above the standard. The engine reports the
+    # runtime's cells (`llama_n_ctx`), which llama.cpp pads up to a 256-cell block (§8.6), so the
+    # relation is the pad one, not equality: 55 706 asked -> 55 808 loaded, measured.
+    assert fitted["engine"]["n_ctx"] >= fitted["engine"]["fit"]["n_ctx"]
+    assert fitted["engine"]["n_ctx"] - fitted["engine"]["fit"]["n_ctx"] < 256
+    assert fitted["engine"]["fit"]["n_ctx"] >= fit.STANDARD_N_CTX
+    assert fitted["engine"]["fit"]["standard_n_ctx"] == fit.STANDARD_N_CTX
+    assert fitted["engine"]["fit"]["ctx_limit"] in {"standard", "grown"}
+    # a pin wins and is never grown: `--n-ctx 32768` really loads 32 768 now (AC-8; pre-v2 this
+    # was capped to the 4 096 default plan — the live regression this card flips)
     capped = cli.decide_payload({**payload, "options": {"threads": 4, "n_ctx": 32768}}, home=None)
-    assert capped["engine"]["fit"]["n_ctx"] < 32768
-    assert capped["engine"]["n_ctx"] == capped["engine"]["fit"]["n_ctx"]
+    assert capped["engine"]["n_ctx"] == 32768               # the pin is the load size
+    assert capped["engine"]["fit"]["n_ctx"] >= 32768        # the plan stays the ceiling
+    # ... and a pin that has to be *planned* (a fresh, uncached plan) is labelled `pinned`
+    fresh = fit.plan_for_path(model_path, runtime_dir=_runtime_dir(), home=None, use_cache=False,
+                              n_ctx=32768)
+    assert fresh.ctx_limit == "pinned" and fresh.n_ctx == 32768
     # the plan's kv_type reached the context; `--no-fit` leaves the request's own value
     assert fitted["engine"]["kv_type"] == fitted["engine"]["fit"]["kv_type"]
     bare = cli.decide_payload(payload, home=None, fit_enabled=False)
@@ -209,10 +241,12 @@ def test_the_live_answer_carries_the_template_and_the_fit_plan() -> None:
     assert engine["template"]["warnings"] == []
     assert engine["fit"]["kv_type"] in fit.KV_DOWNGRADE_ORDER
     assert engine["kv_type"] == engine["fit"]["kv_type"]
-    # no template fallback, no estimate, no kv downgrade — a low-mass note is the engine's own
-    # diagnostic and is allowed (the readout math never hides it)
-    assert not set(response["warnings"]) & {"W_TEMPLATE_FALLBACK", "W_FIT_ESTIMATED",
-                                            "W_KV_TYPE_DOWNGRADE"}
+    # no template fallback, no estimate — a low-mass note is the engine's own diagnostic and is
+    # allowed (the readout math never hides it). v2 (§5.3): the plan aims at the standard and may
+    # legally leave f16 to reach it, so the *downgrade* warning is allowed exactly when the rung
+    # moved — the warning must tell the truth, and nothing else may appear.
+    assert ("W_KV_TYPE_DOWNGRADE" in response["warnings"]) == (engine["fit"]["kv_type"] != "f16")
+    assert not set(response["warnings"]) & {"W_TEMPLATE_FALLBACK", "W_FIT_ESTIMATED"}
     answer = response["answers"]["area"]
     assert answer["choice"] in ("billing", "technical")
     assert 0.0 <= answer["confidence"] <= 1.0
@@ -280,3 +314,61 @@ def test_a_busy_desktop_plan_loads_on_the_free_reading() -> None:
               f"{plan.budget_bytes / 1024 ** 2:.0f} MiB, load_ms {handle.load_ms:.0f}")
     finally:
         handle.close()
+
+
+# ------------------------------- AC-16: the end-to-end gate of context sizing v2
+def _six_k_state() -> str:
+    """The AC-16 request: a state the pre-v2 4 096 cap could not take.
+
+    Measured on this box: 4 596 prefix tokens (the card's own live receipt,
+    `docs/evidence/context-v2/ask_v2_6k_state_tokens.txt`, is a longer variant at 5 988) — over
+    the old default and comfortably under the standard.
+    """
+    notes = " ".join(
+        f"Incident {index}: the billing dashboard is blank for every user after login since "
+        f"09:{index:02d}; the payments worker restarted itself and the invoice queue drained "
+        f"slower than the SLA. On-call checked the api logs, saw no 500s, and left a note that "
+        f"the cache warmup on the infrastructure node still held the previous deploy's schema."
+        for index in range(1, 59))
+    return f"# War-room notes\n\n{notes}\n\n## Question\nWhich area owns the blank dashboard?"
+
+
+@pytest.mark.model
+def test_ac16_the_v2_default_answers_a_six_kilo_token_request() -> None:
+    """SPEC-context-v2 AC-16, live: standard-or-better sizing, and the same request at a pin.
+
+    Needs a card with room (like every load gate in this file): the plan must reach the standard
+    for the no-pin half to be meaningful, which this box's idle GPU does (~50 k here). The point
+    of the two halves together is that the *sizing* is what decides — nothing about the request
+    changed between them.
+    """
+    from typed_gguf.errors import TypedGgufError
+
+    model_path = _model()
+    payload = {
+        "state": _six_k_state(),
+        "model": str(model_path),
+        "questions": {"area": {"type": "choice", "instructions": "Which area owns this?",
+                               "criteria": {"billing": "payments, invoices and subscriptions",
+                                            "technical": "api, infrastructure and deploys"}}},
+        "options": {"threads": 4},
+    }
+    # half 1: nothing pinned — the plan sizes the load (D1) and must reach the standard
+    response = cli.decide_payload(payload, home=None)
+    engine = response["engine"]
+    assert engine["fit"]["standard_n_ctx"] == fit.STANDARD_N_CTX == 32768
+    assert engine["fit"]["ctx_limit"] in {"standard", "grown"}
+    assert engine["fit"]["n_ctx"] >= fit.STANDARD_N_CTX
+    assert engine["n_ctx"] >= engine["fit"]["n_ctx"]       # the runtime's cells, padded (§8.6)
+    assert engine["n_ctx"] - engine["fit"]["n_ctx"] < 256  # ...by a block, not by a rung
+    assert engine["prefix_tokens"] > 4096                  # the request the old cap refused
+    assert response["answers"]["area"]["choice"] in ("billing", "technical")
+    print(f"\nAC-16: {engine['prefix_tokens']} prefix tokens answered at engine.n_ctx "
+          f"{engine['n_ctx']} (plan {engine['fit']['n_ctx']}, {engine['fit']['ctx_limit']}, "
+          f"{engine['fit']['kv_type']})")
+    # half 2: the same request pinned to the old default — the guard refuses it honestly
+    with pytest.raises(TypedGgufError) as caught:
+        cli.decide_payload({**payload, "options": {"threads": 4, "n_ctx": 4096}}, home=None)
+    assert caught.value.code == "E_CTX_TOO_SMALL"
+    assert "--n-ctx" in str(caught.value)
+    print(f"AC-16: the same request at --n-ctx 4096 -> {caught.value.code}: {caught.value}")

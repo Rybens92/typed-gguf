@@ -1,8 +1,9 @@
-"""SPEC-context-v2 §9/§10 — context sizing v2: standard 32k, grow into the room, shrink (t_ca1d4231).
+"""SPEC-context-v2 §9/§10 — context sizing v2: standard 32k, grow into the room, shrink.
 
-Offline half: AC-1…AC-8 and AC-11/AC-13 as unit tests on `estimate_plan` / `plan_for_model` /
-`replan_for_host`, AC-9/AC-10/AC-12/AC-14 through the engine and CLI seams. Every number is the
-spec's own arithmetic, reproduced on a *synthetic* 4B so the assertions do not move with the box:
+Card `t_ca1d4231`. Offline half: AC-1…AC-8 and AC-11/AC-13 as unit tests on `estimate_plan` /
+`plan_for_model` / `replan_for_host`, AC-9/AC-10/AC-12/AC-14 through the engine and CLI seams.
+Every number is the spec's own arithmetic, reproduced on a *synthetic* 4B so the assertions do
+not move with the box:
 
 * the model is §3's shape — 36 layers, 4 kv heads, 256/256, `sliding_window = 512`, 27 SWA + 9
   global — and its weight bytes are chosen so the box of §0.4/§8.2 (8 192 MiB nominal, 6 760 MiB
@@ -13,8 +14,6 @@ spec's own arithmetic, reproduced on a *synthetic* 4B so the assertions do not m
 The live half (AC-16, the engine's own `llama_kv_cache` lines) is in `tests/test_fit_live.py`.
 """
 from __future__ import annotations
-
-from collections.abc import Callable
 
 import pytest
 
@@ -214,7 +213,7 @@ def test_ac13_re_validation_never_grows_a_plan_and_keeps_the_v2_fields(tmp_path)
     model = swa_model()
     grown = fit.estimate_plan(model, ROOMY)
     shrunk = fit.replan_for_host(model, grown, BOX)
-    assert shrunk.n_ctx == grown.n_ctx                      # the context is not re-sized by a re-plan
+    assert shrunk.n_ctx == grown.n_ctx                      # not re-sized by a re-plan
     assert shrunk.standard_n_ctx == 32768
     assert shrunk.ctx_limit == grown.ctx_limit
     assert shrunk.n_gpu_layers <= grown.n_gpu_layers
