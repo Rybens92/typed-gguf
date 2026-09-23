@@ -1,0 +1,128 @@
+........................................................................ [  4%]
+........................................ssssssss........................ [  8%]
+................................................................s....... [ 12%]
+........................................................................ [ 16%]
+................................................s....................... [ 21%]
+........................................................................ [ 25%]
+........................................................................ [ 29%]
+................................ss...................................... [ 33%]
+........................................................................ [ 38%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+...............................................................sss...... [ 50%]
+............................................sssssss..................... [ 54%]
+..........................F..sssssss.sss................................ [ 59%]
+................................ss.......................ssss........... [ 63%]
+........................................................................ [ 67%]
+..........................................sssssss....................... [ 71%]
+..........................................................s............. [ 76%]
+........................................................................ [ 80%]
+........................................................................ [ 84%]
+....................................s................................... [ 88%]
+.....sssss.............................................................. [ 92%]
+..................................................s..................... [ 97%]
+..........ssss..........................ssssss..                         [100%]
+=================================== FAILURES ===================================
+___________ test_a_cached_plan_is_replanned_when_free_memory_dropped ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7339/test_a_cached_plan_is_replanne0')
+
+    def test_a_cached_plan_is_replanned_when_free_memory_dropped(tmp_path: pathlib.Path) -> None:
+        """The operator's sequence: cache written on a roomy box, then the desktop takes ~6.8 GB."""
+        home = tmp_path / "home"
+        model = tiny_model()
+        roomy = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+                              vram_free_bytes=8 * GIB, n_cpu=8, fingerprint="vulkan:identical")
+        busy = fit.HostFacts(backend="vulkan", ram_bytes=31 * GIB, vram_bytes=8 * GIB,
+                             vram_free_bytes=1112 * MIB, n_cpu=8, fingerprint="vulkan:identical")
+        first = fit.plan_for_model(model, roomy, home=home)
+        assert first.n_gpu_layers == model.n_layer
+        assert fit.load_cached(model.sha256, roomy.fingerprint, home) is not None
+    
+        second = fit.plan_for_model(model, busy, home=home)
+    
+        assert second.n_gpu_layers == 0                    # re-planned for the free reading
+        assert fit.plan_device_bytes(second, model) == 0   # a CPU plan asks the device for nothing
+        assert second.budget_bytes == max(0, 1112 * MIB - fit.DEFAULT_FIT_TARGET_MB * MIB)
+        assert "W_FIT_DOWNGRADE" in second.warnings
+        assert any("free" in note for note in second.notes), second.notes
+        stored = json.loads(fit.cache_path(model.sha256, busy.fingerprint, home).read_text())
+>       assert stored["n_gpu_layers"] == 0                 # the cache now holds the honest plan
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 36 == 0
+
+/var/home/rybens/workspace/ggufone/tests/test_fit_free_vram.py:271: AssertionError
+=========================== short test summary info ============================
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_isolation_live.py:75: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_live.py:90: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_live.py:106: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_live.py:122: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_live.py:146: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_live.py:161: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_live.py:235: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_live.py:272: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_bench_vulkan_teardown_live.py:156: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_cli.py:241: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_ctypes_binding.py:131: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_ctypes_binding.py:157: live test: pass --run-network to run
+SKIPPED [3] ../../var/home/rybens/workspace/ggufone/tests/test_e3e_roles.py:814: live test: pass --run-network to run
+SKIPPED [2] ../../var/home/rybens/workspace/ggufone/tests/test_engine_fork.py:573: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_engine_fork.py:593: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_engine_fork.py:637: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_engine_fork.py:663: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_engine_fork.py:715: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_engine_fork.py:755: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:81: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:110: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:126: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:151: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:168: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:210: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:227: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:277: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:297: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:347: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_gguf_header.py:219: pinned Spark GGUF not present
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_gguf_header.py:235: pinned Qwen3.5 GGUF not present
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_hf_network.py:33: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_hf_network.py:40: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_hf_network.py:51: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_hf_network.py:80: live test: pass --run-network to run
+SKIPPED [7] ../../var/home/rybens/workspace/ggufone/tests/test_keep_live.py: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_policy_v2.py:337: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_runtime_contract.py:90: no runtime installed (run `typed-gguf init` or set TYPED_GGUF_RUNTIME_DIR)
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_runtime_live.py:42: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_runtime_live.py:50: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_runtime_live.py:59: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_runtime_live.py:83: pinned Spark GGUF not present
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_runtime_live.py:90: pinned Spark GGUF not present
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_serving_attribution.py:546: live test: pass --run-network to run
+SKIPPED [2] ../../var/home/rybens/workspace/ggufone/tests/test_templates.py:423: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_templates.py:442: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_templates.py:478: live test: pass --run-network to run
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_wheel_install.py:172: the build backend is not in the local uv cache and this gate builds offline (SPEC A7): atchling`
+  Caused by: Because hatchling was not found in the cache and you require hatchling, we can conclude that your requirements are unsatisfiable.
+
+hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_wheel_install.py:183: the build backend is not in the local uv cache and this gate builds offline (SPEC A7): atchling`
+  Caused by: Because hatchling was not found in the cache and you require hatchling, we can conclude that your requirements are unsatisfiable.
+
+hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_wheel_install.py:194: the build backend is not in the local uv cache and this gate builds offline (SPEC A7): atchling`
+  Caused by: Because hatchling was not found in the cache and you require hatchling, we can conclude that your requirements are unsatisfiable.
+
+hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_wheel_install.py:208: the build backend is not in the local uv cache and this gate builds offline (SPEC A7): atchling`
+  Caused by: Because hatchling was not found in the cache and you require hatchling, we can conclude that your requirements are unsatisfiable.
+
+hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_wheel_install.py:222: the build backend is not in the local uv cache and this gate builds offline (SPEC A7): atchling`
+  Caused by: Because hatchling was not found in the cache and you require hatchling, we can conclude that your requirements are unsatisfiable.
+
+hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+SKIPPED [1] ../../var/home/rybens/workspace/ggufone/tests/test_wheel_install.py:239: the build backend is not in the local uv cache and this gate builds offline (SPEC A7): atchling`
+  Caused by: Because hatchling was not found in the cache and you require hatchling, we can conclude that your requirements are unsatisfiable.
+
+hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.
+1 failed, 1640 passed, 63 skipped in 45.09s
+EXIT=1

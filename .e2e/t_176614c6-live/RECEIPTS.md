@@ -77,16 +77,33 @@ The user-visible cost in the before column is the ~10 s/ask CPU penalty, and it 
 | GREEN | same three files, fixed tree | **94 passed** (`green_all.log`) |
 | GREEN, that pin | `tests/test_fit_free_vram.py` | **17 passed** (`green_free_vram.log`) |
 | full offline suite (CI shape: `env -u PYTHONPATH … TYPED_GGUF_TEST_BLOCK_NET=1`, bundle stub) | `.venv/bin/python -m pytest -q -rs --timeout=120` | **1641 passed, 63 skipped, 0 failed** (`offline_suite2.log`) |
+| full offline suite, same command on the pristine tree (a container-matched baseline) | in `/work/t176614c6-before` | **1634 passed, 63 skipped, 0 failed** (`offline_suite_pristine.log`) — +7 collected tests, same skips |
+| docs gate | `.venv/bin/python -m pytest -q tests/test_public_docs.py` | **17 passed** |
 | lint | `.venv/bin/ruff check src tests tools docs .github` | **All checks passed!** |
 
 The 63 skips are the live/network gates plus six `test_wheel_install.py` skips whose own reason is
 "the build backend is not in the local uv cache and this gate builds offline (SPEC A7)" — a
-property of this container, not of the change (`offline_suite.log` has the same shape with the
-pre-fix counts: 1640 passed / 1 failed).
+property of this container, not of the change. The card's reference figure (1 640 passed /
+57 skipped) was measured in an environment where those six do run: 1 634 + 6 = 1 640 there,
+1 634 + 7 new tests = **1 641** here, with the same 63 skips in both of this container's runs.
+
+## (c), the other half of the hint: what the replacement plans against
+
+The hint allows either "plan for the replacement against free + the outgoing host's footprint" or
+"do not let a swap-degraded plan overwrite a better cached plan". The second is implemented
+(`_may_replace_stored`), and the first turned out to be unnecessary *because of where the plan is
+computed*: `ensure` stops the outgoing host (draining it, see (a)) and only then spawns the
+replacement, whose own host resolves the fit plan at load time — against the memory that is
+actually free by then. The before-receipt shows what went wrong instead: the swap's replacement was
+planned while the *inline fallback* of the victim was holding the card (the (a) bug), so it came
+out at 0 layers and `E_BACKEND_OOM`. In the after-receipt the same request is planned at
+**36 layers / n_ctx 56 616** and answers (`out/repro_a_after.log`, `out/a_after_second.json`) —
+i.e. the replacement lands on the GPU exactly when room exists after the release.
 
 ## Commits (`/workspace/ggufone`, on `main`, local — the coordinator pushes)
 
 ```
+c5e54a3 chore(e2e): the t_176614c6 receipts — before/after live runs for (a)(b)(c)
 0905c73 style: wrap the lines ruff flagged (E501) in the t_176614c6 changes
 0b3c4d4 test(fit): the cache keeps the box's own answer (pin of t_8cb0a05e, updated for t_176614c6(c))
 2f6eec3 fix(keep,fit): never let a victim's answer die, a dead host stay 'ready', a busy plan stick
