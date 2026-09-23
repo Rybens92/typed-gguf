@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "typed-gguf"
-version = "0.2.1"
+version = "0.2.2"
 description = "Local alternative to Jev: typed decisions (choice/score/yes-no) with real probability distributions from any llama.cpp-supported GGUF model, and an easy CLI for humans and AI agents."
 readme = "README.md"
 requires-python = ">=3.11"
