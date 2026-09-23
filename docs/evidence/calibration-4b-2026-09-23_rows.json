@@ -1,0 +1,938 @@
+{
+  "schema": "typed_gguf.bench/v1",
+  "suite": "calibration",
+  "produced_by": "typed-gguf calibrate",
+  "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "devset": "/var/home/rybens/workspace/ggufone/src/typed_gguf/bench/devset.jsonl",
+  "items": [
+    {
+      "id": "c01",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.6276011555781231,
+      "coverage": 0.9997937849690443,
+      "reliability": "ok",
+      "expected": "technical",
+      "got": "technical",
+      "probabilities": {
+        "billing": 0.2698120961818979,
+        "technical": 0.7207008666835923,
+        "sales": 0.006187894140865688,
+        "support": 0.003299142993644128
+      }
+    },
+    {
+      "id": "c02",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.8800374777614303,
+      "coverage": 0.999906130179659,
+      "reliability": "ok",
+      "expected": "billing",
+      "got": "billing",
+      "probabilities": {
+        "billing": 0.9100281083210727,
+        "technical": 0.006666086469960467,
+        "account": 0.003109129007685612,
+        "escalation": 0.08019667620128133
+      }
+    },
+    {
+      "id": "c03",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9996605787243876,
+      "coverage": 0.9999897346430149,
+      "reliability": "ok",
+      "expected": "mobile",
+      "got": "mobile",
+      "probabilities": {
+        "mobile": 0.9997454340432907,
+        "backend": 2.9326105660182575e-06,
+        "design": 9.33948045364993e-06,
+        "marketing": 0.00024229386568977142
+      }
+    },
+    {
+      "id": "c04",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.7608948215809953,
+      "coverage": 0.9997989588140292,
+      "reliability": "ok",
+      "expected": "restricted",
+      "got": "confidential",
+      "probabilities": {
+        "public": 2.9478865983676113e-05,
+        "internal": 0.1339231246110357,
+        "confidential": 0.8206711161857465,
+        "restricted": 0.04537628033723416
+      }
+    },
+    {
+      "id": "c05",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9909620361729773,
+      "coverage": 0.9999467296199779,
+      "reliability": "ok",
+      "expected": "security",
+      "got": "security",
+      "probabilities": {
+        "security": 0.993221527129733,
+        "support": 0.004285957238345757,
+        "docs": 6.5592243086202216e-06,
+        "finance": 0.0024859564076125077
+      }
+    },
+    {
+      "id": "c06",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9912296256706985,
+      "coverage": 0.999922003390531,
+      "reliability": "ok",
+      "expected": "fixed",
+      "got": "fixed",
+      "probabilities": {
+        "added": 0.00402622702634285,
+        "changed": 0.002171503988114686,
+        "fixed": 0.9934222192530239,
+        "removed": 0.0003800497325185182
+      }
+    },
+    {
+      "id": "c07",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9992198888391423,
+      "coverage": 0.9996630929129593,
+      "reliability": "ok",
+      "expected": "termination",
+      "got": "termination",
+      "probabilities": {
+        "liability": 0.0005848677813780766,
+        "termination": 0.9994149166293567,
+        "payment": 2.1543033249508716e-07,
+        "ip": 1.5893282865932177e-10
+      }
+    },
+    {
+      "id": "c08",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.696570449234366,
+      "coverage": 0.9998662329602779,
+      "reliability": "ok",
+      "expected": "business_hours",
+      "got": "business_hours",
+      "probabilities": {
+        "business_hours": 0.7724278369257744,
+        "off_hours": 0.21909132742134668,
+        "weekend": 0.003163945080646834,
+        "freeze": 0.005316890572231874
+      }
+    },
+    {
+      "id": "c09",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9899577577732344,
+      "coverage": 0.9999886626565571,
+      "reliability": "ok",
+      "expected": "spam",
+      "got": "spam",
+      "probabilities": {
+        "spam": 0.9924683183299258,
+        "harassment": 9.907087865333066e-05,
+        "off_topic": 0.007432595920973456,
+        "fine": 1.487044732352091e-08
+      }
+    },
+    {
+      "id": "c10",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9986098473133854,
+      "coverage": 0.9999105491137784,
+      "reliability": "ok",
+      "expected": "compensation",
+      "got": "compensation",
+      "probabilities": {
+        "skills": 0.00025877698750550093,
+        "experience": 0.0007836916045239919,
+        "compensation": 0.9989573854850391,
+        "availability": 1.459229316244764e-07
+      }
+    },
+    {
+      "id": "c11",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9963259971352944,
+      "coverage": 0.9999929258385574,
+      "reliability": "ok",
+      "expected": "expedited",
+      "got": "expedited",
+      "probabilities": {
+        "standard": 3.0352960866569947e-06,
+        "expedited": 0.9972444978514707,
+        "freight": 0.0024236779726596928,
+        "international": 0.0003287888797828236
+      }
+    },
+    {
+      "id": "c12",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9994717395365602,
+      "coverage": 0.9999820433184703,
+      "reliability": "ok",
+      "expected": "frontend",
+      "got": "frontend",
+      "probabilities": {
+        "frontend": 0.9996038046524202,
+        "backend": 0.00038806810605959046,
+        "data": 6.665946307997031e-06,
+        "network": 1.4612952120993554e-06
+      }
+    },
+    {
+      "id": "c13",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9989414159715265,
+      "coverage": 0.9998990772809666,
+      "reliability": "ok",
+      "expected": "partnerships",
+      "got": "partnerships",
+      "probabilities": {
+        "sales": 0.0006515987306919522,
+        "support": 7.443873533273394e-08,
+        "billing": 0.00014226485192790855,
+        "partnerships": 0.9992060619786449
+      }
+    },
+    {
+      "id": "c14",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9859256729186767,
+      "coverage": 0.9999057801398152,
+      "reliability": "ok",
+      "expected": "capital",
+      "got": "capital",
+      "probabilities": {
+        "deductible": 0.0018783558684792923,
+        "capital": 0.9894442546890075,
+        "expense": 0.00035968958656445944,
+        "non_deductible": 0.00831769985594875
+      }
+    },
+    {
+      "id": "c15",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9418381123398342,
+      "coverage": 0.9998416718162337,
+      "reliability": "ok",
+      "expected": "cardiology",
+      "got": "cardiology",
+      "probabilities": {
+        "cardiology": 0.9563785842548757,
+        "orthopedics": 0.0034618424474940858,
+        "neurology": 0.036235551804778984,
+        "dermatology": 0.0039240214928510314
+      }
+    },
+    {
+      "id": "c16",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9999767979876193,
+      "coverage": 0.9999936591152532,
+      "reliability": "ok",
+      "expected": "travel",
+      "got": "travel",
+      "probabilities": {
+        "travel": 0.9999825984907145,
+        "meals": 7.795824835255369e-06,
+        "software": 5.527673239024001e-11,
+        "hardware": 9.605629173339356e-06
+      }
+    },
+    {
+      "id": "c17",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.5857642653904408,
+      "coverage": 0.999207826168348,
+      "reliability": "ok",
+      "expected": "midmarket",
+      "got": "midmarket",
+      "probabilities": {
+        "smb": 0.0007564223324945065,
+        "midmarket": 0.6893231990428306,
+        "enterprise": 0.30919593548992835,
+        "consumer": 0.000724443134746526
+      }
+    },
+    {
+      "id": "c18",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.3815664668620298,
+      "coverage": 0.9883091168419208,
+      "reliability": "ok",
+      "expected": "standup",
+      "got": "retrospective",
+      "probabilities": {
+        "standup": 0.4585561559476923,
+        "retrospective": 0.5361748501465223,
+        "planning": 0.004947672551753678,
+        "review": 0.00032132135403166207
+      }
+    },
+    {
+      "id": "c19",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9945247227061628,
+      "coverage": 0.999446161621108,
+      "reliability": "ok",
+      "expected": "configuration",
+      "got": "configuration",
+      "probabilities": {
+        "configuration": 0.9958935420296221,
+        "code": 1.7363510176531833e-07,
+        "data": 4.189197714478973e-08,
+        "infrastructure": 0.004106242443298941
+      }
+    },
+    {
+      "id": "c20",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9701416252868666,
+      "coverage": 0.9997890262890687,
+      "reliability": "ok",
+      "expected": "copyleft",
+      "got": "copyleft",
+      "probabilities": {
+        "permissive": 0.016575526095004133,
+        "copyleft": 0.97760621896515,
+        "public_domain": 0.00028517149979369495,
+        "proprietary": 0.00553308344005199
+      }
+    },
+    {
+      "id": "c21",
+      "type": "choice",
+      "correct": false,
+      "confidence": 0.7035798355026236,
+      "coverage": 0.9995024882537148,
+      "reliability": "ok",
+      "expected": "archive",
+      "got": "warm",
+      "probabilities": {
+        "hot": 0.015689919343643565,
+        "warm": 0.7776848766269677,
+        "cold": 0.20523878644108226,
+        "archive": 0.0013864175883065207
+      }
+    },
+    {
+      "id": "c22",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9996951357893531,
+      "coverage": 0.9999568912038829,
+      "reliability": "ok",
+      "expected": "sms",
+      "got": "sms",
+      "probabilities": {
+        "email": 3.905780514159751e-09,
+        "chat": 1.4281677574206236e-07,
+        "sms": 0.9997713518420148,
+        "dashboard": 0.00022850143542900932
+      }
+    },
+    {
+      "id": "c23",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9999387146474797,
+      "coverage": 0.9999891341030187,
+      "reliability": "ok",
+      "expected": "identity",
+      "got": "identity",
+      "probabilities": {
+        "payments": 2.5331711560762547e-05,
+        "identity": 0.9999540359856098,
+        "search": 7.05374288332968e-11,
+        "reports": 2.0632232292091898e-05
+      }
+    },
+    {
+      "id": "c24",
+      "type": "choice",
+      "correct": true,
+      "confidence": 0.9999999959462841,
+      "coverage": 0.9999968207160667,
+      "reliability": "ok",
+      "expected": "runbook",
+      "got": "runbook",
+      "probabilities": {
+        "runbook": 0.9999999969597131,
+        "design": 2.2482477632909723e-09,
+        "ticket": 2.548666417472883e-10,
+        "policy": 5.371724617065978e-10
+      }
+    },
+    {
+      "id": "s01",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.9075148495150112,
+      "coverage": 0.9966157414920621,
+      "reliability": "ok",
+      "expected": "3",
+      "got": "4",
+      "probabilities": {
+        "0": 8.614437090162133e-07,
+        "1": 4.446538931563374e-06,
+        "2": 0.0017850491899011308,
+        "3": 0.07219776321544939,
+        "4": 0.9260118796120089
+      }
+    },
+    {
+      "id": "s02",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.6970866164955775,
+      "coverage": 0.9936953665671223,
+      "reliability": "ok",
+      "expected": "3",
+      "got": "1",
+      "probabilities": {
+        "0": 0.01235952188372363,
+        "1": 0.7728149623716831,
+        "2": 0.04531099949697478,
+        "3": 0.16951451624761835
+      }
+    },
+    {
+      "id": "s03",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.846886069636828,
+      "coverage": 0.9999797421255553,
+      "reliability": "ok",
+      "expected": "4",
+      "got": "4",
+      "probabilities": {
+        "0": 1.8134929942361618e-06,
+        "1": 6.586848298039308e-07,
+        "2": 7.903992259003208e-05,
+        "3": 0.12240963219012348,
+        "4": 0.8775088557094625
+      }
+    },
+    {
+      "id": "s04",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.4187980456304766,
+      "coverage": 0.9878109203824281,
+      "reliability": "ok",
+      "expected": "4",
+      "got": "3",
+      "probabilities": {
+        "0": 3.836378704676587e-06,
+        "1": 0.00010785294627773341,
+        "2": 0.42963794314628323,
+        "3": 0.5350384365043813,
+        "4": 0.035211931024352945
+      }
+    },
+    {
+      "id": "s05",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.8758158038425642,
+      "coverage": 0.9987864505859624,
+      "reliability": "ok",
+      "expected": "0",
+      "got": "0",
+      "probabilities": {
+        "0": 0.9006526430740514,
+        "1": 0.09822007805273729,
+        "2": 0.001095151067545891,
+        "3": 3.008907987462817e-05,
+        "4": 2.038725790643761e-06
+      }
+    },
+    {
+      "id": "s06",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.8770205251477985,
+      "coverage": 0.9999925825632365,
+      "reliability": "ok",
+      "expected": "3",
+      "got": "3",
+      "probabilities": {
+        "0": 0.0001790719252337627,
+        "1": 0.0063545814136476714,
+        "2": 0.08570095280026965,
+        "3": 0.9077653938608489
+      }
+    },
+    {
+      "id": "s07",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.46556571783448586,
+      "coverage": 0.9999926579128359,
+      "reliability": "ok",
+      "expected": "1",
+      "got": "1",
+      "probabilities": {
+        "0": 0.004887104401680714,
+        "1": 0.5991742883758644,
+        "2": 0.3958674271037327,
+        "3": 7.118011872224439e-05
+      }
+    },
+    {
+      "id": "s08",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.5099377478612351,
+      "coverage": 0.9556914350882497,
+      "reliability": "ok",
+      "expected": "1",
+      "got": "1",
+      "probabilities": {
+        "0": 0.3915789695197605,
+        "1": 0.6079501982889881,
+        "2": 0.0004584074534926438,
+        "3": 1.157776661950268e-05,
+        "4": 8.469711392663129e-07
+      }
+    },
+    {
+      "id": "s09",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.9966512635515744,
+      "coverage": 0.9999565454376347,
+      "reliability": "ok",
+      "expected": "1",
+      "got": "1",
+      "probabilities": {
+        "0": 0.0001865621689935174,
+        "1": 0.9974884476636808,
+        "2": 0.0019950091704171503,
+        "3": 0.00032998099690838165
+      }
+    },
+    {
+      "id": "s10",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.6938473468741643,
+      "coverage": 0.9999848892176704,
+      "reliability": "ok",
+      "expected": "1",
+      "got": "3",
+      "probabilities": {
+        "0": 0.00022502483828659565,
+        "1": 0.11382626062205818,
+        "2": 0.11556320438403203,
+        "3": 0.7703855101556232
+      }
+    },
+    {
+      "id": "s11",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.5972548590149007,
+      "coverage": 0.7603003924791156,
+      "reliability": "ok",
+      "expected": "1",
+      "got": "2",
+      "probabilities": {
+        "0": 0.00034558372107867306,
+        "1": 0.13750403790246046,
+        "2": 0.6778038872119206,
+        "3": 0.1840878797711481,
+        "4": 0.000258611393392153
+      }
+    },
+    {
+      "id": "s12",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.8807580849711031,
+      "coverage": 0.9999951663974074,
+      "reliability": "ok",
+      "expected": "3",
+      "got": "3",
+      "probabilities": {
+        "0": 1.4276021733179201e-05,
+        "1": 0.00015273235432213062,
+        "2": 0.08926442789561737,
+        "3": 0.9105685637283273
+      }
+    },
+    {
+      "id": "s13",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.5487790544456468,
+      "coverage": 0.9962667757083566,
+      "reliability": "ok",
+      "expected": "1",
+      "got": "0",
+      "probabilities": {
+        "0": 0.6991860362970979,
+        "1": 0.14032957132067828,
+        "2": 0.1604843923822238
+      }
+    },
+    {
+      "id": "s14",
+      "type": "score",
+      "correct": false,
+      "confidence": 0.44300442707240667,
+      "coverage": 0.955845104480745,
+      "reliability": "ok",
+      "expected": "1",
+      "got": "0",
+      "probabilities": {
+        "0": 0.582253320304305,
+        "1": 0.39928130964799474,
+        "2": 0.017689666152551787,
+        "3": 0.0007757038951485556
+      }
+    },
+    {
+      "id": "s15",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.4692785474559494,
+      "coverage": 0.999982763877182,
+      "reliability": "ok",
+      "expected": "2",
+      "got": "2",
+      "probabilities": {
+        "0": 0.001253393710570157,
+        "1": 0.010309157472841593,
+        "2": 0.601958910591962,
+        "3": 0.3864785382246262
+      }
+    },
+    {
+      "id": "s16",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.9550353158117858,
+      "coverage": 0.9936651702395037,
+      "reliability": "ok",
+      "expected": "0",
+      "got": "0",
+      "probabilities": {
+        "0": 0.9662764868588394,
+        "1": 0.02718548375418177,
+        "2": 0.002419776951611957,
+        "3": 0.0041182524353670326
+      }
+    },
+    {
+      "id": "s17",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.6811999127251812,
+      "coverage": 0.908992102448184,
+      "reliability": "ok",
+      "expected": "2",
+      "got": "2",
+      "probabilities": {
+        "0": 0.0008077338806533633,
+        "1": 0.12637986977654722,
+        "2": 0.7608999345438859,
+        "3": 0.11191246179891337
+      }
+    },
+    {
+      "id": "s18",
+      "type": "score",
+      "correct": true,
+      "confidence": 0.9993538130011901,
+      "coverage": 0.9999993768140438,
+      "reliability": "ok",
+      "expected": "0",
+      "got": "0",
+      "probabilities": {
+        "0": 0.9995153597508926,
+        "1": 0.00048108615248951763,
+        "2": 3.176542000246907e-06,
+        "3": 3.7755461788447033e-07
+      }
+    },
+    {
+      "id": "n01",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9992201647621637,
+      "coverage": 0.999994922278694,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.9992201647621637,
+        "no": 0.0007798352378363684
+      }
+    },
+    {
+      "id": "n02",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9840851380345856,
+      "coverage": 0.9999903468203966,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.9840851380345856,
+        "no": 0.01591486196541431
+      }
+    },
+    {
+      "id": "n03",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9967706391205597,
+      "coverage": 0.9999927158257224,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.9967706391205597,
+        "no": 0.003229360879440413
+      }
+    },
+    {
+      "id": "n04",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9999920182701189,
+      "coverage": 0.9999937581910244,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.9999920182701189,
+        "no": 7.981729881081454e-06
+      }
+    },
+    {
+      "id": "n05",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9994534273662073,
+      "coverage": 0.9999937599468415,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.9994534273662073,
+        "no": 0.000546572633792613
+      }
+    },
+    {
+      "id": "n06",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9999744869819329,
+      "coverage": 0.9999961290932875,
+      "reliability": "ok",
+      "expected": "no",
+      "got": "no",
+      "probabilities": {
+        "yes": 2.5513018067079802e-05,
+        "no": 0.9999744869819329
+      }
+    },
+    {
+      "id": "n07",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9943815052987922,
+      "coverage": 0.9999953340627561,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.9943815052987922,
+        "no": 0.00561849470120785
+      }
+    },
+    {
+      "id": "n08",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.944610057123768,
+      "coverage": 0.999984784675313,
+      "reliability": "ok",
+      "expected": "no",
+      "got": "no",
+      "probabilities": {
+        "yes": 0.05538994287623201,
+        "no": 0.944610057123768
+      }
+    },
+    {
+      "id": "n09",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9999495402871486,
+      "coverage": 0.9999960037360145,
+      "reliability": "ok",
+      "expected": "no",
+      "got": "no",
+      "probabilities": {
+        "yes": 5.0459712851469706e-05,
+        "no": 0.9999495402871486
+      }
+    },
+    {
+      "id": "n10",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9828615721334317,
+      "coverage": 0.999994481137166,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.9828615721334317,
+        "no": 0.017138427866568176
+      }
+    },
+    {
+      "id": "n11",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.6373511705531197,
+      "coverage": 0.9999738272250432,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.6373511705531197,
+        "no": 0.36264882944688037
+      }
+    },
+    {
+      "id": "n12",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.99999771464189,
+      "coverage": 0.9999973459920051,
+      "reliability": "ok",
+      "expected": "no",
+      "got": "no",
+      "probabilities": {
+        "yes": 2.28535810989416e-06,
+        "no": 0.99999771464189
+      }
+    },
+    {
+      "id": "n13",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9989905435791837,
+      "coverage": 0.9999927030343227,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.9989905435791837,
+        "no": 0.0010094564208163335
+      }
+    },
+    {
+      "id": "n14",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9999993428055787,
+      "coverage": 0.9999976269345837,
+      "reliability": "ok",
+      "expected": "no",
+      "got": "no",
+      "probabilities": {
+        "yes": 6.571944213510168e-07,
+        "no": 0.9999993428055787
+      }
+    },
+    {
+      "id": "n15",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.894884850163107,
+      "coverage": 0.9999657813911679,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.894884850163107,
+        "no": 0.10511514983689296
+      }
+    },
+    {
+      "id": "n16",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.9999512328591331,
+      "coverage": 0.9999976919859547,
+      "reliability": "ok",
+      "expected": "no",
+      "got": "no",
+      "probabilities": {
+        "yes": 4.8767140866932643e-05,
+        "no": 0.9999512328591331
+      }
+    },
+    {
+      "id": "n17",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.999958634790815,
+      "coverage": 0.9999971518916322,
+      "reliability": "ok",
+      "expected": "no",
+      "got": "no",
+      "probabilities": {
+        "yes": 4.136520918501261e-05,
+        "no": 0.999958634790815
+      }
+    },
+    {
+      "id": "n18",
+      "type": "noul",
+      "correct": true,
+      "confidence": 0.999823663573478,
+      "coverage": 0.9999932682127584,
+      "reliability": "ok",
+      "expected": "yes",
+      "got": "yes",
+      "probabilities": {
+        "yes": 0.999823663573478,
+        "no": 0.0001763364265218979
+      }
+    }
+  ]
+}
