@@ -996,6 +996,10 @@ def plan_from_binary(model: ModelFacts, host: HostFacts, *, table: str, n_ctx: i
     warnings: list[str] = []
     if chosen_kv != "f16" and chosen_kv != kv_type:
         warnings.append("W_KV_TYPE_DOWNGRADE")
+    if not pinned and int(n_ctx) < policy_target(model):
+        # §5.4, the same rule as the estimate path: a plan below the standard warns; a smaller
+        # model window is not a degradation (§5.2/AC-5) and a pin is the caller's own word.
+        warnings.append("W_CTX_BELOW_STANDARD")
     notes = [f"memory table from {pathlib.Path(str(runtime_dir or 'llama-fit-params')).name}/"
              f"llama-fit-params (model {weights / MIB:.0f} MiB, context "
              f"{context / MIB:.0f} MiB, compute {compute / MIB:.0f} MiB)"]

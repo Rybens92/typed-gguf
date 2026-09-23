@@ -8,6 +8,7 @@ between runs, so the plan's `n_ctx` does too (the spec says so in §0.4: 53 511 
 | --- | --- |
 | `fit_before_default_4096.json` | the pre-v2 `fit --json` (no flags): 4 096 @ f16 — the starting point |
 | `fit_v2_default_grown.json` | the v2 default: **n_ctx 49763, kv_type q8_0, standard_n_ctx 32768, ctx_limit 'grown', n_gpu_layers 36, source llama-fit-params, warnings ['W_KV_TYPE_DOWNGRADE']** |
+| `fit_v2_default_shrunk.json` | `--fit-target 5200` (a budget that cannot hold the standard): 4 096 @ q4_0, `ctx_limit 'shrunk'`, `W_CTX_BELOW_STANDARD` — graceful shrink, live |
 | `fit_v2_pin_32768.json` | `--n-ctx 32768` now really plans 32 768 (the live regression flipped) |
 | `ask_before_4096.txt` | a 5 988-token request against the 4 096 cap -> `E_CTX_TOO_SMALL` (exit 3) |
 | `ask_v2_6k_default.json` | the same request with no pins: answered, `engine.n_ctx` 50 688, `engine.fit.n_ctx` 50 620 |

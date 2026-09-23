@@ -485,7 +485,7 @@ def test_the_binary_plan_sums_the_table_and_notes_where_it_came_from() -> None:
     assert plan.est_weights_bytes == 4096 * MIB
     assert plan.est_kv_bytes == 512 * MIB                 # the binary's own context number
     assert plan.est_total_bytes == (4096 + 512 + 128) * MIB
-    assert plan.warnings == ()
+    assert plan.warnings == ("W_CTX_BELOW_STANDARD",)     # v2 §5.4: 4 096 is under the standard
     # v2 (SPEC-context-v2 §5.3.3): the table note stays first, the policy's arithmetic note joins it
     assert plan.notes[0] == ("memory table from llama-b11026-bin-ubuntu-x64-cpu/llama-fit-params "
                              "(model 4096 MiB, context 512 MiB, compute 128 MiB)")
@@ -503,7 +503,9 @@ def test_the_binary_plan_flags_a_downgrade_when_the_ladder_moved() -> None:
                                 n_ctx=4096, n_seq_max=8, runtime_dir=None,
                                 budget_bytes=budget)
     assert plan.kv_type == "q8_0"
-    assert plan.warnings == ("W_KV_TYPE_DOWNGRADE",)
+    # v2 (§5.4): both warnings tell the truth — the rung moved *and* the context is below the
+    # standard because this budget cannot hold it
+    assert plan.warnings == ("W_KV_TYPE_DOWNGRADE", "W_CTX_BELOW_STANDARD")
     assert plan.notes[0].startswith("memory table from llama-fit-params/")
     assert plan.est_kv_bytes != 512 * MIB                 # our formula, not the binary's row
     assert plan.est_kv_bytes == fit.kv_bytes_per_token(

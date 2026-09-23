@@ -209,7 +209,9 @@ def test_running_the_binary_yields_source_llama_fit_params() -> None:
     plan = fit.plan_from_binary(tiny_model(), cpu_host(), table=(
         "Host 4096 512 256\n"), n_ctx=4096, n_seq_max=8, runtime_dir="/fake/rt")
     assert plan.source == "llama-fit-params"
-    assert plan.warnings == ()
+    # v2 (§5.4): this fixture's policy answer is 4 096 — below the standard, so it says so. The
+    # rung did not move (f16), hence no downgrade warning beside it.
+    assert plan.warnings == ("W_CTX_BELOW_STANDARD",)
     assert plan.est_weights_bytes == 4096 * MIB
     assert plan.est_kv_bytes == 512 * MIB
     assert plan.est_total_bytes == (4096 + 512 + 256) * MIB

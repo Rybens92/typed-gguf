@@ -149,6 +149,24 @@ def test_ac4_a_budget_below_the_standard_shrinks_gracefully_and_is_still_a_plan(
     assert any("to fit the budget (4979 MiB)" in note for note in plan.notes)
 
 
+def test_ac9_the_binary_path_below_the_standard_carries_the_same_warning() -> None:
+    """§5.4 on the *table* path — found live, not guessed: `fit --fit-target 5200` planned
+    `4096`/`shrunk` with no `W_CTX_BELOW_STANDARD` while the estimate path had one. Both paths
+    must speak one policy, and a pin below the standard stays the caller's own word."""
+    model = swa_model()
+    table = "Host 4096 512 128\n"                       # the table shape the E1c pins use
+    shrunk = fit.plan_from_binary(model, BOX, table=table, n_ctx=4096, n_seq_max=8,
+                                  runtime_dir=None, budget_bytes=model.weights_bytes + 300 * MIB)
+    assert shrunk.n_ctx == 4096 < fit.STANDARD_N_CTX
+    assert shrunk.ctx_limit == "shrunk"
+    assert "W_CTX_BELOW_STANDARD" in shrunk.warnings
+    pinned = fit.plan_from_binary(model, BOX, table=table, n_ctx=4096, n_seq_max=8,
+                                  runtime_dir=None, budget_bytes=model.weights_bytes + 300 * MIB,
+                                  pinned=True)
+    assert pinned.ctx_limit == "pinned"
+    assert "W_CTX_BELOW_STANDARD" not in pinned.warnings
+
+
 def test_ac4_a_plan_the_weights_alone_overrun_is_still_returned_with_the_note() -> None:
     """§5.4: `insufficient` fires unchanged; v2 does not turn it into an exception."""
     model = swa_model()

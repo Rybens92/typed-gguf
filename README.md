@@ -359,7 +359,8 @@ be driven from a file.
 uv run typed-gguf fit                                  # the default model, human-readable
 uv run typed-gguf fit Spark-X2.5-4B-Q8_0 --json        # {n_gpu_layers, n_ctx, kv_type, n_seq_max,
                                                       #  est_weights_bytes, est_kv_bytes,
-                                                      #  est_total_bytes, backend, source}
+                                                      #  est_total_bytes, backend, source,
+                                                      #  standard_n_ctx, ctx_limit}
 ```
 
 `source` is `llama-fit-params` when the bundle's own tool produced the numbers, `estimate`
