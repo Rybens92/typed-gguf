@@ -267,9 +267,18 @@ def test_a_cached_plan_is_replanned_when_free_memory_dropped(tmp_path: pathlib.P
     assert second.budget_bytes == max(0, 1112 * MIB - fit.DEFAULT_FIT_TARGET_MB * MIB)
     assert "W_FIT_DOWNGRADE" in second.warnings
     assert any("free" in note for note in second.notes), second.notes
+    # Updated by card t_176614c6(c): the *cache* keeps the box's own answer (the roomy one). The
+    # hazard this test guards is unchanged — `second` is the plan every caller gets, and every read
+    # of the entry goes through the same re-plan — but writing the busy reading back made it the
+    # box's answer for good: shrink-only never climbs back, so the 36-layer growth answer stayed 0
+    # layers even after the desktop gave the memory back (measured live: the next `ask` ran on the
+    # CPU for 26 s against the 16 s a host-served one took).
     stored = json.loads(fit.cache_path(model.sha256, busy.fingerprint, home).read_text())
-    assert stored["n_gpu_layers"] == 0                 # the cache now holds the honest plan
-    assert stored["warnings"] == list(second.warnings)
+    assert stored["n_gpu_layers"] == first.n_gpu_layers    # the entry keeps the box's own answer
+    assert stored["budget_bytes"] == first.budget_bytes
+    # ... and the box climbs straight back to it once the memory is really free again.
+    third = fit.plan_for_model(model, roomy, home=home)
+    assert third.to_dict() == first.to_dict()
 
 
 def test_a_fitting_cached_plan_is_returned_untouched(tmp_path: pathlib.Path) -> None:
