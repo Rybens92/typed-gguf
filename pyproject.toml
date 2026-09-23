@@ -191,7 +191,7 @@ quote-style = "double"
 # reporting paths (rounding, `suppress` guards, wait constants) and cross-process wire behaviour the
 # offline selection cannot see (it is covered by `tests/test_keep_live.py`, deliberately not
 # selected). Receipts and the full triage: `docs/evidence/v0_1_0_t_7e24cea4_warm_host.md` §4.
-source_paths = ["src/typed_gguf/keep"]
+source_paths = ["src/typed_gguf/runtime/fit.py"]
 also_copy = ["src/typed_gguf", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
@@ -252,11 +252,15 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # the surface it guards is the one `test_pins.py` drives through injection, and two hand probes of
 # the packaged-path mutants against that file are recorded in
 # `docs/evidence/v0_1_0_t_eff926f9_uvx_install.md`.
+# Card t_ca1d4231 (context sizing v2) takes the pair to the module the card rewrites —
+# `src/typed_gguf/runtime/fit.py`: the policy (`estimate_plan` / `policy_target` /
+# `replan_for_host`), the SWA-aware `kv_bytes` and the binary bridge's `ctx_limit`. Selection: the
+# card's own gate file `tests/test_context_v2.py` (the synthetic-4B arithmetic) plus the module's
+# fast contract file `tests/test_fit.py` — the live file needs the model and cannot run per mutant.
+# A later sweep restores the keep pair above.
 pytest_add_cli_args_test_selection = [
-    "tests/test_keep.py",
-    "tests/test_keep_host.py",
-    "tests/test_keep_client.py",
-    "tests/test_keep_cli.py",
+    "tests/test_context_v2.py",
+    "tests/test_fit.py",
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
