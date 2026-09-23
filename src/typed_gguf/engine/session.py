@@ -122,7 +122,8 @@ class ModelHandle:
                  *, arch: str | None, load_ms: float, n_gpu_layers: int = 0,
                  fit_plan: Any | None = None,
                  placement: Placement | None = None,
-                 load_log: Sequence[str] = (), cpu_only: bool = False) -> None:
+                 load_log: Sequence[str] = (), cpu_only: bool = False,
+                 model_facts: Any | None = None) -> None:
         self.runtime = runtime
         self.model = model
         self.path = path
@@ -130,6 +131,10 @@ class ModelHandle:
         self.load_ms = load_ms
         self.n_gpu_layers = int(n_gpu_layers)
         self.fit_plan = fit_plan
+        #: header-only model facts for the context ladder (`fit.context_ladder`): the ladder needs
+        #: the layer count of the *model*, not only of the placement (card t_287e0d18). `None` when
+        #: the header could not be read — the ladder then stays on its kv rungs.
+        self.model_facts = model_facts
         #: card t_55de5779: this handle was loaded with the bundle's CPU device only, so its
         #: contexts cannot compute anywhere else (the `ModelLike.device_log` says so too).
         self.cpu_only = bool(cpu_only)
@@ -176,6 +181,24 @@ class ModelHandle:
         if self.model:
             self.runtime.llama.llama_model_free(self.model)
             self.model = None
+
+    def install(self, model: Any, *, n_gpu_layers: int, load_log: Sequence[str] = ()) -> None:
+        """Adopt a *newly loaded* model as this handle's (the ladder's re-place rungs).
+
+        Everything this handle publishes was read from the model it used to hold — the vocabulary
+        and its size, the layer count, the special-token table, and the engine lines the device
+        evidence is read from — so all of it is re-read here. A handle that kept the old numbers
+        would answer with a tokenizer belonging to a model that is no longer loaded (card
+        t_287e0d18).
+        """
+        llama = self.runtime.llama
+        self.model = model
+        self.n_gpu_layers = int(n_gpu_layers)
+        self.vocab = llama.llama_model_get_vocab(model)
+        self.n_vocab = int(llama.llama_vocab_n_tokens(self.vocab))
+        self.n_layer = int(llama.llama_model_n_layer(model))
+        self._special_tokens = None
+        self.load_log = tuple(load_log)
 
     def __enter__(self) -> ModelHandle:
         return self
@@ -345,9 +368,10 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
     queue: list[Any | None] = [plan]
     # At LOAD time only the layer count matters (the KV cache does not exist yet): walk fewer
     # layers down to CPU-only, and leave the kv_type rungs to the context init, which is where
-    # a KV cache is actually allocated. A plan that pinned no rung (`auto`) starts at the top of
-    # the KV ladder, so the layer rungs are still built for it. A `cpu_only` plan has nothing to
-    # walk: every rung would be the same CPU-only load (card t_55de5779).
+    # a KV cache is actually allocated (and whose own ladder walks ctx size and layers too —
+    # `fit.context_ladder`, card t_287e0d18). A plan that pinned no rung (`auto`) starts at the
+    # top of the KV ladder, so the layer rungs are still built for it. A `cpu_only` plan has
+    # nothing to walk: every rung would be the same CPU-only load (card t_55de5779).
     walk = [step for step in fit.degrade_ladder(plan, facts)
             if plan is not None and facts is not None
             and step.kv_type == fit.kv_start(plan.kv_type)] \
@@ -355,6 +379,7 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
     attempts: list[str] = []
     oom_seen = False
     walk_started = False
+    cpu_rung_tried = False
     cpu_retry_used = False
     index = 0
     while index < len(queue):
@@ -386,11 +411,13 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
                 cpu_only=cpu_only)
             return ModelHandle(runtime, model, str(model_path), arch=arch, load_ms=load_ms,
                                n_gpu_layers=n_gpu_layers, fit_plan=candidate,
-                               placement=placement, load_log=captured, cpu_only=cpu_only)
+                               placement=placement, load_log=captured, cpu_only=cpu_only,
+                               model_facts=facts)
         text = "\n".join(captured)
         kind = fit.classify_load_failure(text)
         oom_seen = oom_seen or kind == "oom"
         attempts.append(f"n_gpu_layers={n_gpu_layers} -> {kind}")
+        cpu_rung_tried = cpu_rung_tried or n_gpu_layers == 0
         if kind == "oom":
             if walk and not walk_started:
                 queue.extend(walk)          # walk fewer layers, ending at CPU-only
@@ -402,7 +429,8 @@ def open_model(path: str | os.PathLike[str], *, runtime_dir: str | os.PathLike[s
             if needed is None and candidate is not None and facts is not None:
                 needed = fit.plan_device_bytes(candidate, facts)
             raise fit.backend_oom_error(candidate, free_bytes=_free_bytes(free_probe),
-                                        needed_bytes=needed, log_tail=text, attempts=attempts)
+                                        needed_bytes=needed, log_tail=text, attempts=attempts,
+                                        cpu_rung=cpu_rung_tried)
         if not cpu_retry_used and not walk_started and plan is not None and facts is not None \
                 and n_gpu_layers != 0:
             cpu_retry_used = True           # a silent failure still deserves one CPU attempt
@@ -480,13 +508,18 @@ class ModelSession:
         self.extra_warnings: list[str] = []
         self._ctx_lines: list[str] = []      # the successful context's own engine lines
         llama = handle.runtime.llama
-        self.ctx, failure, kv_used = _init_context(llama, handle, plan, degrade=degrade,
-                                                  warnings=self.extra_warnings,
-                                                  log=self._ctx_lines)
+        self.ctx, failure, kv_used, effective = _init_context(
+            llama, handle, plan, degrade=degrade, warnings=self.extra_warnings,
+            log=self._ctx_lines)
         if log is not None:
             log.extend(self._ctx_lines)      # a caller-owned sink (the bench) sees every line
         if self.ctx:
             self.kv_type_used = kv_used
+            # the context the ladder settled on is the one this session *has*: a smaller `n_ctx`
+            # than the caller computed (card t_287e0d18) must not be described by the plan that
+            # could not be allocated. `meta.n_ctx` reads the real one back from the runtime, and
+            # `DecisionEngine._guard_context` refuses a request the smaller context cannot hold.
+            self.plan = effective
         if not self.ctx:
             raise failure or RuntimeMissingError(
                 f"E_RUNTIME_MISSING: llama_init_from_model failed (n_ctx={plan.n_ctx}, "
@@ -732,52 +765,164 @@ def _context_params(llama: Any, plan: ContextPlan, kv_type: str) -> Any:
     return params
 
 
+def _reload_model(handle: ModelHandle, n_gpu_layers: int, *,
+                  log: list[str] | None = None) -> bool:
+    """Re-place the loaded model at `n_gpu_layers` — the ladder's layer rungs (card t_287e0d18).
+
+    The model is freed *before* the new load: holding both would need exactly the device memory the
+    ladder is trying to find. Everything the handle publishes is refreshed from the load that
+    succeeded (`ModelHandle.install`), and the placement and the plan the response reports are
+    updated with it — a run that had to drop to CPU-only must not keep claiming 36 offloaded
+    layers. Returns False when the new load fails (the caller walks on; the CPU-only rung is the
+    next one, and it allocates nothing on the device).
+    """
+    llama = handle.runtime.llama
+    handle.close()
+    with capture_llama_logs(handle.runtime) as captured:
+        model = _load_model(llama, pathlib.Path(handle.path), n_gpu_layers)
+    if not model:
+        return False
+    handle.install(model, n_gpu_layers=n_gpu_layers, load_log=captured)
+    plan = getattr(handle, "fit_plan", None)
+    if plan is not None:
+        handle.fit_plan = dataclasses.replace(plan, n_gpu_layers=int(n_gpu_layers))
+    placement = getattr(handle, "placement", None)
+    if placement is not None:
+        handle.placement = dataclasses.replace(
+            placement, n_gpu_layers=int(n_gpu_layers), degraded=True,
+            note=_placement_note(getattr(handle, "fit_plan", None), degraded=True,
+                                 fit_disabled=False))
+    if log is not None:
+        log.extend(captured)
+    return True
+
+
+def _context_rungs(handle: ModelHandle, plan: ContextPlan, *,
+                   degrade: bool) -> tuple[fit.FitPlan, ...]:
+    """The rungs the context init walks, starting from the placement the handle *has*.
+
+    The plan the model was loaded with is not the placement that exists: the loader's own ladder,
+    or an earlier session on this handle (the calibration loop creates one session per dev-set item
+    on one handle) may already have re-placed it. A ladder that always started from the plan's
+    layer count would map 4.4 GB of weights back up between two requests.
+
+    An empty tuple means "no model facts" (a header the ladder cannot read): the init then walks
+    its kv rungs only, which is the pre-fix behaviour and never a new failure mode.
+    """
+    facts = getattr(handle, "model_facts", None) or _model_facts_for_ladder(
+        pathlib.Path(handle.path), getattr(handle, "fit_plan", None))
+    if facts is None:
+        return ()
+    base = fit.coerce_plan(getattr(handle, "fit_plan", None)
+                           or {"n_gpu_layers": getattr(handle, "n_gpu_layers", 0)})
+    base = dataclasses.replace(base, n_gpu_layers=int(getattr(handle, "n_gpu_layers", 0) or 0))
+    return fit.context_ladder(base, facts, n_ctx=int(plan.n_ctx), min_ctx=fit.DEFAULT_N_CTX,
+                              kv_type=str(plan.kv_type or "auto"), degrade=degrade)
+
+
+def _context_rung_label(rung: fit.FitPlan, base_layers: int) -> str:
+    """One rung, as the OOM message lists it: `ctx kv_type=… n_ctx=… [n_gpu_layers=…]`."""
+    parts = [f"kv_type={rung.kv_type}", f"n_ctx={int(rung.n_ctx)}"]
+    if int(rung.n_gpu_layers) != int(base_layers):
+        parts.append(f"n_gpu_layers={int(rung.n_gpu_layers)}")
+    return "ctx " + " ".join(parts)
+
+
 def _init_context(llama: Any, handle: ModelHandle, plan: ContextPlan, *,
                   degrade: bool, warnings: list[str],
-                  log: list[str] | None = None) -> tuple[Any | None, Any | None, str]:
-    """Create the context, degrading the KV type on an allocation failure (requirement 3).
+                  log: list[str] | None = None) -> tuple[Any | None, Any | None, str, ContextPlan]:
+    """Create the context, walking the documented ladder when an allocation fails.
 
-    The KV cache is allocated here, so this is the one place where a smaller `kv_type` actually
-    helps: f16 -> q8_0 -> q4_0, each step recorded as `W_KV_TYPE_DOWNGRADE` + `W_FIT_DOWNGRADE`.
+    The KV cache *and* the graph scheduler's compute buffer are allocated here, so this is the one
+    place where all three rungs help: a smaller `kv_type`, a smaller `n_ctx` (`n_batch =
+    max(512, n_ctx)`, so the compute buffer shrinks with the context) and — through the loader,
+    which is the only thing that can re-place a model — fewer `n_gpu_layers`, ending at CPU-only,
+    where no device allocation exists at all (card t_287e0d18: before this, the loop varied the KV
+    type and nothing else and then *reported* a CPU-only end state it had never tried).
+
     The failed-and-retried attempts are *not* evidence of placement, so only the successful
     attempt's lines reach `log` (card t_603a35a0).
-    Returns `(ctx, failure, kv_type_used)`; `failure` is the typed error to raise when no rung
-    worked, `None` when the failure was not memory-related (the caller's own message then fits).
+    Returns `(ctx, failure, kv_type_used, effective_plan)`; `failure` is the typed error to raise
+    when no rung worked, `None` when the failure was not memory-related (the caller's own message
+    then fits). `effective_plan` is the plan the context really got (same object when nothing was
+    shrunk).
     """
-    ladder = _kv_ladder(plan.kv_type, degrade=degrade)
-    start = ladder[0] if ladder else plan.kv_type
-    last: tuple[str, str, int] | None = None
-    for position, rung in enumerate(ladder):
+    rungs = _context_rungs(handle, plan, degrade=degrade)
+    if not rungs:
+        # No model facts: the kv rungs only, built straight from the request's own kv_type.
+        rungs = tuple(
+            dataclasses.replace(_plain_plan(handle), kv_type=rung, n_ctx=int(plan.n_ctx))
+            for rung in _kv_ladder(plan.kv_type, degrade=degrade))
+    base_layers = int(getattr(handle, "n_gpu_layers", 0) or 0)
+    attempts: list[str] = []
+    cpu_rung_tried = False
+    oom_seen = False
+    last: tuple[str, str, fit.FitPlan] | None = None
+    for rung in rungs:
+        if int(rung.n_gpu_layers) != int(getattr(handle, "n_gpu_layers", 0) or 0) and not (
+                _reload_model(handle, int(rung.n_gpu_layers), log=log)):
+            attempts.append(f"{_context_rung_label(rung, base_layers)} -> reload failed")
+            cpu_rung_tried = cpu_rung_tried or int(rung.n_gpu_layers) == 0
+            oom_seen = True
+            last = ("oom", "", rung)
+            continue
+        effective = dataclasses.replace(plan, n_ctx=int(rung.n_ctx))
         with capture_llama_logs(handle.runtime) as captured:
-            ctx = llama.llama_init_from_model(handle.model, _context_params(llama, plan, rung))
+            ctx = llama.llama_init_from_model(handle.model,
+                                              _context_params(llama, effective, rung.kv_type))
         if ctx:
             if log is not None:
                 log.extend(captured)
-            if rung != start:
-                # the request's own value (`auto` included) resolved to `start`; only a rung
-                # BELOW that is a downgrade worth warning about
-                warnings.append("W_KV_TYPE_DOWNGRADE")
-                warnings.append("W_FIT_DOWNGRADE")
-            return ctx, None, rung
+            _note_context_rung(plan, rung, base_layers=base_layers, warnings=warnings,
+                               oom_seen=oom_seen)
+            return ctx, None, rung.kv_type, effective
         text = "\n".join(captured)
         kind = fit.classify_load_failure(text)
-        last = (kind, text, position)
-        if kind != "oom":                          # not memory: a smaller KV cache cannot help
+        attempts.append(f"{_context_rung_label(rung, base_layers)} -> {kind}")
+        cpu_rung_tried = cpu_rung_tried or int(rung.n_gpu_layers) == 0
+        oom_seen = oom_seen or kind == "oom"
+        last = (kind, text, rung)
+        if kind != "oom":                          # not memory: a smaller cache cannot help
             break
     if last is not None:
-        kind, text, position = last
+        kind, text, rung = last
         tail = " ".join(line.strip() for line in text.splitlines() if line.strip())[-300:]
         if kind == "oom":
             return None, fit.backend_oom_error(
-                handle.fit_plan, free_bytes=None,
+                getattr(handle, "fit_plan", None), free_bytes=_free_bytes(None),
                 needed_bytes=fit.allocation_bytes_from_log(text), log_tail=text,
-                attempts=[f"ctx kv_type={rung} -> oom" for rung in ladder[:position + 1]]), ""
+                attempts=attempts, cpu_rung=cpu_rung_tried), "", plan
         return None, RuntimeMissingError(
             f"E_RUNTIME_MISSING: llama_init_from_model failed (n_ctx={plan.n_ctx}, "
             f"n_seq_max={plan.n_seq_max}, kv_type={plan.kv_type}); the runtime refused these "
             f"context parameters ({kind})"
-            + (f"; backend log tail: {tail}" if tail else "")), ""
-    return None, None, ""
+            + (f"; backend log tail: {tail}" if tail else "")), "", plan
+    return None, None, "", plan
+
+
+def _plain_plan(handle: ModelHandle, kv_type: str = "auto") -> fit.FitPlan:
+    """A placement-like plan for the kv-only ladder (no model facts to size layer rungs with)."""
+    return fit.FitPlan(n_gpu_layers=int(getattr(handle, "n_gpu_layers", 0) or 0), n_ctx=0,
+                       kv_type=str(kv_type), n_seq_max=0, est_weights_bytes=0, est_kv_bytes=0,
+                       est_total_bytes=0, backend="", source="")
+
+
+def _note_context_rung(plan: ContextPlan, rung: fit.FitPlan, *, base_layers: int,
+                       warnings: list[str], oom_seen: bool = False) -> None:
+    """Report a rung that is *below* the plan's own (the request's value resolves to the top one).
+
+    `W_BACKEND_OOM` is the same provenance code the loader publishes for a load that survived an
+    allocation failure (card t_8cb0a05e): the run worked, but it worked by degrading, and a reader
+    of the response is told which warnings came with that.
+    """
+    start_kv = fit.kv_start(plan.kv_type)
+    if rung.kv_type != start_kv:
+        warnings.append("W_KV_TYPE_DOWNGRADE")
+    if rung.kv_type != start_kv or int(rung.n_ctx) < int(plan.n_ctx) \
+            or int(rung.n_gpu_layers) != int(base_layers):
+        warnings.append("W_FIT_DOWNGRADE")
+    if oom_seen:
+        warnings.append("W_BACKEND_OOM")
 
 
 def _kv_ladder(kv_type: str, *, degrade: bool) -> list[str]:

@@ -84,6 +84,13 @@ KV_DOWNGRADE_ORDER: tuple[str, ...] = ("f16", "q8_0", "q4_0")
 #: real ggml block sizes for the KV types we support (see the module docstring)
 KV_BYTES_PER_ELEMENT: dict[str, float] = {"f16": 2.0, "q8_0": 34 / 32, "q4_0": 18 / 32}
 OVERHEAD_BYTES = 512 * 1024 * 1024            # SPEC 2.4's `conservative_plan` overhead
+#: What a plan holds back when the driver reports **no free number** (card t_287e0d18, requirement
+#: d). A nominal device size is a promise the box may not be able to keep: the repro of that card
+#: planned a 5482 MiB budget on a box whose desktop held ~1.5 GB of an 8192 MiB device and whose
+#: loading model took another 4.5 GB, because `vram_free_bytes == 0` ("the driver could not say")
+#: was read as "the whole device is free". Without a free reading the engine assumes a quarter of
+#: the device belongs to everything else, and says so in the plan's notes.
+UNKNOWN_FREE_RESERVE = 0.25
 #: The shrink **floor** (`--fit-ctx` default) and the low-level default of an explicit
 #: `estimate_plan(..., n_ctx=N)`. It is NOT the target of a policy plan — that is
 #: `STANDARD_N_CTX` (SPEC-context-v2 §5.1: one standard constant only).
@@ -309,6 +316,15 @@ class HostFacts:
                 "n_cpu": self.n_cpu, "fingerprint": self.fingerprint}
 
     @property
+    def free_is_known(self) -> bool:
+        """Whether the driver gave a free number at all (0 = "it could not say", card t_287e0d18).
+
+        A host with no device has nothing to read: `True` there is not a claim about a reading, it
+        is the statement that no device memory is being budgeted.
+        """
+        return self.vram_bytes <= 0 or self.vram_free_bytes > 0
+
+    @property
     def budget_bytes(self) -> int:
         """Device memory a plan may spend: the FREE number when the driver reports one.
 
@@ -316,10 +332,17 @@ class HostFacts:
         re-planned from scratch every time the desktop takes another 200 MiB); `vram_free_bytes`
         is what the planner and the load-time re-validation must respect (card t_8cb0a05e: the
         operator's box reported 8192 MiB total and 1112 MiB free).
+
+        When the driver reports **no** free number the nominal size is not spendable either: the
+        budget is then the conservative :data:`UNKNOWN_FREE_RESERVE` share of it (card t_287e0d18,
+        requirement d — the repro's "the driver reports unknown free; and the plan's own budget was
+        5482 MiB").
         """
         if self.vram_bytes > 0:
             if 0 < self.vram_free_bytes < self.vram_bytes:
                 return self.vram_free_bytes
+            if self.vram_free_bytes <= 0:
+                return int(self.vram_bytes * (1.0 - UNKNOWN_FREE_RESERVE))
             return self.vram_bytes
         return self.ram_bytes
 
@@ -771,6 +794,57 @@ def degrade_ladder(plan: FitPlan | PlacementLike, model: ModelFacts) -> tuple[Fi
     return tuple(steps)
 
 
+def context_ladder(plan: FitPlan | PlacementLike, model: ModelFacts, *, n_ctx: int,
+                   min_ctx: int = DEFAULT_N_CTX, kv_type: str | None = None,
+                   degrade: bool = True) -> tuple[FitPlan, ...]:
+    """The rungs a **context** init walks when its own allocation fails (card t_287e0d18).
+
+    The loader's :func:`degrade_ladder` owns the *model* side (fewer `n_gpu_layers` before the
+    context even exists); this is the other half, in the order `session.open_model` documents for
+    it:
+
+    1. the `kv_type` rungs — the KV cache is what a context adds to the device;
+    2. a smaller `n_ctx` — `n_batch = max(512, n_ctx)`, so the graph scheduler's compute buffer
+       shrinks with it;
+    3. fewer `n_gpu_layers` — the model has to be re-placed for that, and only the loader can;
+    4. CPU-only — the designed end state, where no device allocation exists at all.
+
+    The first rung is the plan itself, so a healthy context costs exactly the same one attempt it
+    always did. `degrade=False` yields that one rung: the pre-fix behaviour, kept for callers that
+    ask for no ladder at all. `kv_type` overrides the plan's own rung with the *request's* (the
+    context init resolves `auto` the way :func:`kv_start` does).
+    """
+    base = coerce_plan(plan)
+    if kv_type is not None:
+        base = dataclasses.replace(base, kv_type=str(kv_type))
+    start = kv_start(base.kv_type)
+    kvs = list(KV_DOWNGRADE_ORDER[KV_DOWNGRADE_ORDER.index(start):]) if degrade else [start]
+    floor = max(MIN_CTX_FLOOR, min(int(min_ctx), int(n_ctx)))
+    contexts = [int(n_ctx)]
+    if degrade:
+        for candidate in (int(n_ctx) // 2, floor):
+            if candidate >= floor and candidate < contexts[-1]:
+                contexts.append(candidate)
+    layers = planned_layers(base, model)
+    steps: list[FitPlan] = []
+
+    def emit(layer_count: int, rung: str, context: int) -> None:
+        steps.append(dataclasses.replace(base, n_gpu_layers=int(layer_count), kv_type=rung,
+                                         n_ctx=int(context)))
+
+    for rung in kvs:
+        emit(layers, rung, contexts[0])
+    last_kv = kvs[-1]
+    for context in contexts[1:]:
+        emit(layers, last_kv, context)
+    if degrade and layers > 0:
+        smaller = max(1, layers // 2)
+        if smaller != layers:
+            emit(smaller, last_kv, contexts[-1])
+        emit(0, last_kv, contexts[-1])          # CPU-only: the end state, never a rung above it
+    return tuple(steps)
+
+
 def replan_for_host(model: ModelFacts, plan: FitPlan, host: HostFacts, *,
                     fit_target_mb: int = DEFAULT_FIT_TARGET_MB, min_ctx: int | None = None,
                     overhead_bytes: int = OVERHEAD_BYTES) -> FitPlan:
@@ -865,8 +939,14 @@ def oom_log_line(text: str) -> str:
 
 def backend_oom_error(plan: FitPlan | None, *, free_bytes: int | None = None,
                       needed_bytes: int | None = None, log_tail: str = "",
-                      attempts: Iterable[str] = ()) -> BackendOomError:
-    """E_BACKEND_OOM carrying the plan, the free/needed numbers and the hints (requirement 4)."""
+                      attempts: Iterable[str] = (), cpu_rung: bool = False) -> BackendOomError:
+    """E_BACKEND_OOM carrying the plan, the free/needed numbers and the hints (requirement 4).
+
+    `attempts` is the rung walk the caller *really* made, one line per attempt, and `cpu_rung`
+    says whether that walk reached a CPU-only placement. The message used to claim "down to
+    CPU-only" unconditionally, over the top of a walk that only varied `kv_type` (card t_287e0d18,
+    requirement c): a reader plans around a message like that.
+    """
     layers = "n/a" if plan is None else plan.n_gpu_layers
     kv_type = "n/a" if plan is None else plan.kv_type
     free_text = "unknown" if free_bytes is None else f"{free_bytes / MIB:.0f} MiB"
@@ -875,10 +955,12 @@ def backend_oom_error(plan: FitPlan | None, *, free_bytes: int | None = None,
              f"(n_gpu_layers={layers}, kv_type={kv_type}, needed ~{needed_text}); the driver "
              f"reports {free_text} free"]
     if plan is not None and plan.budget_bytes and free_bytes is None:
-        parts.append(f"and the plan's own budget was {plan.budget_bytes / MIB:.0f} MiB")
+        parts.append(f"and the plan's own budget was {plan.budget_bytes / MIB:.0f} MiB — an upper "
+                     f"bound, not a reading: the driver reported no free number")
     attempted = list(attempts)
     if attempted:
-        parts.append(f"tried {len(attempted)} placement(s) down to CPU-only, none fit: "
+        end = "down to CPU-only" if cpu_rung else ""
+        parts.append(f"tried {len(attempted)} placement(s){' ' + end if end else ''}, none fit: "
                      + "; ".join(attempted))
     if needed_bytes is not None:
         parts.append(f"the backend asked for a {needed_bytes / MIB:.0f} MiB allocation")

@@ -1559,8 +1559,15 @@ def calibration_rows(options: dict[str, Any], model_path: str) -> tuple[list[Any
     if options.get("items"):
         items = items[:int(options["items"])]
     threads = int(options["threads"]) if "threads" in options else None
+    # P2 (card t_287e0d18): `CALIBRATE_VALUE_FLAGS` lists `--fit-target`/`--n-seq-max`, and the
+    # plan used to be built without them — the documented workaround for an OOM placement did
+    # nothing here while `fit`/`ask` honoured it. Absent flags stay absent, so the planner's own
+    # defaults are still what an unadorned `calibrate` plans with.
     plan = fit_plan_for(model_path, use_cache=not options.get("no_fit_cache"),
-                        kv_type=options.get("kv_type", "auto"))
+                        kv_type=options.get("kv_type", "auto"),
+                        fit_target_mb=(int(options["fit_target"]) if "fit_target" in options
+                                       else None),
+                        n_seq_max=(int(options["n_seq_max"]) if "n_seq_max" in options else None))
     rows: list[Any] = []
     backend = session_module.runtime_backend(None)
     with session_module.open_model(model_path, fit_plan=plan) as handle:

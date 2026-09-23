@@ -166,11 +166,20 @@ def test_the_free_reading_does_not_change_the_host_fingerprint(
 
 
 def test_an_injected_total_only_probe_still_works(tmp_path: pathlib.Path) -> None:
-    """`vram_probe=` (E1a API) injects a total and nothing else: free falls back to it."""
+    """`vram_probe=` (E1a API) injects a total and nothing else: the budget stays conservative.
+
+    Updated by card t_287e0d18 (requirement d): a total with **no** free reading used to be read as
+    "the whole device is spendable". It is not — the device is shared with everything else, and the
+    repro that card fixes planned 5482 MiB against a nominal 8 GiB while the desktop held ~1.5 GB
+    of it. The nominal size stays the *identity* fact (`vram_bytes`, which the fingerprint keys on);
+    the budget is the conservative share of it.
+    """
     host = fit.host_facts(meminfo_path=tmp_path / "meminfo", vram_probe=lambda: 6 * GIB,
                           backend="vulkan", n_cpu=2)
     assert host.vram_bytes == 6 * GIB and host.vram_free_bytes == 0
-    assert host.budget_bytes == 6 * GIB
+    assert host.free_is_known is False
+    assert host.budget_bytes == int(6 * GIB * (1.0 - fit.UNKNOWN_FREE_RESERVE))
+    assert host.budget_bytes < 6 * GIB
 
 
 def test_the_target_is_subtracted_from_free_memory(tmp_path: pathlib.Path) -> None:

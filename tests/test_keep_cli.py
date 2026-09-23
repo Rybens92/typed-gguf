@@ -315,7 +315,10 @@ def test_a_warm_session_reports_the_load_this_call_paid(monkeypatch) -> None:
     handle = SimpleNamespace(load_ms=12345.0, path="m.gguf", n_vocab=8, load_log=(),
                              runtime=SimpleNamespace(llama=llama))
     plan = SimpleNamespace(kv_type="auto", n_ctx=64, n_seq_max=1, threads=1)
-    monkeypatch.setattr(session_module, "_init_context", lambda *a, **k: ("ctx", None, "auto"))
+    # the context init returns `(ctx, failure, kv_type_used, effective_plan)` since card
+    # t_287e0d18: the ladder may settle on a smaller context, and the session must publish *that*
+    monkeypatch.setattr(session_module, "_init_context",
+                        lambda *a, **k: ("ctx", None, "auto", plan))
     monkeypatch.setattr(session_module, "_runtime_name", lambda handle: "fake")
     assert session_module.ModelSession(handle, plan, backend="cpu").load_ms == 12345.0
     warm = session_module.ModelSession(handle, plan, backend="cpu", load_ms=0.0)

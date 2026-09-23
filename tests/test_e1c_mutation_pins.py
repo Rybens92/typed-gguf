@@ -580,7 +580,10 @@ def test_the_host_budget_prefers_vram_when_the_probe_reports_it(tmp_path: pathli
     meminfo.write_text("MemTotal:       1024 kB\n", encoding="utf-8")
     gpu = fit.host_facts(meminfo_path=meminfo, vram_probe=lambda: 6 * GIB, backend="vulkan",
                          n_cpu=2)
-    assert gpu.budget_bytes == 6 * GIB
+    # card t_287e0d18 (d): a total-only probe reaches the device size, but the budget keeps the
+    # unknown-free reserve aside — the probe could not say what is free.
+    assert gpu.budget_bytes == int(6 * GIB * (1.0 - fit.UNKNOWN_FREE_RESERVE))
+    assert gpu.budget_bytes < 6 * GIB
     cpu = fit.host_facts(meminfo_path=meminfo, vram_probe=lambda: 0, backend="cpu", n_cpu=2)
     assert cpu.budget_bytes == 1024 * 1024
 
