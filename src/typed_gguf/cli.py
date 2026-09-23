@@ -1637,6 +1637,47 @@ def _cmd_calibrate(args: list[str]) -> int:
 
 
 # --------------------------------------------------------------------- fit (E1c)
+#: how `fit` (human output) words the v2 `ctx_limit` label (SPEC-context-v2 §6.3)
+CTX_LIMIT_WORDS: dict[str, str] = {
+    "standard": "the standard",
+    "grown": "grown from the box's free memory",
+    "shrunk": "shrunk to fit the box",
+    "pinned": "pinned by --n-ctx",
+    "window": "the model's own window",
+}
+
+
+def fit_human_lines(plan: fit.FitPlan, *,
+                    extra: Mapping[str, Any] | None = None) -> list[str]:
+    """The `typed-gguf fit` human output: the plan's fields, `extra`, then the notes.
+
+    `n_ctx` carries its policy (SPEC-context-v2 §6.3/AC-12): the standard the plan was measured
+    against and how it got there — `n_ctx: 53511 (standard 32768, grown from the box's free
+    memory)`. Kept as a function so the wording is testable without a model or a box.
+    """
+    lines: list[str] = []
+    for key, value in plan.to_dict().items():
+        if key == "n_ctx":
+            lines.append(f"n_ctx: {value}{_ctx_limit_suffix(plan)}")
+        elif isinstance(value, (bool, type(None))):
+            lines.append(f"{key}: {value}")
+        else:
+            lines.append(f"{key}: {_render(value)}")
+    for key, value in (extra or {}).items():
+        lines.append(f"{key}: {_render(value) if not isinstance(value, (bool, type(None))) else value}")
+    for note in plan.notes:
+        lines.append(f"note: {note}")
+    return lines
+
+
+def _ctx_limit_suffix(plan: fit.FitPlan) -> str:
+    """` (standard 32768, grown …)` — empty when the plan carries no v2 policy fields."""
+    if not plan.standard_n_ctx:
+        return ""
+    wording = CTX_LIMIT_WORDS.get(plan.ctx_limit, plan.ctx_limit or "unknown")
+    return f" (standard {plan.standard_n_ctx}, {wording})"
+
+
 def _cmd_fit(args: list[str]) -> int:
     """`typed-gguf fit [<model>] [--print] [--no-cache]` (SPEC 2.8/2.10, A-E1c-4)."""
     positionals, options = _parse_args(
@@ -1665,10 +1706,10 @@ def _cmd_fit(args: list[str]) -> int:
     if options.get("json"):
         print(json.dumps(payload, indent=2, sort_keys=False))
         return 0
-    for key, value in payload.items():
-        print(f"{key}: {_render(value) if not isinstance(value, (bool, type(None))) else value}")
-    for note in plan.notes:
-        print(f"note: {note}")
+    lines = [f"model: {alias}", f"path: {model_path}"]
+    lines += fit_human_lines(plan, extra={"host": host.to_dict(), "cache": payload["cache"]})
+    for line in lines:
+        print(line)
     if plan.insufficient:
         print("hint: the plan exceeds this host's memory — use a smaller quant or "
               "raise --fit-target", file=sys.stderr)

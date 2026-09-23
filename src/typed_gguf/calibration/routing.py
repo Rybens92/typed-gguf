@@ -41,8 +41,10 @@ from typed_gguf.runtime import fit
 
 #: the engine's own floor (SPEC 2.2): prefix + question + one candidate
 MIN_SEQ_MAX = 3
-#: the context a route aims for when the request does not name one
-DEFAULT_ROUTE_CTX = 4096
+#: the context a route aims for when the request does not name one — the *shared standard*
+#: (SPEC-context-v2 §6.4): a route plan that aimed at 4 096 would cap requests below the context
+#: the loader sizes, so the conservative router and the fit planner move together.
+DEFAULT_ROUTE_CTX = fit.STANDARD_N_CTX
 #: how much of the system RAM a CPU plan may spend (matches `registry.recommend`)
 RAM_MARGIN = 0.20
 #: an answer at or above this confidence is never escalated without a complaint from the engine

@@ -173,4 +173,8 @@ WARNING_CODES = (
     # answer's `cue` block (`verdict`), because "low mass" cannot tell them apart from a label the
     # model simply did not choose — and the fix a reader needs is not the same.
     "W_JSON_EMPTY_VALUE", "W_JSON_WRONG_FIELD",
+    # Context sizing v2 (SPEC-context-v2 §5.4, card t_ca1d4231): the plan had to land below
+    # `fit.STANDARD_N_CTX` (32 768). The plan is valid and loadable — the warning is the
+    # machine-readable half of the "shrunk gracefully" report, the numbers ride in `notes`.
+    "W_CTX_BELOW_STANDARD",
 )

@@ -249,11 +249,15 @@ def resolve_template(request: schema.Request, tokenizer: Any) -> template_module
 def plan_context(request: schema.Request, tokenizer: Tokenizer, *,
                  template: template_module.Resolution | None = None,
                  resolve: bool = True, n_ctx_cap: int | None = None) -> ContextPlan:
-    """Size the context from the request itself (SPEC 2.2 + the E1c template chain).
+    """Size the context from the request and the fit plan (SPEC 2.2 + SPEC-context-v2 §5.6).
 
-    `n_ctx_cap` is the fit plan's ceiling (A-E1c-5): the engine never allocates more context
-    than the host was measured to hold, and a request that needs more fails the ctx guard with
-    `E_CTX_TOO_SMALL` instead of silently truncating the state.
+    `n_ctx_cap` is the fit plan's own `n_ctx` (A-E1c-5). v2 (§5.6, D1 = YES) made it the *load
+    size* too: with a plan applied and the request pinning nothing, the context really allocated
+    is the plan's (standard 32 768, grown when the box holds more, shrunk when it does not) — not
+    `prefix + question + margin`. A request that pins `options.n_ctx` keeps today's behaviour
+    (`min(pin, plan.n_ctx)`), and without a plan the SPEC 2.2 formula applies literally. The
+    request-fit guard is unchanged either way: a request whose needs exceed the loaded context
+    fails with `E_CTX_TOO_SMALL` instead of being truncated.
     """
     options = request.options
     resolution = template
@@ -272,9 +276,15 @@ def plan_context(request: schema.Request, tokenizer: Tokenizer, *,
     meta = getattr(tokenizer, "meta", None)
     meta_threads = getattr(meta, "threads", 0)
     threads = options.threads or meta_threads or _default_threads()
-    n_ctx = options.n_ctx or (len(prefix_tokens) + max_question + CONTEXT_MARGIN)
-    if n_ctx_cap is not None:
-        n_ctx = min(int(n_ctx), int(n_ctx_cap))
+    if options.n_ctx:
+        # a pin: the request's own number, never above the plan (A-E1c-5)
+        n_ctx = int(options.n_ctx)
+        if n_ctx_cap is not None:
+            n_ctx = min(n_ctx, int(n_ctx_cap))
+    elif n_ctx_cap is not None:
+        n_ctx = int(n_ctx_cap)               # v2 §5.6: the plan sizes the load
+    else:
+        n_ctx = len(prefix_tokens) + max_question + CONTEXT_MARGIN    # --no-fit: SPEC 2.2 literal
     n_seq_max = options.n_seq_max or max(MIN_SEQ_MAX, 1 + max_candidates)
     return ContextPlan(prefix_tokens=tuple(prefix_tokens), n_ctx=int(n_ctx),
                        n_seq_max=int(n_seq_max), threads=int(threads),
@@ -538,7 +548,8 @@ class DecisionEngine:
                 f"E_CTX_TOO_SMALL: the prompt needs {needed} tokens (prefix "
                 f"{len(plan.prefix_tokens)} + longest question {plan.max_question_tokens} + "
                 f"margin {self.context_margin}) but the context holds {meta.n_ctx}; "
-                f"raise options.n_ctx")
+                f"this host is loaded with n_ctx={meta.n_ctx}; pass --n-ctx {needed} to reload "
+                f"bigger")
         waves = planned_waves(requirements, plan.n_seq_max, readout_mode=options.readout)
         if options.max_waves is not None and waves > options.max_waves:
             raise SeqMaxExceededError(

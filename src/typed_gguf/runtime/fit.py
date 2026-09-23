@@ -30,15 +30,30 @@ estimate instead (A-E1c-6 cross-checks it against measured RSS ±20%), so it use
 element sizes: f16 = 2 B/element, q8_0 = 34/32 B, q4_0 = 18/32 B. With unified KV
 (`kv_unified=True`, mandatory for the fork engine) the cache holds `n_ctx` cells in total, so
 
-    est_kv_bytes = kv_bytes_per_token(...) x n_ctx          (NOT x n_seq_max)
+    est_kv_bytes = kv_bytes(model, n_ctx, kv_type)          (NOT x n_seq_max)
 
 which is why the fit estimate and the conservative planner differ by design. `n_seq_max` is a
 *concurrency* bound (how many candidate branches can be in flight), not a memory multiplier.
 
-**Over budget (A-E1c-5).** The ladder is fixed: `kv_type` moves f16 -> q8_0 -> q4_0 first, and
-each step that happens is reported with `W_KV_TYPE_DOWNGRADE`. Only when q4_0 still does not fit
-does `n_ctx` shrink (down to `--fit-ctx`, default 4096), and a plan whose *weights* alone exceed
-the budget is reported (`insufficient` note) rather than silently truncated.
+**Sliding-window attention (SPEC-context-v2 §3).** `kv_bytes` models what the runtime really
+allocates: for a model that declares `attention.sliding_window`, llama.cpp's `llama_kv_cache_iswa`
+holds `n_ctx` cells on the global layers and `window + n_ubatch` cells on the SWA layers
+(measured; 1 024 at `-ub 512`, 768 at 256), so the SWA part is a constant that does not grow with
+the context. The all-layer formula (`kv_bytes_per_token`) over-charges such a model ~4x — it is
+kept, unchanged, for models without a window and for the SPEC 2.4 oracle path.
+
+**Context policy v2 (SPEC-context-v2 §5, ratified 2026-09-23).** A plan with no explicit `--n-ctx`
+aims at `STANDARD_N_CTX = 32768`, grows to the largest context the box holds at the top rung that
+can reach the standard (window-capped) and shrinks gracefully — KV ladder first, then context below
+the standard with `W_CTX_BELOW_STANDARD` — when it cannot. An explicit `--n-ctx N` is a *pin*
+(`min(N, cap)`, never grown). `DEFAULT_N_CTX = 4096` stays the shrink **floor** (`--fit-ctx`) and
+the low-level default of an explicit `estimate_plan(..., n_ctx=N)`.
+
+**Over budget (A-E1c-5, v2 §5.3).** The ladder is fixed: `kv_type` moves f16 -> q8_0 -> q4_0 first,
+and each step that happens is reported with `W_KV_TYPE_DOWNGRADE`. Only when the last rung still
+cannot hold the target does `n_ctx` shrink (down to `--fit-ctx`, default 4096, and never above the
+model's own window), reported as `W_CTX_BELOW_STANDARD`; a plan whose *weights* alone exceed the
+budget is reported (`insufficient` note) rather than silently truncated.
 """
 from __future__ import annotations
 
@@ -62,17 +77,29 @@ from typed_gguf.runtime import finder
 FIT_SCHEMA = "typed_gguf.fit/v1"
 FIT_FIELDS: tuple[str, ...] = ("n_gpu_layers", "n_ctx", "kv_type", "n_seq_max",
                                "est_weights_bytes", "est_kv_bytes", "est_total_bytes",
-                               "backend", "source")
+                               "backend", "source", "standard_n_ctx", "ctx_limit")
 KV_DOWNGRADE_ORDER: tuple[str, ...] = ("f16", "q8_0", "q4_0")
 #: real ggml block sizes for the KV types we support (see the module docstring)
 KV_BYTES_PER_ELEMENT: dict[str, float] = {"f16": 2.0, "q8_0": 34 / 32, "q4_0": 18 / 32}
 OVERHEAD_BYTES = 512 * 1024 * 1024            # SPEC 2.4's `conservative_plan` overhead
+#: The shrink **floor** (`--fit-ctx` default) and the low-level default of an explicit
+#: `estimate_plan(..., n_ctx=N)`. It is NOT the target of a policy plan — that is
+#: `STANDARD_N_CTX` (SPEC-context-v2 §5.1: one standard constant only).
 DEFAULT_N_CTX = 4096
+#: SPEC-context-v2 §5.1/§5.2: the context a plan aims at when the user pins nothing. It stays a
+#: *plan* default: a request may use anything up to the loaded context, and grows/shrinks are
+#: reported (`standard_n_ctx`, `ctx_limit`, `W_CTX_BELOW_STANDARD`).
+STANDARD_N_CTX = 32768
+#: What `max_fit_n_ctx` answers for a model whose every layer is SWA: the cache does not grow
+#: with the context at all, so only the model's own window (or this) bounds it.
+UNBOUNDED_CTX = 1_048_576
 DEFAULT_N_SEQ_MAX = 8
 DEFAULT_FIT_TARGET_MB = 1024
 MIN_CTX_FLOOR = 512
 DEFAULT_TIMEOUT = 300.0
 MIB = 1024 * 1024
+#: `n_ubatch` the SWA cache sizing assumes (`session.DEFAULT_N_BATCH`; SPEC-context-v2 §3)
+DEFAULT_N_UBATCH = 512
 
 #: ggml_type -> (elements per block, bytes per block). b11026's enum; ids 4 and 5 are the
 #: removed Q4_2/Q4_3. Unknown ids are an error (never guessed — see `UnknownTensorType`).
@@ -99,7 +126,12 @@ class UnknownTensorType(GgufCorruptError):
 # ------------------------------------------------------------------- model facts
 @dataclass(frozen=True, slots=True)
 class ModelFacts:
-    """Everything a fit plan needs from a GGUF: shape, context window and weight bytes."""
+    """Everything a fit plan needs from a GGUF: shape, context window and weight bytes.
+
+    The three trailing SWA fields are SPEC-context-v2 §5.1/§7.1: `attention.sliding_window` and
+    its bool `sliding_window_pattern` are *optional* — absent means "no sliding window" and every
+    formula stays byte-identical to the pre-v2 one (AC-7).
+    """
 
     path: str
     sha256: str
@@ -111,6 +143,18 @@ class ModelFacts:
     n_ctx_train: int
     weights_bytes: int
     file_size: int = 0
+    #: the window in tokens (512 on spark2_5); 0 = this model does not use SWA
+    sliding_window: int = 0
+    #: layers whose cache is SWA-sized (the `True` entries of the pattern; all of them when the
+    #: model declares a window without a pattern)
+    n_swa_layers: int = 0
+    #: layers whose cache holds `n_ctx` cells
+    n_global_layers: int = 0
+
+    @property
+    def has_swa(self) -> bool:
+        """Whether the SWA cache model applies to this model at all."""
+        return self.sliding_window > 0 and self.n_swa_layers > 0
 
     @classmethod
     def read(cls, path: str | os.PathLike[str], *, sha256: str | None = None,
@@ -124,11 +168,17 @@ class ModelFacts:
         arch = gguf.arch_of(kv)
         tensors = read_tensor_index(model_path)
         weights = sum(size_of_tensor(dims, ttype) for _name, dims, ttype, _offset in tensors)
+        n_layer = _kv_int(kv, arch, "block_count") or 0
+        window = _kv_int(kv, arch, "attention.sliding_window") or 0
+        n_swa = 0
+        if window > 0:
+            pattern = _kv_bools(kv, arch, "attention.sliding_window_pattern")
+            n_swa = sum(1 for flag in pattern if flag) if pattern else n_layer
         return cls(
             path=str(model_path),
             sha256=sha256 or (gguf.sha256_file(model_path) if want_sha256 else ""),
             arch=arch,
-            n_layer=_kv_int(kv, arch, "block_count") or 0,
+            n_layer=n_layer,
             n_kv_head=_kv_int(kv, arch, "attention.head_count_kv")
             or _kv_int(kv, arch, "attention.head_count") or 1,
             key_len=_kv_int(kv, arch, "attention.key_length")
@@ -138,6 +188,9 @@ class ModelFacts:
             n_ctx_train=_kv_int(kv, arch, "context_length") or 0,
             weights_bytes=weights,
             file_size=model_path.stat().st_size,
+            sliding_window=window,
+            n_swa_layers=max(0, min(n_swa, n_layer)),
+            n_global_layers=max(0, n_layer - max(0, min(n_swa, n_layer))),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -145,7 +198,8 @@ class ModelFacts:
                 "n_layer": self.n_layer, "n_kv_head": self.n_kv_head,
                 "key_len": self.key_len, "value_len": self.value_len,
                 "n_ctx_train": self.n_ctx_train, "weights_bytes": self.weights_bytes,
-                "file_size": self.file_size}
+                "file_size": self.file_size, "sliding_window": self.sliding_window,
+                "n_swa_layers": self.n_swa_layers, "n_global_layers": self.n_global_layers}
 
     @property
     def kv_per_token_f16(self) -> int:
@@ -157,6 +211,15 @@ def _kv_int(kv: dict[str, Any], arch: str | None, suffix: str) -> int | None:
         if key and isinstance(kv.get(key), int):
             return int(kv[key])
     return None
+
+
+def _kv_bools(kv: dict[str, Any], arch: str | None, suffix: str) -> list[bool]:
+    """The `[T,T,T,F,…]` SWA pattern as written in the GGUF (empty when the key is absent)."""
+    for key in (f"{arch}.{suffix}" if arch else None, f"general.{suffix}"):
+        value = kv.get(key) if key else None
+        if isinstance(value, list):
+            return [bool(item) for item in value]
+    return []
 
 
 def read_tensor_index(path: str | os.PathLike[str]) -> list[tuple[str, list[int], int, int]]:
@@ -327,6 +390,11 @@ class FitPlan:
     host_fingerprint: str = ""
     budget_bytes: int = 0
     created_at: str = ""
+    #: SPEC-context-v2 §5.1: the standard in force for this plan (`0` = none applies: a payload
+    #: written before v2, or a plan from a caller that knows no policy)
+    standard_n_ctx: int = 0
+    #: why the context is what it is: "standard" | "grown" | "shrunk" | "pinned" | "window" | ""
+    ctx_limit: str = ""
 
     @property
     def insufficient(self) -> bool:
@@ -355,7 +423,9 @@ class FitPlan:
             model_sha256=str(payload.get("model_sha256", "")),
             host_fingerprint=str(payload.get("host_fingerprint", "")),
             budget_bytes=int(payload.get("budget_bytes", 0)),
-            created_at=str(payload.get("created_at", "")))
+            created_at=str(payload.get("created_at", "")),
+            standard_n_ctx=int(payload.get("standard_n_ctx", 0)),
+            ctx_limit=str(payload.get("ctx_limit", "")))
 
 
 def kv_bytes_per_token(n_layer: int, n_kv_head: int, key_len: int, value_len: int,
@@ -364,57 +434,163 @@ def kv_bytes_per_token(n_layer: int, n_kv_head: int, key_len: int, value_len: in
     return int(round(n_layer * n_kv_head * (key_len + value_len) * type_bytes))
 
 
-def estimate_plan(model: ModelFacts, host: HostFacts, *, n_ctx: int = DEFAULT_N_CTX,
+def kv_bytes(model: ModelFacts, n_ctx: int, kv_type: str, *,
+             n_ubatch: int = DEFAULT_N_UBATCH) -> int:
+    """The bytes the KV cache really holds for `n_ctx` at `kv_type` (SPEC-context-v2 §3).
+
+    Without sliding-window attention this is SPEC 2.4's formula, byte for byte (AC-7). With it,
+    the model is llama.cpp's `llama_kv_cache_iswa`: `n_global_layers` hold `n_ctx` cells and
+    `n_swa_layers` hold `window + n_ubatch` cells, so the SWA part is a constant and only the
+    global layers price the growth (36 864 B/token at f16 for the 4B — the measured layout).
+    """
+    type_bytes = KV_BYTES_PER_ELEMENT[kv_type]
+    if not model.has_swa:
+        return kv_bytes_per_token(model.n_layer, model.n_kv_head, model.key_len,
+                                  model.value_len, type_bytes) * int(n_ctx)
+    per_layer = int(round(model.n_kv_head * (model.key_len + model.value_len) * type_bytes))
+    cells = max(0, int(model.sliding_window)) + max(0, int(n_ubatch))
+    return (model.n_global_layers * per_layer * int(n_ctx)
+            + model.n_swa_layers * per_layer * cells)
+
+
+def _kv_per_layer(model: ModelFacts, kv_type: str) -> int:
+    return int(round(model.n_kv_head * (model.key_len + model.value_len)
+                     * KV_BYTES_PER_ELEMENT[kv_type]))
+
+
+def max_fit_n_ctx(model: ModelFacts, kv_type: str, budget: int, *,
+                  overhead_bytes: int = OVERHEAD_BYTES,
+                  n_ubatch: int = DEFAULT_N_UBATCH) -> int:
+    """The largest `n_ctx` this budget holds at `kv_type` (0 when even the weights do not fit).
+
+    The inverse of :func:`kv_bytes`, which is what AC-2 asserts: a grown plan's `n_ctx` *is* this
+    number at its rung. `UNBOUNDED_CTX` answers a model whose every layer is SWA (its cache does
+    not grow with the context at all).
+    """
+    room = int(budget) - model.weights_bytes - int(overhead_bytes)
+    if room <= 0:
+        return 0
+    if model.has_swa:
+        growth = model.n_global_layers * _kv_per_layer(model, kv_type)
+        constant = model.n_swa_layers * _kv_per_layer(model, kv_type) * (
+            model.sliding_window + max(0, int(n_ubatch)))
+        if growth <= 0:
+            return UNBOUNDED_CTX
+        return max(0, (room - constant) // growth)
+    per_token = kv_bytes_per_token(model.n_layer, model.n_kv_head, model.key_len,
+                                   model.value_len, KV_BYTES_PER_ELEMENT[kv_type])
+    return max(0, room // per_token) if per_token > 0 else UNBOUNDED_CTX
+
+
+def model_window(model: ModelFacts) -> int | None:
+    """The model's own context ceiling, or `None` when the GGUF declares none (§5.2)."""
+    return model.n_ctx_train if model.n_ctx_train > 0 else None
+
+
+def policy_target(model: ModelFacts) -> int:
+    """§5.2's target for an unpinned plan: the standard, capped by a smaller model window."""
+    window = model_window(model)
+    return STANDARD_N_CTX if window is None else min(STANDARD_N_CTX, window)
+
+
+def ctx_limit_for(chosen: int, *, target: int, model: ModelFacts, pinned: bool = False) -> str:
+    """§5.3.3/§5.4: the label for *how* the chosen context was reached."""
+    window = model_window(model)
+    if pinned and chosen == target:
+        return "pinned"
+    if window is not None and chosen == window and chosen != STANDARD_N_CTX:
+        return "window"
+    if chosen == STANDARD_N_CTX:
+        return "standard"
+    if chosen > target:
+        return "grown"
+    return "shrunk"
+
+
+def policy_note(target: int, chosen: int, *, kv_type: str, budget: int,
+                fit_target_mb: int) -> str | None:
+    """§5.3.3's arithmetic note, or `None` when there is nothing to explain."""
+    if chosen > target:
+        return (f"n_ctx {target} -> {chosen}: the box holds more "
+                f"(fit-target {int(fit_target_mb)} MiB kept free, kv_type {kv_type})")
+    if chosen < target:
+        return (f"n_ctx shrunk {target} -> {chosen} to fit the budget "
+                f"({budget / MIB:.0f} MiB); raise --fit-target, lower --fit-ctx or use a "
+                f"smaller quant")
+    return None
+
+
+def estimate_plan(model: ModelFacts, host: HostFacts, *, n_ctx: int | None = None,
                   n_seq_max: int = DEFAULT_N_SEQ_MAX, kv_type: str = "auto",
                   fit_target_mb: int = DEFAULT_FIT_TARGET_MB, min_ctx: int | None = None,
                   budget_bytes: int | None = None, overhead_bytes: int = OVERHEAD_BYTES
                   ) -> FitPlan:
-    """typed-gguf's own fit math (chain step 2): no binary, `source="estimate"`."""
+    """typed-gguf's own fit math (chain step 2): no binary, `source="estimate"`.
+
+    `n_ctx=None` (the v2 default) applies SPEC-context-v2 §5.2-5.4: the plan aims at
+    `STANDARD_N_CTX`, grows into the room the box really has at the top rung that can reach the
+    standard, and shrinks with `W_CTX_BELOW_STANDARD` when nothing above the floor does. An int
+    `n_ctx` is a **pin** (§5.5): `min(n_ctx, cap)`, never grown — every pre-v2 caller passes one.
+    `min_ctx` stays the shrink floor (`--fit-ctx`, default `DEFAULT_N_CTX`).
+    """
     floor = min_ctx if min_ctx is not None else DEFAULT_N_CTX
+    window = model_window(model)
+    if window is not None:
+        floor = min(floor, window)
     budget = budget_bytes if budget_bytes is not None else fit_budget(host, fit_target_mb)
     ladder = list(KV_DOWNGRADE_ORDER if kv_type in ("auto", None) else
                   KV_DOWNGRADE_ORDER[KV_DOWNGRADE_ORDER.index(kv_type):])
+    pinned = n_ctx is not None
+    target = max(1, int(n_ctx)) if pinned else policy_target(model)
+    if pinned and window is not None:
+        target = min(target, window)
     warnings: list[str] = []
     notes: list[str] = []
-    requested_ctx = max(int(n_ctx), floor)
-    chosen_kv, chosen_ctx = ladder[0], requested_ctx
+    chosen_kv, chosen_ctx = ladder[0], target
     downgraded = False
     for index, candidate in enumerate(ladder):
-        if _plan_bytes(model, candidate, requested_ctx, overhead_bytes) <= budget:
-            chosen_kv, chosen_ctx = candidate, requested_ctx
+        cap = max_fit_n_ctx(model, candidate, budget, overhead_bytes=overhead_bytes)
+        if window is not None:
+            cap = min(cap, window)
+        if cap >= target:
+            chosen_kv = candidate
+            chosen_ctx = cap if not pinned else min(int(n_ctx), cap)
             downgraded = index > 0
             break
-        if index < len(ladder) - 1:
-            continue                     # A-E1c-5: the KV type moves down the ladder first
-        chosen_kv = candidate            # last rung: shrink the context instead
-        per_token = kv_bytes_per_token(model.n_layer, model.n_kv_head, model.key_len,
-                                       model.value_len, KV_BYTES_PER_ELEMENT[candidate])
-        room = budget - model.weights_bytes - overhead_bytes
-        shrunk = int(room // per_token) if per_token > 0 and room > 0 else 0
-        chosen_ctx = max(floor, min(requested_ctx, shrunk))
-        downgraded = index > 0
-        if chosen_ctx < requested_ctx:
-            notes.append(
-                f"n_ctx shrunk {requested_ctx} -> {chosen_ctx} to fit the budget "
-                f"({budget / MIB:.0f} MiB); raise --fit-target, lower --fit-ctx or use a "
-                f"smaller quant")
+        if index == len(ladder) - 1:
+            # §5.3.4: nothing above the floor reaches the target — the last rung shrinks the
+            # context instead, and growth is not attempted on a rung chosen this way.
+            chosen_kv = candidate
+            chosen_ctx = max(floor, min(target, cap))
+            downgraded = index > 0
     if downgraded:
         warnings.append("W_KV_TYPE_DOWNGRADE")
-    kv_bytes = kv_bytes_per_token(model.n_layer, model.n_kv_head, model.key_len,
-                                  model.value_len, KV_BYTES_PER_ELEMENT[chosen_kv]) * chosen_ctx
-    total_bytes = model.weights_bytes + kv_bytes + overhead_bytes
+    if not pinned and chosen_ctx < policy_target(model):
+        # §5.4: a plan below the *standard* — when a smaller model window is the reason, §5.2 is
+        # explicit that nothing was degraded (no warning, the window simply is the ceiling).
+        warnings.append("W_CTX_BELOW_STANDARD")
+    if window is not None and window < STANDARD_N_CTX and not pinned:
+        notes.append(f"the model's own window is {window} tokens (standard {STANDARD_N_CTX}); "
+                     f"a plan cannot go above it")
+    note = policy_note(target, chosen_ctx, kv_type=chosen_kv, budget=budget,
+                       fit_target_mb=fit_target_mb)
+    if note is not None:
+        notes.append(note)
+    limit = ctx_limit_for(chosen_ctx, target=target, model=model, pinned=pinned)
+    kv_total = kv_bytes(model, chosen_ctx, chosen_kv)
+    total_bytes = model.weights_bytes + kv_total + overhead_bytes
     if model.weights_bytes + overhead_bytes > budget:
         notes.append(
             f"insufficient device memory: weights {model.weights_bytes / MIB:.0f} MiB + "
             f"overhead {overhead_bytes / MIB:.0f} MiB exceed the budget "
             f"{budget / MIB:.0f} MiB; loading will spill or fail")
-    n_gpu_layers = _gpu_layers(model, host, kv_bytes, budget, overhead_bytes)
+    n_gpu_layers = _gpu_layers(model, host, kv_total, budget, overhead_bytes)
     if budget_bytes is None and host.vram_bytes > 0 and 0 < host.vram_free_bytes \
             < host.vram_bytes:
         # The desktop holds part of the device: say out loud that the plan is smaller than the
         # nominal host could take (card t_8cb0a05e — W_FIT_DOWNGRADE is the machine-readable form).
         nominal_budget = fit_budget(dataclasses.replace(host, vram_free_bytes=0), fit_target_mb)
-        nominal_layers = _gpu_layers(model, host, kv_bytes, nominal_budget, overhead_bytes)
+        nominal_layers = _gpu_layers(model, host, kv_total, nominal_budget, overhead_bytes)
         if n_gpu_layers < nominal_layers:
             warnings.append("W_FIT_DOWNGRADE")
             notes.append(
@@ -424,17 +600,15 @@ def estimate_plan(model: ModelFacts, host: HostFacts, *, n_ctx: int = DEFAULT_N_
     warnings.append("W_FIT_ESTIMATED")
     return FitPlan(n_gpu_layers=n_gpu_layers, n_ctx=chosen_ctx, kv_type=chosen_kv,
                    n_seq_max=int(n_seq_max), est_weights_bytes=model.weights_bytes,
-                   est_kv_bytes=kv_bytes, est_total_bytes=total_bytes, backend=host.backend,
+                   est_kv_bytes=kv_total, est_total_bytes=total_bytes, backend=host.backend,
                    source="estimate", warnings=tuple(warnings), notes=tuple(notes),
                    arch=model.arch, model_sha256=model.sha256,
                    host_fingerprint=host.fingerprint, budget_bytes=budget,
-                   created_at=_timestamp())
+                   created_at=_timestamp(), standard_n_ctx=STANDARD_N_CTX, ctx_limit=limit)
 
 
 def _plan_bytes(model: ModelFacts, kv_type: str, n_ctx: int, overhead_bytes: int) -> int:
-    return model.weights_bytes + overhead_bytes + kv_bytes_per_token(
-        model.n_layer, model.n_kv_head, model.key_len, model.value_len,
-        KV_BYTES_PER_ELEMENT[kv_type]) * n_ctx
+    return model.weights_bytes + overhead_bytes + kv_bytes(model, n_ctx, kv_type)
 
 
 def _gpu_layers(model: ModelFacts, host: HostFacts, kv_bytes: int, budget: int,
@@ -475,8 +649,8 @@ def plan_device_bytes(plan: FitPlan, model: ModelFacts) -> int:
 
 
 def _kv_bytes_for(model: ModelFacts, kv_type: str, n_ctx: int) -> int:
-    return kv_bytes_per_token(model.n_layer, model.n_kv_head, model.key_len, model.value_len,
-                              KV_BYTES_PER_ELEMENT[kv_type]) * int(n_ctx)
+    """KV bytes for one rung of a plan (SWA-aware — see :func:`kv_bytes`)."""
+    return kv_bytes(model, n_ctx, kv_type)
 
 
 # ------------------------------------------------- placements, not just plans (E2 FIX t_31b3943a)
@@ -752,12 +926,13 @@ def run_llama_fit_params(model: ModelFacts, host: HostFacts, *,
                          n_ctx: int, n_seq_max: int, fit_target_mb: int = DEFAULT_FIT_TARGET_MB,
                          min_ctx: int = DEFAULT_N_CTX, budget_bytes: int | None = None,
                          runner: Callable[[list[str]], str] | None = None,
-                         timeout: float = DEFAULT_TIMEOUT) -> FitPlan | None:
+                         timeout: float = DEFAULT_TIMEOUT, pinned: bool = False) -> FitPlan | None:
     """Run the bundle's own tool (SPEC 2.10 flags); `None` when it cannot run/parse.
 
     `-ngl` is the layer count the current budget can actually hold (never an unconditional full
     offload: on a busy desktop that asks the tool about a placement that cannot exist, which is
-    how `--fit-target` came to be ignored — card t_8cb0a05e).
+    how `--fit-target` came to be ignored — card t_8cb0a05e). `pinned` says how the caller derived
+    `n_ctx` (`--n-ctx` vs the v2 policy); it only labels the plan's `ctx_limit` (§5.1).
     """
     binary = fit_binary(runtime_dir)
     if runner is None and binary is None:
@@ -779,7 +954,7 @@ def run_llama_fit_params(model: ModelFacts, host: HostFacts, *,
         return None
     return plan_from_binary(model, host, table=table, n_ctx=n_ctx, n_seq_max=n_seq_max,
                             runtime_dir=runtime_dir, budget_bytes=budget,
-                            fit_target_mb=fit_target_mb)
+                            fit_target_mb=fit_target_mb, pinned=pinned)
 
 
 def _run(argv: list[str], timeout: float) -> str | None:
@@ -796,26 +971,38 @@ def _run(argv: list[str], timeout: float) -> str | None:
 def plan_from_binary(model: ModelFacts, host: HostFacts, *, table: str, n_ctx: int,
                      n_seq_max: int, runtime_dir: str | os.PathLike[str] | None,
                      budget_bytes: int | None = None, kv_type: str = "auto",
-                     fit_target_mb: int = DEFAULT_FIT_TARGET_MB) -> FitPlan:
+                     fit_target_mb: int = DEFAULT_FIT_TARGET_MB,
+                     pinned: bool = False) -> FitPlan:
     """Turn a parsed table into a plan whose `est_*` numbers are the binary's own.
 
     The caller's `--fit-target` bounds the plan here too (the table itself is measured for a full
     offload, so without this the plan would claim device memory the target forbids) and
     `n_gpu_layers` is the floored per-layer split that actually fits the budget.
+
+    The context *decision* stays the caller's (`n_ctx` is the resolved v2 policy answer or the
+    pin), so this is also where the plan gets its `standard_n_ctx` / `ctx_limit` label and the
+    policy's arithmetic note (§5.1/§5.3.3).
     """
     rows = parse_fit_table(table)
     weights = sum(row.model_bytes for row in rows)
     context = sum(row.context_bytes for row in rows)
     compute = sum(row.compute_bytes for row in rows)
     budget = budget_bytes if budget_bytes is not None else fit_budget(host, fit_target_mb)
-    chosen_kv, kv_bytes = _kv_from_budget(model, n_ctx, budget, context, kv_type)
+    chosen_kv, kv_total = _kv_from_budget(model, n_ctx, budget, context, kv_type)
+    window = model_window(model)
+    target = min(int(n_ctx), window) if pinned and window is not None else (
+        int(n_ctx) if pinned else policy_target(model))
     warnings: list[str] = []
     if chosen_kv != "f16" and chosen_kv != kv_type:
         warnings.append("W_KV_TYPE_DOWNGRADE")
     notes = [f"memory table from {pathlib.Path(str(runtime_dir or 'llama-fit-params')).name}/"
              f"llama-fit-params (model {weights / MIB:.0f} MiB, context "
              f"{context / MIB:.0f} MiB, compute {compute / MIB:.0f} MiB)"]
-    layers = _gpu_layers(model, host, kv_bytes=kv_bytes, budget=budget,
+    note = policy_note(target, int(n_ctx), kv_type=chosen_kv, budget=budget,
+                       fit_target_mb=fit_target_mb)
+    if note is not None:
+        notes.append(note)
+    layers = _gpu_layers(model, host, kv_bytes=kv_total, budget=budget,
                          overhead_bytes=compute or OVERHEAD_BYTES)
     if host.vram_bytes > 0 and layers < model.n_layer:
         warnings.append("W_FIT_DOWNGRADE")
@@ -825,28 +1012,26 @@ def plan_from_binary(model: ModelFacts, host: HostFacts, *, table: str, n_ctx: i
             f"{host.vram_free_bytes / MIB:.0f} MiB free of {host.vram_bytes / MIB:.0f} MiB)")
     return FitPlan(n_gpu_layers=layers, n_ctx=int(n_ctx),
                    kv_type=chosen_kv, n_seq_max=int(n_seq_max), est_weights_bytes=weights,
-                   est_kv_bytes=kv_bytes, est_total_bytes=weights + kv_bytes + compute,
+                   est_kv_bytes=kv_total, est_total_bytes=weights + kv_total + compute,
                    backend=host.backend, source="llama-fit-params", warnings=tuple(warnings),
                    notes=tuple(notes), arch=model.arch, model_sha256=model.sha256,
                    host_fingerprint=host.fingerprint, budget_bytes=budget,
-                   created_at=_timestamp())
+                   created_at=_timestamp(), standard_n_ctx=STANDARD_N_CTX,
+                   ctx_limit=ctx_limit_for(int(n_ctx), target=target, model=model,
+                                           pinned=pinned))
 
 
 def _kv_from_budget(model: ModelFacts, n_ctx: int, budget: int, binary_context: int,
                     kv_type: str) -> tuple[str, int]:
-    """Which KV type fits, and what to report as `est_kv_bytes` for it."""
+    """Which KV type fits, and what to report as `est_kv_bytes` for it (SWA-aware, §3)."""
     if kv_type not in ("auto", None):
-        return kv_type, kv_bytes_per_token(model.n_layer, model.n_kv_head, model.key_len,
-                                           model.value_len, KV_BYTES_PER_ELEMENT[kv_type]) * n_ctx
+        return kv_type, kv_bytes(model, n_ctx, kv_type)
     for candidate in KV_DOWNGRADE_ORDER:
-        kv_bytes = kv_bytes_per_token(model.n_layer, model.n_kv_head, model.key_len,
-                                      model.value_len, KV_BYTES_PER_ELEMENT[candidate]) * n_ctx
-        if model.weights_bytes + kv_bytes + OVERHEAD_BYTES <= budget:
+        kv_total = kv_bytes(model, n_ctx, candidate)
+        if model.weights_bytes + kv_total + OVERHEAD_BYTES <= budget:
             # f16 is what the binary measured: keep its number, not our formula's
-            return candidate, (binary_context if candidate == "f16" else kv_bytes)
-    return KV_DOWNGRADE_ORDER[-1], kv_bytes_per_token(
-        model.n_layer, model.n_kv_head, model.key_len, model.value_len,
-        KV_BYTES_PER_ELEMENT[KV_DOWNGRADE_ORDER[-1]]) * n_ctx
+            return candidate, (binary_context if candidate == "f16" else kv_total)
+    return KV_DOWNGRADE_ORDER[-1], kv_bytes(model, n_ctx, KV_DOWNGRADE_ORDER[-1])
 
 
 # -------------------------------------------------------------------------- cache
@@ -886,11 +1071,16 @@ def store_plan(plan: FitPlan, home: pathlib.Path | None = None) -> pathlib.Path:
 def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | None = None,
                    runtime_dir: str | os.PathLike[str] | None = None, use_cache: bool = True,
                    runner: Callable[[list[str]], str] | None = None,
-                   budget_bytes: int | None = None, n_ctx: int = DEFAULT_N_CTX,
+                   budget_bytes: int | None = None, n_ctx: int | None = None,
                    n_seq_max: int = DEFAULT_N_SEQ_MAX, kv_type: str = "auto",
                    fit_target_mb: int = DEFAULT_FIT_TARGET_MB,
                    min_ctx: int | None = None) -> FitPlan:
     """The A-E1c-4 entry point: cache -> binary -> estimate, in that order.
+
+    `n_ctx=None` (the v2 default) is the policy of §5.2-5.4; an int is the pin of §5.5. The
+    binary is asked about the **policy's** context, never about a shrunken estimate's (§3.1: the
+    old seed made the binary confirm the 4x-over-charged answer instead of answering for itself);
+    the rung it reports is still re-derived from the budget.
 
     A cache hit is a *candidate*, not an answer: the cached plan is re-validated against the
     device memory free right now (`replan_for_host`) and the shrunken plan is written back, so a
@@ -906,14 +1096,16 @@ def plan_for_model(model: ModelFacts, host: HostFacts, *, home: pathlib.Path | N
             if fresh.to_dict() != cached.to_dict():
                 store_plan(fresh, home)
             return fresh
-    fallback_kv = kv_type if kv_type not in ("auto", None) else "f16"
     preliminary = estimate_plan(model, host, n_ctx=n_ctx, n_seq_max=n_seq_max,
-                                kv_type=fallback_kv, budget_bytes=budget_bytes,
+                                kv_type=kv_type, budget_bytes=budget_bytes,
                                 fit_target_mb=fit_target_mb, min_ctx=min_ctx)
+    pinned = n_ctx is not None
     plan = run_llama_fit_params(model, host, runtime_dir=runtime_dir, n_ctx=preliminary.n_ctx,
                                 n_seq_max=n_seq_max, fit_target_mb=fit_target_mb,
-                                min_ctx=min_ctx or n_ctx, budget_bytes=budget_bytes,
-                                runner=runner) or preliminary
+                                min_ctx=min_ctx if min_ctx is not None else (
+                                    int(n_ctx) if pinned else DEFAULT_N_CTX),
+                                budget_bytes=budget_bytes, runner=runner,
+                                pinned=pinned) or preliminary
     plan = replan_for_host(model, plan, host, fit_target_mb=fit_target_mb, min_ctx=min_ctx)
     if use_cache and model.sha256:
         store_plan(plan, home)
