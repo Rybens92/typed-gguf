@@ -152,6 +152,10 @@ class Server:
         self.monotonic = monotonic
         self.sock: socket.socket | None = None
         self.bind_error: str | None = None
+        #: True when `bind()` lost the identity to *another* host (not to our own mistake): the
+        #: record in the ledger is then somebody else's, and this process must not overwrite it
+        #: (card t_9249bb0c: a losing racer's `failed` record made its client clean up the winner).
+        self.bind_owned_elsewhere = False
         self.loaded: Loaded | None = None
         self.record: state.HostRecord | None = None
         self.exit_code = 0
@@ -169,7 +173,8 @@ class Server:
         except BaseException as exc:                 # noqa: BLE001 - the client reads the log
             return self._fail(exc)
         if self.bind() is None:                      # the socket first: a ready record means
-            return self._fail(RuntimeError(self.bind_error or "the socket could not be bound"))
+            return self._fail(RuntimeError(self.bind_error or "the socket could not be bound"),
+                              record=not self.bind_owned_elsewhere)
         self.record = self._write_record()           # "…and it is listening right now"
         self._install_signals()
         deadline = self.monotonic() + max(float(self.spec.keep_alive), 0.0)
@@ -212,6 +217,7 @@ class Server:
                 self.bind_error = (
                     f"the socket {path} is already in use: a live host owns this identity "
                     f"(digest {self.spec.digest}); stop it first (`typed-gguf keep stop`)")
+                self.bind_owned_elsewhere = True
                 return None
             with contextlib.suppress(OSError):
                 os.unlink(path)                      # debris from a crashed host
@@ -222,6 +228,7 @@ class Server:
             sock.close()
             self.bind_error = (f"the socket {path} is already in use ({exc}); another host owns "
                                f"this identity (digest {self.spec.digest})")
+            self.bind_owned_elsewhere = True
             return None
         with contextlib.suppress(OSError):
             os.chmod(path, 0o600)
@@ -324,17 +331,25 @@ class Server:
         state.write_record(record, self.spec.home)
         return record
 
-    def _fail(self, exc: BaseException) -> int:
-        """A host that could not start leaves a `failed` record behind and a code to exit with."""
+    def _fail(self, exc: BaseException, *, record: bool = True) -> int:
+        """A host that could not start leaves a `failed` record behind and a code to exit with.
+
+        `record=False` is the one failure that is **not this host's to write down**: the identity
+        was lost to a live host (card t_9249bb0c), so the ledger's entry belongs to that host and a
+        losing racer writing `failed` over it would erase a resident model from the ledger — the
+        next call then treats the winner as debris and clears its socket (two models, SPEC 2.12).
+        The message still travels: the log the spawning client quotes carries it.
+        """
         self.exit_code = int(getattr(exc, "exit_code", 4)) if isinstance(exc, TypedGgufError) else 4
         message = f"{exc.__class__.__name__}: {exc}"
         code = "E_INTERNAL"
         if isinstance(exc, TypedGgufError):
             code = str(getattr(exc, "code", "E_INTERNAL"))
-        with contextlib.suppress(Exception):
-            self.record = self._write_record(record_state="failed",
-                                             error={"code": str(code), "message": message,
-                                                    "exit_code": self.exit_code})
+        if record:
+            with contextlib.suppress(Exception):
+                self.record = self._write_record(record_state="failed",
+                                                 error={"code": str(code), "message": message,
+                                                        "exit_code": self.exit_code})
         return self.exit_code
 
     def _cleanup(self) -> None:

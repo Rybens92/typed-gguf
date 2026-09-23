@@ -299,16 +299,35 @@ class Client:
             self.events.append(("cleanup", record.digest))
 
     def _wait_ready(self, proc: subprocess.Popen, spec: host_module.HostSpec) -> state.HostRecord:
+        """Wait for *our* host, and lose the race to a concurrent one without a raw traceback.
+
+        Two cold callers racing one data home (card t_9249bb0c) both land here, and the ledger
+        tells them apart by the record's `pid` — the pid of the host that wrote it:
+
+        * a `failed` record is ours only when it is **our child's** pid. A racer for the *same*
+          identity can otherwise publish its own failure while the winner is starting, and this
+          call would tear the winner's ledger entry down and answer inline for no reason;
+        * a **live record for another digest** means another caller won this data home. SPEC 2.12
+          allows one host, so this spawn is stopped *here* (its own record, socket and spec go with
+          it) and the call answers inline — the designed path — instead of waiting out its
+          keep-alive window next to a host it may not use.
+        """
         deadline = time.monotonic() + self.spawn_timeout
         while time.monotonic() < deadline:
             record = state.read_record(self.home)
             if record is not None and record.digest == spec.digest:
-                if record.state == "failed":
+                if record.state == "failed" and record.pid == proc.pid:
                     message = str((record.error or {}).get("message") or "the host refused to load")
                     self._discard(proc, spec, message)
                     raise KeepUnavailable(f"spawn: {message}")
                 if record.state == "ready" and state.alive(record):
                     return record
+            elif record is not None and state.alive(record):
+                message = (f"another host (pid {record.pid}, digest {record.digest}) appeared "
+                           f"while this one was starting; one host per data home (SPEC 2.12), so "
+                           f"this call answers inline")
+                self._discard(proc, spec, message)
+                raise KeepUnavailable(f"spawn: {message}")
             code = proc.poll()
             if code is not None:
                 self.children.pop(proc.pid, None)

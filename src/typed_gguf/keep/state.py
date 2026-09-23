@@ -28,6 +28,7 @@ import contextlib
 import json
 import os
 import pathlib
+import tempfile
 import time
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -286,10 +287,19 @@ def host_status(record: HostRecord, *, now: float | None = None,
 
 
 def _write_private(path: pathlib.Path, text: str) -> None:
-    """`tmp + fsync + os.replace`, file mode 0600 (the registry's own durability rule)."""
+    """`tmp + fsync + os.replace`, file mode 0600 (the registry's own durability rule).
+
+    The staging name is **per writer** (`mkstemp`, same directory, so the replace stays atomic on
+    one filesystem). It used to be `<name>.tmp` for everyone: two cold callers racing one ledger
+    target (two simultaneous `ask`s, card t_9249bb0c) then shared one staging file, and the winner's
+    `os.replace` removed it under the loser — whose own replace raised ENOENT on a *designed* path
+    (the live `E_INTERNAL: FileNotFoundError … .spec.json.tmp -> .spec.json`, exit 4, no inline
+    fallback). Both writers of this helper race in the wild: the record (`write_record`) and the
+    spec (`keep.host.HostSpec.save`, written before every spawn).
+    """
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    tmp = path.with_name(path.name + ".tmp")
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    fd, staging = tempfile.mkstemp(dir=str(path.parent), prefix=f".{path.name}.", suffix=".tmp")
+    tmp = pathlib.Path(staging)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(text)
