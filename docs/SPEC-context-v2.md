@@ -575,6 +575,12 @@ completes, and the response's `engine.n_ctx` equals the loaded context read back
 (`meta.n_ctx`); a request needing ~6 000 tokens (≈25 KB of state text) is answered, where the same
 call against today's 4 096 cap raises `E_CTX_TOO_SMALL`.
 
+Note (measured, §8.6): llama.cpp pads the context to 256-cell blocks, so the response's
+`engine.n_ctx` (= `meta.n_ctx`) may exceed `engine.fit.n_ctx` by < 256; the exercised assertion is
+`fit.n_ctx <= engine.n_ctx < fit.n_ctx + 256`
+(`test_ac16_the_v2_default_answers_a_six_kilo_token_request`; measured 50 620 → 50 688 and
+55 706 → 55 808).
+
 ---
 
 ## 10. Test strategy
