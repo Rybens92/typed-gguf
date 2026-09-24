@@ -12,11 +12,22 @@
 - Evidence: `docs/evidence/` (captured 2026-09-17) + the executed PoC `docs/evidence/poc-ctypes-20260917.py`.
 - Supersession: the operator update of 2026-09-17 15:55 (distribution) and the PoC report of 16:05
   (ctypes pitfalls) supersede the packaging wording in the original card. Both are incorporated here.
+- Serve wave (2026-09-24; cards `t_a51b1205` → `t_f5d8b6c7` → `t_d88b4be0`): §2.8 gains `serve`'s
+  flags and the `runtime update|rollback` surface, §2.9 becomes the full TypeSafe-compatible HTTP
+  wire (recon: the official `typesafe-sdk` 0.7.1 source + its OpenAPI-derived models — thread
+  `state/groupchat/typed-gguf-e1.md` entry 2026-09-24 (wieczór); the coordinator's fleet reference
+  for this project, `bot-fleet-dispatch/references/`, § "Jev-compatibility"), §2.12 gains the
+  serve→host client rule, §5 gains E5 (acceptance + the test/host-gate plan), §7 gains R14–R15 and
+  §8 gains S-13..S-17. The `serve`/`mcp` "specified, not shipped" wording is **not** moved here —
+  the implementation card owns that flip.
 
 Every number below is tagged:
 - **[executed]** — reproduced by the oracle in this repo, right now;
 - **[recon]** — measured by the coordinator on this box, recorded in `docs/evidence/poc_report.json`
   or in the thread, not re-run by the oracle;
+- **[sdk-0.7.1]** — read out of the official `typesafe-sdk` 0.7.1 Python source (its
+  `_schemas/models.py` is generated from `https://api.typesafe.ai/openapi.json`; recon 2026-09-24).
+  Every wire claim in §2.9 carries this tag; none is quoted from vendor prose or from memory;
 - **[target]** — a number we intend to measure in a later milestone;
 - **[UNVERIFIED]** — evidence missing; must not be quoted as fact.
 
@@ -329,10 +340,15 @@ decimals in JSON to keep runs byte-comparable.
 `E_RUNTIME_BUILD_OLD`, `E_CTX_TOO_SMALL`, `E_SEQ_MAX_EXCEEDED`, `E_PREFILL_FAILED`, `E_DECODE_FAILED`,
 `E_GGUF_CORRUPT`, `E_SHA256_MISMATCH`, `E_DOWNLOAD_FAILED`, `E_AMBIGUOUS_QUANT`, `E_TEMPLATE_UNRESOLVED`,
 `E_HF_AUTH_REQUIRED`, `E_INSUFFICIENT_DISK`, `E_REGISTRY_CORRUPT`, `E_STATE_LOAD_FAILED`,
-`E_BACKEND_OOM`, `E_ROLE_SPLIT_UNSUPPORTED`. `errors.ERROR_CODES` is that frozen list; the bench adds
+`E_BACKEND_OOM`, `E_ROLE_SPLIT_UNSUPPORTED`, `E_UPDATE_UNAVAILABLE`. `errors.ERROR_CODES` is that
+frozen list; the bench adds
 its own exit-2 family on top (`E_BENCH_USAGE`, `E_BENCH_SUITE`, `E_BENCH_MODEL`, `E_BENCH_BACKEND`,
 `E_BENCH_QUICK`, `E_BENCH_COMPARE`, `E_BENCH_CHILD`, `E_BENCH_STATE`, and the `E_LABEL_*`
 label-rendering codes) — extra codes only, never a redefinition of one above.
+`E_UPDATE_UNAVAILABLE` is the serve-wave addition (§2.8): the update/rollback cannot apply here — the
+active runtime is `$TYPED_GGUF_RUNTIME_DIR`-managed (not ours to replace), the resolved upstream
+release carries no bundle under this host's pinned asset name, or there is no retained `previous`
+bundle to roll back to. Exit 2; the message names which of the three.
 Warnings: `W_LOW_MASS`, `W_LOW_CONFIDENCE`, `W_UNKNOWN_OPTION`, `W_TRUNCATED_STATE`,
 `W_KV_TYPE_DOWNGRADE`, `W_VULKAN_WARMUP`, `W_TEMPLATE_FALLBACK`, `W_FIT_ESTIMATED`, `W_FIT_DOWNGRADE`,
 `W_BACKEND_OOM`, `W_BACKEND_MISMATCH`, `W_CUE_REFUSED`, `W_JSON_EMPTY_VALUE`, `W_JSON_WRONG_FIELD`,
@@ -413,7 +429,9 @@ typed-gguf run --questions q.json [--state s.txt|--state-json f] [--model alias]
               [--json-contract question|system] [--thinking] [--keep-alive <dur|0>]
 typed-gguf ask --state <text|@file> --choice "id=instr:opt1|opt2" --score "id=instr:l0|l1|l2"
               --noul "id=instr" [--keep-alive <dur|0>]
-typed-gguf serve [--host 127.0.0.1] [--port 8088] [--format native|typesafe]
+typed-gguf serve [--host 127.0.0.1] [--port 8088] [--format native|typesafe] [--keep-alive <dur|0>]
+typed-gguf runtime update [--check|--dry-run] [--tag TAG] [--backend auto|cpu|vulkan|cuda|metal] [--json]
+typed-gguf runtime rollback [--json]
 typed-gguf mcp                                  # stdio JSON-RPC for MCP clients
 typed-gguf bench --suite latency|throughput|quality|calibration|determinism [--model alias] [--json]
 typed-gguf fit [<model>] [--print] [--no-cache]
@@ -426,15 +444,213 @@ typed-gguf version [--json]
 the opt-in thinking switch); `run`, `ask` and `bench` all accept them, so a published row's cell is
 reproducible from the CLI.
 
-### 2.9 HTTP + MCP surface
+**`serve` (serve wave, 2026-09-24).** The HTTP surface of §2.9. Both surface families are mounted at
+every `--format`: the flag picks only the **default response format of `/v1/decide`** (`/v1/systemone`
+is always the TypeSafe projection — a client that sets its base URL must not depend on a server
+flag), and `--keep-alive` is the §2.12 window passed on every served decision.
 
-HTTP (stdlib `http.server`, default bind `127.0.0.1:8088`, no telemetry, `--host 0.0.0.0` prints a
-warning): `GET /health`, `GET /v1/models`, `POST /v1/decide` (native), `POST /v1/systemone` (typesafe
-shape; accepted on any `--format`). Errors are JSON `{error: {code, message}}` with the code from §2.5.
+**`runtime update` / `runtime rollback` (serve wave, 2026-09-24).** Owner task: *"żeby dało się
+zaktualizować llama.cpp które się instaluje poprzez init"* — refresh the bundle `init` installed. The
+runtime ladder itself is unchanged (`$TYPED_GGUF_RUNTIME_DIR` > data-home `runtime.json` > a scan of
+`<home>/runtime/*`) and `init` keeps installing the pinned bundle (§2.2/§4). `runtime update` is the
+explicit, **never automatic** way to move the *installed* bundle to a newer **official** llama.cpp
+release. It never rewrites `runtime.lock`, never touches models/registry/calibration, and no per-fork
+branch is ever special-cased (a fork stays a rung-3 runtime: `TYPED_GGUF_RUNTIME_DIR`, §2.2). The
+pinned bundle stays what `init` installs and what the oracle's pins speak about (S-16).
 
-MCP (stdio, JSON-RPC 2.0: `initialize`, `tools/list`, `tools/call`): tools `typed_gguf_decide`
-(state + questions → answers), `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`,
-`typed_gguf_fit`. Tool schemas mirror §2.5; no tool ever triggers a network call except `models_pull`.
+1. **Resolve.** Current runtime = `finder.find_runtime()`, its build from the `runtime.json` record
+   when the record names that directory. Rung 1 (`$TYPED_GGUF_RUNTIME_DIR` set) → refuse
+   (`E_UPDATE_UNAVAILABLE`: that runtime is managed outside typed-gguf — unset the variable to
+   update the installed one); `--check` reports the same refusal (it never queries upstream for a
+   runtime we will not switch). Nothing installed at all → `E_RUNTIME_MISSING` (the fix is `init`
+   first). Otherwise `--check`/`--dry-run` stops after resolve + target: it prints current vs target
+   (tag, build, dir, size) and touches nothing — with no network it answers `E_DOWNLOAD_FAILED`
+   (exit 3) naming the URL it could not reach, and leaves no partial state.
+2. **Target.** Without `--tag`, the newest official release *that actually carries this host's
+   bundle*: `GET https://api.github.com/repos/ggml-org/llama.cpp/releases?per_page=20` (plain HTTPS
+   GET, `Accept: application/vnd.github+json`, `User-Agent: typed-gguf/<version>`), first entry whose
+   asset list contains the retagged name. **Not `releases/latest`**: the recon of 2026-09-24 found
+   `releases/latest` = `v0.5.0` with a single `nightly-tag.txt` asset, while the per-build
+   `bNNNNN` releases (marked prerelease) carry the 35 platform bundles **[recon: live GitHub API]**.
+   With `--tag TAG`, that one release is fetched by tag and must carry the same name. The host
+   variant comes from `init`'s own detection (`--backend` overrides; **no fallback ladder** — a GPU
+   bundle that fails its probe aborts the update instead of silently changing the backend). The
+   asset name is the pinned one retagged (`llama-b11026-bin-ubuntu-vulkan-x64.tar.gz` →
+   `llama-b11160-…`), and the download URL is `runtime.lock`'s own template with the new tag
+   (verified live 2026-09-24: that URL answered `302 → 200`, 30 943 538 B **[recon]**). No name match
+   → `E_UPDATE_UNAVAILABLE` naming the naming rule: upstream renamed the asset, we never guess.
+   Target tag == current tag → `updated: false` ("already at `<tag>`"), exit 0.
+3. **Stage.** Disk-space precheck (`E_INSUFFICIENT_DISK`), download into `<home>/downloads/<asset>`
+   with `init`'s resume/size semantics, extract into `<home>/runtime/.pending-<asset>` (the same
+   path-safety filter and flatten rule), verify the lock's `required_files`, then run the **lock
+   probe** in a child (`capability.probe_runtime`): required tools, the 34 required symbols, the
+   build number, the backend list — plus the arch rule of §2.2 (`spark2_5` needs build ≥ `b10828`).
+   A failure removes the staging directory and leaves the working runtime untouched
+   (`E_RUNTIME_SYMBOLS` / `E_RUNTIME_BUILD_OLD` / `E_MODEL_ARCH_UNSUPPORTED` / `E_DOWNLOAD_FAILED`,
+   per the cause).
+4. **Switch.** Stop the resident keep host first (`keep stop`, drain — abort, old runtime intact, if
+   it cannot be stopped: a process that dlopen'd the old libraries must not survive the switch),
+   `os.replace` the staged directory into its final `<home>/runtime/<tag>-<variant>/`, then rewrite
+   `runtime.json` **once**, atomically (`finder.write_runtime_record`), with the new record plus a
+   `previous` block (`dir`, `tag`, `build`, `installed_at`; all existing record keys stay). That
+   record write **is** the switch point: everything before it leaves `runtime.json` byte-identical,
+   so a failed download, a failed probe, or a `kill -9` anywhere earlier keeps the old runtime
+   active; nothing is deleted on the way (the previous bundle stays on disk — that is the point).
+5. **Report.** `--json` carries `updated`, `from`/`to` (tag, build, dir), asset + sha256 + url,
+   probe summary (`tools`, `symbols_ok`, `build`, `backends`) and the `previous` dir; the human
+   output states the same in one line. `doctor`/`version` then report the new build as its own
+   probe found it.
+
+`runtime rollback` flips the record back to the retained `previous` bundle (atomic record write, no
+download, no probe of the old bundle beyond its presence); with no `previous` recorded, or with the
+directory gone, it refuses (`E_UPDATE_UNAVAILABLE`) and changes nothing. Rollback never requires a
+human to repair state by hand, and neither command ever deletes a bundle.
+
+### 2.9 HTTP surface (`serve`) + MCP surface
+
+**`typed-gguf serve`** is a stdlib HTTP server (`http.server`, no third-party runtime dependency, no
+telemetry, `--host 0.0.0.0` prints a warning) that answers **from the same warm engine host the CLI
+uses** (§2.12). Every decision is a keep-client request: same model file + SHA, same fit plan, same
+calibration, same readout, same 6-significant-decimal rounding (§2.5) — the served numbers **are**
+the CLI's numbers. The server holds no model handle of its own and never a second one: a request for
+a model the resident host does not hold swaps (stop → load → new countdown) exactly like a warm CLI
+call, and decisions serialize through the host socket, one at a time, in arrival order (§2.12).
+`/health` and `/v1/models` never touch the host and never wait behind a decision.
+
+Default bind `127.0.0.1:8088` (`--host`, `--port`; S-8). Four routes, the TypeSafe pair mounted
+regardless of `--format`:
+
+| Route | Format | Purpose |
+|---|---|---|
+| `GET /health` | ours | liveness + what is resident; never loads a model |
+| `GET /v1/models` | TypeSafe | the registry aliases plus the compat name `jev-latest` |
+| `POST /v1/systemone` | TypeSafe | the drop-in decision route |
+| `POST /v1/decide` | native | the §2.5 request/response, verbatim |
+
+`--format native|typesafe` (default `native`) is only the default response format of `/v1/decide`;
+a request body's own `format` overrides it per call. `/v1/systemone` always answers the §2.6
+projection — a client that sets its base URL must not depend on a server-side flag.
+
+**`GET /health`** → `200`, exactly these five keys:
+
+```json
+{"status": "ok", "service": "typed-gguf", "version": "<package version>",
+ "model": "<resident alias | null>", "warm": true}
+```
+
+`model`/`warm` are read from the keep ledger (no ping, no load): `model: null` + `warm: false` mean
+no host is resident — the next decision will pay the load.
+
+**`GET /v1/models`** → `200` (`{"models": [{"name", "description", "release_date"}, …]}`):
+
+- `name` — every alias in `registry.json`, **sorted by name** (a deterministic wire, independent of
+  pull order), plus `jev-latest`, which every request may use and which resolves to the registry's
+  `current` alias. An empty registry lists `[]` (and `/v1/systemone` then answers `422`, naming
+  `models pull`).
+- `release_date` — the model **file's mtime** as a UTC `%Y-%m-%d`: when *this copy* was written on
+  this box. We do not know an upstream release date and do not invent one.
+- `description` — one auto line, no marketing: `"<arch> <quant> GGUF (<human size>), local;
+  typed-gguf's own engine"`, arch/quant/size from the registry entry.
+
+**`POST /v1/systemone`** request — exactly the SDK's body [sdk-0.7.1]:
+
+```json
+{"state": "<string | object | array>",
+ "model": "<alias | jev-latest>",
+ "questions": {"<name>": {"type": "noul | choice | score",
+                          "instructions": "<string | object | array>",
+                          "criteria": {"<label>": "<desc|null>", "…": null} | ["<level>", "…"] | {"true": "…", "false": "…"}}}}
+```
+
+- These three keys **only**. An unknown top-level key is `422 extra_forbidden`, never silently
+  ignored (a silently dropped instruction is a wrong answer; the SDK's `extra_body` escape hatch
+  therefore does not extend this surface).
+- `model` must resolve through the registry: an alias, or `jev-latest` (→ `current`). A path or
+  `repo[:quant]` reference is **rejected** (`422`) — a remote client must not point the server at
+  files.
+- `state`, `questions` and each question's `criteria` are validated by the engine's own rules and
+  codes (§2.5): `E_STATE_EMPTY`, `E_Q_TYPE_UNKNOWN`, `E_CHOICE_CRITERIA`, `E_CHOICE_TOO_MANY`
+  (>255), `E_SCORE_LEVELS` (2..10 levels), `E_NOUL_CRITERIA`… Our limits are the engine's (§2.6);
+  a client that leans on the vendor's looser ones gets a typed `422`, never a wrong answer. The
+  code text rides in the error's `msg`.
+- `instructions` may be text, an object or an array (the engine renders JSON content exactly as it
+  does for `run`); `criteria` is the option map (choice), the ordered level list (score), or the
+  optional `{true, false}` (noul).
+
+**`POST /v1/systemone`** response `200` — the §2.6 projection and nothing else:
+
+```json
+{"model": "<resolved alias>",
+ "answers": {"<name>": {"type": "noul", "noul": 0.93}
+                    | {"type": "choice", "choice": "billing", "confidence": 0.415,
+                       "probabilities": {"billing": 0.61, "technical": 0.33, "sales": 0.06}}
+                    | {"type": "score", "score": 1.3, "confidence": 0.55,
+                       "legend": {"0": "Can wait", "1": "This week", "2": "Today"},
+                       "probabilities": {"0": 0.1, "1": 0.1, "2": 0.8}}},
+ "usage": {"input_tokens": 812, "output_tokens": 12}}
+```
+
+- `model` echoes the **resolved** alias (what answered), never the raw request string.
+- Answer key sets are exactly the documented ones: `type` + value key (`noul`/`choice`/`score`) +
+  `probabilities` + `confidence` for choice/score, plus `legend` for score; **`noul` carries no
+  `confidence`** (the SDK's own answer model has no such field). Native-only keys (`engine`,
+  `timings`, `coverage`, `reliability`, `decode_steps`, `warnings`) are dropped exactly as §2.6
+  says; nothing inside `answers` is renamed.
+- `probabilities` are the engine's calibrated readout **as-is** — the adapter never renormalizes
+  (they already sum to 1 ± 1e-6, §2.4) and never rescales `confidence`.
+- `legend` is keyed by the level number as a string, matching the SDK's `dict[int, str]` coerce rule
+  and §2.6's fixtures.
+- `usage` is the §2.6 projection's own two counters, verbatim from the native response (§2.5):
+  `input_tokens` = the request's real prompt token count (the shared prefix + every question suffix,
+  i.e. the native `usage.input_tokens`); `output_tokens` = the native `usage.output_tokens`, i.e.
+  **decode steps consumed by the readout** (§2.5's own definition). `prefill_tokens` is deliberately
+  *not* reported as `input_tokens`: it counts the work *this call paid* and is 0 on a warm state
+  cache — as an input count it would be a lie. We generate no text and bill nothing; the two counters
+  are the real ones.
+
+**`POST /v1/decide`** is the §2.5 native wire verbatim (request and response, including `format` and
+`options`); its errors are the native `{"error": {"code", "message"}}` with the §2.5 code, mapped
+exit 2 → `400`, exit 3 → `503`, exit 4 → `500`.
+
+**Errors on the TypeSafe routes are FastAPI-shaped** — the shape the SDK's own `HTTPValidationError` /
+`ValidationError` models describe and its `extract_message` reads [sdk-0.7.1]:
+
+| Condition | Status | Body |
+|---|---|---|
+| body is not JSON / not an object | `422` | `{"detail": [{"type": "json_invalid", "loc": ["body"], "msg": "…"}]}` |
+| a required key missing (`state`/`model`/`questions`) | `422` | `{"detail": [{"type": "missing", "loc": ["body", "<key>"], "msg": "Field required"}]}` |
+| unknown top-level key | `422` | `{"detail": [{"type": "extra_forbidden", "loc": ["body", "<key>"], "msg": "…"}]}` |
+| unknown model, or an engine validation code (exit 2) | `422` | `{"detail": [{"type": "value_error", "loc": ["body", "…"], "msg": "E_…: …", "input": …}]}` |
+| engine/runtime failure, any exit-3 code | `500` | `{"detail": "E_…: <message>"}` |
+| unknown route | `404` | `{"detail": "Not Found"}` |
+
+`loc` follows the FastAPI path convention (`["body", "questions", "<name>", "criteria"]`), and `msg`
+always carries the typed code, so an SDK user reading `TypeSafeAPIError` sees **which** rule failed.
+A `5xx` is retried by the SDK's default policy (2 retries, backoff, 30 s budget [sdk-0.7.1]); our
+failures are deterministic, so a retry yields the same error — a caller who dislikes that passes its
+own `RetryPolicy`.
+
+**Auth.** `Authorization: Bearer <anything>` is accepted, and a **missing** header is accepted too (a
+local server has no tenants). The SDK refuses to construct a client without a key, so the docs say:
+set `TYPESAFE_API_KEY` to any non-empty string. The value is never logged, never echoed, and never
+put into an error body.
+
+**Cold start** (the SDK's default per-request timeout is 10 s [sdk-0.7.1]). A cold decision pays the
+model load inside that request (the keep-host spawn, §2.12) — the same cost as `ask`'s first call
+(~1–3 s for the 4B on this box; a CPU box or a cold shader cache can exceed 10 s, §6 **[recon]**).
+Docs advise running `serve` long-lived: it passes `--keep-alive <dur|0>` (default 600 s; precedence
+flag > env > default, §2.12) on every decision, so traffic keeps the host warm and the host still
+exits by itself after the window; `--keep-alive 0` means every request pays the load. Where a load
+exceeds a client's timeout, the SDK's retry budget (30 s) absorbs it or the client raises its timeout
+— documented, not hidden.
+
+**Logging.** One line per request on stderr (route, status, `served_by`, total ms, request id);
+never the `Authorization` value, never a request body by default.
+
+MCP (stdio, JSON-RPC 2.0 — unchanged by this wave: `initialize`, `tools/list`, `tools/call`): tools
+`typed_gguf_decide` (state + questions → answers), `typed_gguf_models_list`, `typed_gguf_models_pull`,
+`typed_gguf_runtime_status`, `typed_gguf_fit`. Tool schemas mirror §2.5; no tool ever triggers a
+network call except `models_pull`.
 
 ### 2.10 Calibration, fit and routing (E2.5)
 
@@ -501,6 +717,15 @@ start. This host is the warm core the `serve`/`mcp` surfaces (§2.9) reuse.
   / t_80f1a4c6 honesty rule).
 - **Platforms.** The host needs `AF_UNIX`, i.e. Linux/macOS. Where it is missing (Windows), `run`/
   `ask` answer inline with the named warning `W_KEEP_UNAVAILABLE`; no daemon is attempted.
+- **`serve` is a host client, nothing else** (serve wave, 2026-09-24; §2.9). Every decision it
+  answers is a keep-client request against this socket: the same key, the same swap discipline (one
+  model, one home), the same arrival-order serialization, the same inline fallback when no host can
+  be had. The server keeps no engine state of its own — which is why `keep status` / `keep stop`
+  mean exactly what they say while `serve` runs, and why a served warm answer is the CLI's answer.
+  Two rules follow for the implementation cards: `serve` passes its `--keep-alive` on every decision
+  (the window belongs to the call that pays for the host, above), and `runtime update` stops the host
+  **before** it switches bundles — a process that dlopen'd the old libraries must never keep
+  answering after a new build is installed (§2.8).
 
 ---
 
@@ -772,6 +997,77 @@ plus the offline pins and the real-model gates.
   (the `runtime/teardown.py` discipline); `keep status` reports placement and the device the engine's
   own log proved.
 
+### E5 — `serve` (TypeSafe-compatible HTTP) + `runtime update` (serve wave, 2026-09-24)
+
+Deliverable: the stdlib HTTP server behind `typed-gguf serve` (§2.9), the serve→keep-host client
+path, `typed-gguf runtime update|rollback` (§2.8), and the offline pins + host legs below. Wire and
+semantics: §2.8/§2.9; recon: the thread entry of 2026-09-24 (wieczór) + the `typesafe-sdk` 0.7.1
+source [sdk-0.7.1] (a copy lives at `/tmp/tssdk/src/typesafe_sdk` on this box; the live handshake
+demo at `/tmp/ts_demo.py`). Implementation cards: `t_f5d8b6c7` (serve), `t_d88b4be0` (runtime update).
+
+- **A-E5-1** **Wire.** An in-process server (no network) answers the four routes with the exact key
+  sets of §2.9: the served request bytes are the SDK's (mixed noul/choice/score in one call, all
+  three question types), and the field lists are pinned in a committed fixture (e.g.
+  `tests/fixtures/typesafe_sdk_0_7_1_fields.json`) derived from the SDK source — request keys,
+  per-type answer keys, `ModelMetadata` keys, error shapes — so "no invented fields" is a test, not
+  a promise.
+- **A-E5-2** **Mapping.** Served answers are byte-equal to `schema.render_response(native_result,
+  format="typesafe")` for the same engine result (no serve-local projection, no renormalization,
+  noul without `confidence`); `model` echoes the resolved alias; `usage` passes the native counters
+  through.
+- **A-E5-3** **Errors.** Malformed JSON, missing field, unknown top-level key, unknown model, and
+  each engine validation `E_*` answer exactly the §2.9 table (status + FastAPI-shaped body, code
+  text in `msg`); a sentinel `Authorization` value never appears in the server's log.
+- **A-E5-4** **Same engine.** For a fixed state + questions the served answer equals the same
+  request through `ask`/`run` on the same host (offline via the fake host, live on the 4B): same
+  model, same fit plan, same calibration source, same 6-sig-fig numbers.
+- **A-E5-5** **Cold/warm/serialization.** First request cold-loads through the keep host
+  (`served_by = "host"`), warm requests reuse it, `keep stop` still works, two concurrent requests
+  serialize in arrival order, and no host/socket/ledger entry is left behind after `serve` exits.
+- **A-E5-6** **`runtime update --check`** prints current vs target (tag, build, dir, size) and
+  changes nothing — online and offline (offline: a typed message, no partial state).
+- **A-E5-7** **A successful update** (fake release metadata + a fake bundle fixture): the record's
+  `dir`/`tag`/`build` move to the staged bundle, `previous` names the old one, `doctor` reports the
+  new build, and `runtime rollback` moves the record back; both directions pinned.
+- **A-E5-8** **Failure paths** (deterministic, offline, fake broken bundles): failed download, a
+  bundle missing a required file/symbol, a bundle whose build is below the arch rule, a switch
+  refused because the host would not stop — each leaves `runtime.json` and the working runtime
+  byte-identical, and removes only the staging debris.
+- **A-E5-9** **Refusals.** `runtime update` on a `$TYPED_GGUF_RUNTIME_DIR`-managed runtime and on an
+  empty data home answer `E_UPDATE_UNAVAILABLE` / `E_RUNTIME_MISSING`; `runtime rollback` with no
+  `previous` answers `E_UPDATE_UNAVAILABLE`; nothing changes in any of the three.
+- **A-E5-10** **Gates.** The offline suite stays green with the new code in the tree (the live
+  download leg is `@pytest.mark.network`, skipped by name offline); the SPEC-reading gates and the
+  docs gates are green; the impl cards' own README/`--help` flips are theirs, not this card's.
+
+**Test plan.** Offline pins (CI shape) — the wire and mapping gates drive the in-process server with
+the recorded SDK requests; the update gates drive `install`-level functions against synthetic locks
+and tar bundles (the convention of `tests/test_runtime_install.py`), with the GitHub API leg behind a
+fixture the offline tests never touch. Host gates the coordinator runs:
+
+```bash
+# (b) runtime update — the pinned b11026 -> the newest asset-bearing release, doctor green, build changed
+cd "$(git rev-parse --show-toplevel)"   # the repo root; the checkout's directory name is not part of the contract
+uv run typed-gguf doctor --json | tee /tmp/upd-before.json        # record the current build
+uv run typed-gguf runtime update --check                          # current vs target; touches nothing
+uv run typed-gguf runtime update                                  # download -> probe -> atomic switch
+uv run typed-gguf doctor --json | tee /tmp/upd-after.json         # green; build differs from before
+uv run typed-gguf runtime rollback && uv run typed-gguf doctor --json | tee /tmp/upd-back.json
+
+# (a) serve + the real SDK on the 4B — mixed noul/choice/score, answers parsed by SDK 0.7.1
+cd "$(git rev-parse --show-toplevel)"   # the repo root; the checkout's directory name is not part of the contract
+python3 -m venv /tmp/ts-venv && /tmp/ts-venv/bin/pip install 'typesafe-sdk==0.7.1'
+uv run typed-gguf serve --host 127.0.0.1 --port 8088 &            # warm host via §2.12
+TYPESAFE_API_KEY=local TYPESAFE_BASE_URL=http://127.0.0.1:8088 \
+  /tmp/ts-venv/bin/python tools/host_gate_serve.py                # exits non-zero on any mismatch
+uv run typed-gguf keep stop
+```
+
+`tools/host_gate_serve.py` (the impl card commits it; `tools/host_gate_*.sh` is the house convention)
+creates/uses that venv, fails loudly on any SDK version other than 0.7.1, prints the three parsed
+answers and exits non-zero on a mismatch. Both host legs are the acceptance; the container rehearses
+the offline halves only.
+
 ---
 
 ## 6. Reference values (executed)
@@ -834,10 +1130,12 @@ the vendor's public eval; frozen Qwen3.5-4B ≈ 0.845 vs 0.883 modal agreement o
 | R11 | State may carry PII/sensitive data | Local-only by default; HTTP binds 127.0.0.1; no telemetry; states cached only with `state_cache=true`; `--audit` is opt-in and documented |
 | R12 | Windows/macOS file naming and loader differences | `finder` handles `.so/.dylib/.dll` + `RTLD_GLOBAL` differences; CI smoke job per platform; the oracle's live section is the acceptance |
 | R13 | `n_seq_max` mis-sizing causes silent wrong answers | Waves never exceed the cap; the fork-equivalence test runs per model family; a `E_SEQ_MAX_EXCEEDED` guard instead of clamping |
+| R14 | A drop-in client's timeout (SDK: 10 s/request [sdk-0.7.1]) versus a cold model load | `serve` routes every decision through the keep host (§2.12) and refreshes its window; the docs advise a long-lived `serve` (or one warm `ask`) before the first SDK call; the SDK's own retry budget (30 s) absorbs a typical cold load |
+| R15 | Upstream llama.cpp renames/retags release assets, or a milestone release (`v0.5.0`) sits at `releases/latest` with no bundles **[recon 2026-09-24]** | `runtime update` never uses `releases/latest`: it takes the newest release whose asset list carries the host's retagged pinned name, probes the bundle against `runtime.lock` before any switch, refuses with `E_UPDATE_UNAVAILABLE` when the name is gone, and keeps the previous bundle for `runtime rollback` |
 
 ---
 
-## 8. Decisions for ratification (S-1..S-12)
+## 8. Decisions for ratification (S-1..S-12, plus the serve wave S-13..S-17)
 
 - **S-1** Name `typed-gguf` (package + CLI + repo). Rename before publication = 1 commit.
 - **S-2** Runtime: **ctypes → official llama.cpp bundle** primary; `llama-cpp-python` optional compat;
@@ -857,6 +1155,26 @@ the vendor's public eval; frozen Qwen3.5-4B ≈ 0.845 vs 0.883 modal agreement o
 - **S-11** E2 quality is report-only in v1 (no minimum agreement threshold); a floor is set after the
   first honest measurement, with the vendor-eval numbers as `[target]` reference only.
 - **S-12** State caching on (`state_cache=true`), `save_state=false` (opt-in persistence).
+
+**Serve wave (2026-09-24, cards `t_a51b1205` → `t_f5d8b6c7` → `t_d88b4be0`) — settled here so the
+implementation cards do not re-litigate them.**
+
+- **S-13** The served surface is exactly §2.9: four routes, the TypeSafe wire as `typesafe-sdk` 0.7.1
+  reads it [sdk-0.7.1], FastAPI-shaped errors, any/absent `Authorization` accepted and never logged,
+  FastAPI-shaped `422` bodies. No third-party runtime dependency: stdlib server.
+- **S-14** A served decision is a keep-host request — one model, one home, one at a time, swap
+  discipline included (§2.12). `serve` never loads a model itself and never projects an answer
+  locally: the numbers are `render_response(..., format="typesafe")`'s (§2.6).
+- **S-15** `model: "jev-latest"` resolves to the registry's `current` alias; `/v1/models`
+  `release_date` is the file's mtime (UTC date) and `description` is one honest auto line — no
+  invented upstream metadata. `usage` is the native projection's two counters (`input_tokens` = the
+  request's prompt tokens, `output_tokens` = decode steps); nothing is billed, nothing is fabricated.
+- **S-16** `runtime update` moves the *installed* bundle to a newer official release; it never
+  rewrites `runtime.lock`, never runs automatically, and knows no per-fork branches. The pinned
+  bundle stays what `init` installs and what the oracle's pins speak about.
+- **S-17** Update safety: staging → lock probe → stop-the-host → atomic record switch; the previous
+  bundle is retained and `runtime rollback` returns to it; any failure leaves the working runtime
+  byte-identical; refusals are one code, `E_UPDATE_UNAVAILABLE`.
 
 ---
 
