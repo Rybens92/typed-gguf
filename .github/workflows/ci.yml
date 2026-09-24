@@ -35,10 +35,10 @@ jobs:
       # one interpreter for every `uv` invocation in the job (sync, lint, suite, oracle)
       UV_PYTHON: ${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: uv (with caching)
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}

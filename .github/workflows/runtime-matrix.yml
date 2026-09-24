@@ -14,8 +14,8 @@ jobs:
   linux-cpu:
     runs-on: ubuntu-24.04
     steps: &steps
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync --extra dev
       - name: Download the pinned bundle
         run: |
@@ -64,8 +64,8 @@ jobs:
   linux-vulkan:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: sudo apt-get update && sudo apt-get install -y libvulkan1
       - run: uv sync --extra dev
       - name: Download the pinned Vulkan bundle
@@ -83,8 +83,8 @@ jobs:
   windows-cpu:
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync --extra dev
       - name: Download the pinned CPU bundle
         shell: pwsh
@@ -97,8 +97,8 @@ jobs:
   macos-metal:
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync --extra dev
       - name: Download the pinned Metal bundle
         run: |
@@ -116,8 +116,8 @@ jobs:
   macos-engine-smoke:
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync --extra dev
       - name: Download the pinned Metal bundle
         run: |
