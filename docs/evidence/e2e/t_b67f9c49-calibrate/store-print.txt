@@ -1,0 +1,40 @@
+store: /var/home/rybens/.local/share/typed-gguf/calibration.json exists: True
+schema: typed_gguf.calibration-store/v1
+
+-- model key: file:Spark-X2.5-4B-Q8_0.gguf:4375021152
+{
+ "accepted": true,
+ "accepted_types": [
+  "noul",
+  "score"
+ ],
+ "alias": "Spark-X2.5-4B-Q8_0",
+ "created_at": "2026-09-23T17:55:02Z",
+ "devset": {
+  "digest": "sha256:d1f3dc143d4c4da64a92a9b2be5d1797ca1599c6f00eb08b1634ded05287b537",
+  "items": 60,
+  "path": "/var/home/rybens/workspace/ggufone/src/typed_gguf/bench/devset.jsonl"
+ },
+ "holdout_fraction": 0.3333333333333333,
+ "mode": "auto",
+ "model": "file:Spark-X2.5-4B-Q8_0.gguf:4375021152",
+ "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+ "model_sha256": "",
+ "modes": [
+  "entropy",
+  "margin",
+  "normalized_peak"
+ ],
+ "n_bins": 10,
+ "params": {
+  "devset_digest": "sha256:d1f3dc143d4c4da64a92a9b2be5d1797ca1599c6f00eb08b1634ded05287b537",
+  "holdout_fraction": 0.3333333333333333,
+  "mode": "auto",
+  "model": "file:Spark-X2.5-4B-Q8_0.gguf:4375021152",
+  "modes": [
+   "entropy",
+   "margin",
+   "normalized_peak"
+   type choice: temperature=1.0 mode=normalized_peak accepted=False
+   type noul: temperature=0.05000000000000001 mode=normalized_peak accepted=True
+   type score: temperature=1.6475489724420662 mode=margin accepted=True

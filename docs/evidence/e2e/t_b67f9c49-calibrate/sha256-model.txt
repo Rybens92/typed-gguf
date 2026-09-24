@@ -1,0 +1,1 @@
+5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2  /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf

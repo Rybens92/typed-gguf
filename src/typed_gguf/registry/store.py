@@ -119,6 +119,19 @@ class Registry:
                 "aliases": {name: entry.to_dict() for name, entry in self.aliases.items()}}
 
 
+@dataclass(frozen=True)
+class Default:
+    """The model a request that names none means, and where that choice came from.
+
+    `source` is `"current"` when the registry's configured default chose it and `"sole"` when it
+    is the registry's only alias (see `find_default`). It is provenance, not a second default:
+    `Registry.current` itself is never rewritten by the fallback.
+    """
+
+    entry: Entry
+    source: str
+
+
 # --------------------------------------------------------------------- io
 def _atomic_write(path: pathlib.Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -244,11 +257,36 @@ def remove_entry(registry: Registry, alias: str) -> Entry:
     return entry
 
 
+def find_default(registry: Registry) -> Default | None:
+    """The model a request that names none means, and where that choice came from (SPEC 2.7).
+
+    `current` is the configured default; when it is set it wins. With no `current` the registry's
+    **sole** alias is the default — one entry is an unambiguous choice, and a `registry.json`
+    written before that key existed (or whose default was lost) must not turn a plain
+    `typed-gguf ask` into a dead end (card t_a0fa2dc0; SPEC 2.7 is silent on a missing default).
+
+    Two or more aliases with no `current` stay **unresolved**: which model to run is the user's
+    call (`typed-gguf models use <alias>`), never a guess between models.
+    """
+    if registry.current:
+        entry = registry.aliases.get(registry.current)
+        if entry is not None:
+            return Default(entry=entry, source="current")
+    if len(registry.aliases) == 1:
+        return Default(entry=next(iter(registry.aliases.values())), source="sole")
+    return None
+
+
 def resolve(registry: Registry, ref: str | None, *, use_current: bool = False) -> Entry | None:
-    """Resolve an alias, an absolute/relative path, or the `current` alias."""
+    """Resolve an alias, an absolute/relative path, or the registry's default model.
+
+    `use_current=True` is the "the request named no model" mode: the answer is `find_default`'s
+    (`current`, else the sole alias), and `None` still means nothing could be resolved.
+    """
     if ref is None:
-        if use_current and registry.current:
-            return registry.aliases.get(registry.current)
+        if use_current:
+            default = find_default(registry)
+            return default.entry if default is not None else None
         return None
     if ref in registry.aliases:
         return registry.aliases[ref]

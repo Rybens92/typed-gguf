@@ -1,0 +1,582 @@
+{
+  "models": {
+    "file:Spark-X2.5-4B-Q8_0.gguf:4375021152": {
+      "accepted": true,
+      "accepted_types": [
+        "noul",
+        "score"
+      ],
+      "alias": "Spark-X2.5-4B-Q8_0",
+      "created_at": "2026-09-23T17:55:02Z",
+      "devset": {
+        "digest": "sha256:d1f3dc143d4c4da64a92a9b2be5d1797ca1599c6f00eb08b1634ded05287b537",
+        "items": 60,
+        "path": "/var/home/rybens/workspace/ggufone/src/typed_gguf/bench/devset.jsonl"
+      },
+      "holdout_fraction": 0.3333333333333333,
+      "mode": "auto",
+      "model": "file:Spark-X2.5-4B-Q8_0.gguf:4375021152",
+      "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+      "model_sha256": "",
+      "modes": [
+        "entropy",
+        "margin",
+        "normalized_peak"
+      ],
+      "n_bins": 10,
+      "params": {
+        "devset_digest": "sha256:d1f3dc143d4c4da64a92a9b2be5d1797ca1599c6f00eb08b1634ded05287b537",
+        "holdout_fraction": 0.3333333333333333,
+        "mode": "auto",
+        "model": "file:Spark-X2.5-4B-Q8_0.gguf:4375021152",
+        "modes": [
+          "entropy",
+          "margin",
+          "normalized_peak"
+        ],
+        "n_bins": 10,
+        "types": {
+          "choice": {
+            "accepted": false,
+            "temperature": 1.0
+          },
+          "noul": {
+            "accepted": true,
+            "temperature": 0.05000000000000001
+          },
+          "score": {
+            "accepted": true,
+            "temperature": 1.6475489724420662
+          }
+        }
+      },
+      "params_hash": "sha256:f09fe20e1169dcb13a2e1561bf9c742b90165276ba3c2438f906f1f973e3fc81",
+      "schema": "typed_gguf.calibration/v1",
+      "types": {
+        "choice": {
+          "accepted": false,
+          "agreement": {
+            "holdout": {
+              "after": 0.75,
+              "before": 0.75
+            }
+          },
+          "agreement_at_0.5": {
+            "holdout": {
+              "after": 0.8571428571428571,
+              "before": 0.8571428571428571
+            }
+          },
+          "ece": {
+            "fit": {
+              "after": 0.10403539178898369,
+              "before": 0.10403539178898369
+            },
+            "holdout": {
+              "after": 0.1918852303247583,
+              "before": 0.1918852303247583
+            }
+          },
+          "evaluate": {
+            "fit_after": {
+              "agreement": 0.9375,
+              "agreement_at_0.5": {
+                "agreement": 0.9375,
+                "ci": [
+                  0.7167073163197013,
+                  0.9888809426916687
+                ],
+                "correct": 15,
+                "n": 16,
+                "threshold": 0.5
+              },
+              "ece": 0.10403539178898369,
+              "mean_confidence": 0.9285764609086407,
+              "mode": "normalized_peak",
+              "n": 16,
+              "nll": 0.24092613427090348,
+              "temperature": 1.0
+            },
+            "fit_before": {
+              "agreement": 0.9375,
+              "agreement_at_0.5": {
+                "agreement": 0.9375,
+                "ci": [
+                  0.7167073163197013,
+                  0.9888809426916687
+                ],
+                "correct": 15,
+                "n": 16,
+                "threshold": 0.5
+              },
+              "ece": 0.10403539178898369,
+              "mean_confidence": 0.9285764609086407,
+              "mode": "normalized_peak",
+              "n": 16,
+              "nll": 0.24092613427090348,
+              "temperature": 1.0
+            },
+            "holdout_after": {
+              "agreement": 0.75,
+              "agreement_at_0.5": {
+                "agreement": 0.8571428571428571,
+                "ci": [
+                  0.48686549668097007,
+                  0.9743210440510253
+                ],
+                "correct": 6,
+                "n": 7,
+                "threshold": 0.5
+              },
+              "ece": 0.1918852303247583,
+              "mean_confidence": 0.8294013452664052,
+              "mode": "normalized_peak",
+              "n": 8,
+              "nll": 0.9699734460568126,
+              "temperature": 1.0
+            },
+            "holdout_before": {
+              "agreement": 0.75,
+              "agreement_at_0.5": {
+                "agreement": 0.8571428571428571,
+                "ci": [
+                  0.48686549668097007,
+                  0.9743210440510253
+                ],
+                "correct": 6,
+                "n": 7,
+                "threshold": 0.5
+              },
+              "ece": 0.1918852303247583,
+              "mean_confidence": 0.8294013452664052,
+              "mode": "normalized_peak",
+              "n": 8,
+              "nll": 0.9699734460568126,
+              "temperature": 1.0
+            }
+          },
+          "mode": "normalized_peak",
+          "modes": {
+            "entropy": {
+              "agreement_at_0.5_holdout_after": 0.8571428571428571,
+              "agreement_at_0.5_holdout_before": 0.8571428571428571,
+              "agreement_holdout_after": 0.75,
+              "agreement_holdout_before": 0.75,
+              "ece_fit_after": 0.05384371970194209,
+              "ece_fit_before": 0.05384371970194209,
+              "ece_holdout_after": 0.08815122814021543,
+              "ece_holdout_before": 0.08815122814021543,
+              "eligible": false,
+              "holdout_ece_improvement": 0.0,
+              "mean_confidence_after": 0.8110049739142564,
+              "mean_confidence_before": 0.8110049739142564,
+              "mode": "entropy",
+              "selected": false,
+              "temperature": 1.0
+            },
+            "margin": {
+              "agreement_at_0.5_holdout_after": 0.8571428571428571,
+              "agreement_at_0.5_holdout_before": 0.8571428571428571,
+              "agreement_holdout_after": 0.75,
+              "agreement_holdout_before": 0.75,
+              "ece_fit_after": 0.06653754763856504,
+              "ece_fit_before": 0.06653754763856504,
+              "ece_holdout_after": 0.16756634734462394,
+              "ece_holdout_before": 0.16756634734462394,
+              "eligible": false,
+              "holdout_ece_improvement": 0.0,
+              "mean_confidence_after": 0.7983409873881783,
+              "mean_confidence_before": 0.7983409873881783,
+              "mode": "margin",
+              "selected": false,
+              "temperature": 1.0
+            },
+            "normalized_peak": {
+              "agreement_at_0.5_holdout_after": 0.8333333333333334,
+              "agreement_at_0.5_holdout_before": 0.8571428571428571,
+              "agreement_holdout_after": 0.75,
+              "agreement_holdout_before": 0.75,
+              "ece_fit_after": 0.06985406553916193,
+              "ece_fit_before": 0.10403539178898369,
+              "ece_holdout_after": 0.19642361003409042,
+              "ece_holdout_before": 0.1918852303247583,
+              "eligible": false,
+              "holdout_ece_improvement": -0.00453837970933213,
+              "mean_confidence_after": 0.7805457509304449,
+              "mean_confidence_before": 0.8294013452664052,
+              "mode": "normalized_peak",
+              "selected": false,
+              "temperature": 1.4909760458230987
+            }
+          },
+          "n": {
+            "fit": 16,
+            "holdout": 8
+          },
+          "nll": {
+            "fit": {
+              "after": 0.24092613427090348,
+              "before": 0.24092613427090348
+            },
+            "holdout": {
+              "after": 0.9699734460568126,
+              "before": 0.9699734460568126
+            }
+          },
+          "qtype": "choice",
+          "reason": "no calibration applied: the held-out split did not improve",
+          "temperature": 1.0
+        },
+        "noul": {
+          "accepted": true,
+          "agreement": {
+            "holdout": {
+              "after": 1.0,
+              "before": 1.0
+            }
+          },
+          "agreement_at_0.5": {
+            "holdout": {
+              "after": 1.0,
+              "before": 1.0
+            }
+          },
+          "ece": {
+            "fit": {
+              "after": 2.108594646443862e-06,
+              "before": 0.07689209423771355
+            },
+            "holdout": {
+              "after": 0.0,
+              "before": 0.03546391074290145
+            }
+          },
+          "evaluate": {
+            "fit_after": {
+              "agreement": 1.0,
+              "agreement_at_0.5": {
+                "agreement": 1.0,
+                "ci": [
+                  0.7574992425007574,
+                  1.0
+                ],
+                "correct": 12,
+                "n": 12,
+                "threshold": 0.5
+              },
+              "ece": 2.108594646443862e-06,
+              "mean_confidence": 0.9999978914053536,
+              "mode": "normalized_peak",
+              "n": 12,
+              "nll": 1.0543039925167533e-06,
+              "temperature": 0.05000000000000001
+            },
+            "fit_before": {
+              "agreement": 1.0,
+              "agreement_at_0.5": {
+                "agreement": 1.0,
+                "ci": [
+                  0.7411599827511859,
+                  1.0
+                ],
+                "correct": 11,
+                "n": 11,
+                "threshold": 0.5
+              },
+              "ece": 0.07689209423771355,
+              "mean_confidence": 0.9231079057622864,
+              "mode": "normalized_peak",
+              "n": 12,
+              "nll": 0.04591912024597253,
+              "temperature": 1.0
+            },
+            "holdout_after": {
+              "agreement": 1.0,
+              "agreement_at_0.5": {
+                "agreement": 1.0,
+                "ci": [
+                  0.6096569663469354,
+                  0.9999999999999999
+                ],
+                "correct": 6,
+                "n": 6,
+                "threshold": 0.5
+              },
+              "ece": 0.0,
+              "mean_confidence": 1.0,
+              "mode": "normalized_peak",
+              "n": 6,
+              "nll": 0.0,
+              "temperature": 0.05000000000000001
+            },
+            "holdout_before": {
+              "agreement": 1.0,
+              "agreement_at_0.5": {
+                "agreement": 1.0,
+                "ci": [
+                  0.6096569663469354,
+                  0.9999999999999999
+                ],
+                "correct": 6,
+                "n": 6,
+                "threshold": 0.5
+              },
+              "ece": 0.03546391074290145,
+              "mean_confidence": 0.9645360892570986,
+              "mode": "normalized_peak",
+              "n": 6,
+              "nll": 0.018722889641719077,
+              "temperature": 1.0
+            }
+          },
+          "mode": "normalized_peak",
+          "modes": {
+            "entropy": {
+              "agreement_at_0.5_holdout_after": 1.0,
+              "agreement_at_0.5_holdout_before": 1.0,
+              "agreement_holdout_after": 1.0,
+              "agreement_holdout_before": 1.0,
+              "ece_fit_after": 1.867477924333283e-05,
+              "ece_fit_before": 0.13294868095519727,
+              "ece_holdout_after": 0.0,
+              "ece_holdout_before": 0.08340067640049163,
+              "eligible": true,
+              "holdout_ece_improvement": 0.08340067640049163,
+              "mean_confidence_after": 1.0,
+              "mean_confidence_before": 0.9165993235995084,
+              "mode": "entropy",
+              "selected": false,
+              "temperature": 0.05000000000000001
+            },
+            "margin": {
+              "agreement_at_0.5_holdout_after": 1.0,
+              "agreement_at_0.5_holdout_before": 1.0,
+              "agreement_holdout_after": 1.0,
+              "agreement_holdout_before": 1.0,
+              "ece_fit_after": 1.054310661885438e-06,
+              "ece_fit_before": 0.05596206468371526,
+              "ece_holdout_after": 0.0,
+              "ece_holdout_before": 0.019789974162975805,
+              "eligible": true,
+              "holdout_ece_improvement": 0.019789974162975805,
+              "mean_confidence_after": 1.0,
+              "mean_confidence_before": 0.9802100258370242,
+              "mode": "margin",
+              "selected": false,
+              "temperature": 0.05000000000000001
+            },
+            "normalized_peak": {
+              "agreement_at_0.5_holdout_after": 1.0,
+              "agreement_at_0.5_holdout_before": 1.0,
+              "agreement_holdout_after": 1.0,
+              "agreement_holdout_before": 1.0,
+              "ece_fit_after": 2.108594646443862e-06,
+              "ece_fit_before": 0.07689209423771355,
+              "ece_holdout_after": 0.0,
+              "ece_holdout_before": 0.03546391074290145,
+              "eligible": true,
+              "holdout_ece_improvement": 0.03546391074290145,
+              "mean_confidence_after": 1.0,
+              "mean_confidence_before": 0.9645360892570986,
+              "mode": "normalized_peak",
+              "selected": true,
+              "temperature": 0.05000000000000001
+            }
+          },
+          "n": {
+            "fit": 12,
+            "holdout": 6
+          },
+          "nll": {
+            "fit": {
+              "after": 1.0543039925167533e-06,
+              "before": 0.04591912024597253
+            },
+            "holdout": {
+              "after": 0.0,
+              "before": 0.018722889641719077
+            }
+          },
+          "qtype": "noul",
+          "reason": "applied: held-out ECE 0.0355 -> 0.0000 at temperature 0.0500",
+          "temperature": 0.05000000000000001
+        },
+        "score": {
+          "accepted": true,
+          "agreement": {
+            "holdout": {
+              "after": 0.6666666666666666,
+              "before": 0.6666666666666666
+            }
+          },
+          "agreement_at_0.5": {
+            "holdout": {
+              "after": 1.0,
+              "before": 0.75
+            }
+          },
+          "ece": {
+            "fit": {
+              "after": 0.2852227286736099,
+              "before": 0.394561914769805
+            },
+            "holdout": {
+              "after": 0.2025898073638862,
+              "before": 0.21578560953633272
+            }
+          },
+          "evaluate": {
+            "fit_after": {
+              "agreement": 0.5833333333333334,
+              "agreement_at_0.5": {
+                "agreement": 0.7142857142857143,
+                "ci": [
+                  0.35892909014821267,
+                  0.9177828342909844
+                ],
+                "correct": 5,
+                "n": 7,
+                "threshold": 0.5
+              },
+              "ece": 0.2852227286736099,
+              "mean_confidence": 0.5465313872530402,
+              "mode": "margin",
+              "n": 12,
+              "nll": 0.918335762213995,
+              "temperature": 1.6475489724420662
+            },
+            "fit_before": {
+              "agreement": 0.5833333333333334,
+              "agreement_at_0.5": {
+                "agreement": 0.5555555555555556,
+                "ci": [
+                  0.2666473457440297,
+                  0.811224570528086
+                ],
+                "correct": 5,
+                "n": 9,
+                "threshold": 0.5
+              },
+              "ece": 0.394561914769805,
+              "mean_confidence": 0.7014834959913755,
+              "mode": "margin",
+              "n": 12,
+              "nll": 1.112071356021337,
+              "temperature": 1.0
+            },
+            "holdout_after": {
+              "agreement": 0.6666666666666666,
+              "agreement_at_0.5": {
+                "agreement": 1.0,
+                "ci": [
+                  0.34237195288961925,
+                  1.0
+                ],
+                "correct": 2,
+                "n": 2,
+                "threshold": 0.5
+              },
+              "ece": 0.2025898073638862,
+              "mean_confidence": 0.5240243381919462,
+              "mode": "margin",
+              "n": 6,
+              "nll": 0.6255648191742094,
+              "temperature": 1.6475489724420662
+            },
+            "holdout_before": {
+              "agreement": 0.6666666666666666,
+              "agreement_at_0.5": {
+                "agreement": 0.75,
+                "ci": [
+                  0.3006360524426366,
+                  0.9544139373553637
+                ],
+                "correct": 3,
+                "n": 4,
+                "threshold": 0.5
+              },
+              "ece": 0.21578560953633272,
+              "mean_confidence": 0.6647748942536655,
+              "mode": "margin",
+              "n": 6,
+              "nll": 0.6162433589408606,
+              "temperature": 1.0
+            }
+          },
+          "mode": "margin",
+          "modes": {
+            "entropy": {
+              "agreement_at_0.5_holdout_after": 1.0,
+              "agreement_at_0.5_holdout_before": 1.0,
+              "agreement_holdout_after": 0.6666666666666666,
+              "agreement_holdout_before": 0.6666666666666666,
+              "ece_fit_after": 0.16420672556292482,
+              "ece_fit_before": 0.30076444290102666,
+              "ece_holdout_after": 0.17641229690571333,
+              "ece_holdout_before": 0.16178452018003708,
+              "eligible": false,
+              "holdout_ece_improvement": -0.01462777672567625,
+              "mean_confidence_after": 0.5609590440722908,
+              "mean_confidence_before": 0.5896033436378986,
+              "mode": "entropy",
+              "selected": false,
+              "temperature": 1.1050137103527575
+            },
+            "margin": {
+              "agreement_at_0.5_holdout_after": 1.0,
+              "agreement_at_0.5_holdout_before": 0.75,
+              "agreement_holdout_after": 0.6666666666666666,
+              "agreement_holdout_before": 0.6666666666666666,
+              "ece_fit_after": 0.2852227286736099,
+              "ece_fit_before": 0.394561914769805,
+              "ece_holdout_after": 0.2025898073638862,
+              "ece_holdout_before": 0.21578560953633272,
+              "eligible": true,
+              "holdout_ece_improvement": 0.013195802172446508,
+              "mean_confidence_after": 0.5240243381919462,
+              "mean_confidence_before": 0.6647748942536655,
+              "mode": "margin",
+              "selected": true,
+              "temperature": 1.6475489724420662
+            },
+            "normalized_peak": {
+              "agreement_at_0.5_holdout_after": 1.0,
+              "agreement_at_0.5_holdout_before": 0.75,
+              "agreement_holdout_after": 0.6666666666666666,
+              "agreement_holdout_before": 0.6666666666666666,
+              "ece_fit_after": 0.11860184751633411,
+              "ece_fit_before": 0.2531207030207672,
+              "ece_holdout_after": 0.2585404553942099,
+              "ece_holdout_before": 0.16681783972985564,
+              "eligible": false,
+              "holdout_ece_improvement": -0.09172261566435425,
+              "mean_confidence_after": 0.5003575580959742,
+              "mean_confidence_before": 0.6827751784186932,
+              "mode": "normalized_peak",
+              "selected": false,
+              "temperature": 2.011748404921261
+            }
+          },
+          "n": {
+            "fit": 12,
+            "holdout": 6
+          },
+          "nll": {
+            "fit": {
+              "after": 0.918335762213995,
+              "before": 1.112071356021337
+            },
+            "holdout": {
+              "after": 0.6255648191742094,
+              "before": 0.6162433589408606
+            }
+          },
+          "qtype": "score",
+          "reason": "applied: held-out ECE 0.2158 -> 0.2026 at temperature 1.6475",
+          "temperature": 1.6475489724420662
+        }
+      }
+    }
+  },
+  "schema": "typed_gguf.calibration-store/v1"
+}

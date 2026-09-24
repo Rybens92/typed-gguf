@@ -1,0 +1,224 @@
+{
+  "model": "Spark-X2.5-4B-Q8_0",
+  "engine": {
+    "runtime": "llama.cpp b11026",
+    "backend": "cpu",
+    "backend_source": "bundle",
+    "devices": [
+      "CPU",
+      "CPU_Mapped"
+    ],
+    "device_buffers": {
+      "CPU": 1
+    },
+    "effective_backend": "cpu",
+    "readout": "sequence",
+    "cue": "json_instructed",
+    "chat_format": {
+      "kind": "role_split",
+      "question_turn": "user",
+      "contract": "question",
+      "prefix_chars": 1034,
+      "dropped": "\n"
+    },
+    "kv_unified": true,
+    "n_ctx": 52736,
+    "n_seq_max": 8,
+    "prefix_tokens": 260,
+    "state_id": "sha256:fb5c86a40ea611c8bdad3a0971aa6df70fbae5c774d13e6ae82ab9b3c38b7cbb",
+    "prefill_reused": false,
+    "template": {
+      "kind": "gguf-renderer",
+      "renderer": "internal",
+      "source": "gguf:tokenizer.chat_template",
+      "family": "spark2_5",
+      "thinking": "suppressed",
+      "warnings": [],
+      "notes": [],
+      "explicit": false
+    },
+    "kv_type": "q4_0",
+    "n_gpu_layers": 36,
+    "placement": {
+      "note": "fit plan: 36 layer(s) offloaded, kv_type=q4_0",
+      "n_gpu_layers": 36,
+      "kv_type": "q4_0",
+      "degraded": false,
+      "attempts": [],
+      "warnings": [],
+      "cpu_only": false
+    },
+    "fit": {
+      "n_gpu_layers": 36,
+      "n_ctx": 52734,
+      "kv_type": "q4_0",
+      "n_seq_max": 8,
+      "est_weights_bytes": 4724883456,
+      "est_kv_bytes": 578596608,
+      "est_total_bytes": 5683064576,
+      "backend": "cpu",
+      "source": "llama-fit-params",
+      "standard_n_ctx": 32768,
+      "ctx_limit": "grown",
+      "warnings": [
+        "W_KV_TYPE_DOWNGRADE"
+      ],
+      "notes": [
+        "memory table from b11026-linux-x64-vulkan/llama-fit-params (model 4506 MiB, context 1962 MiB, compute 362 MiB)",
+        "n_ctx 32768 -> 52734: the box holds more (fit-target 1024 MiB kept free, kv_type q4_0)"
+      ],
+      "arch": "spark2_5",
+      "model_sha256": "5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2",
+      "host_fingerprint": "eb9f25a70307873f",
+      "budget_bytes": 5982126080,
+      "created_at": "2026-09-23T17:01:09Z",
+      "schema": "typed_gguf.fit/v1"
+    },
+    "keep": {
+      "served_by": "host",
+      "keep_alive_s": 600.0,
+      "state": "running",
+      "pid": 35836,
+      "key": {
+        "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+        "model_sha": "stat:4375021152:1788794522828377135",
+        "backend": "auto",
+        "n_ctx": null,
+        "n_seq_max": null,
+        "kv_type": "auto",
+        "threads": null,
+        "fit": true,
+        "fit_target_mb": null,
+        "fit_ctx": null,
+        "fit_cache": true
+      },
+      "key_digest": "674075b9cf1676ec",
+      "model": "Spark-X2.5-4B-Q8_0",
+      "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+      "requests": 2,
+      "uptime_s": 226.698,
+      "idle_left_s": 487.837,
+      "loaded_at": 1790186198.4601345,
+      "placement": {
+        "note": "fit plan: 36 layer(s) offloaded, kv_type=q4_0",
+        "n_gpu_layers": 36,
+        "kv_type": "q4_0",
+        "degraded": false,
+        "attempts": [],
+        "warnings": [],
+        "cpu_only": false
+      },
+      "devices": {
+        "devices": [
+          "CPU",
+          "CPU_Mapped"
+        ],
+        "device_buffers": {
+          "CPU": 1
+        },
+        "effective_backend": "cpu"
+      },
+      "model_load_ms": 638.5014609986683,
+      "socket": "/var/home/rybens/.local/share/typed-gguf/keep/674075b9cf1676ec.sock",
+      "spec": "/var/home/rybens/.local/share/typed-gguf/keep/674075b9cf1676ec.spec.json",
+      "log": "/var/home/rybens/.local/share/typed-gguf/keep/674075b9cf1676ec.log",
+      "version": "",
+      "fallback": null
+    },
+    "escalations": {
+      "enabled": false,
+      "limit": 0,
+      "threshold": 0.5,
+      "target": null,
+      "count": 0,
+      "decisions": [],
+      "skipped": []
+    }
+  },
+  "answers": {
+    "provider": {
+      "type": "score",
+      "score": 2.4123,
+      "probabilities": {
+        "0": 0.118339,
+        "1": 0.0710799,
+        "2": 0.342502,
+        "3": 0.216101,
+        "4": 0.251978
+      },
+      "confidence": 0.121018,
+      "legend": {
+        "0": "0",
+        "1": "0.25",
+        "2": "0.5",
+        "3": "0.75",
+        "4": "1"
+      },
+      "coverage": 0.999989,
+      "reliability": "ok",
+      "cue": {
+        "refused": false,
+        "token": 31,
+        "closer": null,
+        "mass": 0.431044,
+        "verdict": "answered",
+        "next": null
+      },
+      "decode_steps": 5
+    },
+    "escalate": {
+      "type": "noul",
+      "noul": 0.998793,
+      "probabilities": {
+        "yes": 0.998793,
+        "no": 0.00120714
+      },
+      "coverage": 0.999978,
+      "reliability": "ok",
+      "cue": {
+        "refused": false,
+        "token": 4244,
+        "closer": null,
+        "mass": 0.583185,
+        "verdict": "answered",
+        "next": null
+      },
+      "decode_steps": 2
+    }
+  },
+  "usage": {
+    "input_tokens": 401,
+    "output_tokens": 7,
+    "questions": 2,
+    "forks": 7,
+    "prefill_tokens": 260,
+    "decode_steps": 7,
+    "waves": 2
+  },
+  "timings": {
+    "model_load_ms": 0.0,
+    "prefill_ms": 53864.2,
+    "questions_ms": 56921.9,
+    "total_ms": 110799.0
+  },
+  "warnings": [],
+  "calibrated": true,
+  "calibration": {
+    "source": "/var/home/rybens/.local/share/typed-gguf/calibration.json",
+    "applied": true,
+    "model": "file:Spark-X2.5-4B-Q8_0.gguf:4375021152",
+    "params_hash": "sha256:f09fe20e1169dcb13a2e1561bf9c742b90165276ba3c2438f906f1f973e3fc81",
+    "temperatures": {
+      "noul": 0.05,
+      "score": 1.64755
+    },
+    "confidence_modes": {
+      "noul": "normalized_peak",
+      "score": "margin"
+    },
+    "accepted_types": [
+      "noul",
+      "score"
+    ]
+  }
+}

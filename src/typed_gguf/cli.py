@@ -932,6 +932,20 @@ def engine_request_payload(payload: dict[str, Any], *, state: Any = None,
     return body
 
 
+def _no_default_error(known: Sequence[str]) -> ModelNotFoundError:
+    """The message for "nothing was named and the registry has no default" (SPEC 2.7).
+
+    Names the two remedies the tool has (`models pull`, `models use`) and the escape hatch that
+    needs no registry at all (`--model <path.gguf>`) — the old text led with `None is not a
+    registry alias`, which named neither the problem nor a fix (card t_a0fa2dc0).
+    """
+    return ModelNotFoundError(
+        "E_MODEL_NOT_FOUND: no model was named and the registry has no default to fall back "
+        f"on; known aliases: {', '.join(known) or '<none>'}. Run `typed-gguf models pull` (the "
+        "default model is pinned) or `typed-gguf models use <alias>` to make one the default, or "
+        "pass `--model <alias|path.gguf>` — a path needs no registry entry.")
+
+
 def _resolve_model(request: schema.Request, *, home: pathlib.Path | None = None) -> tuple[str, str]:
     """`alias | path | repo[:quant]` -> (alias, path) through the E1a registry."""
     registry, _warnings = store.load_registry(store.registry_path(home))
@@ -947,6 +961,8 @@ def _resolve_model(request: schema.Request, *, home: pathlib.Path | None = None)
             return candidate.name.removesuffix(".gguf"), str(candidate)
         entry = store.resolve(registry, ref)
     if entry is None:
+        if ref is None:
+            raise _no_default_error(known)
         raise ModelNotFoundError(
             f"E_MODEL_NOT_FOUND: {ref!r} is not a registry alias, a path or a pulled model; "
             f"known aliases: {', '.join(known) or '<none>'} (use `typed-gguf models pull` or "
@@ -963,11 +979,34 @@ def _resolve_model_ref(ref: str | None, *, home: pathlib.Path | None = None) -> 
     registry, _warnings = store.load_registry(store.registry_path(home))
     entry = store.resolve(registry, ref, use_current=ref is None)
     if entry is None:
+        if ref is None:
+            raise _no_default_error(tuple(registry.aliases))
         known = ", ".join(registry.aliases) or "<none>"
         raise ModelNotFoundError(
             f"E_MODEL_NOT_FOUND: {ref!r} is not a registry alias or an existing file; known "
             f"aliases: {known} (use `typed-gguf models pull` / `typed-gguf models use`)")
     return entry.alias, entry.path
+
+
+def _announce_default(options: dict[str, Any]) -> None:
+    """`requested <default> -> resolved <alias>` on stderr, when the default did the work.
+
+    A call that named no model used to resolve invisibly: the response's `model` says *which*
+    alias answered, but not that the caller asked for none. This is the CLI's own provenance
+    line, on stderr so stdout stays the response byte for byte, and it is printed **only** for
+    the default — a caller that passes `--model` (or lets `--route auto` pick) sees no new output
+    (card t_a0fa2dc0).
+    """
+    if options.get("model") is not None or options.get("route") == "auto":
+        return
+    registry, _warnings = store.load_registry()
+    default = store.find_default(registry)
+    if default is None:
+        return                  # nothing to resolve: `_resolve_model` explains why, by name
+    why = ("the registry's `current`" if default.source == "current"
+           else "the registry's only alias")
+    print(f"model: requested <default> -> resolved {default.entry.alias} ({why})",
+          file=sys.stderr)
 
 
 def fit_plan_for(model_path: str, *, home: pathlib.Path | None = None, use_cache: bool = True,
@@ -1265,6 +1304,7 @@ def _cmd_run(args: list[str]) -> int:
     if "questions" not in options:
         raise UserError("run needs --questions <file.json> (SPEC 2.8)", code="E_UNKNOWN_KEY")
     body = _load_questions(options["questions"])
+    _announce_default(options)
     state = _load_state_argument(options.get("state"), options.get("state_json"))
     payload = engine_request_payload(body, state=state, model=options.get("model"),
                                      fmt=options.get("format"),
@@ -1363,6 +1403,7 @@ def _cmd_ask(args: list[str]) -> int:
     if not questions:
         raise UserError("ask needs at least one --choice/--score/--noul question",
                         code="E_QID_INVALID")
+    _announce_default(options)
     state = _load_state_argument(options.get("state"), options.get("state_json"))
     payload = engine_request_payload({"questions": questions}, state=state,
                                      model=options.get("model"), fmt=options.get("format"),

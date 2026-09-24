@@ -52,7 +52,7 @@ def home_with(tmp_path: pathlib.Path, *aliases: str,
     """A data home whose registry lists `aliases`, each pointing at a real (tiny) file."""
     home = tmp_path / "home"
     entries: dict[str, store.Entry] = {}
-    for index, alias in enumerate(aliases):
+    for alias in aliases:
         model = home / "models" / f"{alias}.gguf"
         model.parent.mkdir(parents=True, exist_ok=True)
         model.write_bytes(make_gguf())

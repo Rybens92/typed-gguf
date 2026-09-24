@@ -1,0 +1,577 @@
+{
+  "schema": "typed_gguf.calibration/v1",
+  "created_at": "2026-09-23T17:55:02Z",
+  "model": "file:Spark-X2.5-4B-Q8_0.gguf:4375021152",
+  "model_path": "/var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf",
+  "model_sha256": "",
+  "alias": "Spark-X2.5-4B-Q8_0",
+  "mode": "auto",
+  "modes": [
+    "entropy",
+    "margin",
+    "normalized_peak"
+  ],
+  "accepted": true,
+  "accepted_types": [
+    "noul",
+    "score"
+  ],
+  "holdout_fraction": 0.3333333333333333,
+  "n_bins": 10,
+  "devset": {
+    "path": "/var/home/rybens/workspace/ggufone/src/typed_gguf/bench/devset.jsonl",
+    "items": 60,
+    "digest": "sha256:d1f3dc143d4c4da64a92a9b2be5d1797ca1599c6f00eb08b1634ded05287b537"
+  },
+  "params": {
+    "model": "file:Spark-X2.5-4B-Q8_0.gguf:4375021152",
+    "mode": "auto",
+    "modes": [
+      "entropy",
+      "margin",
+      "normalized_peak"
+    ],
+    "holdout_fraction": 0.3333333333333333,
+    "n_bins": 10,
+    "devset_digest": "sha256:d1f3dc143d4c4da64a92a9b2be5d1797ca1599c6f00eb08b1634ded05287b537",
+    "types": {
+      "choice": {
+        "temperature": 1.0,
+        "accepted": false
+      },
+      "noul": {
+        "temperature": 0.05000000000000001,
+        "accepted": true
+      },
+      "score": {
+        "temperature": 1.6475489724420662,
+        "accepted": true
+      }
+    }
+  },
+  "params_hash": "sha256:f09fe20e1169dcb13a2e1561bf9c742b90165276ba3c2438f906f1f973e3fc81",
+  "types": {
+    "choice": {
+      "qtype": "choice",
+      "temperature": 1.0,
+      "accepted": false,
+      "reason": "no calibration applied: the held-out split did not improve",
+      "mode": "normalized_peak",
+      "n": {
+        "fit": 16,
+        "holdout": 8
+      },
+      "ece": {
+        "fit": {
+          "before": 0.10403539178898369,
+          "after": 0.10403539178898369
+        },
+        "holdout": {
+          "before": 0.1918852303247583,
+          "after": 0.1918852303247583
+        }
+      },
+      "nll": {
+        "fit": {
+          "before": 0.24092613427090348,
+          "after": 0.24092613427090348
+        },
+        "holdout": {
+          "before": 0.9699734460568126,
+          "after": 0.9699734460568126
+        }
+      },
+      "agreement": {
+        "holdout": {
+          "before": 0.75,
+          "after": 0.75
+        }
+      },
+      "agreement_at_0.5": {
+        "holdout": {
+          "before": 0.8571428571428571,
+          "after": 0.8571428571428571
+        }
+      },
+      "modes": {
+        "entropy": {
+          "mode": "entropy",
+          "temperature": 1.0,
+          "selected": false,
+          "eligible": false,
+          "holdout_ece_improvement": 0.0,
+          "ece_fit_before": 0.05384371970194209,
+          "ece_fit_after": 0.05384371970194209,
+          "ece_holdout_before": 0.08815122814021543,
+          "ece_holdout_after": 0.08815122814021543,
+          "agreement_holdout_before": 0.75,
+          "agreement_holdout_after": 0.75,
+          "agreement_at_0.5_holdout_before": 0.8571428571428571,
+          "agreement_at_0.5_holdout_after": 0.8571428571428571,
+          "mean_confidence_before": 0.8110049739142564,
+          "mean_confidence_after": 0.8110049739142564
+        },
+        "margin": {
+          "mode": "margin",
+          "temperature": 1.0,
+          "selected": false,
+          "eligible": false,
+          "holdout_ece_improvement": 0.0,
+          "ece_fit_before": 0.06653754763856504,
+          "ece_fit_after": 0.06653754763856504,
+          "ece_holdout_before": 0.16756634734462394,
+          "ece_holdout_after": 0.16756634734462394,
+          "agreement_holdout_before": 0.75,
+          "agreement_holdout_after": 0.75,
+          "agreement_at_0.5_holdout_before": 0.8571428571428571,
+          "agreement_at_0.5_holdout_after": 0.8571428571428571,
+          "mean_confidence_before": 0.7983409873881783,
+          "mean_confidence_after": 0.7983409873881783
+        },
+        "normalized_peak": {
+          "mode": "normalized_peak",
+          "temperature": 1.4909760458230987,
+          "selected": false,
+          "eligible": false,
+          "holdout_ece_improvement": -0.00453837970933213,
+          "ece_fit_before": 0.10403539178898369,
+          "ece_fit_after": 0.06985406553916193,
+          "ece_holdout_before": 0.1918852303247583,
+          "ece_holdout_after": 0.19642361003409042,
+          "agreement_holdout_before": 0.75,
+          "agreement_holdout_after": 0.75,
+          "agreement_at_0.5_holdout_before": 0.8571428571428571,
+          "agreement_at_0.5_holdout_after": 0.8333333333333334,
+          "mean_confidence_before": 0.8294013452664052,
+          "mean_confidence_after": 0.7805457509304449
+        }
+      },
+      "evaluate": {
+        "fit_before": {
+          "temperature": 1.0,
+          "mode": "normalized_peak",
+          "n": 16,
+          "ece": 0.10403539178898369,
+          "nll": 0.24092613427090348,
+          "mean_confidence": 0.9285764609086407,
+          "agreement": 0.9375,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 16,
+            "correct": 15,
+            "agreement": 0.9375,
+            "ci": [
+              0.7167073163197013,
+              0.9888809426916687
+            ]
+          }
+        },
+        "fit_after": {
+          "temperature": 1.0,
+          "mode": "normalized_peak",
+          "n": 16,
+          "ece": 0.10403539178898369,
+          "nll": 0.24092613427090348,
+          "mean_confidence": 0.9285764609086407,
+          "agreement": 0.9375,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 16,
+            "correct": 15,
+            "agreement": 0.9375,
+            "ci": [
+              0.7167073163197013,
+              0.9888809426916687
+            ]
+          }
+        },
+        "holdout_before": {
+          "temperature": 1.0,
+          "mode": "normalized_peak",
+          "n": 8,
+          "ece": 0.1918852303247583,
+          "nll": 0.9699734460568126,
+          "mean_confidence": 0.8294013452664052,
+          "agreement": 0.75,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 7,
+            "correct": 6,
+            "agreement": 0.8571428571428571,
+            "ci": [
+              0.48686549668097007,
+              0.9743210440510253
+            ]
+          }
+        },
+        "holdout_after": {
+          "temperature": 1.0,
+          "mode": "normalized_peak",
+          "n": 8,
+          "ece": 0.1918852303247583,
+          "nll": 0.9699734460568126,
+          "mean_confidence": 0.8294013452664052,
+          "agreement": 0.75,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 7,
+            "correct": 6,
+            "agreement": 0.8571428571428571,
+            "ci": [
+              0.48686549668097007,
+              0.9743210440510253
+            ]
+          }
+        }
+      }
+    },
+    "noul": {
+      "qtype": "noul",
+      "temperature": 0.05000000000000001,
+      "accepted": true,
+      "reason": "applied: held-out ECE 0.0355 -> 0.0000 at temperature 0.0500",
+      "mode": "normalized_peak",
+      "n": {
+        "fit": 12,
+        "holdout": 6
+      },
+      "ece": {
+        "fit": {
+          "before": 0.07689209423771355,
+          "after": 2.108594646443862e-06
+        },
+        "holdout": {
+          "before": 0.03546391074290145,
+          "after": 0.0
+        }
+      },
+      "nll": {
+        "fit": {
+          "before": 0.04591912024597253,
+          "after": 1.0543039925167533e-06
+        },
+        "holdout": {
+          "before": 0.018722889641719077,
+          "after": 0.0
+        }
+      },
+      "agreement": {
+        "holdout": {
+          "before": 1.0,
+          "after": 1.0
+        }
+      },
+      "agreement_at_0.5": {
+        "holdout": {
+          "before": 1.0,
+          "after": 1.0
+        }
+      },
+      "modes": {
+        "entropy": {
+          "mode": "entropy",
+          "temperature": 0.05000000000000001,
+          "selected": false,
+          "eligible": true,
+          "holdout_ece_improvement": 0.08340067640049163,
+          "ece_fit_before": 0.13294868095519727,
+          "ece_fit_after": 1.867477924333283e-05,
+          "ece_holdout_before": 0.08340067640049163,
+          "ece_holdout_after": 0.0,
+          "agreement_holdout_before": 1.0,
+          "agreement_holdout_after": 1.0,
+          "agreement_at_0.5_holdout_before": 1.0,
+          "agreement_at_0.5_holdout_after": 1.0,
+          "mean_confidence_before": 0.9165993235995084,
+          "mean_confidence_after": 1.0
+        },
+        "margin": {
+          "mode": "margin",
+          "temperature": 0.05000000000000001,
+          "selected": false,
+          "eligible": true,
+          "holdout_ece_improvement": 0.019789974162975805,
+          "ece_fit_before": 0.05596206468371526,
+          "ece_fit_after": 1.054310661885438e-06,
+          "ece_holdout_before": 0.019789974162975805,
+          "ece_holdout_after": 0.0,
+          "agreement_holdout_before": 1.0,
+          "agreement_holdout_after": 1.0,
+          "agreement_at_0.5_holdout_before": 1.0,
+          "agreement_at_0.5_holdout_after": 1.0,
+          "mean_confidence_before": 0.9802100258370242,
+          "mean_confidence_after": 1.0
+        },
+        "normalized_peak": {
+          "mode": "normalized_peak",
+          "temperature": 0.05000000000000001,
+          "selected": true,
+          "eligible": true,
+          "holdout_ece_improvement": 0.03546391074290145,
+          "ece_fit_before": 0.07689209423771355,
+          "ece_fit_after": 2.108594646443862e-06,
+          "ece_holdout_before": 0.03546391074290145,
+          "ece_holdout_after": 0.0,
+          "agreement_holdout_before": 1.0,
+          "agreement_holdout_after": 1.0,
+          "agreement_at_0.5_holdout_before": 1.0,
+          "agreement_at_0.5_holdout_after": 1.0,
+          "mean_confidence_before": 0.9645360892570986,
+          "mean_confidence_after": 1.0
+        }
+      },
+      "evaluate": {
+        "fit_before": {
+          "temperature": 1.0,
+          "mode": "normalized_peak",
+          "n": 12,
+          "ece": 0.07689209423771355,
+          "nll": 0.04591912024597253,
+          "mean_confidence": 0.9231079057622864,
+          "agreement": 1.0,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 11,
+            "correct": 11,
+            "agreement": 1.0,
+            "ci": [
+              0.7411599827511859,
+              1.0
+            ]
+          }
+        },
+        "fit_after": {
+          "temperature": 0.05000000000000001,
+          "mode": "normalized_peak",
+          "n": 12,
+          "ece": 2.108594646443862e-06,
+          "nll": 1.0543039925167533e-06,
+          "mean_confidence": 0.9999978914053536,
+          "agreement": 1.0,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 12,
+            "correct": 12,
+            "agreement": 1.0,
+            "ci": [
+              0.7574992425007574,
+              1.0
+            ]
+          }
+        },
+        "holdout_before": {
+          "temperature": 1.0,
+          "mode": "normalized_peak",
+          "n": 6,
+          "ece": 0.03546391074290145,
+          "nll": 0.018722889641719077,
+          "mean_confidence": 0.9645360892570986,
+          "agreement": 1.0,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 6,
+            "correct": 6,
+            "agreement": 1.0,
+            "ci": [
+              0.6096569663469354,
+              0.9999999999999999
+            ]
+          }
+        },
+        "holdout_after": {
+          "temperature": 0.05000000000000001,
+          "mode": "normalized_peak",
+          "n": 6,
+          "ece": 0.0,
+          "nll": 0.0,
+          "mean_confidence": 1.0,
+          "agreement": 1.0,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 6,
+            "correct": 6,
+            "agreement": 1.0,
+            "ci": [
+              0.6096569663469354,
+              0.9999999999999999
+            ]
+          }
+        }
+      }
+    },
+    "score": {
+      "qtype": "score",
+      "temperature": 1.6475489724420662,
+      "accepted": true,
+      "reason": "applied: held-out ECE 0.2158 -> 0.2026 at temperature 1.6475",
+      "mode": "margin",
+      "n": {
+        "fit": 12,
+        "holdout": 6
+      },
+      "ece": {
+        "fit": {
+          "before": 0.394561914769805,
+          "after": 0.2852227286736099
+        },
+        "holdout": {
+          "before": 0.21578560953633272,
+          "after": 0.2025898073638862
+        }
+      },
+      "nll": {
+        "fit": {
+          "before": 1.112071356021337,
+          "after": 0.918335762213995
+        },
+        "holdout": {
+          "before": 0.6162433589408606,
+          "after": 0.6255648191742094
+        }
+      },
+      "agreement": {
+        "holdout": {
+          "before": 0.6666666666666666,
+          "after": 0.6666666666666666
+        }
+      },
+      "agreement_at_0.5": {
+        "holdout": {
+          "before": 0.75,
+          "after": 1.0
+        }
+      },
+      "modes": {
+        "entropy": {
+          "mode": "entropy",
+          "temperature": 1.1050137103527575,
+          "selected": false,
+          "eligible": false,
+          "holdout_ece_improvement": -0.01462777672567625,
+          "ece_fit_before": 0.30076444290102666,
+          "ece_fit_after": 0.16420672556292482,
+          "ece_holdout_before": 0.16178452018003708,
+          "ece_holdout_after": 0.17641229690571333,
+          "agreement_holdout_before": 0.6666666666666666,
+          "agreement_holdout_after": 0.6666666666666666,
+          "agreement_at_0.5_holdout_before": 1.0,
+          "agreement_at_0.5_holdout_after": 1.0,
+          "mean_confidence_before": 0.5896033436378986,
+          "mean_confidence_after": 0.5609590440722908
+        },
+        "margin": {
+          "mode": "margin",
+          "temperature": 1.6475489724420662,
+          "selected": true,
+          "eligible": true,
+          "holdout_ece_improvement": 0.013195802172446508,
+          "ece_fit_before": 0.394561914769805,
+          "ece_fit_after": 0.2852227286736099,
+          "ece_holdout_before": 0.21578560953633272,
+          "ece_holdout_after": 0.2025898073638862,
+          "agreement_holdout_before": 0.6666666666666666,
+          "agreement_holdout_after": 0.6666666666666666,
+          "agreement_at_0.5_holdout_before": 0.75,
+          "agreement_at_0.5_holdout_after": 1.0,
+          "mean_confidence_before": 0.6647748942536655,
+          "mean_confidence_after": 0.5240243381919462
+        },
+        "normalized_peak": {
+          "mode": "normalized_peak",
+          "temperature": 2.011748404921261,
+          "selected": false,
+          "eligible": false,
+          "holdout_ece_improvement": -0.09172261566435425,
+          "ece_fit_before": 0.2531207030207672,
+          "ece_fit_after": 0.11860184751633411,
+          "ece_holdout_before": 0.16681783972985564,
+          "ece_holdout_after": 0.2585404553942099,
+          "agreement_holdout_before": 0.6666666666666666,
+          "agreement_holdout_after": 0.6666666666666666,
+          "agreement_at_0.5_holdout_before": 0.75,
+          "agreement_at_0.5_holdout_after": 1.0,
+          "mean_confidence_before": 0.6827751784186932,
+          "mean_confidence_after": 0.5003575580959742
+        }
+      },
+      "evaluate": {
+        "fit_before": {
+          "temperature": 1.0,
+          "mode": "margin",
+          "n": 12,
+          "ece": 0.394561914769805,
+          "nll": 1.112071356021337,
+          "mean_confidence": 0.7014834959913755,
+          "agreement": 0.5833333333333334,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 9,
+            "correct": 5,
+            "agreement": 0.5555555555555556,
+            "ci": [
+              0.2666473457440297,
+              0.811224570528086
+            ]
+          }
+        },
+        "fit_after": {
+          "temperature": 1.6475489724420662,
+          "mode": "margin",
+          "n": 12,
+          "ece": 0.2852227286736099,
+          "nll": 0.918335762213995,
+          "mean_confidence": 0.5465313872530402,
+          "agreement": 0.5833333333333334,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 7,
+            "correct": 5,
+            "agreement": 0.7142857142857143,
+            "ci": [
+              0.35892909014821267,
+              0.9177828342909844
+            ]
+          }
+        },
+        "holdout_before": {
+          "temperature": 1.0,
+          "mode": "margin",
+          "n": 6,
+          "ece": 0.21578560953633272,
+          "nll": 0.6162433589408606,
+          "mean_confidence": 0.6647748942536655,
+          "agreement": 0.6666666666666666,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 4,
+            "correct": 3,
+            "agreement": 0.75,
+            "ci": [
+              0.3006360524426366,
+              0.9544139373553637
+            ]
+          }
+        },
+        "holdout_after": {
+          "temperature": 1.6475489724420662,
+          "mode": "margin",
+          "n": 6,
+          "ece": 0.2025898073638862,
+          "nll": 0.6255648191742094,
+          "mean_confidence": 0.5240243381919462,
+          "agreement": 0.6666666666666666,
+          "agreement_at_0.5": {
+            "threshold": 0.5,
+            "n": 2,
+            "correct": 2,
+            "agreement": 1.0,
+            "ci": [
+              0.34237195288961925,
+              1.0
+            ]
+          }
+        }
+      }
+    }
+  }
+}
