@@ -63,7 +63,7 @@ walk = [step for step in fit.degrade_ladder(fit_plan, facts) …]   # session.py
 
 and `degrade_ladder` reads `plan.kv_type` (`fit.py`: `KV_DOWNGRADE_ORDER.index(plan.kv_type)`) —
 `Placement` has only `n_gpu_layers`. Fix `8d4fc9f` (`fit.coerce_plan`) is exactly the missing
-normalisation. The fix card's own repro is in `.e2e/t_31b3943a-bench-placement/repro_published_cmd.err`
+normalisation. The fix card's own repro is in `docs/evidence/e2e/t_31b3943a-bench-placement/repro_published_cmd.err`
 (same tail, exit 4).
 
 ---
@@ -148,7 +148,7 @@ the host in BENCHMARKS §3.4).
   `sha256:7ab32e58…`). Evidence for the explanation: the **request payload is byte-identical**
   (`diff .request` published vs mine → no difference), while the fixed engine's response envelope
   gained fields (the loader now reports `engine.placement{note, kv_type, degraded, attempts}` and an
-  `engine.fit` block — visible in `.e2e/t_31b3943a-bench-placement/ask_control.json`). The digest is
+  `engine.fit` block — visible in `docs/evidence/e2e/t_31b3943a-bench-placement/ask_control.json`). The digest is
   `sha256` over the whole timings-stripped body, so it *must* move when the payload grows — even for
   identical decode outputs (which the quality/calibration FP-level match corroborates). Confidence:
   high that the decode is unchanged, medium on the exact byte cause (not proven byte-for-byte).

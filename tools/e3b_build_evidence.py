@@ -3,9 +3,9 @@
 
 Everything the document states is read back from a file this campaign wrote:
 
-* `.e3b/sweep.json`      — the 6-item variant sweep (coverage per cue x label, the cue rows,
-                            the ranked readout, the `DecisionEngine` cross-check);
-* `.e3b/after.json`      — the 20-item re-measure under the accepted policy (optional);
+* `docs/evidence/e3b/sweep.json`      — the 6-item variant sweep (coverage per cue x label, the cue
+                            rows, the ranked readout, the `DecisionEngine` cross-check);
+* `docs/evidence/e3b/after.json`      — the 20-item re-measure under the accepted policy (optional);
 * `docs/evidence/e3_occamy_quality.json` — the *before* side (E3's published run);
 * `docs/evidence/e2_quality.json`        — the 4B baseline of the published table;
 * `docs/evidence/e3b_calibrate_accepted.txt` — `typed-gguf calibrate` on the accepted run.
@@ -118,7 +118,7 @@ def alternative_policy_lines(root: pathlib.Path) -> list[str]:
     were also scored under the two-step readout, and a reader deciding the label policy needs the
     alternative's numbers next to the accepted one's — not in a separate file.
     """
-    report = load(root / ".e3b/after_newline.json")
+    report = load(root / "docs/evidence/e3b/after_newline.json")
     if not report:
         return []
     stats = coverage_row(report, label="")
@@ -202,10 +202,10 @@ def build(root: pathlib.Path | None = None) -> str:
     tree in a tmp dir; every path the builder reads or writes goes through it.
     """
     root = pathlib.Path(root) if root is not None else ROOT
-    sweep = load(root / ".e3b/sweep.json")
+    sweep = load(root / "docs/evidence/e3b/sweep.json")
     if sweep is None:
-        raise SystemExit(".e3b/sweep.json not found — run the sweep first")
-    after = load(root / ".e3b/after.json")
+        raise SystemExit("docs/evidence/e3b/sweep.json not found — run the sweep first")
+    after = load(root / "docs/evidence/e3b/after.json")
     calibrate = (root / "docs/evidence/e3b_calibrate_accepted.txt")
     model = sweep.get("model") or {}
     pieces = e3b.shipped_items(sweep)
@@ -364,7 +364,7 @@ def main() -> int:
     target = ROOT / "docs/evidence/e3b_t_6952f0dd_label_policy.md"
     target.write_text(document, encoding="utf-8")
     print(f"evidence: {target}")
-    sweep = load(ROOT / ".e3b/sweep.json") or {}
+    sweep = load(ROOT / "docs/evidence/e3b/sweep.json") or {}
     if sweep:
         tables = ROOT / "docs/evidence/e3b_label_policy_tables.md"
         tables.write_text(e3b.render_report(sweep), encoding="utf-8")

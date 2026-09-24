@@ -6,7 +6,7 @@
   decision verdicts and both freeze probes reproduce *exactly* from the raw arm reports under an
   independent implementation I wrote for this card — **655 checks, zero disagreements**, down to
   the last digit of every probability and coverage value. The record regenerates **byte-for-byte**
-  (`.e3e/report.sh` + `.e3e/splice_docs.py` into a fresh copy of `4ef74f6`), so the §9 splice in
+  (`docs/evidence/e3e/report.sh` + `docs/evidence/e3e/splice_docs.py` into a fresh copy of `4ef74f6`), so the §9 splice in
   `docs/BENCHMARKS.md` and the evidence document carry the tool's own output, not a transcription.
   The RED claim is confirmed **by my own execution**: the four gate files on a fresh copy of the
   pre-E3e commit `00265ea` → **70 failed, 3 skipped**; on HEAD → **70 passed, 3 skipped**.
@@ -47,11 +47,11 @@ a reading, not a policy change."* Defaults unmoved: confirmed (§3). No policy c
 
 ## 0. Scope and method
 
-* Sources read (read-only): `.e3e/bench_*.json` (8 arms, 60 items each), `.e3e/probe_default.json`,
-  `.e3d/bench_templated_shipped.json`, `docs/evidence/e3e_roles_decision.{json,md}`,
+* Sources read (read-only): `docs/evidence/e3e/bench_*.json` (8 arms, 60 items each), `docs/evidence/e3e/probe_default.json`,
+  `docs/evidence/e3d/bench_templated_shipped.json`, `docs/evidence/e3e_roles_decision.{json,md}`,
   `docs/evidence/e3e_role_split_t_4c48f40a.md`, `docs/BENCHMARKS.md` §9, `src/ggufone/bench/devset.jsonl`,
   `tools/e3e_roles_decision.py` (read for semantics, not imported), `src/ggufone/engine/{cue,decide,prompt}.py`,
-  `src/ggufone/bench/{harness,suites}.py`, `.e3e/logs/*`.
+  `src/ggufone/bench/{harness,suites}.py`, `docs/evidence/e3e/logs/*`.
 * My implementation: `scripts/recompute_e3e.py` (pure stdlib, no repo imports; Wilson, exact McNemar
   via both a comb sum and a regularized incomplete beta for cross-check, Wald interval, an exact-DP
   bootstrap of the paired difference, the freeze comparison, the dev-set identity check).
@@ -137,14 +137,14 @@ Two things worth carrying forward:
 
 ## 3. The freeze claim — checked field by field
 
-Against the committed baseline `.e3d/bench_templated_shipped.json` (t_6de5fc53, `--backend auto`):
+Against the committed baseline `docs/evidence/e3d/bench_templated_shipped.json` (t_6de5fc53, `--backend auto`):
 
-* **the six-item probe** (`.e3e/probe_default.json`, the baseline's own `--backend auto` recipe —
+* **the six-item probe** (`docs/evidence/e3e/probe_default.json`, the baseline's own `--backend auto` recipe —
   its `backend_selection` block reads `requested: auto, selected: cpu`, and the probe log carries the
   CPU compute rows): **6/6 items same `got`, same `reliability`, `prefix_tokens` identical item by
   item**; numbers re-scored (max |Δp| = 3.783e-02, max |Δcoverage| = 1.066e-01 over all six items);
   `frozen: true`, `bit_frozen: false`, tolerance 1e-9 — the record's block, recomputed exactly.
-* **the placement probe** (`.e3e/bench_shipped_answer_sheet.json`, the same cell re-measured under
+* **the placement probe** (`docs/evidence/e3e/bench_shipped_answer_sheet.json`, the same cell re-measured under
   the table's own instrument, `--backend vulkan`): **60/60 items same `got`, same `reliability`,
   `prefix_tokens` identical on every item**; max |Δp| = 1.135e-02, max |Δcoverage| = 6.246e-03 over
   the tolerance 5e-3, `numeric_only` = the 8 items the record names (`n08 n11 n14 n16 n17 s01 s05 s10`).
@@ -224,12 +224,12 @@ says. Receipts: `logs/red_pre_e3e_auditor.txt`, `logs/green_head_auditor.txt`.
 ## 6. Regeneration — the docs carry the tool's own output
 
 In a fresh `git archive HEAD` copy (machine-independent of the committed worktree), with the pinned
-runtime absent (no model load needed): `bash .e3e/report.sh` exits **0** (the freeze probe and the
+runtime absent (no model load needed): `bash docs/evidence/e3e/report.sh` exits **0** (the freeze probe and the
 placement check both pass inside the tool), and
 
     diff docs/evidence/e3e_roles_decision.json  → byte-identical
     diff docs/evidence/e3e_roles_decision.md    → byte-identical
-    uv run python .e3e/splice_docs.py && diff docs/BENCHMARKS.md → byte-identical
+    uv run python docs/evidence/e3e/splice_docs.py && diff docs/BENCHMARKS.md → byte-identical
     diff docs/evidence/e3e_role_split_t_4c48f40a.md           → byte-identical
 
 (CPython 3.13.15; unlike E3d's JSON, this artifact has no last-ulp sensitivity.) So every number in
@@ -241,7 +241,7 @@ number by number. Receipt: `logs/regeneration.txt`.
 | claim in the recommendation | my reading |
 |---|---|
 | `json_instructed/answer_sheet` is the only cell clearing the rule: 51/60 vs 42/60, +0.150 (CI +0.021…+0.279), p = 0.049 | **exact** (§1, §2); it is the only `wins` verdict of the seven |
-| "lands on the number E3d measured for the *uninstructed* opener (51/60)" | **exact as a marginal**: `.e3d/bench_templated_json_field.json` = 51/60 ✓. Note: E3d's paired split was 12 vs 3 (p = 0.0352); this cell's is 13 vs 4 (p = 0.0490) — same count, weaker paired evidence |
+| "lands on the number E3d measured for the *uninstructed* opener (51/60)" | **exact as a marginal**: `docs/evidence/e3d/bench_templated_json_field.json` = 51/60 ✓. Note: E3d's paired split was 12 vs 3 (p = 0.0352); this cell's is 13 vs 4 (p = 0.0490) — same count, weaker paired evidence |
 | `json_instructed/role_split` is one item behind: 50/60, +0.133, p = 0.057, "outside the rule by 0.007" | **exact** (0.057373 − 0.05 = 0.0074) |
 | …and indistinguishable from the answer-sheet variant (p = 1.000) | **exact** (1 vs 2 discordant, CI −0.073..+0.040) |
 | `role_split` alone lifts the shipped cue 42/60 → 50/60, `low_mass` 45/60 → 0/60, median coverage 3.9 % → 99.9 % | **exact** (0.038815 → 0.998838; `low_mass` 45 → 0) |
@@ -261,10 +261,10 @@ carries (borderline p; follow-up card) and add the one-item fragility number nex
 
 | id | sev | class | what (receipt) | proposed fix |
 |---|---|---|---|---|
-| F1 | IMPROVE | PROCEDURAL | the freeze check's compared "decision" is `got` + `reliability`; the cue **refusal verdict** is outside it and moved on `n16` between the committed baseline and the placement probe (`.e3d/bench_templated_shipped.json` `refused: true`, `.e3e/bench_shipped_answer_sheet.json` `refused: false`) — the published classification, not the answer, moved | add `cue.refused` to the hard field set in `tools/e3e_roles_decision.py::freeze_check` and report it as a named row; exact patch in §8.1 |
+| F1 | IMPROVE | PROCEDURAL | the freeze check's compared "decision" is `got` + `reliability`; the cue **refusal verdict** is outside it and moved on `n16` between the committed baseline and the placement probe (`docs/evidence/e3d/bench_templated_shipped.json` `refused: true`, `docs/evidence/e3e/bench_shipped_answer_sheet.json` `refused: false`) — the published classification, not the answer, moved | add `cue.refused` to the hard field set in `tools/e3e_roles_decision.py::freeze_check` and report it as a named row; exact patch in §8.1 |
 | F2 | IMPROVE | PROCEDURAL | the fallback verdict text "not by more than the CI noise" is contradicted by the interval for **4 of the 7** verdicts it is printed on: `shipped/role_split` (+0.007..+0.260), `json_instructed/role_split` and `.../role_split/system` (+0.016..+0.251) clear the *interval* leg and fail only the exact-test leg (p = 0.077 / 0.057), and `two_step/role_split` (−0.382..−0.085) is significantly *worse* — under **both** the Wald and the exact-DP convention. The phrase mis-describes them in the generated report and §9 | re-word `decide()`'s fallback verdict; exact replacement text in §8.2 (tool + regeneration; zero numbers move) |
 | F3 | NICE | TOOLING | two Wilson conventions across committed artifacts: the arm reports' own `overall`/`per_type` blocks use `z = 1.96` (`harness.wilson_interval`), the record's cells use `z = 1.959963984540054`; the same cell shows 0.574910530336 vs 0.574912920531 (6th decimal) | either a one-line note in the tool's docstring/§9 ("the arm block's interval is z=1.96; the table recomputes at the precise z"), or regenerate the arms — the auditor recommends the note (regeneration costs hours for a 6th-decimal difference) |
-| F4 | NICE | PROCEDURAL | the evidence doc's instrument line says "`--runs 1`" (so does `.e3e/run_arms.sh` in its comment and in its `campaign.log` echo); the arm reports' own `commands.reproduce` and `config` say `--runs 5` — `run_arms.sh` passes no `--runs`, so `harness.DEFAULT_RUNS = 5` applied. The quality suite measures one decode per item, so **no quality number moves** — the sentence is wrong, the table is not | name the real command in the doc line (exact text in §8.3) |
+| F4 | NICE | PROCEDURAL | the evidence doc's instrument line says "`--runs 1`" (so does `docs/evidence/e3e/run_arms.sh` in its comment and in its `campaign.log` echo); the arm reports' own `commands.reproduce` and `config` say `--runs 5` — `run_arms.sh` passes no `--runs`, so `harness.DEFAULT_RUNS = 5` applied. The quality suite measures one decode per item, so **no quality number moves** — the sentence is wrong, the table is not | name the real command in the doc line (exact text in §8.3) |
 | F5 | NICE | — | the exact-DP bootstrap (seed-free) reproduces E3d's published tail mass on E3d's own cell and leaves the rule's outcome unchanged (three more cells clear the interval leg; none clears p < 0.05) | none — recorded so the next reader knows the win is convention-robust |
 
 ### 8.1 F1 — exact patch (ready to paste into `tools/e3e_roles_decision.py::freeze_check`)
@@ -331,7 +331,7 @@ New:
         verdicts.append({"label": label, "verdict": "not by more than the CI noise",
                          "why": why})
 
-Then `bash .e3e/report.sh && uv run python .e3e/splice_docs.py` and
+Then `bash docs/evidence/e3e/report.sh && uv run python docs/evidence/e3e/splice_docs.py` and
 `uv run pytest tests/test_e3e_roles_decision.py -q` (the render tests pin fragments of the text;
 adjust the assertions in the same commit). Zero numbers move; the regenerated docs stay
 byte-reproducible. The phrase also appears once as the *name of the rule* in `decide()`'s docstring
@@ -402,7 +402,7 @@ harness default the reproduce line names, not a repetition of the quality rows),
         shipped=/tmp/rr_shipped.json two_step=/tmp/rr_two_step.json json_instructed=/tmp/rr_json.json
     # 5. regeneration byte-identity (fresh copy; no model)
     S=$(mktemp -d); git archive HEAD | tar -x -C "$S"; cd "$S"
-    UV_CACHE_DIR=~/.cache/uv bash .e3e/report.sh && uv run --frozen python .e3e/splice_docs.py
+    UV_CACHE_DIR=~/.cache/uv bash docs/evidence/e3e/report.sh && uv run --frozen python docs/evidence/e3e/splice_docs.py
     diff <repo>/docs/BENCHMARKS.md docs/BENCHMARKS.md
     # 6. RED (fresh archive of 00265ea + the four gate files from HEAD) / GREEN (HEAD)
     uv run --frozen --extra dev python -m pytest tests/test_e3e_roles.py tests/test_e3e_role_tool.py \
@@ -416,7 +416,7 @@ partitioned p-values quoted above), `logs/recompute_e3e.txt`,
 `logs/mcnemar_check.txt`; `scripts/inspect_render.py` is the record-shape prober used for §4.
 
 Audited tree: `4ef74f6e8194f27d57480907e88aa19a11c7130b` (HEAD when this audit ran; the E3e file set
-was clean — no working-tree modification in `.e3e/`, `.e3d/`, `docs/`, `src/`, `tests/`, `tools/`).
+was clean — no working-tree modification in `docs/evidence/e3e/`, `docs/evidence/e3d/`, `docs/`, `src/`, `tests/`, `tools/`).
 
 _Proposals status: AWAITING APPROVAL (F1/F2/F4 recommended; nothing applied by the auditor.
 The default decision goes to the user via @bots-coordinator — this card is a reading.)_

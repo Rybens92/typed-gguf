@@ -24,8 +24,8 @@ other"). Captured backtrace:
 No ggml, no llama.cpp, no typed-gguf frame is in it: the fault is the NVIDIA ICD's **own exit
 handler**, i.e. exactly the class of code `runtime.isolated` already refuses to trust. It is
 intermittent (roughly a third of the runs on that box — the count is in
-`.e2e/t_97f1bc93-vulkan-teardown/`), which is why the row's contradiction is the only description
-of it a user ever gets.
+`docs/evidence/e2e/t_97f1bc93-vulkan-teardown/`), which is why the row's contradiction is the only
+description of it a user ever gets.
 
 So: a process that has dlopened a bundle ends **itself**, with the code the command produced and
 both streams flushed, before any exit handler runs (`end_process`). Nothing that could fail

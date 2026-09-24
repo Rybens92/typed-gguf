@@ -196,10 +196,10 @@ def test_decide_names_the_leg_of_the_rule_the_challenger_failed() -> None:
 def test_the_report_prints_the_new_fallback_wording() -> None:
     """The wording must reach the report too — `render()` reads `verdict['label']`.
 
-    Round 2 of the card's Tier-M sweep (`mutants/`, `.e3e/logs/mutmut_f1f4.log`): two mutants of the
-    new branches' verdict dict renamed the `label` key and survived, because no gate rendered a
-    record whose decision carries the new wording. This is that gate — it is also the reader's view
-    of the two new dispositions.
+    Round 2 of the card's Tier-M sweep (`mutants/`, `docs/evidence/e3e/logs/mutmut_f1f4.log`): two
+    mutants of the new branches' verdict dict renamed the `label` key and survived, because no gate
+    rendered a record whose decision carries the new wording. This is that gate — it is also the
+    reader's view of the two new dispositions.
     """
     tool = _tool()
     base = report(dict.fromkeys("abcdefghij", False) | dict.fromkeys("abcd", True), cue="shipped")

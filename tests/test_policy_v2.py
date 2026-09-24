@@ -22,8 +22,9 @@ What this file pins:
   rule: a row may never sit next to another from a different policy generation without a marker).
 
 The live gate at the bottom re-measures the *default* recipe on the 4B and compares it, item for
-item, with the published `json_instructed/role_split` arm (`.e3e/bench_json_instructed_role_split
-.json`, `--backend vulkan`, 60 items). It is `@pytest.mark.model`: skipped unless `--run-network`.
+item, with the published `json_instructed/role_split` arm
+(`docs/evidence/e3e/bench_json_instructed_role_split.json`, `--backend vulkan`, 60 items). It is
+`@pytest.mark.model`: skipped unless `--run-network`.
 """
 from __future__ import annotations
 
@@ -39,8 +40,9 @@ from typed_gguf.engine import decide, prompt
 from typed_gguf.engine import template as template_module
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-#: the published v2 arm of the E3e table (`.e3e/run_arms.sh`): the cell these defaults now name
-ARM = ROOT / ".e3e" / "bench_json_instructed_role_split.json"
+#: the published v2 arm of the E3e table (`docs/evidence/e3e/run_arms.sh`): the cell these defaults
+#: now name
+ARM = ROOT / "docs" / "evidence" / "e3e" / "bench_json_instructed_role_split.json"
 #: the 4B every published 4B row was measured on (the live gate's model, `--run-network` only)
 MODEL = pathlib.Path.home() / ".hermes" / "models" / "Spark-X2.5-4B-Q8_0.gguf"
 
@@ -339,9 +341,10 @@ def test_the_defaults_measure_the_published_v2_cell_on_the_4b(
         monkeypatch: pytest.MonkeyPatch) -> None:
     """The live half of the parity pin: the default recipe *is* the published v2 arm.
 
-    The arm was measured by `.e3e/run_arms.sh` with `--backend vulkan --threads 4 --items 60` and
-    the v2 flags spelled out; this test runs the same recipe with **no policy flags at all** and
-    compares the rows with the published ones — prompt tokens, decision, and the cue verdict.
+    The arm was measured by `docs/evidence/e3e/run_arms.sh` with `--backend vulkan --threads 4
+    --items 60` and the v2 flags spelled out; this test runs the same recipe with **no policy flags
+    at all** and compares the rows with the published ones — prompt tokens, decision, and the cue
+    verdict.
     """
     if not MODEL.is_file():
         pytest.skip(f"{MODEL} is not on this box")

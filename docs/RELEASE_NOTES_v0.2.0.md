@@ -247,7 +247,7 @@ the default model's authors (Apache-2.0).
 Everything above is regenerated from this checkout: `uv run pytest -q` (offline suite + oracle),
 `python3 docs/verify_runtime_contract.py`, one command per benchmark table
 (`python3 tools/e2_reproduce.py --suite <name> --model <path.gguf>`), and the E3e decision tool
-(`python3 tools/e3e_roles_decision.py --report <arm.json> …`, the command `.e3e/report.sh` drives).
+(`python3 tools/e3e_roles_decision.py --report <arm.json> …`, the command `docs/evidence/e3e/report.sh` drives).
 The warm-host numbers come from the live gate on the real 4B:
 `uv run pytest -q --run-network tests/test_keep_live.py -s` (~5 min).
 `docs/BENCHMARKS.md`, `docs/TEMPLATES.md` and `SPEC.md` carry the full detail behind every number

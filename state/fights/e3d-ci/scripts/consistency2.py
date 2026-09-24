@@ -5,7 +5,7 @@ import math
 from collections import Counter
 
 REPO = "/var/home/rybens/workspace/ggufone"
-d = json.load(open(f"{REPO}/.e3d/full.json"))
+d = json.load(open(f"{REPO}/docs/evidence/e3d/full.json"))
 items = d["items"]
 shapes = ["shipped", "two_step_shipped", "json_field"]
 variants = d["label_variants"]

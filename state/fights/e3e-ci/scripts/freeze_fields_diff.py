@@ -61,6 +61,6 @@ def diff(name, probe_path, base_path):
     return counts
 
 
-diff("the six-item freeze probe", ".e3e/probe_default.json", ".e3d/bench_templated_shipped.json")
-diff("the 60-item placement probe", ".e3e/bench_shipped_answer_sheet.json",
-     ".e3d/bench_templated_shipped.json")
+diff("the six-item freeze probe", "docs/evidence/e3e/probe_default.json", "docs/evidence/e3d/bench_templated_shipped.json")
+diff("the 60-item placement probe", "docs/evidence/e3e/bench_shipped_answer_sheet.json",
+     "docs/evidence/e3d/bench_templated_shipped.json")

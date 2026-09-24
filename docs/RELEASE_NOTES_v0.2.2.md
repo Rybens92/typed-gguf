@@ -94,7 +94,7 @@ What a caller sees:
   answered is answered, and whether what the tool says about a placement is what the placement did.
 
 Live on the operator box before this release (Vulkan bundle, 4B `Q8_0`, receipts in
-`.e2e/t_287e0d18-live/`): one `ask` with 1 353 MiB of the card already held by the desktop answered in
+`docs/evidence/e2e/t_287e0d18-live/`): one `ask` with 1 353 MiB of the card already held by the desktop answered in
 **22.4 s** at 36 GPU layers with the KV rung really used (`q4_0`) and both failed rungs published;
 two asks at once were re-placed to 18 layers; and with the device held by another call the planner
 itself went CPU-only — `budget_bytes` 0, context shrunk to 4 096, `W_CTX_BELOW_STANDARD` — and said so
@@ -324,7 +324,7 @@ the default model's authors (Apache-2.0).
   that keeps it is `tests/test_keep_client.py`: the racing pair, the bounded wait for the loser's
   exit, and the loser's own log quoted back to the caller it no longer serves.
 - **The placement ladder, verified live before the release.** The runs receipted in
-  `.e2e/t_287e0d18-live/` (report, stdout and stderr per run, `nvidia-smi` before and after): the
+  `docs/evidence/e2e/t_287e0d18-live/` (report, stdout and stderr per run, `nvidia-smi` before and after): the
   22.4 s GPU ask that published both failed KV rungs, the two-ask pair re-placed to 18 layers, the
   honest CPU-only plan taken against a held device, and the `--fit-target 4500` plan that `calibrate`
   now really feeds. The failed device allocation that used to be a hard error sits in `ask.stderr`,
@@ -344,7 +344,7 @@ the default model's authors (Apache-2.0).
 Everything above is regenerated from this checkout: `uv run pytest -q` (offline suite + oracle),
 `python3 docs/verify_runtime_contract.py`, one command per benchmark table
 (`python3 tools/e2_reproduce.py --suite <name> --model <path.gguf>`), and the E3e decision tool
-(`python3 tools/e3e_roles_decision.py --report <arm.json> …`, the command `.e3e/report.sh` drives).
+(`python3 tools/e3e_roles_decision.py --report <arm.json> …`, the command `docs/evidence/e3e/report.sh` drives).
 The warm-host numbers come from the live gate on the real 4B:
 `uv run pytest -q --run-network tests/test_keep_live.py -s` (~5 min).
 `docs/BENCHMARKS.md`, `docs/TEMPLATES.md` and `SPEC.md` carry the full detail behind every number

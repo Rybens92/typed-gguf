@@ -1,7 +1,7 @@
 """Verify ranked.confidence == normalized_peak(probabilities) for all 180 cells."""
 import json
 
-d = json.load(open("/var/home/rybens/workspace/ggufone/.e3d/full.json"))
+d = json.load(open("/var/home/rybens/workspace/ggufone/docs/evidence/e3d/full.json"))
 fails = 0
 worst = 0.0
 for it in d["items"]:

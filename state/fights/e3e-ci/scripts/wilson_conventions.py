@@ -21,14 +21,14 @@ def wilson(k: int, n: int, z: float) -> tuple[float, float]:
 
 
 ARMS = {
-    "shipped/answer_sheet": ".e3e/bench_shipped_answer_sheet.json",
-    "shipped/role_split": ".e3e/bench_shipped_role_split.json",
-    "two_step/answer_sheet": ".e3e/bench_two_step_answer_sheet.json",
-    "two_step/role_split": ".e3e/bench_two_step_role_split.json",
-    "json_instructed/answer_sheet": ".e3e/bench_json_instructed_answer_sheet.json",
-    "json_instructed/role_split": ".e3e/bench_json_instructed_role_split.json",
-    "json_instructed/answer_sheet/system": ".e3e/bench_json_instructed_answer_sheet_system.json",
-    "json_instructed/role_split/system": ".e3e/bench_json_instructed_role_split_system.json",
+    "shipped/answer_sheet": "docs/evidence/e3e/bench_shipped_answer_sheet.json",
+    "shipped/role_split": "docs/evidence/e3e/bench_shipped_role_split.json",
+    "two_step/answer_sheet": "docs/evidence/e3e/bench_two_step_answer_sheet.json",
+    "two_step/role_split": "docs/evidence/e3e/bench_two_step_role_split.json",
+    "json_instructed/answer_sheet": "docs/evidence/e3e/bench_json_instructed_answer_sheet.json",
+    "json_instructed/role_split": "docs/evidence/e3e/bench_json_instructed_role_split.json",
+    "json_instructed/answer_sheet/system": "docs/evidence/e3e/bench_json_instructed_answer_sheet_system.json",
+    "json_instructed/role_split/system": "docs/evidence/e3e/bench_json_instructed_role_split_system.json",
 }
 
 record = json.loads((ROOT / "docs/evidence/e3e_roles_decision.json").read_text())

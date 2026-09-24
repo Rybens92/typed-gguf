@@ -5,8 +5,8 @@ on a device that is nearly full — the row's own process, no second bundle anyw
 not typed-gguf's and not the bundle's: it is the NVIDIA ICD's own exit handler
 (`libnvidia-eglcore` → `libnvidia-glvkspirv`, fault address `0x18`) running from libc's
 `__run_exit_handlers`, i.e. *other people's destructors at interpreter exit* (backtrace and raws in
-`.e2e/t_97f1bc93-vulkan-teardown/`). The remedy is `typed_gguf.cli.run`: a process that has a bundle
-loaded ends itself, with the command's code and its streams already flushed.
+`docs/evidence/e2e/t_97f1bc93-vulkan-teardown/`). The remedy is `typed_gguf.cli.run`: a process with
+a bundle loaded ends itself, with the command's code and its streams already flushed.
 
 This gate is the executable form of the card's requirement 3: the operator's command, the pinned
 Vulkan bundle, a real GGUF, and device memory deliberately held by a pressure child — the exit code
@@ -19,9 +19,9 @@ must be the report's (0 or 1), never a signal, and the report must be parseable 
 
 It skips, with the reason, on a box without a Vulkan bundle or without a benchmarkable GGUF: this
 gate is about a host shape, and a missing host shape is a skip, never a silent pass. The crash it
-guards against is intermittent (roughly a third of the runs on the box that found it — the .e2e
-directory carries the count), so this gate asserts the *guarantee*, not the crash: whatever the
-driver does at teardown, the command's exit status is its report's.
+guards against is intermittent (roughly a third of the runs on the box that found it — the
+`docs/evidence/e2e/` tree directory carries the count), so this gate asserts the *guarantee*, not
+the crash: whatever the driver does at teardown, the command's exit status is its report's.
 """
 from __future__ import annotations
 

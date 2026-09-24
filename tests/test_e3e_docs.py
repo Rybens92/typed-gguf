@@ -43,7 +43,10 @@ def test_the_evidence_document_exists_and_points_at_its_instruments() -> None:
     assert "t_4c48f40a" in text
     assert "tools/e3e_roles_decision.py" in text
     assert "tools/e3e_role_render.py" in text
-    assert ".e3d/bench_templated_shipped.json" in text        # the baseline cell's provenance
+    # the baseline cell's provenance: the receipt keeps the pre-move spelling of the path it was
+    # measured with (`docs/evidence/**` is frozen history — card t_f2636df1 moved the dirs, and a
+    # receipt is a record), so the pin is the artifact's name, not the retired directory prefix.
+    assert "bench_templated_shipped.json" in text
 
 
 def test_the_freeze_claim_counts_the_cue_refusal_verdict() -> None:
@@ -65,8 +68,9 @@ def test_the_freeze_claim_counts_the_cue_refusal_verdict() -> None:
 def test_the_instrument_line_names_the_command_that_actually_ran() -> None:
     """F4 (audit `t_57bd3db2` §8.3): the arms ran the harness default, not `--runs 1`.
 
-    `.e3e/run_arms.sh` passes no `--runs`, so `harness.DEFAULT_RUNS = 5` applied and the reports'
-    own reproduce lines say `--runs 5`. The quality suite decodes each item once, so no number moved
+    `docs/evidence/e3e/run_arms.sh` passes no `--runs`, so `harness.DEFAULT_RUNS = 5` applied and
+    the reports' own reproduce lines say `--runs 5`. The quality suite decodes each item once, so no
+    number moved
     — the sentence was the only thing wrong.
     """
     head = EVIDENCE.read_text(encoding="utf-8").split("## Why this card exists", 1)[0]

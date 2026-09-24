@@ -9,10 +9,10 @@ import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[4]
 ARMS = {
-    "shipped/answer_sheet": ".e3e/bench_shipped_answer_sheet.json",
-    "shipped/role_split": ".e3e/bench_shipped_role_split.json",
-    "two_step/answer_sheet": ".e3e/bench_two_step_answer_sheet.json",
-    "two_step/role_split": ".e3e/bench_two_step_role_split.json",
+    "shipped/answer_sheet": "docs/evidence/e3e/bench_shipped_answer_sheet.json",
+    "shipped/role_split": "docs/evidence/e3e/bench_shipped_role_split.json",
+    "two_step/answer_sheet": "docs/evidence/e3e/bench_two_step_answer_sheet.json",
+    "two_step/role_split": "docs/evidence/e3e/bench_two_step_role_split.json",
 }
 
 

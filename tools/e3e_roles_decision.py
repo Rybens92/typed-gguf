@@ -28,7 +28,8 @@ test is the **exact** two-sided McNemar binomial — 60 items is small and the c
 approximation is not honest there. The decision rule is stated, not implied (`decide()`).
 
     python3 tools/e3e_roles_decision.py \\
-        --report .e3e/bench_shipped.json --report .e3e/bench_role_split_shipped.json ... \\
+        --report docs/evidence/e3e/bench_shipped.json \\
+        --report docs/evidence/e3e/bench_role_split_shipped.json ... \\
         --json docs/evidence/e3e_roles_decision.json \\
         --report-file docs/evidence/e3e_roles_decision.md
 
@@ -344,9 +345,10 @@ def freeze_check(probe: Mapping[str, Any], baseline: Mapping[str, Any], *,
                  tolerance: float = 1e-9) -> dict[str, Any]:
     """Does the *default* cell still answer the same items the same way on this tree?
 
-    The table's baseline is the committed `.e3d/bench_templated_shipped.json` (the card's
-    "nothing moves by default" acceptance cannot be re-derived by re-running the cell and hoping it
-    agrees). This compares a probe arm against that report on the shared item ids: the same answer,
+    The table's baseline is the committed `docs/evidence/e3d/bench_templated_shipped.json` (the
+    card's "nothing moves by default" acceptance cannot be re-derived by re-running the cell and
+    hoping it agrees). This compares a probe arm against that report on the shared item ids: the
+    same answer,
     the same coverage, the same candidate probabilities — a default that moved one byte of its
     prompt would show up here, item for item.
 

@@ -341,11 +341,11 @@ Two things worth knowing before reading the E3e table:
 
 The 60-item table, the paired comparisons, and the decision (`tools/e3e_roles_decision.py`) are in
 `docs/evidence/e3e_role_split_t_4c48f40a.md`; the tool's per-family record is
-`.e3e/role_render.json`, its report `.e3e/role_render.md`. **Policy v2 (card `t_5b754458`) promotes
+`docs/evidence/e3e/role_render.json`, its report `docs/evidence/e3e/role_render.md`. **Policy v2 (card `t_5b754458`) promotes
 this cell and nothing else moves**: the `shipped`/`answer_sheet` cell is still the committed
-`.e3d/bench_templated_shipped.json`, unchanged and still one flag away
+`docs/evidence/e3d/bench_templated_shipped.json`, unchanged and still one flag away
 (`--cue shipped --chat-format answer_sheet`), and two arms on the current tree must agree with it — a
-six-item probe run with the baseline's own recipe (`--backend auto`, `.e3e/probe_default.json`; its
+six-item probe run with the baseline's own recipe (`--backend auto`, `docs/evidence/e3e/probe_default.json`; its
 stored command predates the flip, so re-running it means adding those two flags) has to reproduce its
 **prompt bytes and decisions** item for item, and the table's own re-score of that cell
 (`--backend vulkan`, 60 items) has to agree decision for decision; `tools/e3e_roles_decision.py` exits

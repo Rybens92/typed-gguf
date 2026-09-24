@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Receipts for the E3e audit (card t_57bd3db2): baselines, drift notes, byte-identity support.
 
-1. the committed baseline `.e3d/bench_templated_shipped.json` — its own numbers, so the freeze
+1. the committed baseline `docs/evidence/e3d/bench_templated_shipped.json` — its own numbers, so the freeze
    claim has something to be checked against;
 2. the E3d rows the recommendation quotes: `json_field` 51/60 and the `two_step` drift note
    (47/60 published vs 46/60 in the E3e instrument);
@@ -39,9 +39,9 @@ def summary(path):
 
 
 print("=== baselines and the E3d rows the recommendation quotes ===")
-for path in (".e3d/bench_templated_shipped.json", ".e3d/bench_templated_json_field.json",
-             ".e3d/bench_templated_two_step.json", ".e3e/probe_default.json",
-             ".e3e/bench_shipped_answer_sheet.json"):
+for path in ("docs/evidence/e3d/bench_templated_shipped.json", "docs/evidence/e3d/bench_templated_json_field.json",
+             "docs/evidence/e3d/bench_templated_two_step.json", "docs/evidence/e3e/probe_default.json",
+             "docs/evidence/e3e/bench_shipped_answer_sheet.json"):
     s = summary(path)
     print(f"{path:<42} {s['correct']}/{s['n']} low_mass={s['low_mass']} refused={s['refused']} "
           f"cov_p50={s['cov_p50']:.4e} backend={s['backend']} cue={s['cue']} "
@@ -49,12 +49,12 @@ for path in (".e3d/bench_templated_shipped.json", ".e3d/bench_templated_json_fie
     print(f"    framing={s['framing']} prefix_token_counts={s['prefix_tokens']}")
 
 print("\n=== per-item prefix_tokens: same bytes under one chat_format? ===")
-pairs = [(".e3e/bench_shipped_answer_sheet.json", ".e3e/bench_two_step_answer_sheet.json",
+pairs = [("docs/evidence/e3e/bench_shipped_answer_sheet.json", "docs/evidence/e3e/bench_two_step_answer_sheet.json",
           "answer_sheet: shipped vs two_step"),
-         (".e3e/bench_shipped_role_split.json", ".e3e/bench_two_step_role_split.json",
+         ("docs/evidence/e3e/bench_shipped_role_split.json", "docs/evidence/e3e/bench_two_step_role_split.json",
           "role_split: shipped vs two_step"),
-         (".e3e/bench_json_instructed_answer_sheet.json",
-          ".e3e/bench_json_instructed_answer_sheet_system.json",
+         ("docs/evidence/e3e/bench_json_instructed_answer_sheet.json",
+          "docs/evidence/e3e/bench_json_instructed_answer_sheet_system.json",
           "answer_sheet: json_instructed question vs system (expected to DIFFER)")]
 for left_path, right_path, name in pairs:
     left = {it["id"]: it["prefix_tokens"] for it in load(left_path)["items"]}
@@ -65,8 +65,8 @@ for left_path, right_path, name in pairs:
           + (f" -> {differ[:6]}" if differ else " (identical item by item)"))
 
 print("\n=== the dev set ids the probes measured ===")
-probe = load(".e3e/probe_default.json")
-base = load(".e3d/bench_templated_shipped.json")
+probe = load("docs/evidence/e3e/probe_default.json")
+base = load("docs/evidence/e3d/bench_templated_shipped.json")
 print("probe ids:", [it["id"] for it in probe["items"]])
 print("baseline ids (first 6):", [it["id"] for it in base["items"]][:6],
       "… total", len(base["items"]))

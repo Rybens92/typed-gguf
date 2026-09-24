@@ -277,8 +277,8 @@ Same box, same model, same 60 items, same command; only the tree and `--cue` mov
 | `--cue shipped`, **pre-fix** | plain (prompt.py E1b framing) | 36/60 = 0.600 | 0.474–0.714 | 13/60 | 0/60 | 0.2711 | 47/60 | 16/24 · 16/18 · 4/18 |
 | `--cue shipped`, **post-fix** | chat-template: spark2_5 / internal | **42/60 = 0.700** | 0.575–0.801 | **45/60** | 1/60 | 0.03847 | 15/60 | 20/24 · 16/18 · 6/18 |
 
-Raw reports: `.e3d/bench_plain_shipped.json` (pre-fix) and `.e3d/bench_templated_shipped.json`
-(post-fix); the pre-fix file reproduces the published `.e3d/bench_shipped.json` item for item
+Raw reports: `docs/evidence/e3d/bench_plain_shipped.json` (pre-fix) and `docs/evidence/e3d/bench_templated_shipped.json`
+(post-fix); the pre-fix file reproduces the published `docs/evidence/e3d/bench_shipped.json` item for item
 (same agreement, same `low_mass`, same coverage list).
 
 **What moves.** The prefix itself (102 → 119 tokens on `c01`), the mass split — the chat template
@@ -304,7 +304,7 @@ the reason the corrected instrument's `low_mass` column and the pre-fix one are 
 measurement.
 
 <!-- QUALITY-V2:START — spliced from docs/evidence/e2_quality_v2_t_5b754458.json by
-     `.t5b75/splice_benchmarks.py`; edit the tool and the report, never this block. -->
+     `docs/evidence/t5b75/splice_benchmarks.py`; edit the tool and the report, never this block. -->
 
 ### 2.3 The same row under the product's defaults (policy v2, card `t_5b754458`)
 
@@ -312,7 +312,7 @@ measurement.
 
 - reproduce: `uv run typed-gguf bench --suite quality --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf --backend vulkan --runs 5 --threads 4 --items 60 --json`
 - report: `docs/evidence/e2_quality_v2_t_5b754458.json` · measured with backend `vulkan` · threads 4 · items 60 · runs 5
-- **item-level identity with the published E3e arm** (`json_instructed/role_split`, `.e3e/bench_json_instructed_role_split.json`): **60/60** items identical on `prefix_tokens`, `got`, `correct`, `cue`; agreement 50/60 = 0.833 on both sides. The check is `.t5b75/compare_default_row.py`.
+- **item-level identity with the published E3e arm** (`json_instructed/role_split`, `docs/evidence/e3e/bench_json_instructed_role_split.json`): **60/60** items identical on `prefix_tokens`, `got`, `correct`, `cue`; agreement 50/60 = 0.833 on both sides. The check is `docs/evidence/t5b75/compare_default_row.py`.
 
 ### quality — Spark-X2.5-4B-Q8_0.gguf
 
@@ -782,7 +782,7 @@ on a GPU box. The coordinator's run (RTX 3060 Ti, Vulkan bundle `b11026`) — `-
 Raw JSONs live on the host (`~/.typed-gguf-host-gate-2026-09-18/`); the verbatim report, the placement
 JSON and what this does *not* cover are in
 `docs/evidence/e2_fix_t_31b3943a_bench_placement.md` §8 and
-`.e2e/t_31b3943a-bench-placement/host_run_vulkan_reported.md`. These are the first Vulkan numbers with
+`docs/evidence/e2e/t_31b3943a-bench-placement/host_run_vulkan_reported.md`. These are the first Vulkan numbers with
 a *working* bench path; the Vulkan rows of the E2 tables above were produced on this container
 (**[recon]** / `measured: false`), and nothing here retroactively re-measures them.
 
@@ -1020,7 +1020,7 @@ weights resident (the operator host's own 31 GiB) turns the same command into a 
 | what | value |
 |---|---|
 | model | `Tiel-Coder-35B-A3B-UD-Q4_K_XL.gguf` — 22 360 476 736 B (20.8 GiB), arch `qwen35moe`, GGUF name `Ornith-1.5-35B`, 40 layers, 256 experts / 8 used |
-| SHA-256 | `9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c` — **identical before and after** the campaign (`.e3c_tiel/sha256_before.txt` / `sha256_after.txt`) |
+| SHA-256 | `9286a94c453c6a40ad51982c3dc88df4bba32fee9efad06e4588c83c059cf17c` — **identical before and after** the campaign (`docs/evidence/e3c_tiel/sha256_before.txt` / `sha256_after.txt`) |
 | downloads | none: the file's `mtime` is 2026-09-04, the card started 2026-09-19 |
 | runtime | pinned `b11026-linux-x64-vulkan`; every row `--backend vulkan --threads 4` |
 | GPU | `NVIDIA GeForce RTX 3060 Ti`, 8192 MiB, driver 615.71.09, `vram_free_bytes` 6 955 204 608 at plan time |
@@ -1029,11 +1029,11 @@ weights resident (the operator host's own 31 GiB) turns the same command into a 
 
 **The scope is a measurement condition, not a detail.** Run inside the kanban worker's own scope
 (`memory.max = 4 GiB`) a 21 GB model re-reads its weights from disk on every forward: **608 s for
-one 10-item chunk** (run record `.e3c_tiel/flawed_capped/placement_001.json`: `wall_s` 608.0,
+one 10-item chunk** (run record `docs/evidence/e3c_tiel/flawed_capped/placement_001.json`: `wall_s` 608.0,
 `load_wall_s` 62.7, `degraded: true`; a `read_bytes` figure of 68 GB in 12 minutes is quoted from
 the run record in the card's comment thread, not from a committed file). In the
 unlimited scope the same chunk costs 141–205 s and the load 9–29 s. The two capped chunks are kept
-as `.e3c_tiel/flawed_capped/` and are **not** model rows — they measure the cap. E3's `[host]` rows
+as `docs/evidence/e3c_tiel/flawed_capped/` and are **not** model rows — they measure the cap. E3's `[host]` rows
 (§6.2) are on the same box for the same reason.
 
 ### 7.2 Placement (free-VRAM aware, and what the loader actually did)
@@ -1056,7 +1056,7 @@ The quality report shape does not carry the placement (E3 §4.3), so
 **No degrade rung was taken in any chunk** (Occamy took two in E3/E3b). Engine log, verbatim:
 `load_tensors: offloaded 9/41 layers to GPU` · `CPU_Mapped model buffer size = 16680.10 MiB` ·
 `Vulkan0 model buffer size = 4634.02 MiB`. Chunk 004 ran while a sibling card's own 21 GB Occamy
-probe was on the same GPU (`tools/e3c_cue_shapes.py`, `.e3c/logs/occamy_c01_vulkan.log`) — two
+probe was on the same GPU (`tools/e3c_cue_shapes.py`, `docs/evidence/e3c/logs/occamy_c01_vulkan.log`) — two
 21 GB models on a 32 GB host: its wall is an artifact of that contention; the answers are
 unaffected (the decode is deterministic for the same items, and its agreement matches the rest).
 
@@ -1135,7 +1135,7 @@ turn-closer on the cue row (`</think>` 32, `<|im_end|>` 26, `<think>` 1) — the
 `W_CUE_REFUSED` — against 0/60 under the plain framing, so §7.4's "Tiel is not starved" is a
 statement about a prompt no caller sends. Parity is not assumed from the label: the repository's
 live gate was run on **this model file** for this card and passes (`item c01: serving prefix 109
-tokens, bench prefix 109 tokens`, `.t7c9/live_parity_tiel.txt`).
+tokens, bench prefix 109 tokens`, `docs/evidence/t7c9/live_parity_tiel.txt`).
 
 **The cue knob does not rescue it (measured, auxiliary).** The same 60 items were re-run once at
 `--cue two_step` on the same placement: it moves **exactly one row of sixty** — where the cue
@@ -1151,7 +1151,7 @@ arm's row diff): `docs/evidence/t7c926398_tiel_corrected.md`; raw
 `docs/evidence/tiel_two_step_quality.json`.
 <!-- @@T7C926398_TIEL_CORRECTED_END@@ -->
 
-<!-- @@T9BCBECFF_TIEL_E3E_START@@ — rendered by `.t9bcb/render_doc.py` from `.t9bcb/stats.json`; edit the tool, never this block. -->
+<!-- @@T9BCBECFF_TIEL_E3E_START@@ — rendered by `docs/evidence/t9bcb/render_doc.py` from `docs/evidence/t9bcb/stats.json`; edit the tool, never this block. -->
 
 ### 7.4.2 The E3e policy on this row: `role_split` + `json_instructed` (card `t_9bcbecff`, [host])
 
@@ -1181,7 +1181,7 @@ Full detail (per-chunk placement ledger, refusal breakdown, the item flips, the 
 
 | what | value |
 |---|---|
-| outcome | exit 0 · **20/20 answers** · no OOM (`.e3c_tiel/batch_response.json`, `.e3c_tiel/extras_logs/extras2.log`) |
+| outcome | exit 0 · **20/20 answers** · no OOM (`docs/evidence/e3c_tiel/batch_response.json`, `docs/evidence/e3c_tiel/extras_logs/extras2.log`) |
 | wall | **35.6 s** (load 9.85 s + prefill 7.88 s + questions 27.72 s) |
 | `usage` | questions 20 · forks 80 · **waves 40** · decode_steps 117 · input_tokens 1 175 · output_tokens 117 · prefill_tokens 109 |
 | placement | `{n_gpu_layers: 9, kv_type: q4_0, degraded: false, attempts: []}` — no degrade |
@@ -1193,7 +1193,7 @@ Tiel's 35.6 s is a host figure at `n_seq_max 8` — **no speed comparison is cla
 ### 7.6 Threads (deliverable 5)
 
 `llama-bench` from the same bundle at the fitted placement, E3's sizes (`-p 64 -n 8 -r 2`), raw
-tables in `.e3c_tiel/extras_logs/extras.log`:
+tables in `docs/evidence/e3c_tiel/extras_logs/extras.log`:
 
 | threads | pp64 (tok/s) | tg8 (tok/s) |
 |---|---:|---:|
@@ -1239,7 +1239,7 @@ No ranking (intervals overlap); no mechanism for the bench/serving split; no spe
 between the two batches; no claim about the token id `248069` beyond what it is not (it is not
 `<|im_end|>`, so `W_CUE_REFUSED` does not fire on those 19 rows — a closers-list question for
 `t_6c119626`); and no number at all from the two capped chunks
-(`.e3c_tiel/flawed_capped/`).
+(`docs/evidence/e3c_tiel/flawed_capped/`).
 <!-- @@E3C_TIEL_BENCH_7_END@@ -->
 
 ### 7.9 The framing marker on these rows (card `t_6de5fc53`)
@@ -1303,8 +1303,8 @@ E3c). Only `--cue` moves, and every row names its framing:
 
 **The pre-fix rows measured the plain framing and the post-fix rows the model's chat template — the
 two halves of this table are two different prompts and must not be compared across.** Reproduce:
-`bash .e3d/run_bench_arms.sh` (post-fix arms, `.e3d/bench_templated_<cue>.json`; the pre-fix arms
-are `.e3d/bench_plain_<cue>.json`, measured on the pre-fix tree — the flag is
+`bash docs/evidence/e3d/run_bench_arms.sh` (post-fix arms, `docs/evidence/e3d/bench_templated_<cue>.json`; the pre-fix arms
+are `docs/evidence/e3d/bench_plain_<cue>.json`, measured on the pre-fix tree — the flag is
 `tools/e2_reproduce.py --cue <shape>`).
 
 **The reversal is gone, and the bench now reproduces the probe** (card `t_6de5fc53`, fixed
@@ -1366,10 +1366,10 @@ now, and the pre-v2 cell is one flag away (`--cue shipped --chat-format answer_s
 shipped cell on the 60 committed items — is what the table below answers, and the decision rule is
 printed with it (paired interval excluding zero **and** exact McNemar below 0.05, the E3d unit).
 
-<!-- E3E-TABLE:START — spliced by `.e3e/splice_docs.py` from the tool's own report
+<!-- E3E-TABLE:START — spliced by `docs/evidence/e3e/splice_docs.py` from the tool's own report
      (`docs/evidence/e3e_roles_decision.md`); edit the tool, never this block. -->
-- probe `.e3e/probe_default.json` vs baseline `.e3d/bench_templated_shipped.json` (6 shared items): **frozen** — the prompt bytes and the decisions are the committed baseline's: 6/6 items, prefix_tokens identical on every item; numbers re-scored, not bit-identical (max |delta p| = 3.78e-02 over 6 item(s))
-- the table's own instrument, `.e3e/bench_shipped_answer_sheet.json` vs `.e3d/bench_templated_shipped.json` (60 shared items, tolerance 0.005): **1 decision(s) moved** — the re-score is not the same measurement: n16: got 'no' != 'no' (verdict 'low_mass' != 'low_mass'; refused False != True), p(no) 0.6925871631703637 != 0.6812322310342762, p(yes) 0.30741283682963627 != 0.31876776896572384; max |delta p| = 1.14e-02, max |delta coverage| = 6.25e-03, prefix_tokens identical on every item
+- probe `docs/evidence/e3e/probe_default.json` vs baseline `docs/evidence/e3d/bench_templated_shipped.json` (6 shared items): **frozen** — the prompt bytes and the decisions are the committed baseline's: 6/6 items, prefix_tokens identical on every item; numbers re-scored, not bit-identical (max |delta p| = 3.78e-02 over 6 item(s))
+- the table's own instrument, `docs/evidence/e3e/bench_shipped_answer_sheet.json` vs `docs/evidence/e3d/bench_templated_shipped.json` (60 shared items, tolerance 0.005): **1 decision(s) moved** — the re-score is not the same measurement: n16: got 'no' != 'no' (verdict 'low_mass' != 'low_mass'; refused False != True), p(no) 0.6925871631703637 != 0.6812322310342762, p(yes) 0.30741283682963627 != 0.31876776896572384; max |delta p| = 1.14e-02, max |delta coverage| = 6.25e-03, prefix_tokens identical on every item
 
 ### The cells
 
@@ -1429,7 +1429,7 @@ printed with it (paired interval excluding zero **and** exact McNemar below 0.05
 - `two_step/answer_sheet` vs `shipped/answer_sheet`: **not by more than the CI noise** — 7 items only it got right, 3 only shipped/answer_sheet did; difference +0.067 (95 % CI -0.035..+0.169), exact McNemar p=0.344
 - `two_step/role_split` vs `shipped/answer_sheet`: **interval clears zero below, exact test does not** — 5 items only it got right, 19 only shipped/answer_sheet did; difference -0.233 (95 % CI -0.382..-0.085), exact McNemar p=0.007
 
-The full generated report — the policy columns, the recommendation and the caveats the numbers carry — is `docs/evidence/e3e_roles_decision.md`, written by the tool itself; `.e3e/report.sh` regenerates it and `.e3e/splice_docs.py` re-splices this block.
+The full generated report — the policy columns, the recommendation and the caveats the numbers carry — is `docs/evidence/e3e_roles_decision.md`, written by the tool itself; `docs/evidence/e3e/report.sh` regenerates it and `docs/evidence/e3e/splice_docs.py` re-splices this block.
 <!-- E3E-TABLE:END -->
 
 **The family acceptance is part of the result, not an assumption.** The role split only exists for a
@@ -1437,11 +1437,11 @@ family whose template can render it: measured offline for all five GGUFs on the 
 (`tools/e3e_role_render.py`, no model loaded), four render the two-user-turn conversation with all
 five checks green; **Tiel's own template is outside the internal renderer's subset** and the tool
 records it with its fallback rather than guessing. The per-family bytes and the Spark residual are in
-`docs/TEMPLATES.md` (E3e section) and `.e3e/role_render.md`.
+`docs/TEMPLATES.md` (E3e section) and `docs/evidence/e3e/role_render.md`.
 
 **The freeze is checked twice, and policy v2 does not touch it.** The `shipped`/`answer_sheet` cell
-is the committed `.e3d/bench_templated_shipped.json`; two checks on this tree compare against it, both
-non-zero exits if either fails. `--freeze-probe .e3e/probe_default.json` is a six-item arm run with
+is the committed `docs/evidence/e3d/bench_templated_shipped.json`; two checks on this tree compare against it, both
+non-zero exits if either fails. `--freeze-probe docs/evidence/e3e/probe_default.json` is a six-item arm run with
 the *baseline's own recipe* (`--backend auto`, run under what are now the pre-v2 switches) and must
 reproduce the committed rows' **prompt bytes and decisions** (`prefix_tokens` and the answer, item for
 item). Its stored `reproduce:` line predates policy v2 (card `t_5b754458`), so re-running it today
@@ -1452,7 +1452,7 @@ own baseline cell re-measured under the table's instrument (`--backend vulkan`, 
 agrees with the committed report on 59 of 60 decisions with `prefix_tokens` identical on every item;
 the one that moved is the cue **refusal verdict** on `n16` (the answer did not: `no`/`low_mass` on
 both sides), which the check counts as a decision and reports with a non-zero exit — `bash
-.e3e/report.sh` therefore exits 4 on this tree and still writes the report.
+docs/evidence/e3e/report.sh` therefore exits 4 on this tree and still writes the report.
 The *numbers* are deliberately not required to be bit-identical: card `t_55de5779` landed after the
 committed baseline was published, and a `--backend auto` row that claims `cpu` now really computes on
 the CPU (the probe's log says `CPU compute buffer size`, which is that fix working), so the exact
@@ -1461,8 +1461,8 @@ measured rather than assumed: ≤1.1e-2 in candidate probability on the re-score
 refusal verdict moved (`n16`) and no answer moved — and one cell of the E3d table (`two_step`,
 47/60 published, 46/60 here) shows that drift can flip a near-tie item at the margin, which is why
 every claim below is a *paired* one.
-Reproduce: `bash .e3e/run_arms.sh` (the freeze probe + the eight policy arms, one backend named) and
-`bash .e3e/report.sh` (the table, the two checks, the recommendation).
+Reproduce: `bash docs/evidence/e3e/run_arms.sh` (the freeze probe + the eight policy arms, one backend named) and
+`bash docs/evidence/e3e/report.sh` (the table, the two checks, the recommendation).
 
 **Comparability**: the cells compare with *each other*; none of them is a quality row to publish,
 because each changes the prompt bytes and the whole document would have to be re-measured under it

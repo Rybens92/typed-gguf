@@ -1,8 +1,9 @@
 """E2 FIX (card t_57cc0179): a child that SIGSEGVs at teardown must not cost the row.
 
 Found while landing t_dd62ec29 and explicitly left unfixed there
-(`.e2e/t_dd62ec29-mixed-bundle-teardown/logs/after_mixed.raw`): a **single** Vulkan-bundle child
-can die with **exit -11 (SIGSEGV)** *after* writing a complete `typed_gguf.bench/v1` report, while
+(`docs/evidence/e2e/t_dd62ec29-mixed-bundle-teardown/logs/after_mixed.raw`): a **single**
+Vulkan-bundle child can die with **exit -11 (SIGSEGV)** *after* writing a complete
+`typed_gguf.bench/v1` report, while
 own report says `ok: true`. The device was memory-starved at the time (the operator host runs the
 E3 campaign on the same box: `vram_before_controls.txt` reads ~3.2 GiB free of 8 GiB); the same
 bundle alone exits 0 on a free device. The row is withheld, `ok: false`, exit 1 — the containment

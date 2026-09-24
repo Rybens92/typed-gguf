@@ -2,7 +2,7 @@
 import json
 import math
 
-d = json.load(open("/var/home/rybens/workspace/ggufone/.e3d/full.json"))
+d = json.load(open("/var/home/rybens/workspace/ggufone/docs/evidence/e3d/full.json"))
 items = d["items"]
 
 

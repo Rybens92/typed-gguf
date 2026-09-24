@@ -2,7 +2,7 @@
 
 `bench --backend all` on a host with **two** local bundles used to write its whole report and then
 die at teardown (`double free or corruption (!prev)`, exit **134**) — see
-`.e2e/t_603a35a0-backend-attribution/logs/{before,after}_mixed.raw` and this card's
+`docs/evidence/e2e/t_603a35a0-backend-attribution/logs/{before,after}_mixed.raw` and this card's
 `docs/evidence/e2_fix_t_dd62ec29_mixed_bundle_isolation.md`. This test is the executable form of the
 card's requirement 1+2: the *real* command, two real bundles on disk, the exit code the report's.
 

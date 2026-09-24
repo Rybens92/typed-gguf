@@ -6,7 +6,7 @@ contradict each other. The fault is not in typed-gguf's frames and not in the bu
 NVIDIA ICD's own exit handler (`libnvidia-eglcore` → `libnvidia-glvkspirv`, fault address `0x18`)
 running from libc's `__run_exit_handlers` — i.e. *other people's destructors at interpreter exit*,
 the same class `runtime.isolated` already refuses to trust for probes ("it dies alone").
-Raw material: `.e2e/t_97f1bc93-vulkan-teardown/` and
+Raw material: `docs/evidence/e2e/t_97f1bc93-vulkan-teardown/` and
 `docs/evidence/e2_fix_t_97f1bc93_vulkan_teardown.md`.
 
 This file is the offline half: a child process installs a *faithful proxy* for that handler — an

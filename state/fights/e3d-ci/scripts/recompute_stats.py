@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""INDEPENDENT recomputation of the E3d cue-shape statistics from .e3d/full.json.
+"""INDEPENDENT recomputation of the E3d cue-shape statistics from docs/evidence/e3d/full.json.
 
 Everything here is implemented from scratch (no import of ggufone / no reuse of
 tools/e3d_cue_decision.py) so the numbers can disagree. Implements:
@@ -16,7 +16,7 @@ import json
 import math
 import random
 
-REC = "/var/home/rybens/workspace/ggufone/.e3d/full.json"
+REC = "/var/home/rybens/workspace/ggufone/docs/evidence/e3d/full.json"
 
 d = json.load(open(REC))
 items = d["items"]

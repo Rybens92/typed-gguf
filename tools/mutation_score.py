@@ -5,9 +5,9 @@
 
 Mutmut keeps one `<module>.py.meta` per mutated module next to the mutated source, with
 `exit_code_by_key` (and `<module>.py.spans` with the source ranges). The status mapping is the one
-card t_c8e36cad's triage used (`.e2e/t_c8e36cad-e1c/logs/mutation_triage.py`); the score is the
-same convention this project reports: **killed / (total - no-tests - not-checked - skipped -
-type-check)**, so a mutant mutmut refused to test never inflates the number.
+card t_c8e36cad's triage used (`docs/evidence/e2e/t_c8e36cad-e1c/logs/mutation_triage.py`); the
+score is the same convention this project reports: **killed / (total - no-tests - not-checked -
+skipped - type-check)**, so a mutant mutmut refused to test never inflates the number.
 
 Two things this script exists to prevent (both bit earlier cards):
 

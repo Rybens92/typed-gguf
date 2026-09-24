@@ -23,13 +23,13 @@ coverage.xml
 .hermes/
 # mutation testing workspace (mutmut copies the tree here)
 /mutants/
-.gauntlet/
 # ---------------------------------------------------------------------------
-# dev-run scratch (the E-runs): the `.e2e/`, `.e3*/`, `.t7c9/`, `.t9bcb/` dirs
-# carry the receipts `docs/` cites — those stay committed. Their raw per-run
-# logs, smoke/ad-hoc probe logs and mutmut tree copies are not repo content.
+# dev-run scratch (the E-runs): the receipt dirs move with the layout rule (card t_f2636df1) and
+# are committed under `docs/evidence/` — `docs/evidence/e2e/`, `docs/evidence/e3*/`,
+# `docs/evidence/t*/` carry the receipts `docs/` cites, and the QA/spec notes live in `docs/qa/`.
+# Their raw per-run logs, smoke/ad-hoc probe logs and mutmut tree copies are not repo content.
 # Rules only ever affect *new* files: a receipt already tracked stays tracked
-# (the `.e3b/logs` and `.e3c/logs` pins below say which files those are).
+# (the `docs/evidence/e3b/logs` and `docs/evidence/e3c/logs` pins below say which files those are).
 # ---------------------------------------------------------------------------
 # mutmut working copies (the live workspace is `/mutants/` above)
 mutants-*/
@@ -37,50 +37,50 @@ mutants.*/
 mutants_*/
 .mutmut-cache*
 # raw run logs
-.e3b/logs/*
-!.e3b/logs/full_suite_final.txt
-!.e3b/logs/mutmut_final.out
-!.e3b/logs/mutmut_sweep.out
-.e3b/merge_smoke.json
-.e3c/logs/*
-!.e3c/logs/mutmut_cue.out
-!.e3c/logs/occamy_a.log
-!.e3c/logs/occamy_c01_vulkan.log
-!.e3c/logs/occamy_s01.log
-.e3c/smoke*.log
-.e3c_tiel/*.log
-.e3c_tiel/extras_logs/run_*.log
-.t7c9/*.log
-.t9bcb/logs/occ_*_run_*.log
+docs/evidence/e3b/logs/*
+!docs/evidence/e3b/logs/full_suite_final.txt
+!docs/evidence/e3b/logs/mutmut_final.out
+!docs/evidence/e3b/logs/mutmut_sweep.out
+docs/evidence/e3b/merge_smoke.json
+docs/evidence/e3c/logs/*
+!docs/evidence/e3c/logs/mutmut_cue.out
+!docs/evidence/e3c/logs/occamy_a.log
+!docs/evidence/e3c/logs/occamy_c01_vulkan.log
+!docs/evidence/e3c/logs/occamy_s01.log
+docs/evidence/e3c/smoke*.log
+docs/evidence/e3c_tiel/*.log
+docs/evidence/e3c_tiel/extras_logs/run_*.log
+docs/evidence/t7c9/*.log
+docs/evidence/t9bcb/logs/occ_*_run_*.log
 # policy v2 (t_5b754458) — the default-row run's raw logs, with the three receipts the card cites
-.t5b75/logs/*
-!.t5b75/logs/suite_green_final.txt
-!.t5b75/logs/red_pre_v2_full.txt
-!.t5b75/logs/oracle_after_flip.txt
-!.t5b75/logs/identity_default_vs_arm.txt
+docs/evidence/t5b75/logs/*
+!docs/evidence/t5b75/logs/suite_green_final.txt
+!docs/evidence/t5b75/logs/red_pre_v2_full.txt
+!docs/evidence/t5b75/logs/oracle_after_flip.txt
+!docs/evidence/t5b75/logs/identity_default_vs_arm.txt
 # public docs pass (t_07b5cc01) — the quickstart's raw run logs; the receipts the card cites stay
-.t07b5/logs/*
-!.t07b5/logs/suite_after.txt
-!.t07b5/logs/suite_baseline_no_new_file.txt
-!.t07b5/logs/red_public_docs.txt
-!.t07b5/logs/init.txt
-!.t07b5/logs/pull.txt
-!.t07b5/logs/ask_clean.json
-!.t07b5/logs/run_1.json
-!.t07b5/logs/run_2_reuse.json
-!.t07b5/logs/run_typesafe.json
-!.t07b5/logs/det_1.json
-!.t07b5/logs/det_2.json
-!.t07b5/logs/fit.txt
-!.t07b5/logs/models_ls.txt
-!.t07b5/logs/pip_install.txt
-!.t07b5/logs/oracle.txt
-!.t07b5/logs/markdown_check.txt
-!.t07b5/logs/citations.txt
+docs/evidence/t07b5/logs/*
+!docs/evidence/t07b5/logs/suite_after.txt
+!docs/evidence/t07b5/logs/suite_baseline_no_new_file.txt
+!docs/evidence/t07b5/logs/red_public_docs.txt
+!docs/evidence/t07b5/logs/init.txt
+!docs/evidence/t07b5/logs/pull.txt
+!docs/evidence/t07b5/logs/ask_clean.json
+!docs/evidence/t07b5/logs/run_1.json
+!docs/evidence/t07b5/logs/run_2_reuse.json
+!docs/evidence/t07b5/logs/run_typesafe.json
+!docs/evidence/t07b5/logs/det_1.json
+!docs/evidence/t07b5/logs/det_2.json
+!docs/evidence/t07b5/logs/fit.txt
+!docs/evidence/t07b5/logs/models_ls.txt
+!docs/evidence/t07b5/logs/pip_install.txt
+!docs/evidence/t07b5/logs/oracle.txt
+!docs/evidence/t07b5/logs/markdown_check.txt
+!docs/evidence/t07b5/logs/citations.txt
 # …and the isolated run that produced them: a fresh data home (pinned runtime + the 4.4 GB model)
 # plus a throwaway venv the pip-install check used. Both are data, never repo content.
-.t07b5/home/
-.t07b5/venv/
+docs/evidence/t07b5/home/
+docs/evidence/t07b5/venv/
 # the E1 coordination thread is dev chatter, not product (file stays on disk)
 state/groupchat/
 # the `--quick` bench preset's default report lands in the cwd (the `DEFAULT_OUT_NAME`

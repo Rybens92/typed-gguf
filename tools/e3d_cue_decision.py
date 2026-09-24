@@ -22,7 +22,8 @@ difference's 95 % CI excludes zero **and** the winner is consistent in the direc
 (coverage above the floor). Anything else is "not by more than the CI noise" and the default stays.
 
     # offline: the card's evidence tables from a stored probe run
-    python3 tools/e3d_cue_decision.py report --run .e3d/full.json --out docs/evidence/e3d_...md
+    python3 tools/e3d_cue_decision.py report --run docs/evidence/e3d/full.json \\
+        --out docs/evidence/e3d_...md
 
 The tool never loads a model and never touches the network.
 """
@@ -454,12 +455,13 @@ def decision_section(analysis: Mapping[str, Any], decisions: Sequence[Mapping[st
         "",
         "**Reproducing this document** (no model for the first two):",
         "",
-        "    bash .e3d/run_full.sh                    # the probe record -> .e3d/full.json",
-        "    python3 tools/e3d_cue_decision.py report --run .e3d/full.json \\",
+        "    bash docs/evidence/e3d/run_full.sh                    "
+        "# the probe record -> docs/evidence/e3d/full.json",
+        "    python3 tools/e3d_cue_decision.py report --run docs/evidence/e3d/full.json \\",
         "        --out docs/evidence/e3d_cue_decision_4b.md \\",
         "        --json docs/evidence/e3d_cue_decision_4b.json",
-        "    python3 tools/e3d_engine_check.py --record .e3d/full.json --items 6",
-        "    bash .e3d/run_bench_arms.sh               # the bench arms (## 6)",
+        "    python3 tools/e3d_engine_check.py --record docs/evidence/e3d/full.json --items 6",
+        "    bash docs/evidence/e3d/run_bench_arms.sh               # the bench arms (## 6)",
         "",
         "Byte-identity of the JSON holds under CPython 3.11; 3.12+ changes the last ulp of",
         "`mean` fields — diff with tolerance.",
@@ -477,7 +479,8 @@ def _interval(ci: Any) -> str:
 
 #: card t_6de5fc53: the arms the fixed instrument writes (`--cue` × the model's chat template),
 #: then the same three cues measured on the pre-fix tree (plain framing), kept so the §6 table can
-#: show both instruments side by side. `.e3d/bench_shipped.json` / `.e3d/bench_two_step.json`
+#: show both instruments side by side.
+#: `docs/evidence/e3d/bench_shipped.json` / `docs/evidence/e3d/bench_two_step.json`
 #: (card t_d90404ac) carry the same plain numbers and stay untouched as the published record.
 FRAMING_ARMS = ("bench_templated_shipped.json", "bench_templated_two_step.json",
                 "bench_templated_json_field.json")
@@ -556,7 +559,8 @@ def arms_section(arms: Sequence[Mapping[str, Any]],
 
     Rendered when arm reports are given (`--arms`, default `default_arms()`): the post-fix arms
     (card t_6de5fc53 — the executed plan resolves the model's chat template, exactly like the
-    serving path) and, when present, the same cues on the pre-fix tree (`.e3d/bench_plain_*.json`,
+    serving path) and, when present, the same cues on the pre-fix tree
+    (`docs/evidence/e3d/bench_plain_*.json`,
     written before this card), whose rows measured the plain E1b framing because
     `LiveModel.decide` re-planned the context from the live session — a `ModelSession` carries no
     `.model`/`.runtime`, so `resolve_template` returned `None`. Every row names its framing, and
@@ -697,7 +701,7 @@ def default_arms() -> list[dict[str, Any]]:
     root = pathlib.Path(__file__).resolve().parents[1]
     arms = []
     for name in (*FRAMING_ARMS, *PLAIN_ARMS):
-        path = root / ".e3d" / name
+        path = root / "docs" / "evidence" / "e3d" / name
         if path.is_file():
             arms.append(json.loads(path.read_text(encoding="utf-8")))
     return arms
@@ -726,7 +730,8 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--json", default=None, help="write the analysis as JSON too")
     run.add_argument("--arms", nargs="+", default=None, metavar="JSON",
                      help="bench `--suite quality` arm reports for `## 6` (default: the committed "
-                          "`.e3d/bench_shipped.json` + `.e3d/bench_two_step.json` when present)")
+                          "`docs/evidence/e3d/bench_shipped.json` + "
+                          "`docs/evidence/e3d/bench_two_step.json` when present)")
     args = parser.parse_args(argv)
     record = load_run(args.run)
     pairs = [tuple(pair) for pair in (args.compare or [])]

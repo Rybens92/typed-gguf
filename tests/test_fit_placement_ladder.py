@@ -38,8 +38,9 @@ from typed_gguf.engine.decide import ContextPlan
 from typed_gguf.errors import BackendOomError, RuntimeMissingError
 from typed_gguf.runtime import fit
 
-#: The context-side allocation failure, verbatim from the repro (`.e2e/t_b67f9c49-calibrate/
-#: vulkan-oom-2.stderr`): three buffers, the last one the graph scheduler's compute buffer.
+#: The context-side allocation failure, verbatim from the repro
+#: (`docs/evidence/e2e/t_b67f9c49-calibrate/vulkan-oom-2.stderr`): three buffers, the last one the
+#: graph scheduler's compute buffer.
 OPERATOR_CTX_OOM = """\
 ggml_vulkan: Device memory allocation of size 972029952 failed.
 ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory

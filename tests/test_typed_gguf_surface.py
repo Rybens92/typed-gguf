@@ -1,12 +1,13 @@
 """The public name is `typed-gguf` (card t_5f9c15fe): no trace of the old one in the living surface.
 
-A receipt is a record, not a name. `docs/evidence/**` and the dev-run dirs (`.e2e/`, `.e3*/`,
-`.t*/`, `.gauntlet/`, `state/`) keep the exact commands, paths and schema strings they were
-produced with — `test_the_receipts_keep_their_history` pins that — while everything a *reader or
-an operator* touches (the distribution, the import package, the console script, the env vars, the
-default data home, the schema strings, the workflows, the living docs) takes the new name. The
-gate that keeps it that way is `test_the_living_surface_carries_no_old_name`: a later card that
-re-introduces the old name fails here instead of in someone's shell.
+A receipt is a record, not a name. The receipt trees (`docs/evidence/**` — the E-run dirs and the
+evidence documents — plus `docs/qa/**` and `state/`) keep the exact commands, paths and schema
+strings they were produced with — `test_the_receipts_keep_their_history` pins that — while
+everything a *reader or an operator* touches (the distribution, the import package, the console
+script, the env vars, the default data home, the schema strings, the workflows, the living docs)
+takes the new name. The gate that keeps it that way is
+`test_the_living_surface_carries_no_old_name`: a later card that re-introduces the old name fails
+here instead of in someone's shell.
 
 `OLD_NAME` is assembled at run time on purpose: this file *is* living surface, and a literal
 would make the gate trip on the very test that runs it.
@@ -31,10 +32,13 @@ OLD_NAME = "gguf" + "one"
 NEW_HOME_ENV = "TYPED_GGUF_HOME"
 OLD_HOME_ENV = OLD_NAME.upper() + "_HOME"
 
-#: frozen history — never swept. `docs/evidence/**` and the E-run dirs carry what they were
-#: produced with, `state/` is the coordination ledger, `mutants*/` is mutation time (it holds a
-#: copy of the pre-rename tree).
-RECEIPT_DIRS = {"docs/evidence", ".e2e", ".gauntlet", "state"}
+#: frozen history — never swept. The receipt trees carry the exact commands, paths and schema
+#: strings they were produced with (card t_f2636df1 moved the E-run dirs and the QA/spec notes
+#: under `docs/`: `docs/evidence/**` and `docs/qa/**`), `state/` is the coordination ledger and
+#: `mutants*/` is mutation time (it holds a copy of the pre-rename tree).
+RECEIPT_DIRS = {"state"}
+#: …and the two receipt *subtrees* of `docs/`, which a set of top-level names cannot spell.
+FROZEN_DOC_DIRS = (("docs", "evidence"), ("docs", "qa"))
 SKIP_DIRS = {".git", ".venv", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache"}
 #: A linked worktree carries `.git` as a *file* — a `gitdir: <main checkout>/.git/worktrees/<id>`
 #: pointer, not the pruned directory. The path it names is the checkout, which legitimately still
@@ -52,7 +56,7 @@ def _is_frozen(rel: tuple[str, ...]) -> bool:
     top = rel[0]
     if top in SKIP_DIRS or top in RECEIPT_DIRS or top.startswith("mutants"):
         return True
-    return rel[:2] == ("docs", "evidence") or top.startswith((".e3", ".t"))
+    return rel[:2] in FROZEN_DOC_DIRS or top.startswith((".e3", ".t"))
 
 
 def _living_files(root: pathlib.Path = ROOT) -> list[pathlib.Path]:

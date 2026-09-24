@@ -4,7 +4,7 @@ import json
 import math
 
 REPO = "/var/home/rybens/workspace/ggufone"
-d = json.load(open(f"{REPO}/.e3d/full.json"))
+d = json.load(open(f"{REPO}/docs/evidence/e3d/full.json"))
 items = d["items"]
 
 worst = 0.0

@@ -1,7 +1,7 @@
 """Correctness decomposition over the shipped-low_mass subset vs the measured subset."""
 import json
 
-d = json.load(open("/var/home/rybens/workspace/ggufone/.e3d/full.json"))
+d = json.load(open("/var/home/rybens/workspace/ggufone/docs/evidence/e3d/full.json"))
 items = d["items"]
 L, M, T = [], [], []
 for it in items:

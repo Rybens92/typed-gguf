@@ -2,8 +2,9 @@
 
 The card (`t_6952f0dd`) publishes `docs/evidence/e3b_t_6952f0dd_label_policy.md` as evidence, so
 every sentence of it has to come from a file the campaign wrote: the 6-item variant sweep
-(`.e3b/sweep.json`), the optional 20-item re-measure (`.e3b/after.json`), the committed
-calibration verdict, and E3's/E2's published reports. These gates build the whole document from
+(`docs/evidence/e3b/sweep.json`), the optional 20-item re-measure
+(`docs/evidence/e3b/after.json`), the committed calibration verdict, and E3's/E2's published
+reports. These gates build the whole document from
 synthetic artifacts in a temp root and assert what it says — the negative-result verdict, the
 ceiling, the before/after tables, and the two fallbacks (no re-measure yet, no calibration file).
 """
@@ -107,7 +108,7 @@ def fake_root(tmp_path: pathlib.Path, *, after: bool = True,
     case where E3's merged report covers more items than this card re-measured — the before side
     must be aligned to the shared ids, not compared whole.
     """
-    write(tmp_path, ".e3b/sweep.json", sweep_record())
+    write(tmp_path, "docs/evidence/e3b/sweep.json", sweep_record())
     write(tmp_path, "docs/evidence/e2_quality.json",
           quality_report([quality_row("c01", "choice", correct=True, coverage=0.5,
                                       reliability="measured"),
@@ -123,7 +124,7 @@ def fake_root(tmp_path: pathlib.Path, *, after: bool = True,
     write(tmp_path, "docs/evidence/e3_occamy_quality.json",
           quality_report(e3_rows, label="Occamy 1.0"))
     if after:
-        write(tmp_path, ".e3b/after.json",
+        write(tmp_path, "docs/evidence/e3b/after.json",
               quality_report([quality_row("c01", "choice", correct=True, coverage=0.0295,
                                           reliability="measured"),
                               quality_row("s01", "score", correct=False, coverage=0.0095,
@@ -149,7 +150,7 @@ def test_the_verdict_is_the_negative_result_when_no_variant_clears_the_floor(tmp
     root = fake_root(tmp_path)
     record = sweep_record()
     record["mass_floor"] = 0.05                              # nothing in the fixture clears this
-    write(root, ".e3b/sweep.json", record)
+    write(root, "docs/evidence/e3b/sweep.json", record)
     document = module.build(root=root)
     assert "**Answer in one paragraph.**" in document
     assert "No label rendering" in document
@@ -165,7 +166,7 @@ def test_the_ceiling_is_the_best_single_value_the_sweep_wrote(tmp_path):
     root = fake_root(tmp_path)
     record = sweep_record()
     record["mass_floor"] = 0.05
-    write(root, ".e3b/sweep.json", record)
+    write(root, "docs/evidence/e3b/sweep.json", record)
     document = module.build(root=root)
     assert "3.000e-02" in document, "the best single coverage value must be printed"
     assert "still below the 0.05 floor" in document
@@ -177,7 +178,7 @@ def test_the_positive_verdict_wins_when_a_variant_clears_the_floor(tmp_path):
     root = fake_root(tmp_path)
     record = sweep_record()
     record["mass_floor"] = 0.02
-    write(root, ".e3b/sweep.json", record)
+    write(root, "docs/evidence/e3b/sweep.json", record)
     document = module.build(root=root)
     assert "is the rendering that lifts the most items above the engine's 0.02 floor" in document
     assert "2/2" in document
@@ -271,7 +272,7 @@ def test_the_low_mass_note_says_so_when_the_re_measure_never_crosses_the_floor(t
     """The honest headline: if every fresh row is still `low_mass`, the doc says it outright."""
     module = load_builder()
     root = fake_root(tmp_path)
-    write(root, ".e3b/after.json",
+    write(root, "docs/evidence/e3b/after.json",
           quality_report([quality_row("c01", "choice", correct=True, coverage=0.002,
                                       reliability="low_mass"),
                           quality_row("s01", "score", correct=False, coverage=0.003,
@@ -290,7 +291,7 @@ def test_the_alternative_policy_block_is_rendered_when_its_report_exists(tmp_pat
                                          reliability="low_mass"),
                              quality_row("s01", "score", correct=True, coverage=0.04,
                                          reliability="low_mass")], label="Occamy [shipped=newline]")
-    write(root, ".e3b/after_newline.json", inline)
+    write(root, "docs/evidence/e3b/after_newline.json", inline)
     document = module.build(root=root)
     assert "**The alternative policy measured on the same items**" in document
     assert "agreement 1.000 (2/2)" in document
@@ -321,6 +322,6 @@ def test_the_document_is_written_to_the_card_path_and_the_tables_sidecar(tmp_pat
 
 def test_an_empty_artifact_tree_is_an_error_not_an_empty_document(tmp_path):
     module = load_builder()
-    (tmp_path / ".e3b").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "docs" / "evidence" / "e3b").mkdir(parents=True, exist_ok=True)
     with pytest.raises(SystemExit, match="sweep.json not found"):
         module.build(root=tmp_path)

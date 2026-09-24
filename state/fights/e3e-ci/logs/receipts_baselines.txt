@@ -1,13 +1,13 @@
 === baselines and the E3d rows the recommendation quotes ===
-.e3d/bench_templated_shipped.json          42/60 low_mass=45 refused=1 cov_p50=3.8466e-02 backend=auto cue=shipped fmt=None @2026-09-19T18:57:54Z
+docs/evidence/e3d/bench_templated_shipped.json          42/60 low_mass=45 refused=1 cov_p50=3.8466e-02 backend=auto cue=shipped fmt=None @2026-09-19T18:57:54Z
     framing=['chat-template: spark2_5 / internal'] prefix_token_counts=[82, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 105, 107, 111, 119]
-.e3d/bench_templated_json_field.json       51/60 low_mass=0 refused=0 cov_p50=9.9970e-01 backend=auto cue=json_field fmt=None @2026-09-19T19:15:37Z
+docs/evidence/e3d/bench_templated_json_field.json       51/60 low_mass=0 refused=0 cov_p50=9.9970e-01 backend=auto cue=json_field fmt=None @2026-09-19T19:15:37Z
     framing=['chat-template: spark2_5 / internal'] prefix_token_counts=[82, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 105, 107, 111, 119]
-.e3d/bench_templated_two_step.json         47/60 low_mass=3 refused=3 cov_p50=9.7080e-01 backend=auto cue=two_step fmt=None @2026-09-19T19:06:20Z
+docs/evidence/e3d/bench_templated_two_step.json         47/60 low_mass=3 refused=3 cov_p50=9.7080e-01 backend=auto cue=two_step fmt=None @2026-09-19T19:06:20Z
     framing=['chat-template: spark2_5 / internal'] prefix_token_counts=[82, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 105, 107, 111, 119]
-.e3e/probe_default.json                    4/6 low_mass=5 refused=0 cov_p50=2.4298e-02 backend=auto cue=shipped fmt=answer_sheet @2026-09-20T10:59:34Z
+docs/evidence/e3e/probe_default.json                    4/6 low_mass=5 refused=0 cov_p50=2.4298e-02 backend=auto cue=shipped fmt=answer_sheet @2026-09-20T10:59:34Z
     framing=['chat-template: spark2_5 / internal'] prefix_token_counts=[90, 94, 101, 105, 107, 119]
-.e3e/bench_shipped_answer_sheet.json       42/60 low_mass=45 refused=0 cov_p50=3.8815e-02 backend=vulkan cue=shipped fmt=answer_sheet @2026-09-20T10:55:14Z
+docs/evidence/e3e/bench_shipped_answer_sheet.json       42/60 low_mass=45 refused=0 cov_p50=3.8815e-02 backend=vulkan cue=shipped fmt=answer_sheet @2026-09-20T10:55:14Z
     framing=['chat-template: spark2_5 / internal'] prefix_token_counts=[82, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 105, 107, 111, 119]
 
 === per-item prefix_tokens: same bytes under one chat_format? ===

@@ -2,8 +2,8 @@
 """Independent recomputation of the E3e eight-arm table (audit card t_57bd3db2).
 
 Written by the auditor from scratch: it reads ONLY the raw arm reports
-(`.e3e/bench_*.json`, `.e3e/probe_default.json`), the committed baseline
-(`.e3d/bench_templated_shipped.json`) and the committed dev set, and re-derives
+(`docs/evidence/e3e/bench_*.json`, `docs/evidence/e3e/probe_default.json`), the committed baseline
+(`docs/evidence/e3d/bench_templated_shipped.json`) and the committed dev set, and re-derives
 every number the record `docs/evidence/e3e_roles_decision.json` publishes —
 cells, per-type cells, `low_mass`, refusals, cue verdicts, coverage percentiles,
 prefix-token ranges, Wilson intervals, all 28 paired readings, the exact McNemar
@@ -24,20 +24,20 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[4]
 Z = 1.959963984540054
 
-# The record's own report order (from `.e3e/report.sh`), so pairs can be matched by label.
+# The record's own report order (from `docs/evidence/e3e/report.sh`), so pairs can be matched by label.
 ARM_FILES = [
-    ".e3e/bench_shipped_answer_sheet.json",
-    ".e3e/bench_shipped_role_split.json",
-    ".e3e/bench_two_step_answer_sheet.json",
-    ".e3e/bench_two_step_role_split.json",
-    ".e3e/bench_json_instructed_answer_sheet.json",
-    ".e3e/bench_json_instructed_role_split.json",
-    ".e3e/bench_json_instructed_answer_sheet_system.json",
-    ".e3e/bench_json_instructed_role_split_system.json",
+    "docs/evidence/e3e/bench_shipped_answer_sheet.json",
+    "docs/evidence/e3e/bench_shipped_role_split.json",
+    "docs/evidence/e3e/bench_two_step_answer_sheet.json",
+    "docs/evidence/e3e/bench_two_step_role_split.json",
+    "docs/evidence/e3e/bench_json_instructed_answer_sheet.json",
+    "docs/evidence/e3e/bench_json_instructed_role_split.json",
+    "docs/evidence/e3e/bench_json_instructed_answer_sheet_system.json",
+    "docs/evidence/e3e/bench_json_instructed_role_split_system.json",
 ]
 RECORD = "docs/evidence/e3e_roles_decision.json"
-BASELINE = ".e3d/bench_templated_shipped.json"
-PROBE = ".e3e/probe_default.json"
+BASELINE = "docs/evidence/e3d/bench_templated_shipped.json"
+PROBE = "docs/evidence/e3e/probe_default.json"
 DEVSET = "src/ggufone/bench/devset.jsonl"
 
 DISAGREEMENTS: list[str] = []
@@ -426,7 +426,7 @@ def compare_freeze(record: dict) -> None:
     check("probe max_coverage_delta", rec_probe["max_coverage_delta"],
           mine["max_coverage_delta"], 1e-15)
     rec_place = record["placement"]
-    mine_place = freeze_mine(".e3e/bench_shipped_answer_sheet.json", BASELINE, 5e-3)
+    mine_place = freeze_mine("docs/evidence/e3e/bench_shipped_answer_sheet.json", BASELINE, 5e-3)
     check("placement frozen", rec_place["frozen"], mine_place["frozen"])
     check("placement decisions_agree", rec_place["decisions_agree"], mine_place["decisions_agree"])
     check("placement n", rec_place["n"], mine_place["n"])

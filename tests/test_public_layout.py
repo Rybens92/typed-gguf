@@ -89,18 +89,18 @@ def test_a_new_root_dot_entry_fails_and_tooling_names_do_not(tmp_path) -> None:
     (tmp_path / ".git").mkdir()
     (tmp_path / ".e7x").mkdir()
     (tmp_path / ".t99zz").mkdir()
-    (tmp_path / ".gauntlet").mkdir()
-    assert offenders(tmp_path) == [".e7x/", ".gauntlet/", ".t99zz/"]
+    (tmp_path / ".qa-notes").mkdir()
+    assert offenders(tmp_path) == [".e7x/", ".qa-notes/", ".t99zz/"]
     # the shapes a real run creates stay allowed, and a dot-file is judged as a file
     (tmp_path / ".mutmut-cache").write_text("", encoding="utf-8")
     (tmp_path / ".mutmut-cache.20260924").write_text("", encoding="utf-8")
     (tmp_path / ".coverage").write_text("", encoding="utf-8")
     (tmp_path / ".pytest_cache").mkdir()
     (tmp_path / ".hermes").mkdir()
-    assert offenders(tmp_path) == [".e7x/", ".gauntlet/", ".t99zz/"]
+    assert offenders(tmp_path) == [".e7x/", ".qa-notes/", ".t99zz/"]
     # …and a *directory* spelled like an allowed file is not allowed (the allowlist is typed)
     (tmp_path / ".pytest_cache").rmdir()
     (tmp_path / ".pytest_cache").mkdir()
     (tmp_path / ".coverage").unlink()
     (tmp_path / ".coverage").mkdir()
-    assert offenders(tmp_path) == [".coverage/", ".e7x/", ".gauntlet/", ".t99zz/"]
+    assert offenders(tmp_path) == [".coverage/", ".e7x/", ".qa-notes/", ".t99zz/"]

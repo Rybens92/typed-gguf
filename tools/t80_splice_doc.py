@@ -1,8 +1,9 @@
 """Splice the generated artifacts into the evidence document's placeholders (card t_80f1a4c6)."""
 import pathlib
 
-DOC = pathlib.Path("/work/t80serve/docs/evidence/e3_fix_t_80f1a4c6_serving_backend.md")
-RAW = pathlib.Path("/work/t80serve/.e2e/t_80f1a4c6-serving-backend")
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+DOC = ROOT / "docs/evidence/e3_fix_t_80f1a4c6_serving_backend.md"
+RAW = ROOT / "docs/evidence/e2e/t_80f1a4c6-serving-backend"
 
 doc = DOC.read_text()
 before_after = RAW.joinpath("before_after.txt").read_text().rstrip()

@@ -1,7 +1,7 @@
 load_backend: loaded RPC backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-rpc.so
 load_backend: loaded CPU backend from /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan/libggml-cpu-haswell.so
 model Spark-X2.5-4B-Q8_0.gguf · n_gpu_layers=0 · threads 4 · cues shipped, two_step
-record .e3d/full.json · items 6 stratified · floor 0.1
+record docs/evidence/e3d/full.json · items 6 stratified · floor 0.1
 
 item  type   cue        |                       probe |                      engine | verdict
                         |        got       cov   low |        got       cov   rel |

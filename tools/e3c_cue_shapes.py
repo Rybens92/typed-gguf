@@ -34,10 +34,10 @@ extra batched step. Coverage needs no further decode — it is read from the row
         --model ~/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf \\
         --devset docs/evidence/e3_chunks/devset_001.jsonl --ids c01 c02 s01 s02 n01 n02 \\
         --rank shipped=bare --rank two_step_shipped=bare \\
-        --out .e3c/occamy.json --report docs/evidence/e3c_cue_shapes_occamy.md
+        --out docs/evidence/e3c/occamy.json --report docs/evidence/e3c_cue_shapes_occamy.md
 
     # offline: the markdown tables from a stored run
-    python3 tools/e3c_cue_shapes.py report --run .e3c/occamy.json
+    python3 tools/e3c_cue_shapes.py report --run docs/evidence/e3c/occamy.json
 """
 from __future__ import annotations
 

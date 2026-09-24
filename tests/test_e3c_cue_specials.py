@@ -21,7 +21,8 @@ The generalised rule this file pins:
   vocabulary's own text for the token (`</think>`), the catalogue string when the catalogue names
   it, and `<special <id>>` when the vocabulary carries no text for it.
 
-RED→GREEN, counted: on the pre-fix tree (the clone at HEAD, `.e3c_specials/red_prefix.txt`) 17 of
+RED→GREEN, counted: on the pre-fix tree (the clone at HEAD,
+`docs/evidence/e3c_specials/red_prefix.txt`) 17 of
 these gates fail and **2 pass — by design**:
 `test_a_content_token_dominating_the_cue_is_not_a_refusal` (fixture (c)) and
 `test_the_dominating_catalogue_closer_still_fires_exactly_as_before` are pins on behaviour that

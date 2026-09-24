@@ -2,7 +2,7 @@
 import json
 import math
 
-W = "/var/home/rybens/workspace/ggufone/.e3d/"
+W = "/var/home/rybens/workspace/ggufone/docs/evidence/e3d/"
 
 
 def wilson(s, n, z=1.96):

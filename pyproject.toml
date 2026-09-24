@@ -146,7 +146,7 @@ quote-style = "double"
 # Round 2 adds `test_the_report_prints_the_new_fallback_wording`: 1412 killed / 529 survived
 # (72.7 %), F1 22/22 and F2 14/14 killed. The two survivors on the changed surface are casing
 # mutants of the F3 caveat literal (prose; the note's `1.96` content is pinned). Receipts:
-# `.e3e/logs/f1_f4_patches.txt`, `.e3e/logs/mutmut_f1f4.log`, `.e3e/mutmut_f1f4_triage.txt`.
+# `docs/evidence/e3e/logs/f1_f4_patches.txt`, `docs/evidence/e3e/logs/mutmut_f1f4.log`, `docs/evidence/e3e/mutmut_f1f4_triage.txt`.
 # `tests/test_e3e_roles_decision.py` had to load the tool under its path-derived name for any of
 # this to run — mutmut keys a trampoline by the path, not by a bare module name (see `_tool()`).
 # Card t_eff926f9 (v0.1.0 FIX, the packaged lock) takes the pair to the module the fix moves:
@@ -156,7 +156,7 @@ quote-style = "double"
 # the new chain on a shape built on disk, so the sweep stays fast on this shared box. Restore a
 # tool/engine pair above when the next card sweeps one.
 #
-# The sweep (driver: `.e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh`, `--max-children 2`, two
+# The sweep (driver: `docs/evidence/e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh`, `--max-children 2`, two
 # rounds because round 1's survivors on the new surface earned six new pins): 421 mutants both
 # times, **344/421 = 81.7% killed** in round 2, and round 2's verdicts differ from round 1's in
 # exactly those six keys (survived → killed) — every other verdict is identical, which is the
@@ -177,7 +177,7 @@ quote-style = "double"
 # not selected: it wants the real 4B, the Vulkan bundle and ~5 minutes, and it skips without
 # `--run-network` anyway.
 #
-# The sweep (driver: `.e2e/t_7e24cea4-warm-host/mutmut_sweep.sh`, `--max-children 2`): 2176 mutants.
+# The sweep (driver: `docs/evidence/e2e/t_7e24cea4-warm-host/mutmut_sweep.sh`, `--max-children 2`): 2176 mutants.
 # Round 1 (before the new pins) 1391/2176 killed by exit code — which is 1310 *real* kills plus the
 # 75 mutants mutmut put in its own "no tests" bucket (uncovered lines), 5 timeouts and 1 suspicious.
 # Those 75 were the finding: they pointed at `host.Server._fail` (45), `state.wait_pid_gone` (15),
@@ -194,13 +194,13 @@ quote-style = "double"
 # Card t_176614c6 (FIX, the UX trio) retargeted the pair for one Tier-M run at the module it
 # changes — `source_paths = ["src/typed_gguf/keep/client.py"]` with
 # `pytest_add_cli_args_test_selection = ["tests/test_keep_client.py"]`, `--max-children 2`, driver
-# `.e2e/t_176614c6-live/mutmut_sweep.sh` (that file carries the retargeted pair; the values here are
+# `docs/evidence/e2e/t_176614c6-live/mutmut_sweep.sh` (that file carries the retargeted pair; the values here are
 # this repo's standing pair, restored after the run): 829 mutants, **506 killed = 61.0 %**, 317
 # survived, 6 timeouts, 0 in the "no tests" bucket. The selection is one of the module's four gate
 # files, so most survivors are behaviour the *other* three assert (report strings, `child`-handle
 # branches, CLI wiring) plus equivalent mutants on the pre-existing `suppress(OSError)` and
 # `child = self.children.get(pid)` lines; the drain itself (`_busy` + the `stop(drain=True)` budget)
-# has no behavioural survivor. See `.gauntlet/t_176614c6-ux-trio.qa.md`.
+# has no behavioural survivor. See `docs/qa/t_176614c6-ux-trio.qa.md`.
 source_paths = ["src/typed_gguf/runtime/fit.py"]
 also_copy = ["src/typed_gguf", "tests", "docs", "tools", "runtime.lock", "pyproject.toml", "README.md",
              "SPEC.md", "LICENSE"]
@@ -274,4 +274,4 @@ pytest_add_cli_args_test_selection = [
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
-# with `BlockingIOError: [Errno 11]`. `.e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh` does both.
+# with `BlockingIOError: [Errno 11]`. `docs/evidence/e2e/t_57cc0179-vulkan-teardown/mutmut_sweep.sh` does both.

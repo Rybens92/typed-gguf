@@ -1,9 +1,10 @@
 """One bundle per process: the bench stack's isolation seam (card t_dd62ec29).
 
 Two llama.cpp bundles in **one** process abort it at teardown. Measured on the operator box
-(`.e2e/t_603a35a0-backend-attribution/logs/after_mixed.raw`): `bench --suite throughput --backend
-all` prints the whole `typed_gguf.bench/v1` report and then dies with `double free or corruption
-(!prev)`, exit 134. The second bundle's own libraries are shadowed by the first one's (identical
+(`docs/evidence/e2e/t_603a35a0-backend-attribution/logs/after_mixed.raw`): `bench --suite
+throughput --backend all` prints the whole `typed_gguf.bench/v1` report and then dies with
+`double free or corruption (!prev)`, exit 134. The second bundle's own libraries are shadowed by
+the first one's (identical
 SONAMEs under `RTLD_GLOBAL` — the loader caches one `Runtime` per directory and the second
 `libllama.so` binds the first `libggml.so`), so its engine emits no log line at all and its model
 runs on the host CPU under its own label; the crash is the same interposition seen from glibc's

@@ -50,9 +50,9 @@ jobs:
         run: |
           set -euo pipefail
           # The repo's own code gate (docs/evidence/e1a_qa.md: `ruff check src tests tools docs`).
-          # Not `ruff check .`: the committed dev-run receipts under `.e2e/`, `.e3*/`, `.t7c9/`,
-          # `.t9bcb/` are cited by `docs/` and stay tracked, and a scratch receipt must never be
-          # able to turn the public gate red.
+          # Not `ruff check .`: the committed dev-run receipts under `docs/evidence/` (the E-run
+          # dirs, the QA/spec notes) are cited by `docs/` and stay tracked, and a scratch receipt
+          # must never be able to turn the public gate red.
           env -u PYTHONPATH uv run --extra dev ruff check src tests tools docs .github
 
       - name: Offline bench bundle stub (no download — one gate selects a backend)

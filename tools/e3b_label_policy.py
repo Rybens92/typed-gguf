@@ -43,10 +43,12 @@ items pay one extra prefill each), so a probe bug cannot be published as a model
         --model ~/.hermes/models/Accio-Lab_occamy-1.0-Q4_K_L.gguf \\
         --devset docs/evidence/e3_chunks/devset_001.jsonl --per-type 2 \\
         --rank shipped=newline --rank shipped=bare --cross-check 1 \\
-        --out .e3b/sweep.json --report .e3b/sweep.md --report-dir .e3b/reports
+        --out docs/evidence/e3b/sweep.json --report docs/evidence/e3b/sweep.md \\
+        --report-dir docs/evidence/e3b/reports
 
     # offline: the markdown tables from a stored run
-    python3 tools/e3b_label_policy.py report --run .e3b/sweep.json --out .e3b/sweep.md
+    python3 tools/e3b_label_policy.py report --run docs/evidence/e3b/sweep.json \\
+        --out docs/evidence/e3b/sweep.md
 """
 from __future__ import annotations
 

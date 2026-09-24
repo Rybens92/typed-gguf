@@ -20,7 +20,7 @@ at-the-cue shapes (30/30)."*
 
 ---
 
-## 1. Independent recomputation (from `.e3d/full.json` only)
+## 1. Independent recomputation (from `docs/evidence/e3d/full.json` only)
 
 Reimplemented from scratch (`scripts/recompute_stats.py`): Wilson z=1.96, exact two-sided McNemar
 (binomial tail), a Monte-Carlo bootstrap replicating the tool's exact convention (seed 20260919,
@@ -65,7 +65,7 @@ Extra numbers from the same recomputation (context for the ruling, not claims of
   two_step 35; on the 16 rows shipped measured, both 11. The +4 net gains are concentrated in
   `score` (+4, 0 losses), `noul` loses 2, `choice` net 0.
 
-## 2. Record-internal consistency (`.e3d/full.json`, all 60 items)
+## 2. Record-internal consistency (`docs/evidence/e3d/full.json`, all 60 items)
 
 `scripts/consistency2.py` + `scripts/fixups.py` + `scripts/conf_check.py`:
 
@@ -93,7 +93,7 @@ Extra numbers from the same recomputation (context for the ruling, not claims of
 
 ## 3. Regeneration (record → evidence doc)
 
-* `python3 tools/e3d_cue_decision.py report --run .e3d/full.json --out … --json …` reproduces
+* `python3 tools/e3d_cue_decision.py report --run docs/evidence/e3d/full.json --out … --json …` reproduces
   `docs/evidence/e3d_cue_decision_4b.md` **and** `.json` **byte-for-byte** under CPython 3.11
   (the box's system python — the version the committed artifacts were produced with).
 * Working-tree hashes equal the HEAD blobs for `full.json`, the evidence `.md` and `.json`
@@ -123,10 +123,10 @@ E2's CPU row)", not as the arms' own c01.
 
 ## 5. Serving-path check — re-run by the auditor
 
-`uv run --frozen python tools/e3d_engine_check.py --record .e3d/full.json --items 6 --threads 4`
+`uv run --frozen python tools/e3d_engine_check.py --record docs/evidence/e3d/full.json --items 6 --threads 4`
 (CPU, devices hidden, same pinned runtime, same model): **12 ok, 0 different**, and every printed
 cell (label, mass to the shown digits, reliability word) is **identical** to the committed
-`.e3d/engine_check_serving.log` (`diff` of the 12 cell lines: no differences; log kept in
+`docs/evidence/e3d/engine_check_serving.log` (`diff` of the 12 cell lines: no differences; log kept in
 `logs/engine_check_rerun.log`). Model provenance: the Spark GGUF on this box hashes to
 `5c2c3c190e4337e1016b8593ca8e26e8b18c972200b107385d4ec61a25d9dea2` — exactly the record's
 `model_sha256`; size 4 375 021 152 bytes matches. This closes "the serving path reproduces the
@@ -229,7 +229,7 @@ New:
     "item set — or (b) an explicit decision to promote on the readout-availability axis",
     "instead, with the bench seam of section 6 fixed first.",
 
-Then: `python3 tools/e3d_cue_decision.py report --run .e3d/full.json --out
+Then: `python3 tools/e3d_cue_decision.py report --run docs/evidence/e3d/full.json --out
 docs/evidence/e3d_cue_decision_4b.md --json docs/evidence/e3d_cue_decision_4b.json` and
 `uv run pytest tests/test_e3d_cue_decision.py -q` (the render tests may pin fragments of the text —
 adjust the assertions in the same commit). Zero numbers move; the regenerated doc stays
@@ -271,12 +271,12 @@ byte-reproducible.
     # 2. record consistency (derivations, prompt bytes, devset, advance)
     python3 scripts/consistency2.py && python3 scripts/fixups.py && python3 scripts/conf_check.py
     # 3. regeneration (byte-identity needs CPython 3.11)
-    python3 tools/e3d_cue_decision.py report --run .e3d/full.json --out /tmp/a.md --json /tmp/a.json
+    python3 tools/e3d_cue_decision.py report --run docs/evidence/e3d/full.json --out /tmp/a.md --json /tmp/a.json
     diff docs/evidence/e3d_cue_decision_4b.md /tmp/a.md && diff docs/evidence/e3d_cue_decision_4b.json /tmp/a.json
     # 4. bench arms
     python3 scripts/bench_verify.py
     # 5. serving path (model + pinned runtime, CPU, ~6 min)
-    uv run --frozen python tools/e3d_engine_check.py --record .e3d/full.json --items 6 --threads 4 \
+    uv run --frozen python tools/e3d_engine_check.py --record docs/evidence/e3d/full.json --items 6 --threads 4 \
       --model /var/home/rybens/.hermes/models/Spark-X2.5-4B-Q8_0.gguf \
       --runtime /var/home/rybens/.local/share/ggufone/runtime/b11026-linux-x64-vulkan
     # 6. the implementer's §6 receipts (session export)

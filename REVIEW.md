@@ -50,7 +50,7 @@ overwrites `REVIEW.md` and git keeps the predecessors.
 | 9 | red path (no bundle, no model) | ✅ | `pytest -q -m "model or network"` with the runtime vars unset → **55 skipped, 1507 deselected, 0 failed** |
 | 10 | committed offline tool | ✅ | `python tools/e1c_offline_gate.py` → **227 passed, 23 skipped**, `network-disabled run … (exit 0)` |
 | 11 | **uvx / out-of-tree install** | ✅ artifact half | `pytest -q tests/test_wheel_install.py` → **8 passed**; plus an independent build: the wheel carries `typed_gguf/data/runtime.lock`, **byte-for-byte identical** to the root file (sha256 `4214efba…`) |
-| 12 | citations ledger | ✅ no new dangling | own ledger over README + SPEC + release notes + `docs/evidence/**`: 1765 tracked files, **726 citations resolved, 0 cited-but-untracked**; the *missing* set is **identical to `ed48acb`** (byte-diff of the two sets is empty) — pre-existing `src/<pre-rename package>/…` paths inside old receipts, `mutants/…` scratch globs and two MCP method names. The repo's own `.t07b5/check_citations.py` → the same two MCP names (tools/call, tools/list), nothing else |
+| 12 | citations ledger | ✅ no new dangling | own ledger over README + SPEC + release notes + `docs/evidence/**`: 1765 tracked files, **726 citations resolved, 0 cited-but-untracked**; the *missing* set is **identical to `ed48acb`** (byte-diff of the two sets is empty) — pre-existing `src/<pre-rename package>/…` paths inside old receipts, `mutants/…` scratch globs and two MCP method names. The repo's own `docs/evidence/t07b5/check_citations.py` → the same two MCP names (tools/call, tools/list), nothing else |
 | 13 | `--help` / exit-code surface | ✅ | re-probed every command: root `--help` exit 0 and the `serve`/`mcp` lines read *“(specified in SPEC §2.9, not implemented in v0.1.0; exits 3)”* (F1 closed), every `--help` exit 0, `serve`/`mcp` exit **3**, unknown command **2**, `keep` with no subcommand **2**, `version` **0**, `keep status --json` on an empty home **0 / `state=stopped`** (N3 below is the one oddity, pre-existing) |
 | 14 | secrets | ✅ | `git grep` for AWS/`ghp_`/`github_pat_`/`hf_`/`sk-`/`xox*`/`AIza`/private-key shapes → **0 hits**; no `.env`/`.pem`/`.key`/`id_rsa` tracked |
 
@@ -166,7 +166,7 @@ safe direction (nothing is signalled) and needs ~9 queued clients (the product's
 | 3 | CI workflow sane (offline, no downloads) | ✅ | offline and downloads nothing; its "Offline suite" step is **green** at this head (area 1) — B1 closed |
 | 4 | no secrets in tracked files | ✅ | 0 hits over the tracked tree (area 14) |
 | 5 | hygiene applied | ✅ | clean clone of the certified sha is clean; only the in-flight tests-only change sits in the shared checkout (named above); `.gitignore` carries the live/scratch rules |
-| 6 | fresh-install acceptance quoted | ✅ | unchanged (`.t07b5/logs/*` receipts + the acceptance report), plus the out-of-tree artifact gate (8 passed) and the byte-identical packaged lock |
+| 6 | fresh-install acceptance quoted | ✅ | unchanged (`docs/evidence/t07b5/logs/*` receipts + the acceptance report), plus the out-of-tree artifact gate (8 passed) and the byte-identical packaged lock |
 | 7 | `--help` surface self-consistent | ✅ | F1/F2 closed; exit codes as documented (area 13) |
 | 8 | docs ↔ code for the new surface | ✅ | areas 3/4 and the consistency sections above |
 

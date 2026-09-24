@@ -7,10 +7,10 @@ the whole `typed_gguf.bench/v1` report is on stdout, followed by
 
     double free or corruption (!prev)                                       exit 134
 
-(`.e2e/t_603a35a0-backend-attribution/logs/{before,after}_mixed.raw`, both trees). Single-bundle
-runs exit 0/1 normally. The neighbouring card t_603a35a0 fixed *what the report says* (a row whose
-own engine log refutes its label is flagged); it left the abort alone, so a CI step that trusts the
-exit code reads a complete, publishable report as a crash.
+(`docs/evidence/e2e/t_603a35a0-backend-attribution/logs/{before,after}_mixed.raw`, both trees).
+Single-bundle runs exit 0/1 normally. The neighbouring card t_603a35a0 fixed *what the report says*
+(a row whose own engine log refutes its label is flagged); it left the abort alone, so a CI step
+that trusts the exit code reads a complete, publishable report as a crash.
 
 What this file pins (offline: two bundle *directories* on disk plus the fake bench seam, no model):
 
