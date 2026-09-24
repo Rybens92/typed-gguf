@@ -1,0 +1,11 @@
+home: /work/tmp-review-rt-0bIO
+nvidia-smi: GPU 0: NVIDIA GeForce RTX 3060 Ti (UUID: GPU-fde53142-3c4b-aea3-b86b-9929f8b242ca)
+--- typed-gguf runtime update (default backend) ---
+downloading runtime:   0.6%  1.05 MB / 169.49 MBdownloading runtime:   6.8%  11.53 MB / 169.49 MBdownloading runtime:  13.0%  22.02 MB / 169.49 MBdownloading runtime:  19.8%  33.55 MB / 169.49 MBdownloading runtime:  30.9%  52.43 MB / 169.49 MBdownloading runtime:  37.7%  63.96 MB / 169.49 MBdownloading runtime:  45.2%  76.55 MB / 169.49 MBdownloading runtime:  50.7%  85.98 MB / 169.49 MBdownloading runtime:  53.2%  90.18 MB / 169.49 MBdownloading runtime:  55.7%  94.37 MB / 169.49 MBdownloading runtime:  66.2%  112.20 MB / 169.49 MBdownloading runtime:  73.6%  124.78 MB / 169.49 MBdownloading runtime:  81.0%  137.36 MB / 169.49 MBdownloading runtime:  87.2%  147.85 MB / 169.49 MBdownloading runtime:  96.5%  163.58 MB / 169.49 MBdownloading runtime: 100.0%  169.49 MB / 169.49 MB
+error: E_RUNTIME_SYMBOLS: the cuda backend of /work/tmp-review-rt-0bIO/runtime/.pending-llama-b11160-bin-ubuntu-cuda-12.8-x64.tar.gz does not load on this host (libggml-cuda.so: libcudart.so.12: cannot open shared object file: No such file or directory); reinstall the system libraries it needs or update with --backend for the one this host can drive
+EXIT=3  elapsed=11s
+runtime.json byte-identical: yes
+runtime dirs: b11026-linux-x64-cpu 
+downloads: 169485202 llama-b11160-bin-ubuntu-cuda-12.8-x64.tar.gz 
+home total: 162M
+cleaned: /work/tmp-review-rt-0bIO
