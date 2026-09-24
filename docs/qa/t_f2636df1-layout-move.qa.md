@@ -74,6 +74,8 @@ that cited them were re-pointed at `docs/qa/<note>` (`.gitignore`, `pyproject.to
 | `uv run pytest -q tests/test_public_docs.py tests/test_public_layout.py` | `20 passed` |
 | old-path sweep (the card's regex, `:!docs/evidence :!docs/qa :!tests/test_public_layout.py`) | prints **nothing** (`git grep` exit 1) |
 | `uv run ruff check src tests` / `ruff check src tests tools docs .github` | `All checks passed!` |
+| path citations (AC 7): a one-off ledger over the living surface — every `docs/evidence/…` / `docs/qa/…` token in the 96 living files that carry one | `507 checked: 491 resolve, 16 flagged` = **12 tokenizer artefacts** (brace/`..`/`\n`/placeholder forms my regex cannot read — `{before,after}_mixed.raw`, `devset_00{1..6}.jsonl`, `e2_t_858c54d1_bench.md.\`, `…_4b.{md`, `{path.name}` — each verified present by hand) + **4 real misses, all pre-existing**: `.e3e/bench_shipped.json` / `.e3e/bench_role_split_shipped.json` in `tools/e3e_roles_decision.py`'s usage block and `docs/evidence/{e2p5_route,e1a_kv_footprint}.json` in two tools this card never touched — all four verified absent at `HEAD~2` too, so the move introduced none |
+| the required bare-checkout shape, for real: `git worktree add /tmp/wt-layout HEAD` (`.git` as a *file*, no `.venv`, no caches) → `pytest -q tests/test_public_layout.py` | `3 passed in 0.07s` (the worktree was removed again) |
 | mutation | **not run** (Tier M, move-only: receipts + path strings; no `src/` logic in the diff) |
 
 The stub matters: the card's own command uses an empty `mktemp -d`, and `test_bench_prompt_parity`
