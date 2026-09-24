@@ -118,3 +118,23 @@ Commits (on `main`, no push):
 
 * `553464e` `test(layout): RED — a gate for the public root layout` (the failing gate, before the move)
 * `29e967e` `refactor(layout): root dot-dirs -> docs/evidence/<name>/ + .gauntlet -> docs/qa/`
+
+…plus small `docs(qa)` follow-ups on this note itself (its `--follow` hashes, the citation ledger,
+these follow-ups); they touch no product file.
+
+## 7. Known follow-ups (stated, not hidden)
+
+* **The spliced blocks of `docs/BENCHMARKS.md`** (the `@@T9BCBECFF_TIEL_E3E_@@` table, the
+  `@@E3C_TIEL_BENCH_7@@` section, the `E3E-TABLE:` block) were re-pointed with everything else, but
+  their generators (`.t9bcb/render_doc.py`, `.t7c9/render_doc.py`, `.e3e/splice_docs.py`) are
+  receipts and still render the pre-move spelling. A later card that re-splices those blocks will
+  see exactly these path lines (plus any number that moved) as the diff — regenerate and commit
+  both sides then; nothing is red in the meantime (the section gates only assert prose).
+* **15 files under `docs/evidence/e2e/t_b67f9c49-calibrate/` stay untracked.** They were untracked
+  before the move (that card never committed them), they travelled with the directory, and this card
+  did not add them: `git status` reports exactly those 15, and nothing tracked cites them.
+* **`docs/evidence/t07b5/check_citations.py` is byte-frozen and was already broken before the
+  move**: its `DOCS` list names `docs/RELEASE_NOTES_v0.1.0.md` (absent since the v0.2.x rename) and
+  its `Path(__file__).resolve().parents[1]` root now points at `docs/evidence/` because the file is
+  a receipt in a deeper directory. It is not run by any test or CI step; the AC 7 ledger above was
+  run as a one-off instead. A living replacement belongs in `tests/` or `tools/` — a separate card.
