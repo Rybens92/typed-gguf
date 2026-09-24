@@ -17,6 +17,7 @@ answer is `schema.render_response(native, format="typesafe")` of the very same e
 """
 from __future__ import annotations
 
+import dataclasses
 import importlib.util
 import json
 import os
@@ -956,3 +957,90 @@ def test_the_gate_model_default_is_the_pinned_4b_or_an_override() -> None:
     lines = [line for line in script.splitlines() if line.startswith("MODEL=")]
     assert len(lines) == 1, lines
     assert "TYPED_GGUF_GATE_MODEL" in lines[0] and "gguf" in lines[0], lines[0]
+
+
+# -------------------------------- 11. the helpers the model row is built from (mutation round 2)
+def test_the_model_row_helpers_are_exact() -> None:
+    """`/v1/models` only sampled these: an exact row is what the row's own wording claims.
+
+    (Mutation round 1, card t_f5d8b6c7: the `_human_size` / `_release_date` / `_description`
+    families survived a gate that asserted a prefix — 63 mutants on paths whose whole job is the
+    one line a caller reads.)
+    """
+    assert serve._human_size(None) == "size unknown"
+    assert serve._human_size(0) == "size unknown"
+    assert serve._human_size(512) == "512 B"
+    assert serve._human_size(1024) == "1.0 KiB"
+    assert serve._human_size(4_000_000_000) == "3.7 GiB"
+    assert serve._human_size(2 * 1024 ** 4) == "2.0 TiB"
+    assert serve._human_size(1024 ** 5) == "1024.0 TiB", "TiB is the last unit the loop offers"
+    entry = store.Entry(alias="a", path="/nonexistent.gguf", arch="qwen35", quant="Q8_0",
+                        size=4_000_000_000)
+    assert serve._description(entry) == ("qwen35 Q8_0 GGUF (3.7 GiB), local; typed-gguf's own "
+                                        "engine")
+    bare = dataclasses.replace(entry, arch=None, quant=None, size=None)
+    assert serve._description(bare) == ("unknown arch unknown quant GGUF (size unknown), local; "
+                                        "typed-gguf's own engine")
+
+
+def test_the_release_date_is_this_copy_s_mtime_and_never_a_guess(tmp_path) -> None:
+    weights = tmp_path / "w.gguf"
+    weights.write_bytes(b"GGUF")
+    os.utime(weights, (1_700_000_000, 1_700_000_000))
+    dated = store.Entry(alias="a", path=str(weights), arch="qwen35", quant="Q8_0", size=4,
+                        added_at="2024-05-06T07:08:09Z")
+    assert serve._release_date(str(weights), dated) == "2023-11-14", "the file's own mtime, in UTC"
+    missing = str(tmp_path / "gone.gguf")
+    assert serve._release_date(missing, dated) == "2024-05-06", "no file: the entry's own date"
+    undated = dataclasses.replace(dated, added_at="")
+    assert serve._release_date(missing, undated) == "", "no file and no date: nothing invented"
+    assert serve._release_date(missing, dataclasses.replace(dated, added_at="sometime")) == ""
+
+
+def test_the_typed_error_location_follows_the_code_and_the_question(tmp_path) -> None:
+    payload = {"questions": {"q1": {"type": "noul"}, "o'brien": {"type": "score"}}}
+    assert serve._location_for(UserError("x", code="E_STATE_EMPTY"), payload) == ("body", "state")
+    assert serve._location_for(UserError("x", code="E_MODEL_NOT_FOUND"), payload) == ("body",
+                                                                                     "model")
+    # a question-level code lands on the question it names, when the payload has it
+    assert serve._location_for(UserError("question 'q1': x", code="E_SCORE_LEVELS"),
+                               payload) == ("body", "questions", "q1", "criteria")
+    # …a quoted id (the message escapes it) and one the payload does not carry
+    assert serve._location_for(UserError("question 'o\\'brien': x", code="E_Q_TYPE_UNKNOWN"),
+                               payload) == ("body", "questions", "o'brien", "type")
+    assert serve._location_for(UserError("question 'gone': x", code="E_CHOICE_CRITERIA"),
+                               payload) == ("body", "questions")
+    assert serve._location_for(UserError("no id at all", code="E_CHOICE_CRITERIA"),
+                               payload) == ("body", "questions")
+    assert serve._location_for(UserError("x", code="E_UNKNOWN_KEY"), {"questions": "no"}) == \
+        ("body",), "a code the map does not know locates the body and stops there"
+
+
+def test_run_owns_the_server_lifecycle(monkeypatch) -> None:
+    """`run` is the blocking half the CLI calls: it must bind, serve, and close — once."""
+    events: list[Any] = []
+
+    class FakeServer:
+        def serve_forever(self) -> None:
+            events.append("serve_forever")
+
+        def server_close(self) -> None:
+            events.append("server_close")
+
+    fake = FakeServer()
+
+    def make_server(app, host, port):
+        events.append(("make_server", app, host, port))
+        return fake
+
+    monkeypatch.setattr(serve, "make_server", make_server)
+    app = serve.App(decide=_no_loading, home=None, log=Log())
+    assert serve.run(app, "127.0.0.1", 8123) == 0
+    assert events == [("make_server", app, "127.0.0.1", 8123), "serve_forever", "server_close"]
+
+    class Interrupted(FakeServer):
+        def serve_forever(self) -> None:
+            raise KeyboardInterrupt
+
+    monkeypatch.setattr(serve, "make_server", lambda *a, **k: Interrupted())
+    assert serve.run(app) == 0, "a Ctrl-C is a clean exit, and the socket still closes"

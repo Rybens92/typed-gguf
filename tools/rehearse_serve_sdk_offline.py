@@ -71,7 +71,6 @@ def main(argv: list[str] | None = None) -> int:
 
     import tempfile
 
-    from typed_gguf import cli
     from typed_gguf.api import http as serve
 
     # `tests/test_serve.py` imports its siblings as `tests.<module>`; do the same here
