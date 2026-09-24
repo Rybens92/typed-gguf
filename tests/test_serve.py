@@ -551,6 +551,22 @@ def _read_response(conn: socket.socket) -> tuple[bytes, dict[bytes, bytes], byte
     return lines[0], headers, body
 
 
+#: The reason phrase in a status line is the *interpreter's* text, not ours: `Handler.send_response`
+#: takes it from `http.HTTPStatus`, and CPython rewrites those strings between versions. 3.13
+#: refreshed them per RFC 9110, so the body cap reads `Content Too Large` there and `Request Entity
+#: Too Large` on 3.11/3.12 (card `t_b5872762`: CI ran 3.11/3.12, the certifying host 3.13, so only
+#: the host went red). RFC 9110 §15 also tells clients to ignore the phrase, so what this file pins
+#: off the wire is the *code* — via `_code_of`, never a spelled-out phrase — plus the body shape,
+#: which is the part the spec actually fixes.
+def _code_of(status: bytes) -> int:
+    """`b"HTTP/1.1 413 Content Too Large"` -> `413`, whatever phrase the interpreter chose."""
+    version, _space, rest = status.partition(b" ")
+    assert version == b"HTTP/1.1", status
+    code, _space, _phrase = rest.partition(b" ")
+    assert code.isdigit() and len(code) == 3, status
+    return int(code)
+
+
 @pytest.fixture
 def handler_in_a_thread():
     """Run the real handler on one end of a socketpair and hand back the client end."""
@@ -580,7 +596,7 @@ def test_the_http_layer_speaks_http_1_1_with_a_content_length(home, handler_in_a
                  b"Connection: close\r\nContent-Length: " + str(len(raw)).encode() + b"\r\n\r\n"
                  + raw)
     status, headers, body = _read_response(conn)
-    assert status == b"HTTP/1.1 200 OK", status
+    assert _code_of(status) == 200, status
     assert headers[b"Content-Type"] == b"application/json"
     assert b"x-typesafe-request-id" in {name.lower() for name in headers}, (
         "the SDK reads this header for its own logs")
@@ -592,7 +608,7 @@ def test_the_http_layer_answers_a_get_health(tmp_path, handler_in_a_thread) -> N
     conn = handler_in_a_thread(serve.App(decide=_no_loading, home=tmp_path / "nothing", log=Log()))
     conn.sendall(b"GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")
     status, _headers, body = _read_response(conn)
-    assert status == b"HTTP/1.1 200 OK", status
+    assert _code_of(status) == 200, status
     assert json.loads(body)["status"] == "ok"
 
 
@@ -601,19 +617,23 @@ def test_the_http_layer_keeps_the_connection_alive_for_a_second_request(
     conn = handler_in_a_thread(serve.App(decide=_no_loading, home=tmp_path / "nothing", log=Log()))
     conn.sendall(b"GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
     first = _read_response(conn)
-    assert first[0] == b"HTTP/1.1 200 OK" and json.loads(first[2])["status"] == "ok"
+    assert _code_of(first[0]) == 200, first[0]
+    assert json.loads(first[2])["status"] == "ok"
     conn.sendall(b"GET /models-typo HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")
     second = _read_response(conn)
-    assert second[0] == b"HTTP/1.1 404 Not Found", second[0]
+    assert _code_of(second[0]) == 404, second[0]
     assert json.loads(second[2]) == {"detail": "Not Found"}
 
 
 # ------------------------ the request-body cap, the idle timeout, the RST (card t_ba767a2b, M3)
+# `413`'s reason phrase is the *interpreter's* text (see `_code_of`): the cap is asserted as a code,
+# never as `Request Entity Too Large` / `Content Too Large` (card t_b5872762).
 def test_a_body_over_the_cap_is_refused_before_a_byte_of_it_is_read(
         home, handler_in_a_thread) -> None:
     """`http.server` reads whatever `Content-Length` claims, so the cap is answered from the header
     alone: this client sends *no* body at all and still gets its `413` (a server that tried to read
-    first would sit on the socket until the handler timeout, and the read below would fail)."""
+    first would sit on the socket until the handler timeout, and the read below would fail). The
+    status is read as a code — the phrase that follows it is the interpreter's."""
     log = Log()
     conn = handler_in_a_thread(serve.App(decide=_no_loading, home=home, log=log))
     conn.settimeout(5.0)
@@ -622,7 +642,7 @@ def test_a_body_over_the_cap_is_refused_before_a_byte_of_it_is_read(
                  b"Content-Type: application/json\r\nConnection: close\r\n"
                  b"Content-Length: " + str(over).encode() + b"\r\n\r\n")
     status, headers, body = _read_response(conn)
-    assert status == b"HTTP/1.1 413 Request Entity Too Large", status
+    assert _code_of(status) == 413, status
     assert headers[b"Connection"] == b"close", "the rest of that body must not be parsed as one"
     detail = json.loads(body)["detail"][0]
     assert detail["type"] == "too_large" and detail["loc"] == ["body"]
@@ -638,7 +658,7 @@ def test_the_native_route_speaks_its_own_shape_for_the_cap(home, handler_in_a_th
     conn.sendall(b"POST /v1/decide HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n"
                  b"Content-Length: " + str(serve.MAX_BODY_BYTES * 4).encode() + b"\r\n\r\n")
     status, _headers, body = _read_response(conn)
-    assert status == b"HTTP/1.1 413 Request Entity Too Large", status
+    assert _code_of(status) == 413, status
     error = json.loads(body)["error"]
     assert error["code"] == serve.BODY_TOO_LARGE
     assert str(serve.MAX_BODY_BYTES * 4) in error["message"], "the refusal names the size announced"
@@ -663,7 +683,7 @@ def test_a_body_at_the_cap_is_still_read_and_routed(home, handler_in_a_thread) -
                  b"Content-Type: application/json\r\nConnection: close\r\n"
                  b"Content-Length: " + str(len(raw)).encode() + b"\r\n\r\n" + raw)
     status, _headers, _body = _read_response(conn)
-    assert status != b"HTTP/1.1 413 Request Entity Too Large", "a legal body is not a refusal"
+    assert _code_of(status) == 200, "a legal body is not a refusal"
     assert seen == [len(state)], "the body arrived whole"
 
 
@@ -730,7 +750,7 @@ def test_the_server_binds_loopback_and_answers_over_tcp(home) -> None:
         with socket.create_connection((host, port), timeout=5.0) as conn:
             conn.sendall(b"GET /health HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n")
             status, _headers, body = _read_response(conn)
-        assert status == b"HTTP/1.1 200 OK", status
+        assert _code_of(status) == 200, status
         assert json.loads(body)["service"] == serve.SERVICE
     finally:
         server.shutdown()

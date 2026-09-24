@@ -30,7 +30,12 @@ jobs:
       matrix:
         # 3.12 measured clean on this tree before it was put here: 1331 passed / 48 skipped, the
         # same counts as 3.11 (card t_44c85f68).
-        python-version: ["3.11", "3.12"]
+        # 3.13 is here because the *interpreter*, not this repo, owns the HTTP reason phrase:
+        # CPython 3.13 refreshed `http.HTTPStatus` per RFC 9110, so `413` reads "Content Too Large"
+        # there and "Request Entity Too Large" on 3.11/3.12. A 3.11/3.12-only matrix cannot see that
+        # class of red — it surfaced on the coordinator's 3.13 certification instead (card
+        # t_b5872762). Widen this list before certifying on a new interpreter.
+        python-version: ["3.11", "3.12", "3.13"]
     env:
       # one interpreter for every `uv` invocation in the job (sync, lint, suite, oracle)
       UV_PYTHON: ${{ matrix.python-version }}
