@@ -33,7 +33,7 @@ from typed_gguf.errors import ERROR_CODES, WARNING_CODES
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 README = (ROOT / "README.md").read_text(encoding="utf-8")
-NOTES = (ROOT / "docs" / "RELEASE_NOTES_v0.2.2.md").read_text(encoding="utf-8")
+NOTES = (ROOT / "docs" / "RELEASE_NOTES_v0.2.3.md").read_text(encoding="utf-8")
 SPEC = (ROOT / "SPEC.md").read_text(encoding="utf-8")
 PYPROJECT = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
@@ -43,7 +43,7 @@ PRE_V2_SWITCHES = ("answer_sheet", "two_step", "json_field", "`shipped")
 SWITCH_MARKERS = ("--cue", "--chat-format", "pre-v2", "pre-policy-v2", "switch", "flag", "cell",
                   "arm", "not the default", "published as", "stay reachable", "reachable")
 #: docs the policy gate covers (the public pair a release ships)
-PUBLIC = (("README.md", README), ("docs/RELEASE_NOTES_v0.2.2.md", NOTES))
+PUBLIC = (("README.md", README), ("docs/RELEASE_NOTES_v0.2.3.md", NOTES))
 
 
 def test_the_quickstart_quotes_the_defaults_the_code_ships() -> None:
@@ -79,7 +79,7 @@ def test_the_pre_v2_switches_are_never_written_as_the_default() -> None:
 
 def test_the_release_notes_are_pinned_to_the_packaged_version() -> None:
     version = PYPROJECT["project"]["version"]
-    assert version == "0.2.2", "this file pins the v0.2.2 notes: rename it with the version"
+    assert version == "0.2.3", "this file pins the v0.2.3 notes: rename it with the version"
     head = NOTES.splitlines()[0]
     assert head.startswith("# typed-gguf ") and f"v{version}" in head
 
