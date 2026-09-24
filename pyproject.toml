@@ -219,7 +219,7 @@ quote-style = "double"
 # whole selection (`tests/test_runtime_update.py` drives every branch on fake bundles, offline).
 # `cli.py` is deliberately not in `source_paths`: the `runtime` subcommand is thin wiring those
 # gates already drive end to end. Restore the serve/api pair above when a serve card sweeps next.
-source_paths = ["src/typed_gguf/runtime/update.py"]
+source_paths = ["src/typed_gguf/registry/store.py"]
 # Card t_f5d8b6c7 (serve) drops `docs` from also_copy for this sweep: the selection
 # (`tests/test_serve.py`) reads no document, while `docs/evidence/` carries 4.3 GB of committed
 # e2e artifacts (a model tree, two venvs with dangling `bin/python*` links) whose copy dominated
@@ -290,8 +290,20 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # card's own gate file `tests/test_context_v2.py` (the synthetic-4B arithmetic) plus the module's
 # fast contract file `tests/test_fit.py` — the live file needs the model and cannot run per mutant.
 # A later sweep restores the keep pair above.
+# Card t_a0fa2dc0 (UX, the default model) retargets the pair at the module the change moves:
+# `src/typed_gguf/registry/store.py` — `find_default` (`current`, else the registry's sole alias)
+# and the `resolve(..., use_current=True)` every "the request named no model" path goes through.
+# `cli.py` is deliberately not in `source_paths` again (the standing convention): its two hunks —
+# the no-model error's text and the `requested -> resolved` note — are wiring the card's CLI gates
+# drive end to end. The selection is three fast in-process gate files: the card's own
+# `tests/test_default_model.py` (every branch of `find_default`, the CLI's resolution and its note),
+# `tests/test_registry_store.py` (the module's own contract: aliases, dedup, corruption) and
+# `tests/test_cli_e1a.py` (the `models ls/use/rm` surface that writes and reads the table).
+# Restore a keep/runtime pair when the next card sweeps one.
 pytest_add_cli_args_test_selection = [
-    "tests/test_runtime_update.py",
+    "tests/test_default_model.py",
+    "tests/test_registry_store.py",
+    "tests/test_cli_e1a.py",
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
