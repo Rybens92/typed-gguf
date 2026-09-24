@@ -17,10 +17,12 @@ answer is `schema.render_response(native, format="typesafe")` of the very same e
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import pathlib
 import socket
+import subprocess
 import sys
 import threading
 import time
@@ -32,9 +34,10 @@ from tests.fake_engine import FakeSession, biased_row
 from typed_gguf import cli, schema
 from typed_gguf.api import http as serve
 from typed_gguf.engine import decide as decide_module
-from typed_gguf.errors import PrefillFailedError, RuntimeError_, UserError
+from typed_gguf.errors import PrefillFailedError, RuntimeError_, TypedGgufError, UserError
 from typed_gguf.keep import client as keep_client
-from typed_gguf.keep import identity, state as keep_state
+from typed_gguf.keep import identity
+from typed_gguf.keep import state as keep_state
 from typed_gguf.registry import store
 
 FIXTURE = pathlib.Path(__file__).parent / "fixtures" / "typesafe_sdk_0_7_1_fields.json"
@@ -86,7 +89,7 @@ def test_our_paths_and_the_compat_name_are_the_sdk_s_own() -> None:
     assert serve.SYSTEM_ONE_PATH == SDK_CONSTANTS["SYSTEM_ONE_PATH"] == "/v1/systemone"
     assert serve.MODELS_PATH == SDK_CONSTANTS["MODELS_PATH"] == "/v1/models"
     assert serve.COMPAT_MODEL == SDK_CONSTANTS["DEFAULT_MODEL"] == "jev-latest"
-    assert serve.REQUEST_KEYS == tuple(WIRE["SystemOneRequest"]), (
+    assert tuple(WIRE["SystemOneRequest"]) == serve.REQUEST_KEYS, (
         "the served request keys are the SDK's SystemOneRequest, in its own order")
     assert serve.SERVICE == "typed-gguf"
 
@@ -101,9 +104,9 @@ def test_the_answer_key_sets_are_the_documented_ones() -> None:
     assert set(ANSWER_FIELDS["choice"]) == set(serve.ANSWER_KEYS["choice"])
     assert set(ANSWER_FIELDS["score"]) == set(serve.ANSWER_KEYS["score"])
     assert set(ANSWER_FIELDS["noul"]) | {"probabilities"} == set(serve.ANSWER_KEYS["noul"])
-    assert serve.MODELS_KEYS == tuple(WIRE["ModelMetadata"])
-    assert serve.USAGE_KEYS == tuple(WIRE["Usage"])
-    assert serve.SERVICE_KEYS == tuple(WIRE["SystemOneResponse"])
+    assert tuple(WIRE["ModelMetadata"]) == serve.MODELS_KEYS
+    assert tuple(WIRE["Usage"]) == serve.USAGE_KEYS
+    assert tuple(WIRE["SystemOneResponse"]) == serve.SERVICE_KEYS
     assert serve.ANSWER_TYPES == ("noul", "choice", "score")
     assert [name.casefold().removesuffix("answer")
             for name in FIELDS["answer_discriminator"]["members"]] == list(serve.ANSWER_TYPES)
@@ -114,14 +117,20 @@ def mixed_engine_body(payload: dict[str, Any]) -> dict[str, Any]:
     """A native body from the *real* engine over the deterministic fake session (test_cli's trade).
 
     Same validation, same readout, same rendering as a model load — only the weights are fake, so
-    the mapping gates see real probability vectors, real confidence and real legends.
+    the mapping gates see real probability vectors, real confidence and real legends. The `keep`
+    block the warm CLI path always writes is added too (`served_by: host`), so the log and the
+    `served_by` this app reports are the ones the real path produces.
     """
     request = schema.parse_request(payload)
     session = FakeSession(n_vocab=512)
+    session.model_alias = payload.get("model") or session.model_alias
     preferred = session.tokenize("billing")[0]
     session.row_fn = lambda ctx, s=session: biased_row(s.n_vocab, {preferred: 6.0})
     result = decide_module.decide_request(request, session)
-    return schema.render_response(result.payload(), format=request.format)
+    body = schema.render_response(result.payload(), format=request.format)
+    if isinstance(body.get("engine"), dict):
+        body["engine"]["keep"] = {"served_by": "host", "pid": 4242, "requests": 1}
+    return body
 
 
 class Engine:
@@ -191,10 +200,16 @@ def _registry_with_models(home: pathlib.Path, *aliases: str) -> None:
 
 
 @pytest.fixture
-def home(tmp_path: pathlib.Path) -> pathlib.Path:
-    """A data home with one registry alias whose file exists."""
+def home(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> pathlib.Path:
+    """A data home with one registry alias whose file exists.
+
+    `TYPED_GGUF_HOME` points at it too, so every path that resolves the home for itself — `run`,
+    `ask`, the keep ledger — lands in the same place `serve` was given: `home=None` means *this*
+    home, which is what the same-host claim rests on.
+    """
     data_home = tmp_path / "home"
     _registry_with_models(data_home, ALIAS)
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(data_home))
     return data_home
 
 
@@ -375,7 +390,7 @@ def test_an_unknown_top_level_key_is_extra_forbidden(tmp_path) -> None:
 
 
 def test_every_validation_detail_is_a_sdk_validation_error(home) -> None:
-    """The shape, not just the status: `ValidationError`'s own fields, `HTTPValidationError.detail`."""
+    """The shape, not just the status: `ValidationError`'s fields inside `HTTPValidationError`."""
     app = serve.App(decide=_no_loading, home=home, log=Log())
     cases = [b"{not json", json.dumps({"state": "x", "model": ALIAS}).encode(),
              json.dumps({**SDK_MIXED_BODY, "nope": 1}).encode(),
@@ -496,10 +511,10 @@ def test_decide_maps_exit_codes_to_400_503_and_500(home) -> None:
               "questions": {"q": {"type": "noul", "instructions": "x"}}}
     for error, status in ((UserError("bad question", code="E_Q_TYPE_UNKNOWN"), 400),
                           (RuntimeError_("the backend died", code="E_PREFILL_FAILED"), 503),
-                          (RuntimeError_("boom", code="E_INTERNAL"), 500)):
+                          (TypedGgufError("boom", code="E_INTERNAL"), 500)):
         app = serve.App(decide=Engine(error=error), home=home, log=Log())
         response = post(app, native, path=serve.DECIDE_PATH)
-        assert response.status == status, error
+        assert response.status == status, (error, error.exit_code)
         payload = body_of(response)
         assert set(payload) == {"error"} and set(payload["error"]) == {"code", "message"}
         assert payload["error"]["code"] == error.code
@@ -637,26 +652,35 @@ def test_the_decision_callable_is_the_warm_cli_path(home, monkeypatch) -> None:
 def test_the_request_a_client_sends_is_the_payload_run_builds_for_the_same_questions(
         home, monkeypatch, capsys) -> None:
     """A-E5-4 offline half: one state + questions -> one payload, whether they arrive by HTTP or
-    through `run`'s request file."""
-    seen: list[dict[str, Any]] = []
+    through `run`'s request file — and the same home + keep-alive window, so the warm host that
+    answers is the same host (same ledger, same placement, same calibration)."""
+    calls: list[dict[str, Any]] = []
 
     def fake_warm(payload: dict, *, home=None, keep_alive=None, **kwargs):
-        seen.append(payload)
+        calls.append({"payload": payload, "home": home, "keep_alive": keep_alive})
         return mixed_engine_body(payload)
 
     monkeypatch.setattr(cli, "decide_payload_warm", fake_warm)
     app = cli.serve_app(home=home, keep_alive=600.0, default_format="native")
     served = body_of(post(app, SDK_MIXED_BODY))
-    served_payload = seen[-1]
+    served_call = calls[-1]
 
     questions = home.parent / "q.json"
     questions.write_text(json.dumps({"state": SDK_MIXED_BODY["state"], "model": ALIAS,
                                      "questions": SDK_MIXED_BODY["questions"]}),
                          encoding="utf-8")
-    assert cli.main(["run", "--questions", str(questions)]) == 0
-    assert seen[-1] == served_payload, "the served payload and the CLI's are the same request"
+    assert cli.main(["run", "--questions", str(questions), "--format", "typesafe"]) == 0
+    assert calls[-1]["payload"] == {**served_call["payload"], "format": "typesafe"}, (
+        "the served payload and the CLI's are the same request, bar the format the CLI was told")
+    # `run` hands `decide_payload_warm` the *unresolved* defaults (`home=None` means "the data
+    # home"); `serve` hands it what the CLI resolved once at start-up. Same home, same window —
+    # that is the same-host claim, and it is the payload + the ledger that make it true.
+    assert calls[-1]["home"] is None and calls[-1]["keep_alive"] is None
+    assert served_call["home"] == home == store.data_home()
+    assert served_call["keep_alive"] == identity.resolve_keep_alive(None)
     report = json.loads(capsys.readouterr().out)
     assert report["answers"] == served["answers"], "same engine, same numbers"
+    assert report["model"] == served["model"] == ALIAS
 
 
 # --------------------------------------------- 9. cold/warm + serialization through the real host
@@ -667,16 +691,28 @@ def fake_host_client(keep_home: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
     The whole production path stays in place — `keep_key_for`, the ledger, the unix socket, the
     detached child, the reuse/swap decision, the keep-alive window — only the engine is fake, the
     same trade `tests/test_keep_client.py` makes.
+
+    Every client the product builds is kept alive here and stopped on the way out: the CLI drops
+    its `Client` as soon as the call returns, and a dropped `Popen` for a still-running (detached,
+    correctly so) host is a `ResourceWarning`, not a finding.
     """
     monkeypatch.delenv("TYPED_GGUF_KEEP_FAKE", raising=False)
+    built: list[keep_client.Client] = []
 
     class FakeHostClient(keep_client.Client):
         def __init__(self, **kwargs: object) -> None:
             kwargs.setdefault("host_command", (sys.executable, str(FAKE_HOST), "--spec"))
             super().__init__(**kwargs)                     # type: ignore[arg-type]
+            built.append(self)
 
     monkeypatch.setattr(cli.keep_client, "Client", FakeHostClient)
+    _registry_with_models(keep_home, ALIAS)
     yield keep_home
+    for client in built:
+        client.stop(grace=1.0)                             # reaps the child it spawned
+        for _pid, proc in list(client.children.items()):
+            proc.kill()
+            proc.wait(timeout=2.0)
     keep_client.Client(home=keep_home).stop(grace=1.0)
 
 
@@ -684,7 +720,6 @@ def fake_host_client(keep_home: pathlib.Path, monkeypatch: pytest.MonkeyPatch):
 def test_the_first_http_request_pays_the_load_and_the_second_reuses_the_host(
         fake_host_client) -> None:
     data_home = fake_host_client
-    _registry_with_models(data_home, ALIAS)
     app = cli.serve_app(home=data_home, keep_alive=30.0, default_format="native")
     first = post(app, SDK_MIXED_BODY)
     pid = keep_state.read_record(data_home).pid
@@ -699,7 +734,6 @@ def test_the_first_http_request_pays_the_load_and_the_second_reuses_the_host(
 @pytest.mark.needs_fork
 def test_keep_stop_still_works_after_serving_and_leaves_nothing_behind(fake_host_client) -> None:
     data_home = fake_host_client
-    _registry_with_models(data_home, ALIAS)
     app = cli.serve_app(home=data_home, keep_alive=30.0, default_format="native")
     assert post(app, SDK_MIXED_BODY).status == 200
     record = keep_state.read_record(data_home)
@@ -816,3 +850,109 @@ def test_serve_help_and_the_command_list_agree_that_serve_ships(capsys) -> None:
     assert cli.COMMAND_DESCRIPTIONS["serve"] != cli.PLANNED_NOTE
     assert cli.NOT_IMPLEMENTED == ("mcp",), "mcp keeps its wording; serve ships"
     assert "--keep-alive" in " ".join(cli.COMMAND_HELP["serve"])
+
+
+# ------------------------------------------------- 10. the host gate (acceptance 6, rehearsed)
+ROOT_DIR = pathlib.Path(__file__).resolve().parents[1]
+GATE_SCRIPT = ROOT_DIR / "tools" / "host_gate_serve.sh"
+GATE_DRIVER = ROOT_DIR / "tools" / "host_gate_serve_client.py"
+REHEARSAL = ROOT_DIR / "tools" / "rehearse_serve_sdk_offline.py"
+#: the qids of SDK_MIXED_BODY, in the driver's own vocabulary
+MIXED_KINDS = {"urgency": "score", "area": "choice", "spam": "noul"}
+
+
+def _gate_driver():
+    """The host gate's client driver, imported from `tools/` (the `test_probe_isolation` trade)."""
+    spec = importlib.util.spec_from_file_location("host_gate_serve_client", GATE_DRIVER)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["host_gate_serve_client"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _served_typesafe_body() -> dict[str, Any]:
+    """What `/v1/systemone` answers for SDK_MIXED_BODY — the real mapping, then the projection."""
+    native = mixed_engine_body(SDK_MIXED_BODY)
+    return json.loads(json.dumps(schema.render_response(native, format="typesafe")))
+
+
+def test_the_host_gate_driver_accepts_the_body_our_mapping_serves() -> None:
+    """The gate's own judgements must pass on the body this product produces, or the host run is
+    guaranteed red for a reason that has nothing to do with the host."""
+    driver = _gate_driver()
+    body = _served_typesafe_body()
+    assert set(body["answers"]) == set(MIXED_KINDS)
+    assert driver.verify(body, questions=MIXED_KINDS) == []
+    # the annotated view is the shape the driver actually judges: the server sends bits (JSON) and
+    # the SDK hands `model_dump()` a decoded document, so the served body has to pass as it is
+    assert driver.verify(json.loads(json.dumps(body)), questions=MIXED_KINDS) == []
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected"),
+    [
+        (lambda body: body["answers"].pop("area"), "answers are"),
+        (lambda body: body["answers"]["area"].pop("confidence"), "choice) is missing"),
+        (lambda body: body["answers"]["area"].update({"confidence": 1.5}), "outside [0, 1]"),
+        (lambda body: body["answers"]["area"].update({"choice": "sales"}),
+         "is not the argmax"),
+        (lambda body: body["answers"]["urgency"].update({"score": 9.0}), "outside [0, 2]"),
+        (lambda body: body["answers"]["urgency"].update({"legend": {"7": "no"}}), "legend keys"),
+        (lambda body: body["answers"]["spam"].update({"confidence": 0.5}),
+         "noul carries no confidence"),
+        (lambda body: body["answers"]["spam"].update({"probabilities": {"yes": 0.4, "no": 0.4}}),
+         "sum to"),
+        (lambda body: body.pop("usage"), "usage keys are"),
+        (lambda body: body["usage"].update({"input_tokens": 0}), "input_tokens is 0"),
+        (lambda body: body.update({"model": ""}), "must echo the resolved name"),
+        (lambda body: body.update({"engine": {}}), "top-level keys are"),
+    ],
+)
+def test_the_host_gate_driver_names_each_mismatch_it_can_find(mutation, expected) -> None:
+    driver = _gate_driver()
+    body = _served_typesafe_body()
+    mutation(body)
+    problems = driver.verify(body, questions=MIXED_KINDS)
+    assert problems, "this mutation must be caught"
+    assert any(expected in problem for problem in problems), (expected, problems)
+
+
+def test_the_host_gate_driver_refuses_a_missing_or_different_sdk(tmp_path) -> None:
+    """A gate that measures one wire must not run against another: exit 3, loudly, before any call.
+
+    With the pinned SDK installed somewhere else this checks the *version* branch; with no SDK in
+    this interpreter it checks the *missing* branch — the same refusal, measured either way.
+    """
+    if importlib.util.find_spec("typesafe_sdk") is None:
+        argv = [sys.executable, str(GATE_DRIVER), "--base-url", "http://127.0.0.1:1"]
+        expected = "no typesafe-sdk"
+    else:                                                    # pragma: no cover - env dependent
+        argv = [sys.executable, str(GATE_DRIVER), "--base-url", "http://127.0.0.1:1",
+                "--expect-sdk", "0.0.0"]
+        expected = "REFUSING TO RUN"
+    completed = subprocess.run(argv, cwd=ROOT_DIR, capture_output=True, text=True, timeout=60)
+    assert completed.returncode == 3, completed
+    assert expected in completed.stderr, completed.stderr
+    assert completed.stdout == "", "a refusal reaches no socket and prints no answers"
+
+
+def test_the_host_gate_script_pins_the_sdk_and_walks_the_documented_steps() -> None:
+    script = GATE_SCRIPT.read_text(encoding="utf-8")
+    assert "typesafe-sdk==0.7.1" in script
+    assert os.access(GATE_SCRIPT, os.X_OK), "the host gate is run as a script"
+    for needle in ("TYPESAFE_BASE_URL", "TYPESAFE_API_KEY", "host_gate_serve_client.py",
+                   "0.7.1", "/health", "/v1/models", "served_by=host", "keep stop",
+                   "leaked host", "TYPED_GGUF_GATE_MODEL"):
+        assert needle in script, f"the host gate no longer does {needle!r}"
+    # the rehearsal and the driver are the same tools the container can run: no drift between them
+    rehearsal = REHEARSAL.read_text(encoding="utf-8")
+    assert '"host_gate_serve_client.py"' in rehearsal, "the rehearsal drives the gate's own client"
+    assert "tools" in rehearsal and "verify(" in GATE_DRIVER.read_text(encoding="utf-8")
+
+
+def test_the_gate_model_default_is_the_pinned_4b_or_an_override() -> None:
+    """The host gate names its model once, and the env override is the documented one."""
+    script = GATE_SCRIPT.read_text(encoding="utf-8")
+    lines = [line for line in script.splitlines() if line.startswith("MODEL=")]
+    assert len(lines) == 1, lines
+    assert "TYPED_GGUF_GATE_MODEL" in lines[0] and "gguf" in lines[0], lines[0]

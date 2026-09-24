@@ -478,12 +478,25 @@ def test_version_text_and_json(capsys) -> None:
     assert payload["version"] == __version__ and payload["lock"]["tag"] == "b11026"
 
 
-@pytest.mark.parametrize("cmd", ["serve", "mcp"])
+@pytest.mark.parametrize("cmd", ["mcp"])
 def test_frozen_commands_still_exit_3(cmd: str, capsys) -> None:
     assert cli.main([cmd]) == 3
     err = capsys.readouterr().err
     assert f"'{cmd}' is not available in this version (planned)" in err
     assert "run `typed-gguf --help` for the commands that are" in err
+
+
+def test_serve_is_no_longer_a_stub(capsys) -> None:
+    """Serve wave (SPEC 2.9): `serve` left `cli.NOT_IMPLEMENTED` and answers its own help page.
+
+    A bare `serve` is a *running server* (it binds and blocks), so what a gate can assert without
+    a socket is that the command is no longer routed to the "planned" branch.
+    """
+    assert "serve" not in cli.NOT_IMPLEMENTED and cli.NOT_IMPLEMENTED == ("mcp",)
+    assert cli.main(["serve", "--help"]) == 0
+    out = capsys.readouterr()
+    assert "is not available in this version" not in out.err
+    assert "--keep-alive <dur|0>" in out.out
 
 
 @pytest.mark.parametrize("cmd", ["run", "ask", "fit", "bench", "calibrate"])

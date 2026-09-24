@@ -46,10 +46,14 @@ def test_cli_version_and_unknown_command(capsys) -> None:
     assert cli.main(["version"]) == 0
     assert __version__ in capsys.readouterr().out
     assert cli.main(["nope"]) == 2
-    # E1b implemented `run`/`ask`: a bare `run` is now a user error (missing --questions),
-    # and the still-unimplemented commands keep the frozen "stub" exit code 3.
+    # E1b implemented `run`/`ask`: a bare `run` is now a user error (missing --questions), and the
+    # one still-unimplemented command keeps the frozen "stub" exit code 3.
     assert cli.main(["run"]) == 2
-    assert cli.main(["serve"]) == 3
+    assert cli.main(["mcp"]) == 3
+    capsys.readouterr()
+    # `serve` shipped (serve wave, SPEC 2.9): it answers instead of exiting 3. A bare `serve` *is*
+    # a running server, so the gate stays on its `--help` page.
+    assert cli.main(["serve", "--help"]) == 0
 
 
 def test_cli_command_set_frozen() -> None:

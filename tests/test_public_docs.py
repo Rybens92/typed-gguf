@@ -29,6 +29,7 @@ import tomllib
 import pytest
 
 from typed_gguf import cli, schema
+from typed_gguf.api import http as serve
 from typed_gguf.errors import ERROR_CODES, WARNING_CODES
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -99,13 +100,32 @@ def test_the_release_notes_keep_the_license_and_not_shipped_statements() -> None
         "the notes must carry the per-question sequencing limit")
 
 
-def test_the_readme_marks_the_serving_surface_as_not_shipped() -> None:
+def test_the_readme_marks_the_mcp_surface_as_not_shipped() -> None:
     interfaces = README.split("## Interfaces", 1)[1].split("\n## ", 1)[0]
     # card `t_c0080933` took the current-scope version numbers out of the README (the row says
     # "this release" now), so the pinned literal moves with the wording it quotes.
     assert "not implemented in this release" in interfaces
-    # …and the claim is the CLI's own behaviour, not a wish: both commands are stubs by design
-    assert cli.main(["serve"]) == 3 and cli.main(["mcp"]) == 3
+    # serve wave (SPEC 2.9): `serve` shipped, `mcp` is the one still-specified surface, and the
+    # README row that says so is the one naming `mcp` — not a blanket claim over both commands.
+    row = [line for line in interfaces.splitlines() if "not implemented in this release" in line]
+    assert len(row) == 1 and "`typed-gguf mcp`" in row[0], row
+    # …and the claims are the CLI's own behaviour, not a wish: `mcp` is a stub, `serve` answers
+    assert cli.main(["mcp"]) == 3
+    assert cli.main(["serve", "--help"]) == 0
+
+
+def test_the_readme_documents_the_shipped_serving_surface() -> None:
+    """The other half of the same row: what `serve` *is* must be spelled out, not just unstubbed."""
+    interfaces = README.split("## Interfaces", 1)[1].split("\n## ", 1)[0]
+    serve_row = [line for line in interfaces.splitlines() if "`typed-gguf serve" in line]
+    assert len(serve_row) == 1, serve_row
+    for needle in ("/health", "/v1/models", "/v1/decide", "/v1/systemone",
+                   "127.0.0.1:8088", "TYPESAFE_BASE_URL"):
+        assert needle in serve_row[0], f"the serve row no longer names {needle!r}"
+    # the four routes are the ones the code serves — the row is not a wish either
+    assert (serve.HEALTH_PATH, serve.MODELS_PATH) == ("/health", "/v1/models")
+    assert (serve.DECIDE_PATH, serve.SYSTEM_ONE_PATH) == ("/v1/decide", "/v1/systemone")
+    assert f"{serve.DEFAULT_HOST}:{serve.DEFAULT_PORT}" == "127.0.0.1:8088"
 
 
 def test_the_readme_keeps_the_deduplicated_shape() -> None:
@@ -127,16 +147,16 @@ def test_the_root_help_marks_the_serving_surface_the_way_the_readme_does(
     out = capsys.readouterr().out
     lines = {line.split()[0]: line for line in out.splitlines()
              if line.startswith("  ") and line.strip()}
-    for command in ("serve", "mcp"):
-        line = lines[command]
-        assert line.endswith("planned; not in this version"), line
+    # serve wave (SPEC 2.9): `serve` is implemented and says what it does; `mcp` keeps the note.
+    assert lines["mcp"].endswith("planned; not in this version"), lines["mcp"]
+    assert lines["serve"].endswith("serve a decision API for TypeSafe clients"), lines["serve"]
     # …and a shipped command keeps its own description: the note is built from
     # COMMAND_DESCRIPTIONS, so losing that lookup prints "None"/"XX…XX" here. (Mutation sweep, card
     # t_a25bd190: these exact tails are what kills the padding mutants on the two branches this
     # pass rewrote; the tail is spelled out rather than read from the constant on purpose.)
     assert lines["run"].endswith("- answer a batch of questions from a file"), lines["run"]
-    # …and the claim is the commands' own behaviour, not a wish: both stubs exit 3
-    assert cli.main(["serve"]) == 3 and cli.main(["mcp"]) == 3
+    # …and the claim is the commands' own behaviour, not a wish: the stub exits 3, serve answers
+    assert cli.main(["mcp"]) == 3 and cli.main(["serve", "--help"]) == 0
 
 
 def test_the_limitations_carry_the_two_release_findings_this_pass_adds() -> None:

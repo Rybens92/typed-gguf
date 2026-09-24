@@ -449,7 +449,8 @@ have their own platform handling but are not exercised by that job.
 | `typed-gguf calibrate [--dry-run]` | fits the per-(model, question-type) temperature/scale on the committed dev set and keeps it only if a held-out split improves |
 | `typed-gguf keep status [--json]` / `stop [--json]` | the warm host: one resident model per data home, answering `run`/`ask` over a 0600 unix socket and unloading itself after `--keep-alive` |
 | `typed-gguf version [--json]` | versions, the pinned runtime tag, the installed runtime and the data home |
-| `typed-gguf serve` / `typed-gguf mcp` | the HTTP (`/health`, `/v1/models`, `/v1/decide`, `/v1/systemone`) and MCP (`typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`, `typed_gguf_fit`) surfaces are planned and not implemented in this release: both commands exit 3 today |
+| `typed-gguf serve [--host IP] [--port N] [--format native\|typesafe] [--keep-alive <dur\|0>]` | a stdlib HTTP server on `127.0.0.1:8088` answering `GET /health`, `GET /v1/models`, `POST /v1/decide` (native) and `POST /v1/systemone` (TypeSafe) **from the same warm host** `run`/`ask` use — the same model, fit plan, calibration and numbers. A TypeSafe client only has to point `TYPESAFE_BASE_URL` at it and set `TYPESAFE_API_KEY` to any non-empty string |
+| `typed-gguf mcp` | the MCP surface (`typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`, `typed_gguf_fit`) is planned and not implemented in this release: the command exits 3 today |
 
 `python -m typed_gguf <command>` is the same CLI. Exit codes: `0` ok, `2` user error, `3`
 runtime/model error, `4` internal (`doctor` adds `2` for "works, with warnings" and `1` for
@@ -504,7 +505,8 @@ that needs more than the loaded context fails with `E_CTX_TOO_SMALL` naming the 
   the settings it was measured with, and `docs/BENCHMARKS.md` marks those tables rather than
   mixing them with current ones. Measured under the current defaults: the 4B quality table (§2.3),
   the Tiel table (§7.4.2) and the Occamy pair.
-- `serve`/`mcp` are specified, not shipped, so the CLI is the only interface today.
+- `mcp` is specified, not shipped (it exits 3 today, see the command table), so the CLI and
+  `typed-gguf serve` are the interfaces this release ships.
 - Exotic-platform wheels are future work. The pinned prebuilt llama.cpp bundle is the primary
   distribution and the only automated install path: on a platform with no official asset, this
   release has nothing to install automatically. On such a host, point `TYPED_GGUF_RUNTIME_DIR`

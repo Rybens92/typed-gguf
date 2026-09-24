@@ -1,9 +1,10 @@
 """Command-line surface (SPEC 2.8). Milestone: E1a (init/doctor/models), E1b (run/ask).
 
 Implemented in E1a: `init`, `doctor`, `models {search,pull,use,ls,rm,verify,recommend-quant}`,
-`version`. The commands SPEC 2.8 freezes but v0.1.0 does not ship (`serve`, `mcp`) exit 3 with a
+`version`. The command SPEC 2.8 freezes but this version does not ship (`mcp`) exits 3 with a
 plain "planned" message: no milestone and no SPEC pointer reaches a user (card `t_bf6bb78a`,
-gated by `tests/test_cli_language.py`).
+gated by `tests/test_cli_language.py`). `serve` shipped in the serve wave — it serves the HTTP
+surface of SPEC 2.9 from the same warm keep host `run`/`ask` use.
 
 Exit codes (SPEC 2.5): 0 ok, 2 user error, 3 runtime/model error, 4 internal.
 `doctor` additionally uses 2 for "works, but warnings" and 1 for "broken" (A-E1a-3).
@@ -20,6 +21,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, NoReturn
 
 from typed_gguf import __version__, keep, schema
+from typed_gguf.api import http as serve
 from typed_gguf.bench import devset as devset_module
 from typed_gguf.bench import harness, suites
 from typed_gguf.calibration import calibrate as calibration_module
@@ -51,7 +53,7 @@ COMMAND_DESCRIPTIONS: dict[str, str] = {
     "models": "search, pull and manage GGUF models",
     "run": "answer a batch of questions from a file",
     "ask": "answer one question from the command line",
-    "serve": "planned; not in this version",
+    "serve": "serve a decision API for TypeSafe clients",
     "mcp": "planned; not in this version",
     "bench": "measure latency, throughput and quality",
     "fit": "plan what this machine can hold",
@@ -69,13 +71,14 @@ MODELS_SUBCOMMAND_DESCRIPTIONS: dict[str, str] = {
     "verify": "check the registered files against their checksums",
     "recommend-quant": "recommend a quantization for this machine",
 }
-#: The one note the two commands that are specified but not shipped get — in the root help and on
-#: their own `--help` page. They still exit 3; this is the honest form of the old milestone line.
+#: The one note the command that is specified but not shipped gets — in the root help and on
+#: its own `--help` page. It still exits 3; this is the honest form of the old milestone line.
 PLANNED_NOTE = "planned; not in this version"
-#: commands that are *specified*, not shipped in v0.1.0 (SPEC 2.9). The root help says so in plain
-#: words: release review F1 (card `t_a25bd190`) — "(implemented in E1b)" was the one public surface
-#: where the tool contradicted its own documentation.
-NOT_IMPLEMENTED = ("serve", "mcp")
+#: commands that are *specified*, not shipped in this version (SPEC 2.9). The root help says so in
+#: plain words: release review F1 (card `t_a25bd190`) — "(implemented in E1b)" was the one public
+#: surface where the tool contradicted its own documentation. `serve` left this tuple when it
+#: shipped (serve wave): only `mcp` keeps the wording.
+NOT_IMPLEMENTED = ("mcp",)
 DOCTOR_SCHEMA = "typed_gguf.doctor/v1"
 MODELS_SCHEMA = "typed_gguf.models/v1"
 
@@ -106,7 +109,7 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
     "keep": ("status [--json]", "stop [--json]"),
     "fit": ("[<model>]", "--print", "--no-cache", "--json", "--fit-target MIB", "--fit-ctx N",
             "--n-ctx N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--timeout S"),
-    "serve": ("--host IP", "--port N", "--format native|typesafe"),
+    "serve": ("--host IP", "--port N", "--format native|typesafe", "--keep-alive <dur|0>"),
     "mcp": (),
     "bench": ("--suite latency|throughput|quality|calibration|determinism", "--model PATH.GGUF",
               "--backend auto|cpu|vulkan|cuda|all", "--runs N", "--threads N", "--devset FILE",
@@ -1928,6 +1931,76 @@ def _cmd_keep_host(args: list[str]) -> int:
     return server.serve()
 
 
+# ------------------------------------------------- the HTTP surface (serve wave, SPEC 2.9)
+def serve_decide(*, home: pathlib.Path | None = None,
+                 keep_alive: Any = None) -> Any:
+    """The decision callable `serve` hands the HTTP app: the **warm CLI path**, verbatim.
+
+    `serve` has no engine of its own (SPEC 2.12). Every served decision is the same
+    `decide_payload_warm` an `ask`/`run` pays, with the same data home and the same keep-alive
+    window — so a served answer is the CLI's answer, from the CLI's resident host.
+    """
+    def decide(payload: dict[str, Any]) -> dict[str, Any]:
+        return decide_payload_warm(payload, home=home, keep_alive=keep_alive)
+
+    return decide
+
+
+def serve_app(*, home: pathlib.Path | None = None, default_format: str = "native",
+              keep_alive: Any = None, log: Any = None) -> Any:
+    """The HTTP app the `serve` command runs (the seam the CLI and its gates share)."""
+    return serve.App(decide=serve_decide(home=home, keep_alive=keep_alive), home=home,
+                     keep_alive=keep_alive, default_format=default_format, log=log)
+
+
+def _serve_port(value: Any) -> int:
+    """`--port N` -> an int in 0..65535 (`0` lets the kernel pick)."""
+    if value is None:
+        return serve.DEFAULT_PORT
+    try:
+        port = int(str(value))
+    except (TypeError, ValueError) as exc:
+        raise UserError(f"--port must be a number between 0 and 65535 (got {value!r})",
+                        code="E_UNKNOWN_KEY") from exc
+    if not 0 <= port <= 65535:
+        raise UserError(f"--port must be a number between 0 and 65535 (got {value!r})",
+                        code="E_UNKNOWN_KEY")
+    return port
+
+
+def _cmd_serve(args: list[str]) -> int:
+    """`typed-gguf serve` — the TypeSafe-compatible HTTP surface (SPEC 2.9).
+
+    The command blocks: it is a server, and it answers from the warm keep host the rest of the CLI
+    uses. `--format` is only the default response format of `/v1/decide`; `/v1/systemone` is always
+    the TypeSafe projection, because a client that sets its base URL must not depend on a flag.
+    """
+    positionals, options = _parse_args(args,
+                                       value_flags=("host", "port", "format", "keep-alive"))
+    if positionals:
+        raise UserError(f"unexpected argument {positionals[0]!r}", code="E_UNKNOWN_KEY")
+    fmt = options.get("format", "native")
+    if fmt not in schema.FORMATS:
+        raise UserError(f"--format must be one of {', '.join(schema.FORMATS)} (got {fmt!r})",
+                        code="E_UNKNOWN_KEY")
+    port = _serve_port(options.get("port"))
+    host = str(options.get("host") or serve.DEFAULT_HOST)
+    keep_alive = identity.resolve_keep_alive(options.get("keep_alive"))
+    home = store.data_home()
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        print(f"warning: serving on {host}: the TypeSafe surface authenticates nobody "
+              f"(a local server has no tenants, SPEC 2.9) — anyone who can reach this port "
+              f"can ask your model", file=sys.stderr)
+    app = serve_app(home=home, default_format=fmt, keep_alive=keep_alive)
+    print(f"typed-gguf serve on http://{host}:{port} — /v1/systemone is the TypeSafe projection, "
+          f"/v1/decide defaults to {fmt}, keep-alive {keep_alive:g}s")
+    try:
+        return serve.run(app, host, port)
+    except OSError as exc:
+        raise TypedGgufError(f"E_INTERNAL: cannot listen on {host}:{port} ({exc})",
+                             code="E_INTERNAL") from exc
+
+
 # --------------------------------------------------------------------- version
 def _cmd_version(args: list[str]) -> int:
     _, options = _parse_args(args, bool_flags=("json",))
@@ -1992,6 +2065,8 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_run(rest)
         if cmd == "ask":
             return _cmd_ask(rest)
+        if cmd == "serve":
+            return _cmd_serve(rest)
         if cmd == "bench":
             return _cmd_bench(rest)
         if cmd == "fit":
