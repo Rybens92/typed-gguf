@@ -1,0 +1,24 @@
+== AFTER (code at 49a8746 — the same homes, the same commands as before-receipt.txt) ==
+
+-- [A1] fresh home (empty registry): bare ask
+error: E_MODEL_NOT_FOUND: no model was named and the registry has no default to fall back on; known aliases: <none>. Run `typed-gguf models pull` (the default model is pinned) or `typed-gguf models use <alias>` to make one the default, or pass `--model <alias|path.gguf>` — a path needs no registry entry.
+exit=2
+
+-- [A2] one installed alias, current: null: bare ask (the RED case)
+model: requested <default> -> resolved stories260k (the registry's only alias)
+exit=0
+   response: model="model":"stories260k"  noul="type":"noul"
+
+-- [A3] same home: bare fit
+model: stories260k
+path: /work/receipts/t_a0fa2dc0/pull-home.EnsF/models/stories260K.gguf
+n_gpu_layers: 5
+n_ctx: 2048 (standard 32768, the model's own window)
+kv_type: f16
+
+-- [A4] registry with its default set (a real models pull wrote it): bare ask
+model: requested <default> -> resolved stories260k (the registry's `current`)
+exit=0
+
+-- [A5] two aliases, no current: still refuses, listing both
+   stories260k                ?          llama           1.19 MB ?            [ok] /work/receipts/t_a0fa2dc0/pull-home.EnsF/models/stories260K.gguf

@@ -1,0 +1,17 @@
+== BEFORE (code at c85ae33, both homes have a cpu runtime installed) ==
+
+-- [B1] fresh home (empty registry): bare ask
+error: E_MODEL_NOT_FOUND: None is not a registry alias, a path or a pulled model; known aliases: <none> (use `typed-gguf models pull` or `typed-gguf models use`)
+exit=2
+
+-- [B2] one installed alias, current: null: bare ask
+error: E_MODEL_NOT_FOUND: None is not a registry alias, a path or a pulled model; known aliases: stories260k (use `typed-gguf models pull` or `typed-gguf models use`)
+exit=2
+
+-- [B3] same home: bare fit
+error: E_MODEL_NOT_FOUND: None is not a registry alias or an existing file; known aliases: stories260k (use `typed-gguf models pull` / `typed-gguf models use`)
+exit=2
+
+-- [B4] registry with its default set (a real models pull wrote it): bare ask
+error: E_TEMPLATE_UNRESOLVED: no template could render this prompt. The GGUF tokenizer.chat_template is not present; libllama's built-in templates (llama_chat_apply_template) do not match it either. Fix: pass --template <builtin-name|path-to-jinja|plain> (options.template in a request), or use a model whose template is inside the supported subset (27 filters, if/for/set/macro, `is` tests).
+exit=0

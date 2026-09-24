@@ -1,0 +1,10 @@
+-- [A5] two aliases, no current: bare ask still refuses, and names both
+error: E_MODEL_NOT_FOUND: no model was named and the registry has no default to fall back on; known aliases: stories15m, stories260k. Run `typed-gguf models pull` (the default model is pinned) or `typed-gguf models use <alias>` to make one the default, or pass `--model <alias|path.gguf>` — a path needs no registry entry.
+exit=2
+-- [A5b] `models use` is the documented way out, then the default works again
+schema: typed_gguf.models/v1
+current: stories15m
+path: /work/receipts/t_a0fa2dc0/two-home/models/stories15M.gguf
+exit=0
+model: requested <default> -> resolved stories15m (the registry's `current`)
+exit=0
