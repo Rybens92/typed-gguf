@@ -1,0 +1,8 @@
+ci.yml  gate.matrix.python-version = ['3.11', '3.12', '3.13']
+ci.yml  gate.env.UV_PYTHON        = ${{ matrix.python-version }}
+ci.yml  gate.name                 = offline gate (py${{ matrix.python-version }})
+runtime-matrix.yml  job 'linux-cpu': matrix keys = (none)
+runtime-matrix.yml  job 'linux-vulkan': matrix keys = (none)
+runtime-matrix.yml  job 'windows-cpu': matrix keys = (none)
+runtime-matrix.yml  job 'macos-metal': matrix keys = (none)
+runtime-matrix.yml  job 'macos-engine-smoke': matrix keys = (none)

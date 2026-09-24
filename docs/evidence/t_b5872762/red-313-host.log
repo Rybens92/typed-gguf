@@ -1,0 +1,77 @@
+........................................................................ [  3%]
+........................................ssssssss........................ [  7%]
+................................................................s....... [ 11%]
+........................................................................ [ 15%]
+................................................s....................... [ 19%]
+........................................................................ [ 23%]
+........................................................................ [ 27%]
+................................ss...................................... [ 31%]
+........................................................................ [ 35%]
+........................................................................ [ 39%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........sss..................................................sssssss.... [ 50%]
+..............................................sssssss.sss............... [ 54%]
+.................................................ss..................... [ 58%]
+..ssss.................................................................. [ 62%]
+............................................................sssssss..... [ 66%]
+........................................................................ [ 70%]
+....s................................................................... [ 74%]
+........................................................................ [ 78%]
+..........................................................s............. [ 81%]
+...........................sssss........................................ [ 85%]
+.s...................................................................... [ 89%]
+............................................................FF...s...... [ 93%]
+..............................................s......................... [ 97%]
+......ssss..................................                             [100%]
+=================================== FAILURES ===================================
+_______ test_a_body_over_the_cap_is_refused_before_a_byte_of_it_is_read ________
+
+home = PosixPath('/tmp/pytest-of-root/pytest-5827/test_a_body_over_the_cap_is_re0/home')
+handler_in_a_thread = <function handler_in_a_thread.<locals>.start at 0x7f0399ba8cc0>
+
+    def test_a_body_over_the_cap_is_refused_before_a_byte_of_it_is_read(
+            home, handler_in_a_thread) -> None:
+        """`http.server` reads whatever `Content-Length` claims, so the cap is answered from the header
+        alone: this client sends *no* body at all and still gets its `413` (a server that tried to read
+        first would sit on the socket until the handler timeout, and the read below would fail)."""
+        log = Log()
+        conn = handler_in_a_thread(serve.App(decide=_no_loading, home=home, log=log))
+        conn.settimeout(5.0)
+        over = serve.MAX_BODY_BYTES + 1
+        conn.sendall(b"POST /v1/systemone HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+                     b"Content-Type: application/json\r\nConnection: close\r\n"
+                     b"Content-Length: " + str(over).encode() + b"\r\n\r\n")
+        status, headers, body = _read_response(conn)
+>       assert status == b"HTTP/1.1 413 Request Entity Too Large", status
+E       AssertionError: b'HTTP/1.1 413 Content Too Large'
+E       assert b'HTTP/1.1 41...ent Too Large' == b'HTTP/1.1 41...ity Too Large'
+E         
+E         At index 13 diff: b'C' != b'R'
+E         Use -v to get more diff
+
+tests/test_serve.py:625: AssertionError
+____________ test_the_native_route_speaks_its_own_shape_for_the_cap ____________
+
+home = PosixPath('/tmp/pytest-of-root/pytest-5827/test_the_native_route_speaks_i0/home')
+handler_in_a_thread = <function handler_in_a_thread.<locals>.start at 0x7f0399baa340>
+
+    def test_the_native_route_speaks_its_own_shape_for_the_cap(home, handler_in_a_thread) -> None:
+        """§2.9's two shapes survive the cap: `/v1/decide` keeps `{"error": {code, message}}`."""
+        conn = handler_in_a_thread(serve.App(decide=_no_loading, home=home, log=Log()))
+        conn.settimeout(5.0)
+        conn.sendall(b"POST /v1/decide HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n"
+                     b"Content-Length: " + str(serve.MAX_BODY_BYTES * 4).encode() + b"\r\n\r\n")
+        status, _headers, body = _read_response(conn)
+>       assert status == b"HTTP/1.1 413 Request Entity Too Large", status
+E       AssertionError: b'HTTP/1.1 413 Content Too Large'
+E       assert b'HTTP/1.1 41...ent Too Large' == b'HTTP/1.1 41...ity Too Large'
+E         
+E         At index 13 diff: b'C' != b'R'
+E         Use -v to get more diff
+
+tests/test_serve.py:641: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_serve.py::test_a_body_over_the_cap_is_refused_before_a_byte_of_it_is_read
+FAILED tests/test_serve.py::test_the_native_route_speaks_its_own_shape_for_the_cap
+2 failed, 1783 passed, 59 skipped in 52.83s
