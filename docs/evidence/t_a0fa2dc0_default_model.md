@@ -47,6 +47,16 @@ when unambiguous"*. Implemented once, in `store.find_default(registry) -> Defaul
 `fit`, `calibrate` and `doctor` all inherit the same answer. `Registry.current` itself is **never**
 rewritten by the fallback: it stays provenance (`Default.source`), not a silent write.
 
+Two consequences elsewhere, both through that one call site:
+
+* `doctor` reads `store.resolve(registry, None, use_current=True)` at `cli.py:452`. On the one-alias
+  home it now reports `"model": {"alias": "stories260k", …}` (observed,
+  `after-receipt-two.txt` [A6]); at `c85ae33` the same line was `None` and the report warned
+  `no model in the registry; run models pull` (read from `git show c85ae33:src/typed_gguf/cli.py`);
+* `serve`'s `GET /v1/models` (`api/http.py:248`) uses the same call, so it now lists the compat name
+  `jev-latest` whenever a request for it resolves; an empty registry still lists `[]` (SPEC §2.9).
+  Read from the code — the serve gates already cover the `current` path and stay green.
+
 ## 3. Nothing changed for a caller who names a model
 
 * `--model <alias|path.gguf>` takes the same path as before (`_resolve_model` / `_resolve_model_ref`
