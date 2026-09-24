@@ -472,16 +472,24 @@ pinned bundle stays what `init` installs and what the oracle's pins speak about 
    asset list contains the retagged name. **Not `releases/latest`**: the recon of 2026-09-24 found
    `releases/latest` = `v0.5.0` with a single `nightly-tag.txt` asset, while the per-build
    `bNNNNN` releases (marked prerelease) carry the 35 platform bundles **[recon: live GitHub API]**.
-   With `--tag TAG`, that one release is fetched by tag and must carry the same name. The host
-   variant comes from `init`'s own detection (`--backend` overrides; **no fallback ladder** — a GPU
-   bundle that fails its probe aborts the update instead of silently changing the backend). The
-   asset name is the pinned one retagged (`llama-b11026-bin-ubuntu-vulkan-x64.tar.gz` →
-   `llama-b11160-…`), and the download URL is `runtime.lock`'s own template with the new tag
+   With `--tag TAG`, that one release is fetched by tag and must carry the same name. The target
+   variant is the one **`init` installed** — the `runtime.json` record's `variant`, read when that
+   record names `find_runtime`'s own directory (the record *is* what `init` decided, after its
+   ladder; t_ba767a2b). A record that names another bundle, or no record at all, leaves `init`'s own
+   detection in charge exactly as before, and `--backend` overrides either way (**no fallback
+   ladder** — a GPU bundle that fails its probe aborts the update instead of silently changing the
+   backend). The asset name is the pinned one retagged
+   (`llama-b11026-bin-ubuntu-vulkan-x64.tar.gz` → `llama-b11160-…`), and the download URL is
+   `runtime.lock`'s own template with the new tag
    (verified live 2026-09-24: that URL answered `302 → 200`, 30 943 538 B **[recon]**). No name match
    → `E_UPDATE_UNAVAILABLE` naming the naming rule: upstream renamed the asset, we never guess.
    Target tag == current tag → `updated: false` ("already at `<tag>`"), exit 0.
-3. **Stage.** Disk-space precheck (`E_INSUFFICIENT_DISK`), download into `<home>/downloads/<asset>`
-   with `init`'s resume/size semantics, extract into `<home>/runtime/.pending-<asset>` (the same
+3. **Stage.** `init`'s own system-library pre-flight runs first (t_ba767a2b): a target variant whose
+   `runtime.lock` `system_libs` this host cannot load is refused with `E_RUNTIME_SYMBOLS` and
+   "nothing was changed" **before a byte is downloaded** — the vocabulary `init` already uses, and a
+   *refusal*, never a move to another tier. Then: disk-space precheck (`E_INSUFFICIENT_DISK`),
+   download into `<home>/downloads/<asset>` with `init`'s resume/size semantics, extract into
+   `<home>/runtime/.pending-<asset>` (the same
    path-safety filter and flatten rule), verify the lock's `required_files`, then run the **lock
    probe** in a child (`capability.probe_runtime`): required tools, the 34 required symbols, the
    build number, the backend list — plus the arch rule of §2.2 (`spark2_5` needs build ≥ `b10828`).
@@ -517,7 +525,12 @@ a model the resident host does not hold swaps (stop → load → new countdown) 
 call, and decisions serialize through the host socket, one at a time, in arrival order (§2.12).
 `/health` and `/v1/models` never touch the host and never wait behind a decision.
 
-Default bind `127.0.0.1:8088` (`--host`, `--port`; S-8). Four routes, the TypeSafe pair mounted
+Default bind `127.0.0.1:8088` (`--host`, `--port`; S-8). The HTTP layer is bounded (t_ba767a2b): a
+request body over **1 MiB** is refused from its `Content-Length` alone (`413`, `E_BODY_TOO_LARGE` on
+`/v1/decide` and the `too_large` detail on the TypeSafe routes — the body is never read), an idle
+connection is dropped after **30 s** (`ThreadingHTTPServer` is one thread per connection, so
+`socketserver`'s no-timeout default would let one client hold one forever), and a client that
+vanishes mid-request is not a stdlib traceback. Four routes, the TypeSafe pair mounted
 regardless of `--format`:
 
 | Route | Format | Purpose |

@@ -187,6 +187,23 @@ DEFAULT_FETCH = fetch_releases
 
 
 # --------------------------------------------------------------------------- the target rules
+def installed_variant(current: Mapping[str, Any]) -> str | None:
+    """The variant of the bundle the record names, when the record names the active runtime.
+
+    SPEC 2.8 step 2's default target is `init`'s own decision, not a fresh detection: `runtime
+    update` **maintains** the bundle `init` installed, so on a box whose ladder fell back to
+    vulkan/cpu the default update targets that same bundle (`--backend` is how a backend *switch*
+    is asked for). The record is not a guess about the host — it is what is installed, and it is
+    only read when it names `find_runtime`'s own directory: a record about some other bundle (or no
+    record at all) says nothing about this runtime, and detection answers as before.
+    """
+    record = current.get("record")
+    if not isinstance(record, Mapping) or not _same_dir(record.get("dir"), current["dir"]):
+        return None
+    variant = record.get("variant")
+    return str(variant) if variant else None
+
+
 def retag_asset_name(name: str, tag: str, *, pinned_tag: str) -> str | None:
     """The pinned asset name with the pinned tag swapped for `tag` (SPEC 2.8 step 2).
 
@@ -460,7 +477,11 @@ def update(*, check: bool = False, tag: str | None = None, backend: str = "auto"
     home = home or store.data_home()
     lock = lock or pins.load_lock()
     current = current_runtime(home)
-    variant = pins.host_variant(backend, system=system, machine=machine, probes=probes)
+    # Maintain, do not re-decide: without an explicit `--backend`, the target variant is the one
+    # `init` installed (SPEC 2.8 step 2) — a box whose ladder fell back to vulkan/cpu must not have
+    # its default update swing to the bundle detection would pick today (M2b, card t_ba767a2b).
+    variant = ((installed_variant(current) if backend == "auto" else None)
+               or pins.host_variant(backend, system=system, machine=machine, probes=probes))
     pinned = pins.asset_for(lock, variant)
     if retag_asset_name(pinned.asset, lock.tag, pinned_tag=lock.tag) is None:
         raise UpdateUnavailableError(
@@ -491,6 +512,16 @@ def update(*, check: bool = False, tag: str | None = None, backend: str = "auto"
         return payload
     if check:
         return payload
+
+    # `init`'s own pre-flight, asked *before* the download it is about (install.py:331): a bundle
+    # whose system libraries this host cannot load cannot work here, and finding that out after the
+    # fact costs the whole bundle per attempt (the reviewer measured 169.49 MB for one refusal). A
+    # **refusal**, not a downgrade — SPEC 2.8's "no fallback ladder" stays intact, and `--backend`
+    # (or `doctor`) is what names the bundle this box can actually drive. `--check` above is the
+    # read-only plan report (SPEC A-E5-6) and stays exactly as it was.
+    refused = install._preflight_reason(plan, target_lock)
+    if refused:
+        raise RuntimeSymbolsError(f"E_RUNTIME_SYMBOLS: {refused[1]}; nothing was changed")
 
     deep_probe = capability.deep_probe_enabled() if deep is None else deep
     expect_backend = pins.accelerator_of(variant)

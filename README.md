@@ -453,7 +453,7 @@ have their own platform handling but are not exercised by that job.
 | `typed-gguf keep status [--json]` / `stop [--json]` | the warm host: one resident model per data home, answering `run`/`ask` over a 0600 unix socket and unloading itself after `--keep-alive` |
 | `typed-gguf runtime update [--check\|--dry-run] [--tag TAG] [--backend auto\|cpu\|vulkan\|cuda\|metal] [--json]` / `runtime rollback [--json]` | refreshes the llama.cpp bundle `init` installed: the newest official release that carries this host's pinned asset name (the pinned tag re-tagged, never `releases/latest`, never a fork), staged, probed in a child against the lock's required tools, symbols, minimum build and backend, then switched atomically after the warm host stops — the previous bundle is kept on disk and `runtime rollback` returns to it |
 | `typed-gguf version [--json]` | versions, the pinned runtime tag, the installed runtime and the data home |
-| `typed-gguf serve [--host IP] [--port N] [--format native\|typesafe] [--keep-alive <dur\|0>]` | a stdlib HTTP server on `127.0.0.1:8088` answering `GET /health`, `GET /v1/models`, `POST /v1/decide` (native) and `POST /v1/systemone` (TypeSafe) **from the same warm host** `run`/`ask` use — the same model, fit plan, calibration and numbers. A TypeSafe client only has to point `TYPESAFE_BASE_URL` at it and set `TYPESAFE_API_KEY` to any non-empty string |
+| `typed-gguf serve [--host IP] [--port N] [--format native\|typesafe] [--keep-alive <dur\|0>]` | a stdlib HTTP server on `127.0.0.1:8088` answering `GET /health`, `GET /v1/models`, `POST /v1/decide` (native) and `POST /v1/systemone` (TypeSafe) **from the same warm host** `run`/`ask` use — the same model, fit plan, calibration and numbers. A TypeSafe client only has to point `TYPESAFE_BASE_URL` at it and set `TYPESAFE_API_KEY` to any non-empty string. A request body over 1 MiB is refused (`413`) from its `Content-Length` alone, and an idle connection is dropped after 30 s |
 | `typed-gguf mcp` | the MCP surface (`typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`, `typed_gguf_fit`) is planned and not implemented in this release: the command exits 3 today |
 
 `python -m typed_gguf <command>` is the same CLI. Exit codes: `0` ok, `2` user error, `3`
@@ -494,6 +494,14 @@ directory already on disk adopts it instead of fetching it a second time. `--che
 `--dry-run`) prints the plan and changes nothing, `--tag b11160` pins one release, and `--json`
 prints the payload the tests pin. No pin in `runtime.lock` is rewritten by an update, and `init`
 still installs the pinned tag it names — the measured numbers above were taken with that bundle.
+
+Two things about the *default* target are worth knowing. It is the bundle `init` **installed** (the
+variant `runtime.json` records), not whatever this host would be detected as today: a box whose
+`init` ladder fell back to `vulkan`/`cpu` keeps updating that bundle, and `--backend cuda` is how a
+switch to another backend is asked for — an update maintains a runtime, it does not re-decide one.
+And the update runs `init`'s own system-library pre-flight *before* the download: when the target
+variant links libraries this host cannot load (a missing `libcudart.so.12`, say), it refuses with
+`E_RUNTIME_SYMBOLS` and "nothing was changed" instead of downloading 168 MB per attempt.
 
 ## Fit: what this host can actually hold
 

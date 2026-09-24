@@ -1,0 +1,10 @@
+312-seq-1 exit=0 110 passed in 9.60s
+312-seq-2 exit=0 110 passed in 9.27s
+312-seq-3 exit=0 110 passed in 9.67s
+312-seq-4 exit=0 110 passed in 9.90s
+312-seq-5 exit=0 110 passed in 9.18s
+312-seq-6 exit=0 110 passed in 9.64s
+312-seq-7 exit=0 110 passed in 9.19s
+312-seq-8 exit=0 110 passed in 9.18s
+312-seq-9 exit=0 110 passed in 9.65s
+312-seq-10 exit=0 110 passed in 9.21s

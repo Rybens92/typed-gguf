@@ -1,0 +1,20 @@
+# Tier-M sweep (B): src/typed_gguf/api/http.py + tests/test_serve.py
+# mutmut 3.8 via tools/mutmut_driver.py run --max-children 2; spinners stripped, totals kept.
+   Building typed-gguf @ file:///workspace/ggufone
+      Built typed-gguf @ file:///workspace/ggufone
+Uninstalled 1 package in 1ms
+Installed 1 package in 2ms
+    done in 2195ms (1 files mutated, 0 ignored, 0 unmodified)
+    Warning: 1 non-Python file(s) changed since the last full run: pyproject.toml
+    These cannot be tracked for behavioral changes, so cached results were kept.
+    If the changes affect your tests, delete the mutants/ directory or set on_dependency_change = "rerun".
+    done
+    done
+    done
+Running mutation testing
+1.67 mutations/second
+sweepB_exit=0
+# last progress line:
+827/827  🎉 621 🫥 4  ⏰ 30  🤔 0  🙁 172  🔇 0  🧙 0
+# scoped re-runs after the M3 pins (run 'typed_gguf.api.http.xǁHandlerǁ_serve*' 'typed_gguf.api.http.x__too_large*'):
+827/827  🎉 626 🫥 4  ⏰ 30  🤔 0  🙁 167  🔇 0  🧙 0

@@ -35,13 +35,18 @@ from typed_gguf.runtime import capability, install, pins, update
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 VARIANT = "linux-x64-cpu"
 VULKAN_VARIANT = "linux-x64-vulkan"
+CUDA_VARIANT = "linux-x64-cuda-12.8"
 PINNED_TAG = "b11026"
 PINNED_ASSET = "llama-b11026-bin-ubuntu-x64.tar.gz"
+CUDA_ASSET = "llama-b11026-bin-ubuntu-cuda-12.8-x64.tar.gz"
 NEXT_TAG = "b11160"
 NEXT_ASSET = "llama-b11160-bin-ubuntu-x64.tar.gz"
 PINNED_BUILD = 11026
 NEXT_BUILD = 11160
 HOST = pins.fake_host(system="linux", machine="x86_64")
+#: A box that *detects* cuda: what the coordinator's host and the reviewer's look like (`nvidia-smi`
+#: present, `libcudart.so.12` absent) — and what makes the target-variant rule observable.
+GPU_HOST = pins.fake_host(system="linux", machine="x86_64", has_nvidia_smi=True)
 
 
 # ------------------------------------------------------------------------------- fixtures
@@ -83,6 +88,7 @@ def fake_lock(tmp_path: pathlib.Path, *, variants: tuple[str, ...] = (VARIANT,),
               min_build: int = 10828,
               required_files: tuple[str, ...] = ("libllama.so", "libggml.so", "libggml-base.so"),
               extra_assets: dict[str, dict] | None = None,
+              system_libs: dict[str, tuple[str, ...]] | None = None,
               name: str = "fake-runtime.lock") -> pins.RuntimeLock:
     assets: dict[str, dict] = {variant: {"asset": asset, "size": size, "sha256": digest}
                                for variant in variants}
@@ -100,6 +106,10 @@ def fake_lock(tmp_path: pathlib.Path, *, variants: tuple[str, ...] = (VARIANT,),
     }
     if repo is not None:
         llama["repo"] = repo
+    if system_libs:
+        # `init`'s pre-flight reads these (install.py:331): what the pinned bundle links and does
+        # not ship. Only the locks that are *about* the pre-flight carry them.
+        llama["system_libs"] = {variant: list(names) for variant, names in system_libs.items()}
     payload = {
         "schema": "typed_gguf.runtime.lock/v1",
         "llama_cpp": llama,
@@ -1008,3 +1018,170 @@ def test_the_live_release_list_carries_this_host_s_pinned_asset_name() -> None:
     assert asset.name == update.retag_asset_name(pinned, chosen.tag, pinned_tag=lock.tag)
     assert asset.size is not None and asset.size > 0
     assert chosen.published_at, "the picked release carries no published_at"
+
+
+# ------------------------------------------- the fix card (t_ba767a2b): M2's pre-flight + M2b
+def release_pair(size: int = 1234) -> update.Release:
+    """One release carrying *both* hosts' bundles — what makes the target-variant rule readable."""
+    return update.Release(tag=NEXT_TAG, published_at="2026-09-24T09:00:00Z", assets=(
+        update.ReleaseAsset(name=NEXT_ASSET, size=size),
+        update.ReleaseAsset(name=CUDA_ASSET.replace(PINNED_TAG, NEXT_TAG), size=size + 1)))
+
+
+def gpu_box_home(tmp_path: pathlib.Path, **kwargs: object) -> InstalledHome:
+    """The reviewer's box: detection says cuda, `init` installed cpu, and the lock pins both."""
+    return installed_home(tmp_path,
+                          extra_assets={CUDA_VARIANT: {"asset": CUDA_ASSET, "size": 0,
+                                                       "sha256": None}},
+                          **kwargs)  # type: ignore[arg-type]
+
+
+def test_a_bundle_this_host_cannot_load_refuses_before_any_download(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """M2: `update` runs `init`'s own pre-flight, so a box that cannot load the target bundle's
+    system libraries refuses *before* spending the download (install.py:331; SPEC 2.8 step 3).
+
+    The refusal keeps `init`'s vocabulary (`E_RUNTIME_SYMBOLS`, the reason, "nothing was changed")
+    and stays a refusal: there is no ladder here, so a missing `libcudart.so.12` is a dead end that
+    must not cost 168.8 MB per attempt. The URL is a real `file://` archive, so a download that
+    happened would have *succeeded* and the run would have updated — the typed error is the proof
+    that nothing was fetched.
+    """
+    home = installed_home(tmp_path)
+    archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+    lock = fake_lock(tmp_path, size=home.archive.stat().st_size, digest=sha256(home.archive),
+                     name="preflight.lock",
+                     system_libs={VARIANT: ("libcudart.so.12", "libcuda.so.1")})
+    monkeypatch.setattr(install, "PREFLIGHT_SYSTEM_LIBS", lambda names: {
+        "libcudart.so.12": "libcudart.so.12: cannot open shared object file: "
+                           "No such file or directory"})
+    before = home.snapshot()
+    with pytest.raises(TypedGgufError) as exc:
+        update.update(home=home.home, lock=lock,
+                      releases=[release(size=archive.stat().st_size)], url=archive.as_uri(),
+                      deep=False, client=FakeClient(), probes=HOST)
+    assert exc.value.code == "E_RUNTIME_SYMBOLS", str(exc.value)
+    assert "libcudart.so.12" in str(exc.value) and "nothing was changed" in str(exc.value)
+    assert not (home.home / "downloads" / NEXT_ASSET).exists(), "the archive was never fetched"
+    assert home.pending() == [], "nothing was staged"
+    assert home.snapshot() == before, "the runtime and its record are untouched"
+    # the same refusal reaches the CLI as a runtime error (exit 3), not a crash
+    assert cli._fail(exc.value) == 3
+
+
+def test_check_keeps_its_contract_and_reports_the_target_the_pre_flight_would_refuse(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`--check` is the read-only plan report (SPEC A-E5-6) and stays one: it prints current vs
+    target without a download, so the pre-flight has nothing to say about it (card t_ba767a2b)."""
+    home = installed_home(tmp_path)
+    archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+    lock = fake_lock(tmp_path, size=home.archive.stat().st_size, digest=sha256(home.archive),
+                     name="preflight.lock", system_libs={VARIANT: ("libcudart.so.12",)})
+    monkeypatch.setattr(install, "PREFLIGHT_SYSTEM_LIBS", lambda names: {
+        "libcudart.so.12": "libcudart.so.12: cannot open shared object file"})
+    before = home.snapshot()
+    payload = update.update(check=True, home=home.home, lock=lock,
+                            releases=[release(size=archive.stat().st_size)], deep=False,
+                            probes=HOST)
+    assert payload["check"] is True and payload["updated"] is False
+    assert payload["to"]["variant"] == VARIANT and payload["reason"] is None
+    assert home.snapshot() == before, "--check must touch nothing"
+
+
+def test_the_default_target_is_the_variant_init_installed_not_a_fresh_detection(
+        tmp_path: pathlib.Path) -> None:
+    """M2b (the coordinator's option (b)): `update` MAINTAINS the bundle `init` installed.
+
+    On a CUDA-driver box whose ladder fell back to cpu, the *default* target is the installed
+    record's variant — `--backend` is how a backend switch is asked for (SPEC 2.8 step 2). The
+    release carries both bundles, so a detection-driven target is a visible wrong answer, not an
+    `E_UPDATE_UNAVAILABLE` that would hide the rule.
+    """
+    home = gpu_box_home(tmp_path)
+    assert home.record["variant"] == VARIANT and home.record["dir"] == str(home.dir)
+    payload = update.update(check=True, home=home.home, lock=home.lock,
+                            releases=[release_pair(home.archive.stat().st_size)], deep=False,
+                            probes=GPU_HOST)
+    assert payload["from"]["variant"] == VARIANT
+    assert payload["to"]["variant"] == VARIANT, "detection must not re-decide what is installed"
+    assert payload["to"]["dir"] == str(home.home / "runtime" / f"{NEXT_TAG}-{VARIANT}")
+    assert payload["asset"]["name"] == NEXT_ASSET
+
+
+def test_a_real_update_on_a_gpu_box_switches_the_installed_variant_it_already_had(
+        tmp_path: pathlib.Path) -> None:
+    """The same rule end to end: the download, the probe, the put and the record are the cpu ones
+    the box already runs — a GPU detection changes nothing about what is being maintained."""
+    home = gpu_box_home(tmp_path)
+    archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+    payload = update.update(home=home.home, lock=home.lock,
+                            releases=[release_pair(archive.stat().st_size)],
+                            url=archive.as_uri(), deep=False, client=FakeClient(),
+                            probes=GPU_HOST)
+    final = home.home / "runtime" / f"{NEXT_TAG}-{VARIANT}"
+    record = json.loads((home.home / "runtime.json").read_bytes())
+    assert payload["updated"] is True and payload["to"]["variant"] == VARIANT
+    assert payload["probe"]["expect_backend"] == "cpu"
+    assert record["variant"] == VARIANT and record["dir"] == str(final)
+    assert record["tag"] == NEXT_TAG and (final / "libllama.so").exists()
+    assert not (home.home / "runtime" / f"{NEXT_TAG}-{CUDA_VARIANT}").exists()
+
+
+def test_an_explicit_backend_still_overrides_the_installed_record(tmp_path: pathlib.Path) -> None:
+    """`--backend` is the switch: the record answers the *default*, never an explicit request."""
+    home = gpu_box_home(tmp_path)
+    payload = update.update(check=True, backend="cuda", home=home.home, lock=home.lock,
+                            releases=[release_pair()], deep=False, probes=HOST)
+    assert payload["to"]["variant"] == CUDA_VARIANT
+    assert payload["asset"]["name"] == CUDA_ASSET.replace(PINNED_TAG, NEXT_TAG)
+
+
+def test_a_record_that_does_not_name_the_active_runtime_leaves_detection_alone(
+        tmp_path: pathlib.Path) -> None:
+    """The third clause: a record naming another directory is a fact about *that* bundle, so the
+    target variant comes from detection exactly as it did before the rule (SPEC 2.8 step 2)."""
+    home = gpu_box_home(tmp_path)
+    record_path = home.home / "runtime.json"
+    record = json.loads(record_path.read_bytes())
+    record["dir"] = str(tmp_path / "elsewhere")
+    record_path.write_text(json.dumps(record))
+    assert update.current_runtime(home.home)["variant"] is None, "the record is not this runtime"
+    payload = update.update(check=True, home=home.home, lock=home.lock,
+                            releases=[release_pair()], deep=False, probes=GPU_HOST)
+    assert payload["to"]["variant"] == CUDA_VARIANT
+
+
+def test_a_record_with_no_variant_leaves_detection_alone(tmp_path: pathlib.Path) -> None:
+    """A record that names this runtime but carries no `variant` has nothing to read, so the update
+    falls back to detection — the same answer the record about another directory gets (SPEC 2.8
+    step 2, card t_ba767a2b).
+
+    This is the pin for `installed_variant`'s *falsy* answer: a truthy-but-empty one (`str(None)`,
+    the shape a mutation takes) would ask the lock for a variant named `None` and fail the update
+    with `E_RUNTIME_MISSING` instead of updating this box.
+    """
+    home = gpu_box_home(tmp_path)
+    record_path = home.home / "runtime.json"
+    record = json.loads(record_path.read_bytes())
+    record.pop("variant", None)
+    record_path.write_text(json.dumps(record))
+    assert update.current_runtime(home.home)["dir"] == str(home.dir), "this runtime is the record's"
+    payload = update.update(check=True, home=home.home, lock=home.lock,
+                            releases=[release_pair()], deep=False, probes=GPU_HOST)
+    assert payload["to"]["variant"] == CUDA_VARIANT, "detection answers when the record is silent"
+
+
+def test_an_installed_variant_the_lock_no_longer_pins_refuses_instead_of_switching(
+        tmp_path: pathlib.Path) -> None:
+    """A lock that dropped the installed variant has no bundle to maintain: refuse, and let
+    `--backend` (or a fresh `init`) be the deliberate way to a different backend."""
+    home = installed_home(tmp_path)
+    lock = fake_lock(tmp_path, variants=(CUDA_VARIANT,), asset=CUDA_ASSET, size=0,
+                     name="no-cpu.lock")
+    before = home.snapshot()
+    with pytest.raises(TypedGgufError) as exc:
+        update.update(check=True, home=home.home, lock=lock, releases=[release_pair()],
+                      deep=False, probes=GPU_HOST)
+    assert exc.value.code == "E_RUNTIME_MISSING"
+    assert VARIANT in str(exc.value)
+    assert home.snapshot() == before

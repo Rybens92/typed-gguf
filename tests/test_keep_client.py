@@ -75,6 +75,7 @@ def make_client(keep_home: pathlib.Path):
         client.stop(grace=1.0)
         for _pid, proc in list(client.children.items()):
             proc.kill()
+            proc.wait(timeout=5.0)          # reap what the blanket kill kills (t_ba767a2b)
 
 
 @pytest.mark.needs_fork
@@ -954,3 +955,54 @@ def test_a_swap_gets_the_request_ceiling_to_drain_a_decision(keep_home) -> None:
     # `keep stop`'s own grace is *not* what a swap waits with: the two budgets stay independent.
     settled = client_module.Client(home=keep_home, stop_grace=0.5)
     assert settled.drain_grace == client_module.REQUEST_TIMEOUT
+
+
+# ------------------------------------ M1 (card t_ba767a2b): the child a losing spawn abandons
+@pytest.mark.needs_fork
+def test_the_child_a_spawn_loses_the_ledger_with_is_reaped_not_left(keep_home) -> None:
+    """A spawn that loses the ledger to another caller's host must not leave its child unreaped.
+
+    `<digest>.sock` is one path per identity, so when two cold callers race the *same* key the host
+    that binds the socket first wins and the other child exits by itself (SPEC 2.12: one host per
+    data home). `_wait_ready` hands the loser the **winner's** record — correct — but until card
+    t_ba767a2b it left the loser's own `Popen` in `Client.children`, unwaited, for whatever drops
+    the client next: in these gates the fixture's blanket `kill()`, in production the CLI exiting. A
+    handle dropped with `returncode is None` is exactly the `ResourceWarning: subprocess N is still
+    running` that py3.11's CI turns into an error, plus a zombie until a later GC. The mechanism is
+    pinned on its own shape in
+    `docs/evidence/t_ba767a2b/probe_keep_fixture.py` (`kill()` only -> the CI's error; `+wait()` ->
+    green). The reap must not touch the ledger: that record belongs to the host that won.
+    """
+    client = client_module.Client(home=keep_home, host_command=("fake-host", "--spec"))
+    key = _key()
+    state.ensure_dir(keep_home)
+    socket_file = state.socket_path(keep_home, key.digest)
+    socket_file.write_text("", encoding="utf-8")           # the winner's socket, on disk
+    state.write_record(state.HostRecord(                   # …and its record, for this digest
+        digest=key.digest, pid=os.getpid(), socket=str(socket_file), key=key.to_dict(),
+        model="a", model_path=key.model_path, keep_alive=30.0, started_at=time.time(),
+        loaded_at=time.time(), spec=str(state.spec_path(keep_home, key.digest)),
+        log=str(state.log_path(keep_home, key.digest))), keep_home)
+    spawned: list[subprocess.Popen] = []
+
+    def spawn(argv: list[str], *, env: dict[str, str], log: pathlib.Path) -> subprocess.Popen:
+        proc = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"],
+                                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL)
+        spawned.append(proc)
+        return proc
+
+    client.spawn = spawn
+    try:
+        record = client.spawn_host(key, keep_alive=30.0, fit=None, payload={}, model="a")
+        assert record.pid == os.getpid(), "the winner's record is what this call is handed"
+        assert client.children == {}, "the abandoned child must not be left to the GC"
+        assert spawned[0].returncode is not None, "…and it is really reaped, not just dropped"
+        assert not state.pid_alive(spawned[0].pid)
+        assert state.read_record(keep_home) is not None, (
+            "the reap must not clear the winner's record")
+    finally:
+        for proc in spawned:
+            if proc.returncode is None:
+                proc.kill()
+                proc.wait(timeout=5.0)

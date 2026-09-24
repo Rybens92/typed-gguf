@@ -1,0 +1,107 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_______ test_a_body_over_the_cap_is_refused_before_a_byte_of_it_is_read ________
+
+home = PosixPath('/tmp/pytest-of-root/pytest-3964/test_a_body_over_the_cap_is_re0/home')
+handler_in_a_thread = <function handler_in_a_thread.<locals>.start at 0x7f3d9c66b380>
+
+    def test_a_body_over_the_cap_is_refused_before_a_byte_of_it_is_read(
+            home, handler_in_a_thread) -> None:
+        """`http.server` reads whatever `Content-Length` claims, so the cap is answered from the header
+        alone: this client sends *no* body at all and still gets its `413` (a server that tried to read
+        first would sit on the socket until the handler timeout, and the read below would fail)."""
+        log = Log()
+        conn = handler_in_a_thread(serve.App(decide=_no_loading, home=home, log=log))
+        conn.settimeout(5.0)
+>       over = serve.MAX_BODY_BYTES + 1
+               ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'typed_gguf.api.http' has no attribute 'MAX_BODY_BYTES'
+
+tests/test_serve.py:620: AttributeError
+____________ test_the_native_route_speaks_its_own_shape_for_the_cap ____________
+
+home = PosixPath('/tmp/pytest-of-root/pytest-3964/test_the_native_route_speaks_i0/home')
+handler_in_a_thread = <function handler_in_a_thread.<locals>.start at 0x7f3d9d4e9e40>
+
+    def test_the_native_route_speaks_its_own_shape_for_the_cap(home, handler_in_a_thread) -> None:
+        """§2.9's two shapes survive the cap: `/v1/decide` keeps `{"error": {code, message}}`."""
+        conn = handler_in_a_thread(serve.App(decide=_no_loading, home=home, log=Log()))
+        conn.settimeout(5.0)
+        conn.sendall(b"POST /v1/decide HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n"
+>                    b"Content-Length: " + str(serve.MAX_BODY_BYTES * 4).encode() + b"\r\n\r\n")
+                                               ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'typed_gguf.api.http' has no attribute 'MAX_BODY_BYTES'
+
+tests/test_serve.py:638: AttributeError
+_______________ test_a_body_at_the_cap_is_still_read_and_routed ________________
+
+home = PosixPath('/tmp/pytest-of-root/pytest-3964/test_a_body_at_the_cap_is_stil0/home')
+handler_in_a_thread = <function handler_in_a_thread.<locals>.start at 0x7f3d9c66a840>
+
+    def test_a_body_at_the_cap_is_still_read_and_routed(home, handler_in_a_thread) -> None:
+        """The cap is a ceiling, not a policy: a large-but-legal body reaches the app unchanged."""
+        seen: list[int] = []
+    
+        def decide(payload: dict[str, Any]) -> dict[str, Any]:
+            seen.append(len(payload["state"]))
+            return {"model": ALIAS, "answers": {}, "usage": {"input_tokens": 1, "output_tokens": 1}}
+    
+        app = serve.App(decide=decide, home=home, log=Log())
+        conn = handler_in_a_thread(app)
+        conn.settimeout(10.0)
+>       state = "x" * (serve.MAX_BODY_BYTES - 4096)
+                       ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'typed_gguf.api.http' has no attribute 'MAX_BODY_BYTES'
+
+tests/test_serve.py:655: AttributeError
+______________ test_the_handler_drops_a_client_that_sends_nothing ______________
+
+home = PosixPath('/tmp/pytest-of-root/pytest-3964/test_the_handler_drops_a_clien0/home')
+handler_in_a_thread = <function handler_in_a_thread.<locals>.start at 0x7f3d9c66b2e0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3d9d75ffd0>
+
+    def test_the_handler_drops_a_client_that_sends_nothing(home, handler_in_a_thread,
+                                                           monkeypatch: pytest.MonkeyPatch) -> None:
+        """One thread per connection: a client that opens one and says nothing must not hold it
+        forever (`http.server`'s default is no timeout at all). The production window is asserted as a
+        bound; the behaviour is measured with the same shape at 0.3 s."""
+>       assert serve.Handler.timeout == serve.HANDLER_TIMEOUT
+                                        ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'typed_gguf.api.http' has no attribute 'HANDLER_TIMEOUT'
+
+tests/test_serve.py:671: AttributeError
+________ test_a_client_that_left_mid_request_is_not_a_stdlib_traceback _________
+
+home = PosixPath('/tmp/pytest-of-root/pytest-3964/test_a_client_that_left_mid_re0/home')
+capsys = <_pytest.capture.CaptureFixture object at 0x7f3d9c6a2750>
+
+    def test_a_client_that_left_mid_request_is_not_a_stdlib_traceback(home, capsys) -> None:
+        """An `RST` on the wire is the client's business; a bug of ours must still be visible.
+    
+        `BaseServer.handle_error` prints a full traceback for every `BrokenPipeError` a vanished client
+        causes — and `--host 0.0.0.0` is explicitly supported (S-8).
+        """
+        server = serve.Server.__new__(serve.Server)          # no bind: `handle_error` needs no state
+        try:
+            raise ConnectionResetError("the client left")
+        except ConnectionResetError:
+            server.handle_error(None, ("127.0.0.1", 43210))
+>       assert capsys.readouterr().err == ""
+E       assert '------------...-----------\n' == ''
+E         
+E         + ----------------------------------------
+E         + Exception occurred during processing of request from ('127.0.0.1', 43210)
+E         + Traceback (most recent call last):
+E         +   File "/workspace/ggufone/tests/test_serve.py", line 689, in test_a_client_that_left_mid_request_is_not_a_stdlib_traceback
+E         +     raise ConnectionResetError("the client left")
+E         + ConnectionResetError: the client left
+E         + ----------------------------------------
+
+tests/test_serve.py:692: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_serve.py::test_a_body_over_the_cap_is_refused_before_a_byte_of_it_is_read
+FAILED tests/test_serve.py::test_the_native_route_speaks_its_own_shape_for_the_cap
+FAILED tests/test_serve.py::test_a_body_at_the_cap_is_still_read_and_routed
+FAILED tests/test_serve.py::test_the_handler_drops_a_client_that_sends_nothing
+FAILED tests/test_serve.py::test_a_client_that_left_mid_request_is_not_a_stdlib_traceback
+5 failed, 66 deselected in 0.27s

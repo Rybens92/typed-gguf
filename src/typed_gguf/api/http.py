@@ -96,6 +96,17 @@ QUESTION_KEYWORD: dict[str, str] = {
 QUESTION_ID = re.compile(r"^question '((?:[^'\\]|\\.)*)'")
 #: The header the SDK reads back for its own logs (`_core.constants.REQUEST_ID_HEADER`).
 REQUEST_ID_HEADER = "x-typesafe-request-id"
+#: The largest request body this server will read. `BaseHTTPRequestHandler` allocates whatever
+#: `Content-Length` claims, so without a ceiling one client hands the process an arbitrary
+#: allocation — and `--host 0.0.0.0` is explicitly supported (S-8). The served routes carry a state
+#: text plus questions: 1 MiB is order-of-magnitude above the largest body §2.9 describes.
+MAX_BODY_BYTES = 1 << 20
+#: A per-connection socket timeout. `ThreadingHTTPServer` is one thread per connection, and
+#: `http.server` sets no timeout of its own: a client that opens a connection and sends nothing
+#: would hold that thread forever.
+HANDLER_TIMEOUT = 30.0
+#: The code a body over the cap is refused with, in the same vocabulary as §2.5's errors.
+BODY_TOO_LARGE = "E_BODY_TOO_LARGE"
 
 Decide = Callable[[dict[str, Any]], dict[str, Any]]
 
@@ -418,6 +429,20 @@ def _native_error(code: str, message: str, status: int,
     return _problem(status, {"error": {"code": code, "message": message}}, headers)
 
 
+def _too_large(length: int, *, native: bool, headers: Mapping[str, str]) -> Response:
+    """`413` for a body over `MAX_BODY_BYTES`, in the shape the route's own errors use (§2.9).
+
+    Answered from the `Content-Length` header alone: the body is never read, so the ceiling costs
+    nothing and an announced 5 GiB is declined before a byte of it is allocated.
+    """
+    message = (f"the request body is {length} bytes; this server reads at most "
+               f"{MAX_BODY_BYTES} bytes")
+    if native:
+        return _native_error(BODY_TOO_LARGE, message, 413, headers)
+    return _problem(413, {"detail": [{"type": "too_large", "loc": ["body"], "msg": message}]},
+                    headers)
+
+
 def _stderr_log(line: str) -> None:
     print(line, file=sys.stderr, flush=True)
 
@@ -433,6 +458,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     server_version = f"{SERVICE}/{__version__}"
     sys_version = ""
+    #: One thread per connection: a client that opens one and never sends a line must not keep it
+    #: (`http.server` has no timeout of its own). `BaseHTTPRequestHandler` turns the timeout into a
+    #: closed connection, never a traceback.
+    timeout = HANDLER_TIMEOUT
 
     def do_GET(self) -> None:                            # noqa: N802 - the stdlib's own names
         self._serve("GET")
@@ -441,19 +470,48 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self._serve("POST")
 
     def _serve(self, method: str) -> None:
+        app = self.server.app                              # type: ignore[attr-defined]
         try:
             length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:                    # a broken length: a bad request, not a 500
+            length = 0
+        if length > MAX_BODY_BYTES:
+            # Answer from the header alone and close: the refused body must never be read (and the
+            # bytes already in flight must not be parsed as the next request on this connection).
+            self._refuse(method, length)
+            return
+        try:
             body = self.rfile.read(length) if length > 0 else b""
-        except (ValueError, OSError):                    # a broken length: a bad request, not a 500
-            length, body = 0, b""
+        except (ValueError, OSError, TimeoutError):      # a broken or silent read, not a 500
+            body = b""
+        self._answer(app.handle(method, self.path, dict(self.headers.items()), body))
+
+    def _refuse(self, method: str, length: int) -> None:
+        """`413` on the app's own log sink: a refused request is still a request in the record."""
         app = self.server.app                              # type: ignore[attr-defined]
-        response = app.handle(method, self.path, dict(self.headers.items()), body)
-        self.send_response(response.status)
-        for name, value in response.headers.items():
-            self.send_header(name, value)
-        self.send_header("Content-Length", str(len(response.body)))
-        self.end_headers()
-        self.wfile.write(response.body)
+        started = app.clock()
+        path = self.path.split("?", 1)[0]
+        rid = uuid.uuid4().hex[:16]
+        elapsed_ms = (app.clock() - started) * 1000.0
+        app.log(f"{method} {path} 413 served_by=- {elapsed_ms:.1f}ms req={rid}")
+        self.close_connection = True
+        self._answer(_too_large(length, native=path == DECIDE_PATH,
+                                headers={REQUEST_ID_HEADER: rid}))
+
+    def _answer(self, response: Response) -> None:
+        try:
+            self.send_response(response.status)
+            for name, value in response.headers.items():
+                self.send_header(name, value)
+            self.send_header("Content-Length", str(len(response.body)))
+            if self.close_connection:
+                self.send_header("Connection", "close")
+            self.end_headers()
+            self.wfile.write(response.body)
+        except OSError:
+            # A client that left mid-answer (an RST) is the wire's business: without this the
+            # stdlib prints a full traceback for every vanished client.
+            self.close_connection = True
 
     def log_message(self, format: str, *args: Any) -> None:   # noqa: A002 - the stdlib's signature
         """Silent: the app's own log line is the request record (and never a header value)."""
@@ -472,6 +530,19 @@ class Server(http.server.ThreadingHTTPServer):
     def __init__(self, address: tuple[str, int], app: App) -> None:
         self.app = app
         super().__init__(address, Handler)
+
+    def handle_error(self, request: Any, client_address: Any) -> None:
+        """A client that left mid-request (`RST`) or went silent is the wire, not a stack trace.
+
+        `socketserver`'s own `handle_error` prints a full traceback for every `BrokenPipeError` a
+        vanished client causes — noise that says nothing about us, from a server whose default bind
+        is loopback but which `--host 0.0.0.0` explicitly supports (S-8). Anything that is not a
+        transport failure still goes to the stdlib: a bug of ours stays visible.
+        """
+        failure = sys.exc_info()[1]
+        if isinstance(failure, (ConnectionError, TimeoutError)):
+            return
+        super().handle_error(request, client_address)
 
 
 def make_server(app: App, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT) -> Server:

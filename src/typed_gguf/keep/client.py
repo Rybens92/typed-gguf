@@ -338,6 +338,16 @@ class Client:
                     self._discard(proc, spec, message)
                     raise KeepUnavailable(f"spawn: {message}")
                 if record.state == "ready" and state.alive(record):
+                    if record.pid != proc.pid:
+                        # The same-digest race (card t_ba767a2b): another caller's host won this
+                        # identity, so `<digest>.sock` is taken and this child has nothing left to
+                        # serve. Hand over the winner's record, but reap *our* child: left in
+                        # `children` it is a `Popen` dropped with `returncode is None` — the
+                        # `ResourceWarning: subprocess N is still running` the py3.11 CI turns into
+                        # an error — plus a zombie until the next GC. Reap only: the ledger entry
+                        # belongs to the host that won, and clearing it would kill a live host this
+                        # call never spawned.
+                        self._reap(proc)
                     return record
             elif record is not None and state.alive(record):
                 message = (f"another host (pid {record.pid}, digest {record.digest}) appeared "
@@ -365,6 +375,22 @@ class Client:
         self.children.pop(proc.pid, None)
         state.clear_record(self.home, digest=spec.digest)
         self.events.append(("cleanup", spec.digest))
+
+    def _reap(self, proc: subprocess.Popen, *, grace: float = 2.0) -> None:
+        """`_discard`'s kill + wait + pop, **without** the ledger half (card t_ba767a2b).
+
+        For a child this client spawned and then turned out *not* to be the host the ledger names —
+        the loser of a same-digest race, whose socket the winner holds. Its record is the winner's,
+        so clearing it (what `_discard` does) would tear down a live host this call never spawned.
+        What must still happen is the wait: a `Popen` dropped while its child is on its way out is
+        the `ResourceWarning: subprocess N is still running` that py3.11's CI turns into an error
+        (`filterwarnings = ["error"]`) and a zombie until the next GC.
+        """
+        with contextlib.suppress(OSError):
+            proc.send_signal(signal.SIGKILL)
+        with contextlib.suppress(Exception):
+            proc.wait(timeout=grace)
+        self.children.pop(proc.pid, None)
 
     def _log_tail(self, spec: host_module.HostSpec, *, limit: int = 400) -> str:
         try:

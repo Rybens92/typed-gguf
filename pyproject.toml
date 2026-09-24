@@ -219,7 +219,17 @@ quote-style = "double"
 # whole selection (`tests/test_runtime_update.py` drives every branch on fake bundles, offline).
 # `cli.py` is deliberately not in `source_paths`: the `runtime` subcommand is thin wiring those
 # gates already drive end to end. Restore the serve/api pair above when a serve card sweeps next.
-source_paths = ["src/typed_gguf/registry/store.py"]
+# Card t_ba767a2b (FIX batch from review t_c7d5e33d) sweeps the modules whose *logic* it adds, one
+# Tier-M run each with their own gate files, in this order: (A) `src/typed_gguf/runtime/update.py`
+# — the pre-flight refusal before the download + the installed-record target rule (M2/M2b) — with
+# `tests/test_runtime_update.py`; (B) `src/typed_gguf/api/http.py` — the body cap, `Handler.timeout`
+# and `handle_error` (the card's M3 minors) — with `tests/test_serve.py`. Both are the pair the
+# cards that wrote those modules swept (t_d88b4be0 / t_f5d8b6c7), so the survivors are comparable.
+# `src/typed_gguf/keep/client.py` (M1's 10-line `_reap`) is deliberately **not** swept: the card's
+# own RED pin covers it, and that module already has an 829-mutant sweep from t_176614c6 (61.0 %),
+# which a re-run would spend on pre-existing survivors. The pair below is run (B); run (A) used
+# `source_paths = ["src/typed_gguf/runtime/update.py"]` + `["tests/test_runtime_update.py"]`.
+source_paths = ["src/typed_gguf/api/http.py"]
 # Card t_f5d8b6c7 (serve) drops `docs` from also_copy for this sweep: the selection
 # (`tests/test_serve.py`) reads no document, while `docs/evidence/` carries 4.3 GB of committed
 # e2e artifacts (a model tree, two venvs with dangling `bin/python*` links) whose copy dominated
@@ -300,10 +310,14 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # `tests/test_registry_store.py` (the module's own contract: aliases, dedup, corruption) and
 # `tests/test_cli_e1a.py` (the `models ls/use/rm` surface that writes and reads the table).
 # Restore a keep/runtime pair when the next card sweeps one.
+# Card t_ba767a2b run (A) is the update pair (958 mutants, 819 killed = 85.5 %, 139 survived, 0
+# timeouts, 0 with no tests; a scoped re-run of `typed_gguf.runtime.update.x_installed_variant*`
+# after the falsy-variant pin landed took it to **820 killed = 85.6 %, 138 survived**). The
+# leftovers are the `run()` lifecycle, report strings and `_require_probe` branches the *other*
+# update gate files assert. Run (B) is the selection below. Restore this default-model trio when a
+# models card sweeps next.
 pytest_add_cli_args_test_selection = [
-    "tests/test_default_model.py",
-    "tests/test_registry_store.py",
-    "tests/test_cli_e1a.py",
+    "tests/test_serve.py",
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down

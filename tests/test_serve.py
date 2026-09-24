@@ -608,6 +608,115 @@ def test_the_http_layer_keeps_the_connection_alive_for_a_second_request(
     assert json.loads(second[2]) == {"detail": "Not Found"}
 
 
+# ------------------------ the request-body cap, the idle timeout, the RST (card t_ba767a2b, M3)
+def test_a_body_over_the_cap_is_refused_before_a_byte_of_it_is_read(
+        home, handler_in_a_thread) -> None:
+    """`http.server` reads whatever `Content-Length` claims, so the cap is answered from the header
+    alone: this client sends *no* body at all and still gets its `413` (a server that tried to read
+    first would sit on the socket until the handler timeout, and the read below would fail)."""
+    log = Log()
+    conn = handler_in_a_thread(serve.App(decide=_no_loading, home=home, log=log))
+    conn.settimeout(5.0)
+    over = serve.MAX_BODY_BYTES + 1
+    conn.sendall(b"POST /v1/systemone HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+                 b"Content-Type: application/json\r\nConnection: close\r\n"
+                 b"Content-Length: " + str(over).encode() + b"\r\n\r\n")
+    status, headers, body = _read_response(conn)
+    assert status == b"HTTP/1.1 413 Request Entity Too Large", status
+    assert headers[b"Connection"] == b"close", "the rest of that body must not be parsed as one"
+    detail = json.loads(body)["detail"][0]
+    assert detail["type"] == "too_large" and detail["loc"] == ["body"]
+    assert str(over) in detail["msg"] and str(serve.MAX_BODY_BYTES) in detail["msg"]
+    assert len(log.lines) == 1 and " 413 " in log.lines[0], "a refusal is still a request"
+    assert headers[serve.REQUEST_ID_HEADER.encode()], "the refusal carries the request id like any"
+
+
+def test_the_native_route_speaks_its_own_shape_for_the_cap(home, handler_in_a_thread) -> None:
+    """§2.9's two shapes survive the cap: `/v1/decide` keeps `{"error": {code, message}}`."""
+    conn = handler_in_a_thread(serve.App(decide=_no_loading, home=home, log=Log()))
+    conn.settimeout(5.0)
+    conn.sendall(b"POST /v1/decide HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n"
+                 b"Content-Length: " + str(serve.MAX_BODY_BYTES * 4).encode() + b"\r\n\r\n")
+    status, _headers, body = _read_response(conn)
+    assert status == b"HTTP/1.1 413 Request Entity Too Large", status
+    error = json.loads(body)["error"]
+    assert error["code"] == serve.BODY_TOO_LARGE
+    assert str(serve.MAX_BODY_BYTES * 4) in error["message"], "the refusal names the size announced"
+
+
+def test_a_body_at_the_cap_is_still_read_and_routed(home, handler_in_a_thread) -> None:
+    """The cap is a ceiling, not a policy: a body of exactly `MAX_BODY_BYTES` reaches the app."""
+    seen: list[int] = []
+
+    def decide(payload: dict[str, Any]) -> dict[str, Any]:
+        seen.append(len(payload["state"]))
+        return {"model": ALIAS, "answers": {}, "usage": {"input_tokens": 1, "output_tokens": 1}}
+
+    app = serve.App(decide=decide, home=home, log=Log())
+    conn = handler_in_a_thread(app)
+    conn.settimeout(10.0)
+    overhead = len(json.dumps({"state": "", "model": ALIAS, "questions": {}}).encode("utf-8"))
+    state = "x" * (serve.MAX_BODY_BYTES - overhead)
+    raw = json.dumps({"state": state, "model": ALIAS, "questions": {}}).encode("utf-8")
+    assert len(raw) == serve.MAX_BODY_BYTES, "the cap itself is legal; the byte above it is not"
+    conn.sendall(b"POST /v1/systemone HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+                 b"Content-Type: application/json\r\nConnection: close\r\n"
+                 b"Content-Length: " + str(len(raw)).encode() + b"\r\n\r\n" + raw)
+    status, _headers, _body = _read_response(conn)
+    assert status != b"HTTP/1.1 413 Request Entity Too Large", "a legal body is not a refusal"
+    assert seen == [len(state)], "the body arrived whole"
+
+
+def test_the_handler_drops_a_client_that_sends_nothing(home,
+                                                       monkeypatch: pytest.MonkeyPatch) -> None:
+    """One thread per connection: a client that opens one and says nothing must not hold it
+    forever (`http.server`'s default is no timeout at all). The production window is asserted as a
+    bound; the behaviour is measured with the same shape at 0.3 s.
+
+    The handler is driven on a bare socketpair here rather than through the fixture: the fixture
+    keeps *both* ends open, so an EOF is not observable from the client even after the handler gave
+    up — the thread finishing is the fact under test.
+    """
+    assert serve.Handler.timeout == serve.HANDLER_TIMEOUT
+    assert 0.0 < serve.HANDLER_TIMEOUT <= 120.0
+    monkeypatch.setattr(serve.Handler, "timeout", 0.3)
+    ours, theirs = socket.socketpair()
+    thread = threading.Thread(
+        target=serve.Handler,
+        args=(ours, ("127.0.0.1", 0), _DuckServer(serve.App(decide=_no_loading, home=home,
+                                                           log=Log()))),
+        daemon=True)
+    try:
+        thread.start()                                  # nothing is ever sent on `theirs`
+        thread.join(timeout=5.0)
+        assert not thread.is_alive(), "an idle connection kept the handler thread"
+    finally:
+        theirs.close()
+        ours.close()
+        thread.join(timeout=5.0)
+
+
+def test_a_client_that_left_mid_request_is_not_a_stdlib_traceback(home, capsys) -> None:
+    """An `RST` on the wire is the client's business; a bug of ours must still be visible.
+
+    `BaseServer.handle_error` prints a full traceback for every `BrokenPipeError` a vanished client
+    causes — and `--host 0.0.0.0` is explicitly supported (S-8).
+    """
+    server = serve.Server.__new__(serve.Server)          # no bind: `handle_error` needs no state
+    try:
+        raise ConnectionResetError("the client left")
+    except ConnectionResetError:
+        server.handle_error(None, ("127.0.0.1", 43210))
+    assert capsys.readouterr().err == ""
+    try:
+        raise RuntimeError("our own bug")
+    except RuntimeError:
+        server.handle_error(None, ("127.0.0.1", 43210))
+    printed = capsys.readouterr().err
+    assert "RuntimeError" in printed
+    assert "43210" in printed, "the report names the client it came from"
+
+
 @pytest.mark.skipif(_net_blocked(), reason=(
     "TYPED_GGUF_TEST_BLOCK_NET forbids AF_INET, the family a loopback server binds"))
 def test_the_server_binds_loopback_and_answers_over_tcp(home) -> None:

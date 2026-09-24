@@ -1,0 +1,77 @@
+........................................................................ [  3%]
+........................................ssssssss........................ [  7%]
+................................................................s....... [ 11%]
+........................................................................ [ 15%]
+................................................s....................... [ 19%]
+........................................................................ [ 23%]
+........................................................................ [ 27%]
+................................ss...................................... [ 31%]
+........................................................................ [ 35%]
+........................................................................ [ 39%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........sss..................................................sssssss.... [ 50%]
+..............................................sssssss.sss............... [ 54%]
+.................................................ss..................... [ 58%]
+..ssss.................................................................. [ 62%]
+............................................................sssssss..... [ 66%]
+........................................................................ [ 70%]
+....s................................................................... [ 74%]
+........................................................................ [ 78%]
+..........................................................s............. [ 82%]
+...........................sssss........................................ [ 85%]
+.s...................................................................... [ 89%]
+................................................................s....... [ 93%]
+.............................................s.......................... [ 97%]
+.....ssss..................................                              [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_bench_isolation_live.py:75: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:90: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:106: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:122: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:146: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:161: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:235: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_live.py:272: live test: pass --run-network to run
+SKIPPED [1] tests/test_bench_vulkan_teardown_live.py:156: live test: pass --run-network to run
+SKIPPED [1] tests/test_cli.py:241: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:131: live test: pass --run-network to run
+SKIPPED [1] tests/test_ctypes_binding.py:157: live test: pass --run-network to run
+SKIPPED [3] tests/test_e3e_roles.py:814: live test: pass --run-network to run
+SKIPPED [2] tests/test_engine_fork.py:573: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:593: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:637: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:663: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:715: live test: pass --run-network to run
+SKIPPED [1] tests/test_engine_fork.py:755: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:81: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:110: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:126: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:151: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:168: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:210: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:227: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:277: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:297: live test: pass --run-network to run
+SKIPPED [1] tests/test_fit_live.py:347: live test: pass --run-network to run
+SKIPPED [1] tests/test_gguf_header.py:219: pinned Spark GGUF not present
+SKIPPED [1] tests/test_gguf_header.py:235: pinned Qwen3.5 GGUF not present
+SKIPPED [1] tests/test_hf_network.py:33: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:40: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:51: live test: pass --run-network to run
+SKIPPED [1] tests/test_hf_network.py:80: live test: pass --run-network to run
+SKIPPED [7] tests/test_keep_live.py: live test: pass --run-network to run
+SKIPPED [1] tests/test_policy_v2.py:339: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_contract.py:90: no runtime installed (run `typed-gguf init` or set TYPED_GGUF_RUNTIME_DIR)
+SKIPPED [1] tests/test_runtime_live.py:42: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:50: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:59: live test: pass --run-network to run
+SKIPPED [1] tests/test_runtime_live.py:83: pinned Spark GGUF not present
+SKIPPED [1] tests/test_runtime_live.py:90: pinned Spark GGUF not present
+SKIPPED [1] tests/test_runtime_update.py:1007: live test: pass --run-network to run
+SKIPPED [1] tests/test_serve.py:714: TYPED_GGUF_TEST_BLOCK_NET forbids AF_INET, the family a loopback server binds
+SKIPPED [1] tests/test_serving_attribution.py:546: live test: pass --run-network to run
+SKIPPED [2] tests/test_templates.py:423: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:442: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:478: live test: pass --run-network to run
+1784 passed, 59 skipped in 55.21s

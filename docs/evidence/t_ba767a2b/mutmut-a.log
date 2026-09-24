@@ -1,0 +1,18 @@
+# Tier-M sweep (A): src/typed_gguf/runtime/update.py + tests/test_runtime_update.py
+# mutmut 3.8 via tools/mutmut_driver.py run --max-children 2; spinners stripped, final totals kept.
+   Building typed-gguf @ file:///workspace/ggufone
+      Built typed-gguf @ file:///workspace/ggufone
+Uninstalled 1 package in 1ms
+Installed 1 package in 2ms
+Installed 19 packages in 89ms
+    done in 6161ms (1 files mutated, 0 ignored, 0 unmodified)
+    done
+    done
+    done
+Running mutation testing
+8.12 mutations/second
+sweepA_exit=0
+# last progress line:
+⠙ 958/958  🎉 819 🫥 0  ⏰ 0  🤔 0  🙁 139  🔇 0  🧙 0
+# scoped re-run of x_installed_variant* after the falsy-variant pin (run 'typed_gguf.runtime.update.x_installed_variant*'):
+958/958  (killed 820, survived 138, timeouts 0, no-tests 0)  -- the 23 `x_installed_variant` mutants all killed, mutmut_22 (the falsy answer) included

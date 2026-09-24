@@ -1,0 +1,86 @@
+FF.                                                                      [100%]
+=================================== FAILURES ===================================
+_______ test_the_child_a_spawn_loses_the_ledger_with_is_reaped_not_left ________
+
+keep_home = PosixPath('/tmp/tg-keep-65ow2bu2/home')
+
+    @pytest.mark.needs_fork
+    def test_the_child_a_spawn_loses_the_ledger_with_is_reaped_not_left(keep_home) -> None:
+        """A spawn that loses the ledger to another caller's host must not leave its child unreaped.
+    
+        `<digest>.sock` is one path per identity, so when two cold callers race the *same* key the host
+        that binds the socket first wins and the other child exits by itself (SPEC 2.12: one host per
+        data home). `_wait_ready` hands the loser the **winner's** record — correct — but until card
+        t_ba767a2b it left the loser's own `Popen` in `Client.children`, unwaited, for whatever drops
+        the client next: in these gates the fixture's blanket `kill()`, in production the CLI exiting. A
+        handle dropped with `returncode is None` is exactly the `ResourceWarning: subprocess N is still
+        running` that py3.11's CI turns into an error (`filterwarnings = ["error"]`), plus a zombie until
+        a later GC. The mechanism is pinned on its own shape in
+        `docs/evidence/t_ba767a2b/probe_keep_fixture.py` (`kill()` only -> the CI's error; `+wait()` ->
+        green). The reap must not touch the ledger: that record belongs to the host that won.
+        """
+        client = client_module.Client(home=keep_home, host_command=("fake-host", "--spec"))
+        key = _key()
+        state.ensure_dir(keep_home)
+        socket_file = state.socket_path(keep_home, key.digest)
+        socket_file.write_text("", encoding="utf-8")           # the winner's socket, on disk
+        state.write_record(state.HostRecord(                   # …and its record, for this digest
+            digest=key.digest, pid=os.getpid(), socket=str(socket_file), key=key.to_dict(),
+            model="a", model_path=key.model_path, keep_alive=30.0, started_at=time.time(),
+            loaded_at=time.time(), spec=str(state.spec_path(keep_home, key.digest)),
+            log=str(state.log_path(keep_home, key.digest))), keep_home)
+        spawned: list[subprocess.Popen] = []
+    
+        def spawn(argv: list[str], *, env: dict[str, str], log: pathlib.Path) -> subprocess.Popen:
+            proc = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"],
+                                    stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.DEVNULL)
+            spawned.append(proc)
+            return proc
+    
+        client.spawn = spawn
+        try:
+            record = client.spawn_host(key, keep_alive=30.0, fit=None, payload={}, model="a")
+            assert record.pid == os.getpid(), "the winner's record is what this call is handed"
+>           assert client.children == {}, "the abandoned child must not be left to the GC"
+E           AssertionError: the abandoned child must not be left to the GC
+E           assert {118900: <Pop...n', '-c',...>} == {}
+E             
+E             Left contains 1 more item:
+E             {118900: <Popen: returncode: None args: ['/workspace/ggufone/.venv/bin/python', '-c',...>}
+E             Use -v to get more diff
+
+tests/test_keep_client.py:999: AssertionError
+_______ test_a_bundle_this_host_cannot_load_refuses_before_any_download ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3965/test_a_bundle_this_host_cannot0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f57a94eddd0>
+
+    def test_a_bundle_this_host_cannot_load_refuses_before_any_download(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """M2: `update` runs `init`'s own pre-flight, so a box that cannot load the target bundle's
+        system libraries refuses *before* spending the download (install.py:331; SPEC 2.8 step 3).
+    
+        The refusal keeps `init`'s vocabulary (`E_RUNTIME_SYMBOLS`, the reason, "nothing was changed")
+        and stays a refusal: there is no ladder here, so a missing `libcudart.so.12` is a dead end that
+        must not cost 168.8 MB per attempt. The URL is a real `file://` archive, so a download that
+        happened would have *succeeded* and the run would have updated — the typed error is the proof
+        that nothing was fetched.
+        """
+        home = installed_home(tmp_path)
+        archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+        lock = fake_lock(tmp_path, size=home.archive.stat().st_size, digest=sha256(home.archive),
+                         name="preflight.lock",
+                         system_libs={VARIANT: ("libcudart.so.12", "libcuda.so.1")})
+        monkeypatch.setattr(install, "PREFLIGHT_SYSTEM_LIBS", lambda names: {
+            "libcudart.so.12": "libcudart.so.12: cannot open shared object file: "
+                               "No such file or directory"})
+        before = home.snapshot()
+>       with pytest.raises(TypedGgufError) as exc:
+E       Failed: DID NOT RAISE TypedGgufError
+
+tests/test_runtime_update.py:1059: Failed
+=========================== short test summary info ============================
+FAILED tests/test_keep_client.py::test_the_child_a_spawn_loses_the_ledger_with_is_reaped_not_left
+FAILED tests/test_runtime_update.py::test_a_bundle_this_host_cannot_load_refuses_before_any_download
+2 failed, 1 passed, 47 deselected in 0.22s

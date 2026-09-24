@@ -1,0 +1,115 @@
+.FF..FFFFFF                                                              [100%]
+=================================== FAILURES ===================================
+_ test_the_default_target_is_the_variant_init_installed_not_a_fresh_detection __
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3963/test_the_default_target_is_the0')
+
+    def test_the_default_target_is_the_variant_init_installed_not_a_fresh_detection(
+            tmp_path: pathlib.Path) -> None:
+        """M2b (the coordinator's option (b)): `update` MAINTAINS the bundle `init` installed.
+    
+        On a CUDA-driver box whose ladder fell back to cpu, the *default* target is the installed
+        record's variant — `--backend` is how a backend switch is asked for (SPEC 2.8 step 2). The
+        release carries both bundles, so a detection-driven target is a visible wrong answer, not an
+        `E_UPDATE_UNAVAILABLE` that would hide the rule.
+        """
+        home = gpu_box_home(tmp_path)
+        assert home.record["variant"] == VARIANT and home.record["dir"] == str(home.dir)
+        payload = update.update(check=True, home=home.home, lock=home.lock,
+                                releases=[release_pair(home.archive.stat().st_size)], deep=False,
+                                probes=GPU_HOST)
+        assert payload["from"]["variant"] == VARIANT
+>       assert payload["to"]["variant"] == VARIANT, "detection must not re-decide what is installed"
+E       AssertionError: detection must not re-decide what is installed
+E       assert 'linux-x64-cuda-12.8' == 'linux-x64-cpu'
+E         
+E         - linux-x64-cpu
+E         ?            -
+E         + linux-x64-cuda-12.8
+E         ?             +++++++
+
+tests/test_runtime_update.py:1106: AssertionError
+_ test_a_real_update_on_a_gpu_box_switches_the_installed_variant_it_already_had _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3963/test_a_real_update_on_a_gpu_bo0')
+
+    def test_a_real_update_on_a_gpu_box_switches_the_installed_variant_it_already_had(
+            tmp_path: pathlib.Path) -> None:
+        """The same rule end to end: the download, the probe, the put and the record are the cpu ones
+        the box already runs — a GPU detection changes nothing about what is being maintained."""
+        home = gpu_box_home(tmp_path)
+        archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+>       payload = update.update(home=home.home, lock=home.lock,
+                                releases=[release_pair(archive.stat().st_size)],
+                                url=archive.as_uri(), deep=False, client=FakeClient(),
+                                probes=GPU_HOST)
+
+tests/test_runtime_update.py:1117: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/typed_gguf/runtime/update.py:503: in update
+    debris, source, stats = _stage(plan, home=home, lock=lock, url=url,
+src/typed_gguf/runtime/update.py:423: in _stage
+    source, stats = install._obtain_archive(plan, archive, url=url, progress=progress)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/typed_gguf/runtime/install.py:157: in _obtain_archive
+    result, source = _fetch(url, archive, size=plan.size, sha256=plan.sha256,
+src/typed_gguf/runtime/install.py:104: in _fetch
+    return _copy_local(source, dest, size=size, sha256=sha256, progress=progress), "url"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+source = PosixPath('/tmp/pytest-of-root/pytest-3963/test_a_real_update_on_a_gpu_bo0/llama-b11160-bin-ubuntu-x64.tar.gz')
+dest = PosixPath('/tmp/pytest-of-root/pytest-3963/test_a_real_update_on_a_gpu_bo0/home/downloads/llama-b11160-bin-ubuntu-cuda-12.8-x64.tar.gz')
+size = 520, sha256 = None, progress = None
+
+    def _copy_local(source: pathlib.Path, dest: pathlib.Path, *, size: int | None,
+                    sha256: str | None, progress: hf.Progress | None) -> hf.DownloadResult:
+        """`file://` fetch with the same resume/verify semantics as the network path."""
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        part = dest.with_name(dest.name + ".part")
+        offset = part.stat().st_size if part.exists() else 0
+        total = source.stat().st_size
+        if offset > total:  # stale part
+            part.unlink()
+            offset = 0
+        fetched = 0
+        with open(source, "rb") as src, open(part, "ab" if offset else "wb") as out:
+            src.seek(offset)
+            while True:
+                block = src.read(hf.CHUNK)
+                if not block:
+                    break
+                out.write(block)
+                fetched += len(block)
+                if progress:
+                    progress(out.tell(), total)
+            out.flush()
+            os.fsync(out.fileno())
+        if size is not None and part.stat().st_size != size:
+>           raise DownloadError(
+                f"E_DOWNLOAD_FAILED: {source}: expected {size} bytes, got {part.stat().st_size}")
+E           typed_gguf.errors.DownloadError: E_DOWNLOAD_FAILED: /tmp/pytest-of-root/pytest-3963/test_a_real_update_on_a_gpu_bo0/llama-b11160-bin-ubuntu-x64.tar.gz: expected 520 bytes, got 519
+
+src/typed_gguf/runtime/install.py:138: DownloadError
+_ test_an_installed_variant_the_lock_no_longer_pins_refuses_instead_of_switching _
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-3963/test_an_installed_variant_the_0')
+
+    def test_an_installed_variant_the_lock_no_longer_pins_refuses_instead_of_switching(
+            tmp_path: pathlib.Path) -> None:
+        """A lock that dropped the installed variant has no bundle to maintain: refuse, and let
+        `--backend` (or a fresh `init`) be the deliberate way to a different backend."""
+        home = installed_home(tmp_path)
+        lock = fake_lock(tmp_path, variants=(CUDA_VARIANT,), asset=CUDA_ASSET, size=0,
+                         name="no-cpu.lock")
+        before = home.snapshot()
+>       with pytest.raises(TypedGgufError) as exc:
+E       Failed: DID NOT RAISE TypedGgufError
+
+tests/test_runtime_update.py:1162: Failed
+
+--- summary (from the same run) ---
+FAILED tests/test_runtime_update.py::test_the_default_target_is_the_variant_init_installed_not_a_fresh_detection
+FAILED tests/test_runtime_update.py::test_a_real_update_on_a_gpu_box_switches_the_installed_variant_it_already_had
+FAILED tests/test_runtime_update.py::test_an_installed_variant_the_lock_no_longer_pins_refuses_instead_of_switching
+8 failed, 3 passed, 107 deselected in 0.76s
