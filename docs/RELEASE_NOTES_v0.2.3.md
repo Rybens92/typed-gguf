@@ -394,24 +394,36 @@ the default model's authors (Apache-2.0).
 
 - **Offline suite, the shape CI runs** — `env -u PYTHONPATH TYPED_GGUF_TEST_BLOCK_NET=1
   TYPED_GGUF_BENCH_RUNTIME_DIR=<offline bundle> uv run --extra dev pytest -q -rs --timeout=120` →
-  **1 640 passed, 57 skipped, 0 failed** in 43 s. The skips are the live cases that want a GPU, a
-  model file or `--run-network`; nothing in the suite touches the network. The 29 tests between
-  v0.2.1's 1 611 and this build's 1 640 are the offline pins of the two fixes above — the
-  concurrent-cold-spawn race, the race gate's bounded wait, and the context ladder's own rung walk.
+  **1 650 passed, 57 skipped, 0 failed** in 51 s. The skips are the live cases that want a GPU, a
+  model file or `--run-network`; nothing in the suite touches the network. The tests added since
+  v0.2.2 are the offline pins of the three fixes above and the root-layout gate. The plain card
+  command (the same line with no bundle stub) is **1 649 passed, 1 failed**: the one case that needs
+  a *visible* bundle to choose CPU from, which CI satisfies with four empty library files in a
+  temporary directory (its own step in `ci.yml`).
 - **The two release gates.** `tests/test_public_docs.py` (17 tests) pins this file, the README and
   the packaged version together, including the numbers nobody may re-quote from memory. The second
   gate, `tests/test_release_publish.py` (15 tests), parses the publish workflow, executes its version
   gate against a fake `dist/`, and pins the four spellings of one version: `pyproject.toml`,
   `typed_gguf.__version__`, the name of these notes and the tag the release must carry. From this
-  checkout, `uv run typed-gguf version` prints `typed-gguf 0.2.2`; the workflow's own gate script,
-  run against this build's artifacts (`typed_gguf-0.2.2-py3-none-any.whl` +
-  `typed_gguf-0.2.2.tar.gz`), accepts the tag `v0.2.2` and refuses `v0.2.1` and `v0.2.3`.
-- **The cold-spawn race, verified live before the release.** Three pairs of concurrent cold `ask`s on
+  checkout, `uv run typed-gguf version` prints `typed-gguf 0.2.3`; the workflow's own gate script,
+  run against this build's artifacts (`typed_gguf-0.2.3-py3-none-any.whl` +
+  `typed_gguf-0.2.3.tar.gz`, 314 263 B + 4 044 675 B), accepts the tag `v0.2.3` (rc 0) and refuses
+  `v0.2.2` and `v0.2.4` (rc 1 each, with the `::error::` line on the log). The same gate also pins
+  the two action versions the workflows carry (`actions/checkout@v7`, `astral-sh/setup-uv@v10`), so
+  a workflow and its gate cannot drift apart.
+- **The three fixes, verified live before the release.** The runs receipted in
+  `docs/evidence/e2e/t_176614c6-live/` (the harness, per-call JSON, exit codes and wall times, and
+  the four-step plan-cache table): the switch that used to kill the call in flight now waits for it
+  (the victim's answer 31 019 ms to 7 179 ms, and the switch exit 3 to 0), and the plan read on a
+  busy card no longer sticks (25 756 ms to 15 940 ms, at 36 GPU layers). The one case that could not
+  be rebuilt on demand in the release container, a host that says `ready` and cannot allocate, is
+  pinned offline instead, by name, in `tests/test_keep_host.py`.
+- **The cold-spawn race, verified live before the v0.2.2 release.** Three pairs of concurrent cold `ask`s on
   the operator box: 6/6 answers delivered, exactly one host per pair — and both callers of a pair
   report the same host, which is what "one shared host, one model copy" means in practice. The gate
   that keeps it is `tests/test_keep_client.py`: the racing pair, the bounded wait for the loser's
   exit, and the loser's own log quoted back to the caller it no longer serves.
-- **The placement ladder, verified live before the release.** The runs receipted in
+- **The placement ladder, verified live before the v0.2.2 release.** The runs receipted in
   `docs/evidence/e2e/t_287e0d18-live/` (report, stdout and stderr per run, `nvidia-smi` before and after): the
   22.4 s GPU ask that published both failed KV rungs, the two-ask pair re-placed to 18 layers, the
   honest CPU-only plan taken against a held device, and the `--fit-target 4500` plan that `calibrate`
@@ -421,11 +433,11 @@ the default model's authors (Apache-2.0).
   box's first stored 4B calibration (the per-type table, the refit hash, the store entry, and the
   choice the data refused). Nothing in this build reads it at runtime; it is the provenance for the
   numbers the project quotes.
-- **Mutation testing.** Not run for this build: it moves a version string, these notes and the two
-  version pins, and no product line at all, so a sweep would score the tree this build already
-  reports on. That standing sweep — over the module this release reports on
-  (`src/typed_gguf/runtime/fit.py`, 2 267 mutants, soft threshold) — is published: 1 335 killed / 805
-  survived = **62.4 %**, receipt `docs/evidence/context-v2/mutation.md`.
+- **Mutation testing.** Not run for this build: it moves a version string, these notes, the two
+  version pins and the two action versions in three workflow files, and no product line at all, so a
+  sweep would score the tree this build already reports on. The standing sweep over the module the
+  last release reported on (`src/typed_gguf/runtime/fit.py`, 2 267 mutants, soft threshold) stays
+  published: 1 335 killed / 805 survived = **62.4 %**, receipt `docs/evidence/context-v2/mutation.md`.
 
 ## Reproduce
 
