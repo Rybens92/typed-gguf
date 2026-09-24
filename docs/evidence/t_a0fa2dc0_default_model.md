@@ -86,11 +86,11 @@ test quoted before; it is now pinned by the two gates above (it would have been 
 ## 5. Gates
 
 * CI-shape suite (`docs`, `TYPED_GGUF_TEST_BLOCK_NET=1`, 4-empty-libs bundle stub, `TYPED_GGUF_HOME`
-  unset): **1770 passed / 59 skipped / 0 failed** (baseline at `c85ae33`: 1754/59/0; the 16 new
-  gates are the difference). Targeted files:
+  unset): **1771 passed / 59 skipped / 0 failed** (baseline at `c85ae33`: 1754/59/0; the 17 new
+  gates are exactly the difference). Targeted files:
   `test_default_model.py test_registry_store.py test_cli.py test_cli_e1a.py test_cli_doctor_branches.py
   test_fit.py test_calibration.py test_serve.py test_keep_cli.py test_e1c_mutation_pins.py test_routing.py`
-  → 392 passed / 1 skipped.
+  → 409 passed / 1 skipped.
 * `env -u PYTHONPATH uv run --extra dev ruff check src tests tools docs .github` → **All checks passed!**
 * `uv build` → `typed_gguf-0.2.3.tar.gz` + `typed_gguf-0.2.3-py3-none-any.whl`.
 * docs gate: `tests/test_public_docs.py` green; the README's quickstart sentence stays true (one
