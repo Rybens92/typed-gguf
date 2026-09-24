@@ -163,6 +163,9 @@ pulled spark-x2.5-4b-q8_0 -> ~/.local/share/typed-gguf/models/Spark-X2.5-4B-Q8_0
 ```
 
 Any GGUF llama.cpp can load works the same way: `--model <path.gguf>` overrides the registry entry.
+`ask` and `run` with no `--model` use the registry's **default**: the model you made current with
+`typed-gguf models use <alias>`, or your only model when you have just one. With several models and
+no default they stop and say which one to name, instead of guessing at it.
 
 **3. See what your box can hold.** `uv run typed-gguf fit` prints the plan a call that pins no
 context of its own will load with:

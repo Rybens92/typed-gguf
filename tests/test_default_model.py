@@ -237,3 +237,15 @@ def test_the_run_command_says_the_same_thing(
     assert cli.main(["run", "--questions", str(questions)]) == 0
     captured = capsys.readouterr()
     assert "requested <default>" in captured.err and "resolved stories260k" in captured.err
+
+
+# ------------------------------------------------------- the README says the same thing
+def test_the_quickstart_says_what_the_default_is() -> None:
+    """The README walks a reader from `pull` straight to a bare `ask`: step 2 must name the
+    default it now has, and the way out of an ambiguous registry."""
+    readme = (pathlib.Path(__file__).resolve().parents[1] / "README.md").read_text(encoding="utf-8")
+    step = readme.split("**2. Get the model.**", 1)[1].split("**3. ", 1)[0]
+    assert "default" in step, "the README no longer says what `ask` runs by default"
+    assert "`typed-gguf models use <alias>`" in step, (
+        "the README must name the command that picks the default")
+    assert "no `--model`" in step, "the claim has to be about a call that names no model"
