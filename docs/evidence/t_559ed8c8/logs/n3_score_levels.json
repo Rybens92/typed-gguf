@@ -1,0 +1,1 @@
+{"detail": [{"type": "value_error", "loc": ["body", "questions", "a", "criteria"], "msg": "E_SCORE_LEVELS: question 'a': score criteria must be an ordered array of 2..10 levels", "input": ["only-one"]}]}

@@ -1,0 +1,24 @@
+{
+  "schema": "typed_gguf.runtime.rollback/v1",
+  "rolled_back": true,
+  "from": {
+    "tag": "b99999",
+    "build": 11026,
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu",
+    "variant": "linux-x64-cpu"
+  },
+  "to": {
+    "tag": "b11026",
+    "build": 11026,
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu",
+    "variant": "linux-x64-cpu"
+  },
+  "previous": null,
+  "host_stopped": {
+    "stopped": false,
+    "pid": null,
+    "reason": "no host",
+    "cleaned": false
+  },
+  "home": "/workspace/e2e-t_559ed8c8/home"
+}

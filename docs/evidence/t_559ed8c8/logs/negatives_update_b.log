@@ -1,0 +1,45 @@
+
+=======================================================================================
+### U1. TYPED_GGUF_RUNTIME_DIR is set -> the rung update may not touch
+### command: TYPED_GGUF_RUNTIME_DIR=/opt/managed-runtime env -u PYTHONPATH venv/bin/typed-gguf runtime update --check
+error: E_UPDATE_UNAVAILABLE: TYPED_GGUF_RUNTIME_DIR=/opt/managed-runtime is managed outside typed-gguf (it is consumed read-only); unset it to update the runtime `typed-gguf init` installed
+EXIT=2
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+
+=======================================================================================
+### U2. nothing installed at all (empty data home) -> E_RUNTIME_MISSING
+### command: TYPED_GGUF_HOME=/workspace/e2e-t_559ed8c8/home-clean env -u PYTHONPATH venv/bin/typed-gguf runtime update
+error: E_RUNTIME_MISSING: no llama.cpp runtime installed under /workspace/e2e-t_559ed8c8/home-clean/runtime; run `typed-gguf init` first (it installs the pinned bundle, no compiler needed)
+EXIT=3
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+total 0
+drwxr-xr-x. 1 root root  0 Sep 24 19:14 .
+drwxr-xr-x. 1 root root 84 Sep 24 19:14 ..
+
+=======================================================================================
+### U3. no reachable network -> E_DOWNLOAD_FAILED naming the URL (offline --check)
+### command: HTTPS_PROXY=http://127.0.0.1:1 https_proxy=http://127.0.0.1:1 env -u PYTHONPATH venv/bin/typed-gguf runtime update --check
+error: E_DOWNLOAD_FAILED: cannot reach https://api.github.com/repos/ggml-org/llama.cpp/releases?per_page=20 (URLError: <urlopen error [Errno 111] Connection refused>); nothing was changed
+EXIT=3
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu

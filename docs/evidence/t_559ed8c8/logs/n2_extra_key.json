@@ -1,0 +1,1 @@
+{"detail": [{"type": "extra_forbidden", "loc": ["body", "extra_key"], "msg": "Extra inputs are not permitted (the request takes state, model, questions only)"}]}

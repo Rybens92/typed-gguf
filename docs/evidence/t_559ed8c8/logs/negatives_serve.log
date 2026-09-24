@@ -1,0 +1,62 @@
+serve pid=5041 (--keep-alive 0: no host outlives the requests)
+
+### N1. the gate client against a *different* SDK (its own guard, exit 3)
+REFUSING TO RUN: this gate measures typesafe-sdk 9.9.9; the venv has 0.7.1. A different SDK answers a different wire — reinstall the pin before trusting any result from this run.
+EXIT=3
+
+### N2. unknown top-level key -> 422 extra_forbidden
+status: 422
+{"detail": [{"type": "extra_forbidden", "loc": ["body", "extra_key"], "msg": "Extra inputs are not permitted (the request takes state, model, questions only)"}]}
+
+### N3. malformed JSON -> 422 json_invalid
+status: 422
+{"detail": [{"type": "json_invalid", "loc": ["body"], "msg": "the body is not valid JSON: Expecting value: line 1 column 1 (char 0)"}]}
+
+### N3b. required key missing (no model) -> 422 missing
+status: 422
+{"detail": [{"type": "missing", "loc": ["body", "model"], "msg": "Field required"}]}
+
+### N3c. unknown model -> 422 value_error (E_MODEL_NOT_FOUND)
+status: 422
+{"detail": [{"type": "value_error", "loc": ["body", "model"], "msg": "E_MODEL_NOT_FOUND: 'no-such-alias' is not a registry alias or `jev-latest`; known aliases: qwen3.5-0.8b (use `typed-gguf models pull` or `typed-gguf models use`)", "input": "no-such-alias"}]}
+
+### N3d. engine validation (score with one level) -> 422 value_error
+status: 422
+{"detail": [{"type": "value_error", "loc": ["body", "questions", "a", "criteria"], "msg": "E_SCORE_LEVELS: question 'a': score criteria must be an ordered array of 2..10 levels", "input": ["only-one"]}]}
+
+### N3e. unknown route -> 404
+status: 404
+{"detail": "Not Found"}
+
+### N4. the 1 MiB body cap, answered from Content-Length alone
+--- POST /v1/systemone with Content-Length: 2097152 and NO body sent
+    answered in 0.000s: 'HTTP/1.1 413 Request Entity Too Large\r\nServer: typed-gguf/0.2.3 \r\nDate: Thu, 24 Sep 2026 19:22:22 GMT\r\nContent-Type: application/json\r\nx-typesafe-request-id: 507e8014e98f4262\r\nContent-Length: 137\r\nConnection: close\r\n\r\n{"detail": [{"type": "too_large", "loc": ["body"], "msg": "the request body is 2097152 bytes; this server reads at most 1048576 bytes"}]}'
+--- POST /v1/decide with Content-Length: 2097152 and NO body sent
+    answered in 0.000s: 'HTTP/1.1 413 Request Entity Too Large\r\nServer: typed-gguf/0.2.3 \r\nDate: Thu, 24 Sep 2026 19:22:22 GMT\r\nContent-Type: application/json\r\nx-typesafe-request-id: e5acd98003ca43fa\r\nContent-Length: 128\r\nConnection: close\r\n\r\n{"error": {"code": "E_BODY_TOO_LARGE", "message": "the request body is 2097152 bytes; this server reads at most 1048576 bytes"}}'
+
+### N5. the idle-connection bound (30 s)
+--- half a request, no more bytes: the server closed the connection after 30.0s (recv -> b'')
+
+### N6. the sentinel Authorization value in the server's log (must be 0)
+0
+
+### the server's own log for the whole negative pass
+GET /health 200 served_by=- 0.1ms req=5a9c84742ee54d1b
+POST /v1/systemone 422 served_by=- 0.1ms req=0fa8797b6ae94b36
+POST /v1/systemone 422 served_by=- 0.1ms req=3ee65f3229374c04
+POST /v1/systemone 422 served_by=- 0.1ms req=09c939f91da2418c
+POST /v1/systemone 422 served_by=- 0.2ms req=5bfa047bf5b04559
+POST /v1/systemone 422 served_by=- 0.2ms req=3d3087940a8a4742
+GET /v1/nope 404 served_by=- 0.0ms req=c10d57d23535487b
+POST /v1/systemone 413 served_by=- 0.0ms req=507e8014e98f4262
+POST /v1/decide 413 served_by=- 0.0ms req=e5acd98003ca43fa
+
+### teardown: SIGTERM, then the ledger
+serve exit=143
+no host was running (no host)
+keep stop EXIT=0
+total 4
+drwx------. 1 root root   40 Sep 24 19:21 .
+drwxr-xr-x. 1 root root  120 Sep 24 19:19 ..
+-rw-r--r--. 1 root root 3090 Sep 24 19:21 51d65a5ee6ac06dc.log
+(no keep/serve process)

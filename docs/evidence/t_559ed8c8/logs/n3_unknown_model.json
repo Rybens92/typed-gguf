@@ -1,0 +1,1 @@
+{"detail": [{"type": "value_error", "loc": ["body", "model"], "msg": "E_MODEL_NOT_FOUND: 'no-such-alias' is not a registry alias or `jev-latest`; known aliases: qwen3.5-0.8b (use `typed-gguf models pull` or `typed-gguf models use`)", "input": "no-such-alias"}]}

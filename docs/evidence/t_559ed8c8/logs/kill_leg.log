@@ -1,0 +1,63 @@
+### record before: 7ac69aa557fe6146f3b922b623f5271cd6dd43e123def61b69e2e25527c3bc27
+### scenario: {"releases": "ok", "asset": "ok", "throttle_ms": 100}
+
+### command: typed-gguf runtime update --tag b99998 --json   (throttled, then SIGKILL)
+pid=2092
+partial download: home/downloads/llama-b99998-bin-ubuntu-x64.tar.gz.part 3145728 bytes
+src/kill_leg.sh: line 31:  2092 Killed                  $GG runtime update --tag b99998 --json > logs/kill_update.out 2> logs/kill_update.err
+cli exit after kill -9: 137 (137 = SIGKILL)
+
+### record after the kill (must equal the 'before' hash)
+7ac69aa557fe6146f3b922b623f5271cd6dd43e123def61b69e2e25527c3bc27  /workspace/e2e-t_559ed8c8/home/runtime.json
+RECORD BYTE-IDENTICAL: yes
+
+### runtime root (no b99998 bundle, no .pending-* staging debris)
+total 0
+drwxr-xr-x. 1 root root   80 Sep 24 19:18 .
+drwxr-xr-x. 1 root root  112 Sep 24 19:18 ..
+drwxr-xr-x. 1 root root 2190 Sep 24 19:15 b11026-linux-x64-cpu
+drwxr-xr-x. 1 root root 2156 Sep 24 19:18 b99999-linux-x64-cpu
+
+### downloads after the kill (the resumable .part stays, by design)
+total 21048
+drwxr-xr-x. 1 root root      146 Sep 24 19:18 .
+drwxr-xr-x. 1 root root      112 Sep 24 19:18 ..
+-rw-r--r--. 1 root root  3145728 Sep 24 19:18 llama-b99998-bin-ubuntu-x64.tar.gz.part
+-rw-r--r--. 1 root root 18407198 Sep 24 19:18 llama-b99999-bin-ubuntu-x64.tar.gz
+
+### the still-active runtime, as the app itself reports it
+typed-gguf 0.2.3
+  runtime  b11026 (linux-x64-cpu) at /workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu
+  backends unknown
+  home     /workspace/e2e-t_559ed8c8/home
+EXIT=0
+
+### no process of the killed update survives
+   1059 S    bash -c source /tmp/hermes-snap-d2aa2c20df24.sh >/dev/null 2>&1 || true export AI_AGENT="${AI_AGENT:-hermes-agent}" HERMES_AGENT="${HERMES_AGENT:-true}" export GIT_PAGER="${GIT_PAGER:-cat}" PAGER="${PAGER:-cat}" builtin cd -- /workspace/ggufone || exit 126 eval 'mkdir -p /tmp && ( nohup bash -lc '\''cd /workspace/e2e-t_559ed8c8 && exec venv/bin/python src/fixture_proxy.py'\'' > /tmp/hermes_bg_proc_0dbb3953fc54.log 2>&1; rc=$?; printf '\''%s\n'\'' "$rc" > /tmp/hermes_bg_proc_0dbb3953fc54.exit ) & echo $! > /tmp/hermes_bg_proc_0dbb3953fc54.pid && cat /tmp/hermes_bg_proc_0dbb3953fc54.pid' __hermes_ec=$? umask 077 __hermes_snap_tmp=$(mktemp /tmp/hermes-snap-d2aa2c20df24.sh.tmp.XXXXXXXXXX) && { { ( unset ${!HERMES_SESSION_*} ${!HERMES_CRON_AUTO_DELIVER_*} ${!HERMES_BROWSER_CONTROL_*} AI_AGENT HERMES_AGENT HERMES_DELEGATED_CHILD_CONTEXT HERMES_CRON_SESSION HERMES_UI_SESSION_ID 2>/dev/null; export -p; ) || true; } > "$__hermes_snap_tmp" && mv -f "$__hermes_snap_tmp" /tmp/hermes-snap-d2aa2c20df24.sh; } 2>/dev/null || rm -f "$__hermes_snap_tmp" 2>/dev/null || true printf '\n__HERMES_CWD_d2aa2c20df24__%s__HERMES_CWD_d2aa2c20df24__\n' "$(pwd -P)" exit $__hermes_ec
+   1063 S    bash -c source /tmp/hermes-snap-d2aa2c20df24.sh >/dev/null 2>&1 || true export AI_AGENT="${AI_AGENT:-hermes-agent}" HERMES_AGENT="${HERMES_AGENT:-true}" export GIT_PAGER="${GIT_PAGER:-cat}" PAGER="${PAGER:-cat}" builtin cd -- /workspace/ggufone || exit 126 eval 'mkdir -p /tmp && ( nohup bash -lc '\''cd /workspace/e2e-t_559ed8c8 && exec venv/bin/python src/fixture_proxy.py'\'' > /tmp/hermes_bg_proc_0dbb3953fc54.log 2>&1; rc=$?; printf '\''%s\n'\'' "$rc" > /tmp/hermes_bg_proc_0dbb3953fc54.exit ) & echo $! > /tmp/hermes_bg_proc_0dbb3953fc54.pid && cat /tmp/hermes_bg_proc_0dbb3953fc54.pid' __hermes_ec=$? umask 077 __hermes_snap_tmp=$(mktemp /tmp/hermes-snap-d2aa2c20df24.sh.tmp.XXXXXXXXXX) && { { ( unset ${!HERMES_SESSION_*} ${!HERMES_CRON_AUTO_DELIVER_*} ${!HERMES_BROWSER_CONTROL_*} AI_AGENT HERMES_AGENT HERMES_DELEGATED_CHILD_CONTEXT HERMES_CRON_SESSION HERMES_UI_SESSION_ID 2>/dev/null; export -p; ) || true; } > "$__hermes_snap_tmp" && mv -f "$__hermes_snap_tmp" /tmp/hermes-snap-d2aa2c20df24.sh; } 2>/dev/null || rm -f "$__hermes_snap_tmp" 2>/dev/null || true printf '\n__HERMES_CWD_d2aa2c20df24__%s__HERMES_CWD_d2aa2c20df24__\n' "$(pwd -P)" exit $__hermes_ec
+   1064 S    venv/bin/python src/fixture_proxy.py
+
+### command (retry, unthrottled): typed-gguf runtime update --tag b99998 --json
+EXIT=0
+  schema: "typed_gguf.runtime/v1"
+  dir: "/workspace/e2e-t_559ed8c8/home/runtime/b99998-linux-x64-cpu"
+  tag: "b99998"
+  build: 11026
+  variant: "linux-x64-cpu"
+  installed_at: "2026-09-24T19:18:49Z"
+  update_from: {"build": 11026, "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu", "tag": "b11026"}
+  previous: {"build": 11026, "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu", "installed_at": "2026-09-24T19:16:06Z", "tag": "b11026"}
+  libllama_sha256: "8d72d777d9406945\u2026"
+  backend_requested: "cpu"
+  backends: ["cpu", "rpc"]
+  symbols_ok: true
+  record keys: ['asset', 'asset_sha256', 'asset_sha256_observed', 'asset_size', 'asset_verified', 'backend_errors', 'backend_requested', 'backend_working', 'backends', 'build', 'dir', 'fallback_attempts', 'fallback_reason', 'fallback_reason_code', 'fit_params_help_exit', 'installed_at', 'libllama_sha256', 'missing_symbols', 'previous', 'probe_failures', 'probe_warnings', 'required_files', 'rung', 'schema', 'source', 'symbols_ok', 'symbols_probed', 'tag', 'tools', 'update_from', 'updated_at', 'url', 'variant', 'warmup_error', 'warmup_model', 'warmup_ms']
+
+### command: typed-gguf runtime rollback  (back to the b11026 bundle for the serve story)
+rolled back to b11026 (build 11026, linux-x64-cpu) at /workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu; b99998 is kept on disk — `typed-gguf runtime update` returns to it
+EXIT=0
+typed-gguf 0.2.3
+  runtime  b11026 (linux-x64-cpu) at /workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu
+  backends unknown
+  home     /workspace/e2e-t_559ed8c8/home
+EXIT=0

@@ -1,0 +1,69 @@
+### repo head
+3d8e088e22379680e185ffa3a718214eb9c01fca
+0
+
+### the wheel (built with: env -u PYTHONPATH uv build)
+total 4420
+drwxr-xr-x. 1 root root     132 Sep 24 15:53 .
+drwxr-xr-x. 1 root root     296 Sep 24 19:23 ..
+-rw-r--r--. 1 root root       1 Sep 24 15:53 .gitignore
+-rw-r--r--. 1 root root  339642 Sep 24 19:13 typed_gguf-0.2.3-py3-none-any.whl
+-rw-r--r--. 1 root root 4181343 Sep 24 19:13 typed_gguf-0.2.3.tar.gz
+18521f290ce434f73701abf7c5a25e8720b1b23c0d7580668c5310822b6721fe  /workspace/ggufone/dist/typed_gguf-0.2.3-py3-none-any.whl
+
+### command: python3 -m venv venv && venv/bin/pip install --force-reinstall --no-deps <wheel>
+Python 3.11.15
+Processing /workspace/ggufone/dist/typed_gguf-0.2.3-py3-none-any.whl
+Installing collected packages: typed-gguf
+  Attempting uninstall: typed-gguf
+    Found existing installation: typed-gguf 0.2.3
+    Uninstalling typed-gguf-0.2.3:
+      Successfully uninstalled typed-gguf-0.2.3
+Successfully installed typed-gguf-0.2.3
+
+[notice] A new release of pip is available: 24.0 -> 26.2.1
+[notice] To update, run: python3 -m pip install --upgrade pip
+EXIT=0
+
+### command: venv/bin/pip show typed-gguf
+Name: typed-gguf
+Version: 0.2.3
+Summary: Local alternative to Jev: typed decisions (choice/score/yes-no) with real probability distributions from any llama.cpp-supported GGUF model, and an easy CLI for humans and AI agents.
+Home-page: 
+Author: typed-gguf contributors
+Author-email: 
+License: MIT
+Location: /workspace/e2e-t_559ed8c8/venv/lib/python3.11/site-packages
+Requires: 
+Required-by: 
+
+### command: (no PYTHONPATH, cwd outside the repo) venv/bin/python src/import_probe.py
+python: 3.11.15 (main, Jul 14 2026, 04:49:39) [GCC 14.2.0]
+executable: /workspace/e2e-t_559ed8c8/venv/bin/python
+typed_gguf.__file__: /workspace/e2e-t_559ed8c8/venv/lib/python3.11/site-packages/typed_gguf/__init__.py
+typed_gguf.__version__: 0.2.3
+sys.path[:6]: ['/workspace/e2e-t_559ed8c8/src', '/usr/local/lib/python311.zip', '/usr/local/lib/python3.11', '/usr/local/lib/python3.11/lib-dynload', '/workspace/e2e-t_559ed8c8/venv/lib/python3.11/site-packages']
+imports from the repo checkout: False
+PYTHONPATH: None
+packaged lock: /workspace/e2e-t_559ed8c8/venv/lib/python3.11/site-packages/typed_gguf/data/runtime.lock
+EXIT=0
+
+### command: venv/bin/typed-gguf version
+typed-gguf 0.2.3
+  runtime  not installed (`typed-gguf init`)
+  home     /root/.local/share/typed-gguf
+EXIT=0
+
+### command: venv/bin/typed-gguf serve --help
+usage: typed-gguf serve --host IP --port N --format native|typesafe --keep-alive <dur|0>
+
+serve a decision API for TypeSafe clients
+run `typed-gguf --help` for the command list
+EXIT=0
+
+### command: venv/bin/typed-gguf runtime update --help
+usage: typed-gguf runtime update --check|--dry-run --tag TAG --backend auto|cpu|vulkan|cuda|metal --json
+
+refresh the installed llama.cpp runtime
+run `typed-gguf --help` for the command list
+EXIT=0

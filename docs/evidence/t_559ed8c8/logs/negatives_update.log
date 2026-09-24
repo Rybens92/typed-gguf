@@ -1,0 +1,237 @@
+### record at the start of the negative pass:
+  schema: "typed_gguf.runtime/v1"
+  dir: "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu"
+  tag: "b11026"
+  build: 11026
+  variant: "linux-x64-cpu"
+  installed_at: "2026-09-24T19:16:06Z"
+  rolled_back_at: "2026-09-24T19:18:49Z"
+  rolled_back_from: {"build": 11026, "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b99998-linux-x64-cpu", "tag": "b99998"}
+  previous: null
+  libllama_sha256: "8d72d777d9406945\u2026"
+  record keys: ['build', 'dir', 'installed_at', 'libllama_sha256', 'previous', 'rolled_back_at', 'rolled_back_from', 'schema', 'tag', 'variant']
+
+=======================================================================================
+### U1. TYPED_GGUF_RUNTIME_DIR is set -> E_UPDATE_UNAVAILABLE
+### scenario: {"releases": "ok", "asset": "ok", "throttle_ms": 0}
+### command: env TYPED_GGUF_RUNTIME_DIR=/opt/managed-runtime env\ -u\ PYTHONPATH\ venv/bin/typed-gguf runtime update --check 
+EXIT=127
+--- stdout: 
+--- stderr: env: ‘env -u PYTHONPATH venv/bin/typed-gguf’: No such file or directory
+env: use -[v]S to pass options in shebang lines
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- EXPECTED CODE MISSING: E_UPDATE_UNAVAILABLE
+
+=======================================================================================
+### U2. empty data home -> E_RUNTIME_MISSING
+### scenario: {"releases": "ok", "asset": "ok", "throttle_ms": 0}
+### command: env TYPED_GGUF_HOME=/workspace/e2e-t_559ed8c8/home-clean env\ -u\ PYTHONPATH\ venv/bin/typed-gguf runtime update 
+EXIT=127
+--- stdout: 
+--- stderr: env: ‘env -u PYTHONPATH venv/bin/typed-gguf’: No such file or directory
+env: use -[v]S to pass options in shebang lines
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- EXPECTED CODE MISSING: E_RUNTIME_MISSING
+
+=======================================================================================
+### U3. no network -> E_DOWNLOAD_FAILED naming the URL
+### scenario: {"releases": "ok", "asset": "ok", "throttle_ms": 0}
+### command: env HTTPS_PROXY=http://127.0.0.1:1 https_proxy=http://127.0.0.1:1 env\ -u\ PYTHONPATH\ venv/bin/typed-gguf runtime update --check 
+EXIT=127
+--- stdout: 
+--- stderr: env: ‘env -u PYTHONPATH venv/bin/typed-gguf’: No such file or directory
+env: use -[v]S to pass options in shebang lines
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- EXPECTED CODE MISSING: E_DOWNLOAD_FAILED
+
+=======================================================================================
+### U4. release carries no bundle for this host -> E_UPDATE_UNAVAILABLE
+### scenario: {"releases": "no_target_asset", "asset": "ok", "throttle_ms": 0}
+### command: env -u PYTHONPATH venv/bin/typed-gguf runtime update --tag b99997 
+EXIT=2
+--- stdout: 
+--- stderr: error: E_UPDATE_UNAVAILABLE: tag b99997 carries no bundle under this host's pinned asset name (llama-b11026-bin-ubuntu-x64.tar.gz); upstream renamed, retagged or dropped the asset for this host — typed-gguf never guesses a name
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+      19:23:04 CONNECT api.github.com:443
+      19:23:04 GET /repos/ggml-org/llama.cpp/releases/tags/b99997 ua='typed-gguf/0.2.3' -> tag b99997
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- expected code present: E_UPDATE_UNAVAILABLE
+
+=======================================================================================
+### U5. asset 404 -> E_DOWNLOAD_FAILED
+### scenario: {"releases": "ok", "asset": "missing", "throttle_ms": 0}
+### command: env -u PYTHONPATH venv/bin/typed-gguf runtime update --tag b99997 
+EXIT=3
+--- stdout: 
+--- stderr: error: E_DOWNLOAD_FAILED: https://github.com/ggml-org/llama.cpp/releases/download/b99997/llama-b99997-bin-ubuntu-x64.tar.gz: HuggingFace returned HTTP 404 (Err)
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+      19:23:04 CONNECT api.github.com:443
+      19:23:04 GET /repos/ggml-org/llama.cpp/releases/tags/b99997 ua='typed-gguf/0.2.3' -> tag b99997
+      19:23:04 CONNECT github.com:443
+      19:23:04 GET asset=llama-b99997-bin-ubuntu-x64.tar.gz ua='typed-gguf/0.1 (+https://github.com/Rybens92/typed-gguf)' -> 404 (missing)
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- expected code present: E_DOWNLOAD_FAILED
+
+=======================================================================================
+### U6. truncated asset -> E_DOWNLOAD_FAILED (size)
+### scenario: {"releases": "ok", "asset": "short", "throttle_ms": 0}
+### command: env -u PYTHONPATH venv/bin/typed-gguf runtime update --tag b99997 
+EXIT=3
+--- stdout: 
+--- stderr: downloading runtime:   5.7%  1.05 MB / 18.41 MBerror: E_DOWNLOAD_FAILED: https://github.com/ggml-org/llama.cpp/releases/download/b99997/llama-b99997-bin-ubuntu-x64.tar.gz: expected 18407198 bytes, got 6135732 (the download is incomplete; re-run to resume)
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+      19:23:05 CONNECT api.github.com:443
+      19:23:05 GET /repos/ggml-org/llama.cpp/releases/tags/b99997 ua='typed-gguf/0.2.3' -> tag b99997
+      19:23:05 CONNECT github.com:443
+      19:23:05 GET asset=llama-b99997-bin-ubuntu-x64.tar.gz ua='typed-gguf/0.1 (+https://github.com/Rybens92/typed-gguf)' -> 6135732 bytes (mode=short, throttle=0 ms)
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- expected code present: E_DOWNLOAD_FAILED
+
+=======================================================================================
+### U7. digest mismatch -> E_SHA256_MISMATCH
+### scenario: {"releases": "wrong_digest", "asset": "ok", "throttle_ms": 0}
+### command: env -u PYTHONPATH venv/bin/typed-gguf runtime update --tag b99997 
+EXIT=3
+--- stdout: 
+--- stderr: downloading runtime:   5.7%  1.05 MB / 18.41 MBdownloading runtime: 100.0%  18.41 MB / 18.41 MB
+error: E_SHA256_MISMATCH: https://github.com/ggml-org/llama.cpp/releases/download/b99997/llama-b99997-bin-ubuntu-x64.tar.gz: expected ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff, got 520a9021e622d3b666ca6d35677c0493420ec02383264e991d0d23d0b50df3c4; the partial file was kept at /workspace/e2e-t_559ed8c8/home/downloads/llama-b99997-bin-ubuntu-x64.tar.gz.part for inspection
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+      19:23:05 CONNECT api.github.com:443
+      19:23:05 GET /repos/ggml-org/llama.cpp/releases/tags/b99997 ua='typed-gguf/0.2.3' -> tag b99997
+      19:23:05 CONNECT github.com:443
+      19:23:05 GET asset=llama-b99997-bin-ubuntu-x64.tar.gz ua='typed-gguf/0.1 (+https://github.com/Rybens92/typed-gguf)' -> 18407198 bytes (mode=ok, throttle=0 ms)
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- expected code present: E_SHA256_MISMATCH
+
+=======================================================================================
+### U8. --backend cuda on a host without the CUDA libs -> E_RUNTIME_SYMBOLS, no download
+### scenario: {"releases": "ok", "asset": "ok", "throttle_ms": 0}
+### command: env -u PYTHONPATH venv/bin/typed-gguf runtime update --backend cuda 
+EXIT=3
+--- stdout: 
+--- stderr: error: E_RUNTIME_SYMBOLS: pre-flight: the pinned linux-x64-cuda-12.8 bundle links libcudart.so.12, libcublas.so.12, libcuda.so.1, which this host cannot load (libcudart.so.12: cannot open shared object file: No such file or directory); skipped the 168.81 MB download and moved to the next tier; nothing was changed
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+      19:23:05 CONNECT api.github.com:443
+      19:23:05 GET /repos/ggml-org/llama.cpp/releases ua='typed-gguf/0.2.3' per_page=['20'] -> 5 entries
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- expected code present: E_RUNTIME_SYMBOLS
+
+=======================================================================================
+### U9. release API 500 -> E_DOWNLOAD_FAILED
+### scenario: {"releases": "http_500", "asset": "ok", "throttle_ms": 0}
+### command: env -u PYTHONPATH venv/bin/typed-gguf runtime update 
+EXIT=3
+--- stdout: 
+--- stderr: error: E_DOWNLOAD_FAILED: cannot reach https://api.github.com/repos/ggml-org/llama.cpp/releases?per_page=20 (HTTPError: HTTP Error 500: Err); nothing was changed
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+      19:23:05 CONNECT api.github.com:443
+      19:23:05 GET /repos/ggml-org/llama.cpp/releases ua='typed-gguf/0.2.3' -> 500 (scenario)
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- expected code present: E_DOWNLOAD_FAILED
+
+=======================================================================================
+### U10. rollback with no previous -> E_UPDATE_UNAVAILABLE
+### scenario: {"releases": "ok", "asset": "ok", "throttle_ms": 0}
+### command: env -u PYTHONPATH venv/bin/typed-gguf runtime rollback 
+EXIT=2
+--- stdout: 
+--- stderr: error: E_UPDATE_UNAVAILABLE: /workspace/e2e-t_559ed8c8/home/runtime.json records no previous bundle to roll back to (nothing has replaced the bundle `typed-gguf init` installed); nothing changed
+--- record before: a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- record after:  a665203ecea6582832aeaa7ca3f79de1679c9d43c5bee68f99ed5b5e6ed80d96
+--- runtime.json byte-identical: YES
+--- fixture saw:
+--- runtime root:
+      b11026-linux-x64-cpu
+      b99998-linux-x64-cpu
+      b99999-linux-x64-cpu
+--- expected code present: E_UPDATE_UNAVAILABLE
+
+### the record after the whole negative pass:
+  schema: "typed_gguf.runtime/v1"
+  dir: "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu"
+  tag: "b11026"
+  build: 11026
+  variant: "linux-x64-cpu"
+  installed_at: "2026-09-24T19:16:06Z"
+  rolled_back_at: "2026-09-24T19:18:49Z"
+  rolled_back_from: {"build": 11026, "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b99998-linux-x64-cpu", "tag": "b99998"}
+  previous: null
+  libllama_sha256: "8d72d777d9406945\u2026"
+  record keys: ['build', 'dir', 'installed_at', 'libllama_sha256', 'previous', 'rolled_back_at', 'rolled_back_from', 'schema', 'tag', 'variant']
+
+### residue in the data home (downloads / staging)
+total 53928
+drwxr-xr-x. 1 root root      214 Sep 24 19:23 .
+drwxr-xr-x. 1 root root      120 Sep 24 19:19 ..
+-rw-r--r--. 1 root root 18407198 Sep 24 19:23 llama-b99997-bin-ubuntu-x64.tar.gz.part
+-rw-r--r--. 1 root root 18407198 Sep 24 19:18 llama-b99998-bin-ubuntu-x64.tar.gz
+-rw-r--r--. 1 root root 18407198 Sep 24 19:18 llama-b99999-bin-ubuntu-x64.tar.gz
+.
+..
+b11026-linux-x64-cpu
+b99998-linux-x64-cpu
+b99999-linux-x64-cpu
+
+### the runtime is still the one that was active before the pass
+typed-gguf 0.2.3
+  runtime  b11026 (linux-x64-cpu) at /workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu
+  backends unknown
+  home     /workspace/e2e-t_559ed8c8/home
+EXIT=0

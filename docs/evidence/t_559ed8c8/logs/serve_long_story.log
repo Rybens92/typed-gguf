@@ -1,0 +1,140 @@
+### command: typed-gguf keep stop   (start from a clean ledger)
+no host was running (no host)
+EXIT=0
+
+### command: typed-gguf serve --host 127.0.0.1 --port 8088 --keep-alive 600
+serve pid=4123
+
+### curl $BASE/health   (cold: nothing resident)
+{"status": "ok", "service": "typed-gguf", "version": "0.2.3", "model": null, "warm": false}
+
+### command: sdkvenv/bin/python src/sdk_client_long.py --base-url http://127.0.0.1:8088
+typesafe-sdk 0.7.1 -> http://127.0.0.1:8088 (timeout=600.0s, no retries)
+state: 732 chars; questions: renew_style(choice), risk(score), escalate(noul)
+
+== [cold] client.system_one returned in 6.76s (server-side: see logs/serve_long.log)
+{
+  "answers": {
+    "escalate": {
+      "noul": 0.610267,
+      "type": "noul"
+    },
+    "renew_style": {
+      "choice": "exec_sponsor_plan",
+      "confidence": 0.284188,
+      "probabilities": {
+        "exec_sponsor_plan": 0.522792,
+        "save_with_discount": 0.11665,
+        "walk_away": 0.360558
+      },
+      "type": "choice"
+    },
+    "risk": {
+      "confidence": 0.268025,
+      "legend": {
+        "0": "healthy",
+        "1": "watch",
+        "2": "at risk",
+        "3": "lost cause"
+      },
+      "probabilities": {
+        "0": 0.0235651,
+        "1": 0.0942717,
+        "2": 0.431144,
+        "3": 0.451019
+      },
+      "score": 2.30962,
+      "type": "score"
+    }
+  },
+  "model": "qwen3.5-0.8b",
+  "usage": {
+    "input_tokens": 481,
+    "output_tokens": 16
+  }
+}
+   ok: 3 typed answers, keys and ranges conform (the gate's own verify())
+
+== [warm] client.system_one returned in 2.32s (server-side: see logs/serve_long.log)
+{
+  "answers": {
+    "escalate": {
+      "noul": 0.610267,
+      "type": "noul"
+    },
+    "renew_style": {
+      "choice": "exec_sponsor_plan",
+      "confidence": 0.284188,
+      "probabilities": {
+        "exec_sponsor_plan": 0.522792,
+        "save_with_discount": 0.11665,
+        "walk_away": 0.360558
+      },
+      "type": "choice"
+    },
+    "risk": {
+      "confidence": 0.268025,
+      "legend": {
+        "0": "healthy",
+        "1": "watch",
+        "2": "at risk",
+        "3": "lost cause"
+      },
+      "probabilities": {
+        "0": 0.0235651,
+        "1": 0.0942717,
+        "2": 0.431144,
+        "3": 0.451019
+      },
+      "score": 2.30962,
+      "type": "score"
+    }
+  },
+  "model": "qwen3.5-0.8b",
+  "usage": {
+    "input_tokens": 481,
+    "output_tokens": 16
+  }
+}
+   ok: 3 typed answers, keys and ranges conform (the gate's own verify())
+
+PASS: both calls were answered through the official SDK, typed.
+SDK client EXIT=0
+
+### curl $BASE/health   (warm: the host is resident)
+{"status": "ok", "service": "typed-gguf", "version": "0.2.3", "model": "qwen3.5-0.8b", "warm": true}
+
+### the server's own request log (the served_by column is the server's, not a claim)
+GET /health 200 served_by=- 0.1ms req=ef9c965ea2cd4325
+GET /health 200 served_by=- 0.1ms req=f50ea6c50b584d78
+GET /health 200 served_by=- 0.1ms req=43c5c01003894c67
+POST /v1/systemone 200 served_by=host 6761.5ms req=987d0ccc646a428b
+POST /v1/systemone 200 served_by=host 2282.4ms req=04a970513d72479f
+GET /health 200 served_by=- 0.2ms req=9d168ef9e4924a58
+GET /health 200 served_by=- 0.2ms req=bdfd686c3e8841db
+
+### command: kill -TERM 4123
+serve exit=143
+### port after the server stops
+(port 8088 closed: curl exit 7)
+
+### command: typed-gguf keep stop   (the host the gate's own shell stops too)
+stopped the warm host (pid 4135) and cleaned up its record
+EXIT=0
+
+### leaks after teardown
+--- keep ledger:
+total 4
+drwx------. 1 root root   40 Sep 24 19:21 .
+drwxr-xr-x. 1 root root  120 Sep 24 19:19 ..
+-rw-r--r--. 1 root root 3090 Sep 24 19:21 51d65a5ee6ac06dc.log
+--- keep status:
+no warm host (keep-alive off, or nothing resident)
+EXIT=0
+--- processes:
+(none)
+--- host.json / socket still there?
+ls: cannot access '/workspace/e2e-t_559ed8c8/home/keep/host.json': No such file or directory
+ls: cannot access '/workspace/e2e-t_559ed8c8/home/keep/*.sock': No such file or directory
+
+### SDK_EXIT was 0 (0 = every check in the gate's verify() passed)

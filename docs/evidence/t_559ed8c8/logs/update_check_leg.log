@@ -1,0 +1,22 @@
+### baseline: runtime.json
+718022423a0d6ce0ac45d8e5b442cb62bb0346adfe8862491795149cb5e5bfa1  /workspace/e2e-t_559ed8c8/home/runtime.json
+
+### command: typed-gguf runtime update --check
+current b11026 (build 11026, linux-x64-cpu) at /workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu
+target  b99999 (build 99999, linux-x64-cpu) 18.41 MB -> /workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu
+nothing changed (--check prints the plan only)
+EXIT=0
+
+### runtime.json after --check (must be identical)
+718022423a0d6ce0ac45d8e5b442cb62bb0346adfe8862491795149cb5e5bfa1  /workspace/e2e-t_559ed8c8/home/runtime.json
+
+### downloads dir (must be empty: nothing was fetched)
+total 0
+drwxr-xr-x. 1 root root   0 Sep 24 19:15 .
+drwxr-xr-x. 1 root root 112 Sep 24 19:16 ..
+
+### runtime root (must hold only the installed bundle — no staging debris)
+total 0
+drwxr-xr-x. 1 root root   40 Sep 24 19:15 .
+drwxr-xr-x. 1 root root  112 Sep 24 19:16 ..
+drwxr-xr-x. 1 root root 2190 Sep 24 19:15 b11026-linux-x64-cpu

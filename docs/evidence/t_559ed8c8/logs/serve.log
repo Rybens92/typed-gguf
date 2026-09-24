@@ -1,0 +1,8 @@
+GET /health 200 served_by=- 0.1ms req=8c7eed2594e54073
+GET /health 200 served_by=- 0.1ms req=9f01d95cc33a424e
+GET /v1/models 200 served_by=- 0.4ms req=272649ce640848bc
+GET /health 200 served_by=- 0.3ms req=8122c0612700430c
+POST /v1/systemone 200 served_by=host 32077.7ms req=e613804becda49b7
+POST /v1/systemone 200 served_by=host 28632.2ms req=cb5242c367494cd8
+POST /v1/systemone 200 served_by=host 28513.5ms req=686d2c63a39444d7
+POST /v1/decide 200 served_by=host 20133.0ms req=0af29ddea20941b8

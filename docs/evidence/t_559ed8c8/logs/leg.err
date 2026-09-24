@@ -1,0 +1,1 @@
+error: E_UPDATE_UNAVAILABLE: /workspace/e2e-t_559ed8c8/home/runtime.json records no previous bundle to roll back to (nothing has replaced the bundle `typed-gguf init` installed); nothing changed

@@ -1,0 +1,44 @@
+### command: curl POST $BASE/v1/decide (native) — cold, spawns the host
+EXIT=0
+  top-level keys: ['answers', 'calibrated', 'calibration', 'engine', 'model', 'timings', 'usage', 'warnings']
+  engine.keep: {"served_by": "host", "keep_alive_s": 600.0, "state": "running", "pid": 6069, "key": {"model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf", "model_sha": "3177ebd67afe4438374da19e690bc1b98756f7e0fea9240e1be404336156a7b5", "backend": "auto", "n_ctx": null, "n_seq_max": null, "kv_type": "auto", "threads": null, "fit": true, "fit_target_mb": null, "fit_ctx": null, "fit_cache": true}, "key_digest": "51d65a5ee6ac06dc", "model": "qwen3.5-0.8b", "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf", "requests": 1, "uptime_s": 4.839, "idle_left_s": 598.764, "loaded_at": 1790277811.1899734, "placement": {"note": "fit plan: 24 layer(s) offloaded, kv_type=f16", "n_gpu_layers": 24, "kv_type": "f16", "degraded": false, "attempts": [], "warnings": [], "cpu_only": false}, "devices": {"devices": ["CPU", "CPU_Mapped", "Vulkan0", "Vulkan_Host"], "device_buffers": {"Vulkan0": 1, "Vulkan_Host": 1}, "effective_backend": "vulkan"}, "model_load_ms": 678.6682489982923, "socket": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.sock", "spec": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.spec.json", "log": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.log", "version": "", "fallback": null}
+  model: qwen3.5-0.8b | usage: {"input_tokens": 128, "output_tokens": 2, "questions": 1, "forks": 2, "prefill_tokens": 84, "decode_steps": 2, "waves": 1}
+  answers.escalate: {"type": "noul", "noul": 0.574913, "probabilities": {"yes": 0.574913, "no": 0.425087}, "coverage": 0.991059, "reliability": "ok", "cue": {"refused": false, "token": 9405, "closer": null, "mass": 0.569772, "verdict": "answered", "next": null}, "decode_steps": 2}
+
+### command: typed-gguf ask --state ... --noul "escalate=..." --keep-alive 600   (the CLI, same host)
+EXIT=0
+  top-level keys: ['answers', 'calibrated', 'calibration', 'engine', 'model', 'timings', 'usage', 'warnings']
+  engine.keep: {"served_by": "host", "keep_alive_s": 600.0, "state": "running", "pid": 6069, "key": {"model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf", "model_sha": "3177ebd67afe4438374da19e690bc1b98756f7e0fea9240e1be404336156a7b5", "backend": "auto", "n_ctx": null, "n_seq_max": null, "kv_type": "auto", "threads": null, "fit": true, "fit_target_mb": null, "fit_ctx": null, "fit_cache": true}, "key_digest": "51d65a5ee6ac06dc", "model": "qwen3.5-0.8b", "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf", "requests": 2, "uptime_s": 5.551, "idle_left_s": 599.435, "loaded_at": 1790277811.1899734, "placement": {"note": "fit plan: 24 layer(s) offloaded, kv_type=f16", "n_gpu_layers": 24, "kv_type": "f16", "degraded": false, "attempts": [], "warnings": [], "cpu_only": false}, "devices": {"devices": ["CPU", "CPU_Mapped", "Vulkan0", "Vulkan_Host"], "device_buffers": {"Vulkan0": 1, "Vulkan_Host": 1}, "effective_backend": "vulkan"}, "model_load_ms": 678.6682489982923, "socket": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.sock", "spec": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.spec.json", "log": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.log", "version": "", "fallback": null}
+  model: qwen3.5-0.8b | usage: {"input_tokens": 128, "output_tokens": 2, "questions": 1, "forks": 2, "prefill_tokens": 84, "decode_steps": 2, "waves": 1}
+  answers.escalate: {"type": "noul", "noul": 0.574913, "probabilities": {"yes": 0.574913, "no": 0.425087}, "coverage": 0.991059, "reliability": "ok", "cue": {"refused": false, "token": 9405, "closer": null, "mass": 0.569772, "verdict": "answered", "next": null}, "decode_steps": 2}
+
+### compare (served vs ask): model, noul value, keep pid
+  served: model=qwen3.5-0.8b noul=0.574913 served_by=host pid=6069 usage={'input_tokens': 128, 'output_tokens': 2}
+  ask:    model=qwen3.5-0.8b noul=0.574913 served_by=host pid=6069 usage={'input_tokens': 128, 'output_tokens': 2}
+  noul identical: True | model identical: True | same warm host pid: True
+COMPARE_EXIT=0
+
+### server log + the host ledger (one host, reused by both callers)
+GET /health 200 served_by=- 0.1ms req=65d02296cb6c4d54
+POST /v1/decide 200 served_by=host 4962.3ms req=b27e8744e8964bd4
+{
+  "schema": "typed_gguf.keep.status/v1",
+  "state": "running",
+  "pid": 6069,
+  "socket": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.sock",
+  "spec": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.spec.json",
+  "log": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.log",
+  "model": "qwen3.5-0.8b",
+  "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+  "key": {
+    "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "model_sha": "3177ebd67afe4438374da19e690bc1b98756f7e0fea9240e1be404336156a7b5",
+    "backend": "auto",
+    "n_ctx": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "threads": null,
+    "fit": true,
+    "fit_target_mb": null,
+    "fit_ctx": null,
+stopped the warm host (pid 6069) and cleaned up its record

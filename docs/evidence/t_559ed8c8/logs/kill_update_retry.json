@@ -1,0 +1,55 @@
+{
+  "schema": "typed_gguf.runtime.update/v1",
+  "check": false,
+  "updated": true,
+  "reason": null,
+  "from": {
+    "tag": "b11026",
+    "build": 11026,
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu",
+    "variant": "linux-x64-cpu"
+  },
+  "to": {
+    "tag": "b99998",
+    "build": 11026,
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b99998-linux-x64-cpu",
+    "variant": "linux-x64-cpu"
+  },
+  "asset": {
+    "name": "llama-b99998-bin-ubuntu-x64.tar.gz",
+    "size": 18407198,
+    "size_human": "18.41 MB",
+    "sha256": "5bcec9a231afe0d1eafdc8b0d73c3919f426005b1c77ea252da7fb76e874b35c",
+    "url": "https://github.com/ggml-org/llama.cpp/releases/download/b99998/llama-b99998-bin-ubuntu-x64.tar.gz",
+    "published_at": "2026-09-24T06:00:00Z"
+  },
+  "probe": {
+    "build": 11026,
+    "tools": {
+      "llama-cli": "/workspace/e2e-t_559ed8c8/home/runtime/b99998-linux-x64-cpu/llama-cli",
+      "llama-fit-params": "/workspace/e2e-t_559ed8c8/home/runtime/b99998-linux-x64-cpu/llama-fit-params",
+      "llama-tokenize": "/workspace/e2e-t_559ed8c8/home/runtime/b99998-linux-x64-cpu/llama-tokenize"
+    },
+    "symbols_ok": true,
+    "symbols_probed": true,
+    "missing_symbols": [],
+    "backends": [
+      "cpu",
+      "rpc"
+    ],
+    "expect_backend": "cpu"
+  },
+  "previous": {
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu",
+    "tag": "b11026",
+    "build": 11026,
+    "installed_at": "2026-09-24T19:16:06Z"
+  },
+  "host_stopped": {
+    "stopped": false,
+    "pid": null,
+    "reason": "no host",
+    "cleaned": false
+  },
+  "home": "/workspace/e2e-t_559ed8c8/home"
+}

@@ -1,0 +1,178 @@
+### 0. before: record + doctor
+718022423a0d6ce0ac45d8e5b442cb62bb0346adfe8862491795149cb5e5bfa1  /workspace/e2e-t_559ed8c8/home/runtime.json
+doctor before EXIT=2
+
+### 1. command: typed-gguf runtime update --json
+EXIT=0
+--- stderr:
+--- stdout:
+{
+  "schema": "typed_gguf.runtime.update/v1",
+  "check": false,
+  "updated": true,
+  "reason": null,
+  "from": {
+    "tag": "b11026",
+    "build": 11026,
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu",
+    "variant": "linux-x64-cpu"
+  },
+  "to": {
+    "tag": "b99999",
+    "build": 11026,
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu",
+    "variant": "linux-x64-cpu"
+  },
+  "asset": {
+    "name": "llama-b99999-bin-ubuntu-x64.tar.gz",
+    "size": 18407198,
+    "size_human": "18.41 MB",
+    "sha256": "5bcec9a231afe0d1eafdc8b0d73c3919f426005b1c77ea252da7fb76e874b35c",
+    "url": "https://github.com/ggml-org/llama.cpp/releases/download/b99999/llama-b99999-bin-ubuntu-x64.tar.gz",
+    "published_at": "2026-09-24T07:00:00Z"
+  },
+  "probe": {
+    "build": 11026,
+    "tools": {
+      "llama-cli": "/workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu/llama-cli",
+      "llama-fit-params": "/workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu/llama-fit-params",
+      "llama-tokenize": "/workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu/llama-tokenize"
+    },
+    "symbols_ok": true,
+    "symbols_probed": true,
+    "missing_symbols": [],
+    "backends": [
+      "cpu",
+      "rpc"
+    ],
+    "expect_backend": "cpu"
+  },
+  "previous": {
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu",
+    "tag": "b11026",
+    "build": 11026,
+    "installed_at": "2026-09-24T19:16:06Z"
+  },
+  "host_stopped": {
+    "stopped": false,
+    "pid": null,
+    "reason": "no host",
+    "cleaned": false
+  },
+  "home": "/workspace/e2e-t_559ed8c8/home"
+}
+
+### 2. record after the update
+5232a6d6efa27673fdcb9295b159672066cac740fb90f8cad628594c499aee79  /workspace/e2e-t_559ed8c8/home/runtime.json
+
+### 3. what the record now says (dir / tag / build / variant / previous / update_from)
+  schema: "typed_gguf.runtime/v1"
+  dir: "/workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu"
+  tag: "b99999"
+  build: 11026
+  variant: "linux-x64-cpu"
+  installed_at: "2026-09-24T19:18:29Z"
+  update_from: {"build": 11026, "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu", "tag": "b11026"}
+  previous: {"build": 11026, "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu", "installed_at": "2026-09-24T19:16:06Z", "tag": "b11026"}
+  libllama_sha256: "8d72d777d9406945\u2026"
+  backend_requested: "cpu"
+  backends: ["cpu", "rpc"]
+  symbols_ok: true
+  record keys: ['asset', 'asset_sha256', 'asset_sha256_observed', 'asset_size', 'asset_verified', 'backend_errors', 'backend_requested', 'backend_working', 'backends', 'build', 'dir', 'fallback_attempts', 'fallback_reason', 'fallback_reason_code', 'fit_params_help_exit', 'installed_at', 'libllama_sha256', 'missing_symbols', 'previous', 'probe_failures', 'probe_warnings', 'required_files', 'rung', 'schema', 'source', 'symbols_ok', 'symbols_probed', 'tag', 'tools', 'update_from', 'updated_at', 'url', 'variant', 'warmup_error', 'warmup_model', 'warmup_ms']
+
+### 4. runtime root after the update (both bundles on disk: nothing was deleted)
+total 0
+drwxr-xr-x. 1 root root   80 Sep 24 19:18 .
+drwxr-xr-x. 1 root root  112 Sep 24 19:18 ..
+drwxr-xr-x. 1 root root 2190 Sep 24 19:15 b11026-linux-x64-cpu
+drwxr-xr-x. 1 root root 2156 Sep 24 19:18 b99999-linux-x64-cpu
+
+### 5. command: typed-gguf doctor (build now comes from the new bundle's own probe)
+typed-gguf doctor (warnings)
+  ok   runtime.present        /workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu
+  ok   runtime.files          all required libraries present: libllama.so, libggml.so, libggml-base.so
+  ok   runtime.symbols        resolved 34/34 required symbols
+  ok   runtime.build          build b11026
+  ok   runtime.fit_params     llama-fit-params --help exit 0
+  ok   runtime.backends       backends: cpu, rpc (driveable here: cpu)
+  warn runtime.accelerator    no accelerator in this bundle (expected 'cuda'); CPU works but decoding is slower
+  ok   runtime.sha_recorded   libllama.so sha256 8d72d777d9406945…
+  ok   model.file             /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf
+  ok   model.sha256           Qwen3.5-0.8B-UD-Q4_K_XL.gguf: sha256 matches the registry
+  ok   model.arch             qwen35 supported by the installed runtime
+  runtime: /workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu  build=b11026  backend=cpu  backends=cpu,rpc
+  model:   qwen3.5-0.8b
+EXIT=2
+
+### 6. command: typed-gguf version
+typed-gguf 0.2.3
+  runtime  b11026 (linux-x64-cpu) at /workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu
+  backends cpu, rpc
+  home     /workspace/e2e-t_559ed8c8/home
+EXIT=0
+
+### 7. command: typed-gguf runtime update --check (already at the target)
+already at b99999 (build 11026, linux-x64-cpu) at /workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu; nothing changed
+EXIT=0
+
+### 8. command: typed-gguf runtime rollback --json
+EXIT=0
+{
+  "schema": "typed_gguf.runtime.rollback/v1",
+  "rolled_back": true,
+  "from": {
+    "tag": "b99999",
+    "build": 11026,
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu",
+    "variant": "linux-x64-cpu"
+  },
+  "to": {
+    "tag": "b11026",
+    "build": 11026,
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu",
+    "variant": "linux-x64-cpu"
+  },
+  "previous": null,
+  "host_stopped": {
+    "stopped": false,
+    "pid": null,
+    "reason": "no host",
+    "cleaned": false
+  },
+  "home": "/workspace/e2e-t_559ed8c8/home"
+}
+
+### 9. record after the rollback
+7ac69aa557fe6146f3b922b623f5271cd6dd43e123def61b69e2e25527c3bc27  /workspace/e2e-t_559ed8c8/home/runtime.json
+  schema: "typed_gguf.runtime/v1"
+  dir: "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu"
+  tag: "b11026"
+  build: 11026
+  variant: "linux-x64-cpu"
+  installed_at: "2026-09-24T19:16:06Z"
+  rolled_back_at: "2026-09-24T19:18:30Z"
+  rolled_back_from: {"build": 11026, "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b99999-linux-x64-cpu", "tag": "b99999"}
+  previous: null
+  libllama_sha256: "8d72d777d9406945\u2026"
+  record keys: ['build', 'dir', 'installed_at', 'libllama_sha256', 'previous', 'rolled_back_at', 'rolled_back_from', 'schema', 'tag', 'variant']
+
+### 10. command: typed-gguf doctor (back on the old bundle)
+typed-gguf doctor (warnings)
+  ok   runtime.present        /workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu
+  ok   runtime.files          all required libraries present: libllama.so, libggml.so, libggml-base.so
+  ok   runtime.symbols        resolved 34/34 required symbols
+  ok   runtime.build          build b11026
+  ok   runtime.fit_params     llama-fit-params --help exit 0
+  ok   runtime.backends       backends: cpu, rpc, vulkan (driveable here: vulkan)
+  warn runtime.accelerator    expected accelerator 'cuda' is not in this bundle (backends: cpu, rpc, vulkan); re-run `typed-gguf init --backend cuda`
+  ok   runtime.sha_recorded   libllama.so sha256 8d72d777d9406945…
+  ok   model.file             /var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf
+  ok   model.sha256           Qwen3.5-0.8B-UD-Q4_K_XL.gguf: sha256 matches the registry
+  ok   model.arch             qwen35 supported by the installed runtime
+  runtime: /workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu  build=b11026  backend=vulkan  backends=cpu,rpc,vulkan
+  model:   qwen3.5-0.8b
+EXIT=2
+
+### 11. command: typed-gguf runtime rollback (nothing left to roll back)
+error: E_UPDATE_UNAVAILABLE: /workspace/e2e-t_559ed8c8/home/runtime.json records no previous bundle to roll back to (nothing has replaced the bundle `typed-gguf init` installed); nothing changed
+EXIT=2

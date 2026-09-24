@@ -1,0 +1,40 @@
+{
+  "model": "qwen3.5-0.8b",
+  "usage": {
+    "input_tokens": 481,
+    "output_tokens": 16
+  },
+  "answers": {
+    "renew_style": {
+      "type": "choice",
+      "choice": "exec_sponsor_plan",
+      "confidence": 0.284188,
+      "probabilities": {
+        "save_with_discount": 0.11665,
+        "exec_sponsor_plan": 0.522792,
+        "walk_away": 0.360558
+      }
+    },
+    "risk": {
+      "type": "score",
+      "score": 2.30962,
+      "confidence": 0.268025,
+      "legend": {
+        "0": "healthy",
+        "1": "watch",
+        "2": "at risk",
+        "3": "lost cause"
+      },
+      "probabilities": {
+        "0": 0.0235651,
+        "1": 0.0942717,
+        "2": 0.431144,
+        "3": 0.451019
+      }
+    },
+    "escalate": {
+      "type": "noul",
+      "noul": 0.610267
+    }
+  }
+}

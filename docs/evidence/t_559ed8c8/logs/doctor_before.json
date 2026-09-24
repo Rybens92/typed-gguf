@@ -1,0 +1,106 @@
+{
+  "schema": "typed_gguf.doctor/v1",
+  "typed_gguf": "0.2.3",
+  "status": "warnings",
+  "exit_code": 2,
+  "checks": [
+    {
+      "id": "runtime.present",
+      "status": "ok",
+      "detail": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu"
+    },
+    {
+      "id": "runtime.files",
+      "status": "ok",
+      "detail": "all required libraries present: libllama.so, libggml.so, libggml-base.so"
+    },
+    {
+      "id": "runtime.symbols",
+      "status": "ok",
+      "detail": "resolved 34/34 required symbols"
+    },
+    {
+      "id": "runtime.build",
+      "status": "ok",
+      "detail": "build b11026"
+    },
+    {
+      "id": "runtime.fit_params",
+      "status": "ok",
+      "detail": "llama-fit-params --help exit 0"
+    },
+    {
+      "id": "runtime.backends",
+      "status": "ok",
+      "detail": "backends: cpu, rpc, vulkan (driveable here: vulkan)"
+    },
+    {
+      "id": "runtime.accelerator",
+      "status": "warn",
+      "detail": "expected accelerator 'cuda' is not in this bundle (backends: cpu, rpc, vulkan); re-run `typed-gguf init --backend cuda`"
+    },
+    {
+      "id": "runtime.sha_recorded",
+      "status": "ok",
+      "detail": "libllama.so sha256 8d72d777d9406945\u2026"
+    },
+    {
+      "id": "model.file",
+      "status": "ok",
+      "detail": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf"
+    },
+    {
+      "id": "model.sha256",
+      "status": "ok",
+      "detail": "Qwen3.5-0.8B-UD-Q4_K_XL.gguf: sha256 matches the registry"
+    },
+    {
+      "id": "model.arch",
+      "status": "ok",
+      "detail": "qwen35 supported by the installed runtime"
+    }
+  ],
+  "runtime": {
+    "dir": "/workspace/e2e-t_559ed8c8/home/runtime/b11026-linux-x64-cpu",
+    "installed": true,
+    "tag": "b11026",
+    "pinned_tag": "b11026",
+    "min_build": 10828,
+    "variant": "linux-x64-cpu",
+    "build": 11026,
+    "backends": [
+      "cpu",
+      "rpc",
+      "vulkan"
+    ],
+    "working_backend": "vulkan",
+    "backend_errors": {},
+    "backend_requested": "cpu",
+    "fallback_reason": null,
+    "fallback_reason_code": null,
+    "fallback_attempts": [],
+    "symbols_required": 34,
+    "symbols_missing": [],
+    "symbols_probed": true,
+    "fit_params_help_exit": 0,
+    "libllama_sha256": "8d72d777d94069455c812fc49a7156ee0b7cc5d73f8c9451292bd08ae0070975",
+    "warmup_ms": null
+  },
+  "model": {
+    "alias": "qwen3.5-0.8b",
+    "path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "size": 558772480,
+    "sha256": "3177ebd67afe4438374da19e690bc1b98756f7e0fea9240e1be404336156a7b5",
+    "arch": "qwen35",
+    "quant": "Q4_K_M",
+    "license": "apache-2.0",
+    "source": "local-file (e2e fixture)"
+  },
+  "backend": "vulkan",
+  "backends": [
+    "cpu",
+    "rpc",
+    "vulkan"
+  ],
+  "expected_backend": "cuda"
+}

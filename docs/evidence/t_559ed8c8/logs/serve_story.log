@@ -1,0 +1,182 @@
+### keep ledger before (must be empty)
+total 4
+drwx------. 1 root root  40 Sep 24 19:19 .
+drwxr-xr-x. 1 root root 120 Sep 24 19:19 ..
+-rw-r--r--. 1 root root 762 Sep 24 19:19 51d65a5ee6ac06dc.log
+
+### command: typed-gguf serve --host 127.0.0.1 --port 8088 --keep-alive 600
+serve pid=3248
+
+### command: curl -s $BASE/health   (before any decision: nothing is resident)
+{"status": "ok", "service": "typed-gguf", "version": "0.2.3", "model": null, "warm": false}
+
+### command: curl -s $BASE/v1/models
+{"models": [{"name": "qwen3.5-0.8b", "description": "qwen35 Q4_K_M GGUF (532.9 MiB), local; typed-gguf's own engine", "release_date": "2026-09-17"}, {"name": "jev-latest", "description": "qwen35 Q4_K_M GGUF (532.9 MiB), local; typed-gguf's own engine", "release_date": "2026-09-17"}]}
+
+### command: <sdk-venv>/bin/python tools/host_gate_serve_client.py --base-url http://127.0.0.1:8088
+###          (typesafe-sdk 0.7.1)
+typesafe-sdk 0.7.1 -> http://127.0.0.1:8088
+state: 732 chars; questions: renew_style(choice), risk(score), escalate(noul)
+httpcore2.ReadTimeout: timed out
+
+The above exception was the direct cause of the following exception:
+
+httpx2.ReadTimeout: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/ggufone/tools/host_gate_serve_client.py", line 285, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/workspace/ggufone/tools/host_gate_serve_client.py", line 266, in main
+    result = client.system_one(STATE, questions)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/typesafe_sdk/_core/client/sync/client.py", line 208, in system_one
+    return self._request(
+           ^^^^^^^^^^^^^^
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/typesafe_sdk/_core/client/sync/client.py", line 223, in _request
+    return send(self._http_client, self._retry, request, retry)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/typesafe_sdk/_core/transport.py", line 160, in send
+    return policy.copy()(attempt)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/tenacity/__init__.py", line 470, in __call__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/tenacity/__init__.py", line 371, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/tenacity/__init__.py", line 473, in __call__
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/typesafe_sdk/_core/transport.py", line 153, in attempt
+    with state.attempt() as headers:
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/workspace/e2e-t_559ed8c8/sdkvenv/lib/python3.11/site-packages/typesafe_sdk/_core/transport.py", line 88, in attempt
+    raise sdk_error from safe_error
+typesafe_sdk._core.errors.TypeSafeAPITimeoutError: Request timed out (timeout=10.0).
+client EXIT=1
+
+### the served body the SDK itself parsed (logs/sdk_body.json)
+cat: logs/sdk_body.json: No such file or directory
+
+### command: curl -s $BASE/health   (after: the host is resident)
+{"status": "ok", "service": "typed-gguf", "version": "0.2.3", "model": "qwen3.5-0.8b", "warm": true}
+
+### command: curl -s -X POST $BASE/v1/decide (native format, engine.keep block)
+curl EXIT=0
+  top-level keys: ['answers', 'calibrated', 'calibration', 'engine', 'model', 'timings', 'usage', 'warnings']
+  engine.keep: {"served_by": "host", "keep_alive_s": 600.0, "state": "running", "pid": 3284, "key": {"model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf", "model_sha": "3177ebd67afe4438374da19e690bc1b98756f7e0fea9240e1be404336156a7b5", "backend": "auto", "n_ctx": null, "n_seq_max": null, "kv_type": "auto", "threads": null, "fit": true, "fit_target_mb": null, "fit_ctx": null, "fit_cache": true}, "key_digest": "51d65a5ee6ac06dc", "model": "qwen3.5-0.8b", "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf", "requests": 4, "uptime_s": 51.459, "idle_left_s": 598.328, "loaded_at": 1790277594.9226315, "placement": {"note": "fit plan: 24 layer(s) offloaded, kv_type=f16", "n_gpu_layers": 24, "kv_type": "f16", "degraded": false, "attempts": [], "warnings": [], "cpu_only": false}, "devices": {"devices": ["CPU", "CPU_Mapped", "Vulkan0", "Vulkan_Host"], "device_buffers": {"Vulkan0": 1, "Vulkan_Host": 1}, "effective_backend": "vulkan"}, "model_load_ms": 686.9219629988947, "socket": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.sock", "spec": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.spec.json", "log": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.log", "version": "", "fallback": null}
+  model: qwen3.5-0.8b | usage: {"input_tokens": 126, "output_tokens": 2, "questions": 1, "forks": 2, "prefill_tokens": 82, "decode_steps": 2, "waves": 1}
+  answers.escalate: {"type": "noul", "noul": 0.59175, "probabilities": {"yes": 0.59175, "no": 0.40825}, "coverage": 0.991939, "reliability": "ok", "cue": {"refused": false, "token": 9405, "closer": null, "mass": 0.586979, "verdict": "answered", "next": null}, "decode_steps": 2}
+
+### command: typed-gguf keep status --json
+{
+  "schema": "typed_gguf.keep.status/v1",
+  "state": "running",
+  "pid": 3284,
+  "socket": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.sock",
+  "spec": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.spec.json",
+  "log": "/workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.log",
+  "model": "qwen3.5-0.8b",
+  "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+  "key": {
+    "model_path": "/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf",
+    "model_sha": "3177ebd67afe4438374da19e690bc1b98756f7e0fea9240e1be404336156a7b5",
+    "backend": "auto",
+    "n_ctx": null,
+    "n_seq_max": null,
+    "kv_type": "auto",
+    "threads": null,
+    "fit": true,
+    "fit_target_mb": null,
+    "fit_ctx": null,
+    "fit_cache": true
+  },
+  "key_digest": "51d65a5ee6ac06dc",
+  "keep_alive_s": 600.0,
+  "uptime_s": 51.607,
+  "loaded_s": 48.011,
+  "idle_left_s": 599.852,
+  "requests": 4,
+  "model_load_ms": 686.9219629988947,
+  "placement": {
+    "note": "fit plan: 24 layer(s) offloaded, kv_type=f16",
+    "n_gpu_layers": 24,
+    "kv_type": "f16",
+    "degraded": false,
+    "attempts": [],
+    "warnings": [],
+    "cpu_only": false
+  },
+  "devices": {
+    "devices": [
+      "CPU",
+      "CPU_Mapped",
+      "Vulkan0",
+      "Vulkan_Host"
+    ],
+    "device_buffers": {
+      "Vulkan0": 1,
+      "Vulkan_Host": 1
+    },
+    "effective_backend": "vulkan"
+  },
+  "version": "",
+  "error": null,
+  "loaded_at": 1790277594.9226315
+}
+EXIT=0
+
+### the server's own log (served_by per request)
+GET /health 200 served_by=- 0.1ms req=8c7eed2594e54073
+GET /health 200 served_by=- 0.1ms req=9f01d95cc33a424e
+GET /v1/models 200 served_by=- 0.4ms req=272649ce640848bc
+GET /health 200 served_by=- 0.3ms req=8122c0612700430c
+POST /v1/systemone 200 served_by=host 32077.7ms req=e613804becda49b7
+POST /v1/systemone 200 served_by=host 28632.2ms req=cb5242c367494cd8
+POST /v1/systemone 200 served_by=host 28513.5ms req=686d2c63a39444d7
+POST /v1/decide 200 served_by=host 20133.0ms req=0af29ddea20941b8
+
+### command: kill -TERM 3248   (teardown)
+serve exit=143
+
+### after serve exits: keep ledger, keep status, processes, port
+total 12
+drwx------. 1 root root  152 Sep 24 19:20 .
+drwxr-xr-x. 1 root root  120 Sep 24 19:19 ..
+-rw-r--r--. 1 root root 2127 Sep 24 19:20 51d65a5ee6ac06dc.log
+srw-------. 1 root root    0 Sep 24 19:19 51d65a5ee6ac06dc.sock
+-rw-------. 1 root root 2484 Sep 24 19:19 51d65a5ee6ac06dc.spec.json
+-rw-------. 1 root root 1390 Sep 24 19:20 host.json
+state: running
+pid: 3284
+model: qwen3.5-0.8b (/var/home/rybens/.cache/llama.cpp/Qwen3.5-0.8B-UD-Q4_K_XL.gguf)
+keep-alive: 600.0s
+idle left: 597.758s
+uptime: 53.85s   requests: 4
+model load: 686.9219629988947ms   key: 51d65a5ee6ac06dc
+placement: note=fit plan: 24 layer(s) offloaded, kv_type=f16, n_gpu_layers=24, kv_type=f16, degraded=False, attempts=[], warnings=[], cpu_only=False
+proved by the engine: ['CPU', 'CPU_Mapped', 'Vulkan0', 'Vulkan_Host'] (effective backend: vulkan)
+socket: /workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.sock   log: /workspace/e2e-t_559ed8c8/home/keep/51d65a5ee6ac06dc.log
+hint: `--keep-alive 0` on `run`/`ask` answers without a host at all
+keep status EXIT=0
+(no keep/serve process)
+(port 8088 is closed: curl exit 7)
+
+### command: typed-gguf keep stop   (after the fact: nothing to stop)
+stopped the warm host (pid 3284) and cleaned up its record
+EXIT=0

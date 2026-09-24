@@ -1,0 +1,72 @@
+[
+ {
+  "tag_name": "v0.5.0",
+  "published_at": "2026-09-24T09:00:00Z",
+  "prerelease": false,
+  "assets": [
+   {
+    "name": "nightly-tag.txt",
+    "size": 12,
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+   }
+  ]
+ },
+ {
+  "tag_name": "b100001",
+  "published_at": "2026-09-24T08:00:00Z",
+  "prerelease": true,
+  "assets": [
+   {
+    "name": "llama-b100001-bin-win-cpu-x64.tar.gz",
+    "size": 18439911,
+    "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+   }
+  ]
+ },
+ {
+  "tag_name": "b99999",
+  "published_at": "2026-09-24T07:00:00Z",
+  "prerelease": true,
+  "assets": [
+   {
+    "name": "llama-b99999-bin-ubuntu-x64.tar.gz",
+    "size": 18407198,
+    "digest": "sha256:520a9021e622d3b666ca6d35677c0493420ec02383264e991d0d23d0b50df3c4"
+   },
+   {
+    "name": "llama-b99999-bin-ubuntu-cuda-12.8-x64.tar.gz",
+    "size": 168811114,
+    "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+   },
+   {
+    "name": "llama-b99999-bin-ubuntu-vulkan-x64.tar.gz",
+    "size": 30294625,
+    "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+   }
+  ]
+ },
+ {
+  "tag_name": "b99998",
+  "published_at": "2026-09-24T06:00:00Z",
+  "prerelease": true,
+  "assets": [
+   {
+    "name": "llama-b99998-bin-ubuntu-x64.tar.gz",
+    "size": 18407198,
+    "digest": "sha256:520a9021e622d3b666ca6d35677c0493420ec02383264e991d0d23d0b50df3c4"
+   }
+  ]
+ },
+ {
+  "tag_name": "b99997",
+  "published_at": "2026-09-24T05:00:00Z",
+  "prerelease": true,
+  "assets": [
+   {
+    "name": "llama-b99997-bin-ubuntu-x64.tar.gz",
+    "size": 18407198,
+    "digest": "sha256:520a9021e622d3b666ca6d35677c0493420ec02383264e991d0d23d0b50df3c4"
+   }
+  ]
+ }
+]

@@ -1,0 +1,3 @@
+GET /health 200 served_by=- 0.1ms req=db3cd9d6732c4427
+GET /v1/models 200 served_by=- 0.4ms req=b118e042cd5e4986
+POST /v1/decide 200 served_by=host 5017.7ms req=023e898d2b154d67
