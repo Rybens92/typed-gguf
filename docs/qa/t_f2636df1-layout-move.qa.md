@@ -22,9 +22,9 @@ History survives (`git log --follow --oneline -2 -- <new path>` after the move �
 then the pre-move commit the file was written in):
 
 ```
-docs/evidence/e2e/t_287e0d18-live/report.md   fe62948 (the move)  4b03847 docs(evidence): the live Vulkan placement attempts … (t_287e0d18)
-docs/evidence/e3b/sweep.json                  fe62948 (the move)  953434c evidence(E3b t_6952f0dd): the campaign's runs, drivers and logs …
-docs/evidence/t9bcb/stats.json                fe62948 (the move)  5766954 qa(t_9bcbecff): the landing on 901ea6f … (oldest: 8521461)
+docs/evidence/e2e/t_287e0d18-live/report.md   29e967e (the move)  4b03847 docs(evidence): the live Vulkan placement attempts … (t_287e0d18)
+docs/evidence/e3b/sweep.json                  29e967e (the move)  953434c evidence(E3b t_6952f0dd): the campaign's runs, drivers and logs …
+docs/evidence/t9bcb/stats.json                29e967e (the move)  5766954 qa(t_9bcbecff): the landing on 901ea6f … (oldest: 8521461)
 ```
 
 `.gauntlet/` (19 QA/spec notes, untracked + gitignored) is now tracked `docs/qa/`: `/.gauntlet/` was
@@ -115,4 +115,4 @@ so a linked worktree (the `t_2b89cce2` shape) does not read as a violation.
 Commits (on `main`, no push):
 
 * `553464e` `test(layout): RED — a gate for the public root layout` (the failing gate, before the move)
-* `fe62948` `refactor(layout): root dot-dirs -> docs/evidence/<name>/ + .gauntlet -> docs/qa/`
+* `29e967e` `refactor(layout): root dot-dirs -> docs/evidence/<name>/ + .gauntlet -> docs/qa/`
