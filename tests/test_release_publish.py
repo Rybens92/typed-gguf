@@ -40,12 +40,12 @@ ENVIRONMENT_URL = "https://pypi.org/project/typed-gguf/"
 #: the upload itself: Trusted Publishing forced on (the flag is what makes OIDC the credential)
 PUBLISH_RUN = "uv publish --trusted-publishing always"
 #: the runner/actions the other workflows are pinned to (mirror them, do not float). These are the
-#: highest *floating* majors that declare `runs.using: node24` (card `t_ace98219`; the pin was
-#: corrected by `t_70dc92b5`): GitHub warns on every run that `v4`/`v5` sit on a Node runtime it is
-#: retiring, and `astral-sh/setup-uv` publishes no floating major above `v7` (`v8`, `v9` and `v10`
-#: exist only as exact versions, so `@v10` never resolved and the job died in "Set up job"), so
-#: `@v7` is the newest tag that both resolves and runs on Node 24. Both take the same inputs
-#: (`python-version`, `enable-cache`) the jobs already pass.
+#: highest *floating* majors that declare `runs.using: node24` (card `t_ace98219`; the `setup-uv`
+#: pin was corrected by `t_70dc92b5`): GitHub warns on every run that `v4`/`v5` sit on a Node
+#: runtime it is retiring, and `astral-sh/setup-uv` ships no floating major above `v7` (`v8` and
+#: later exist as exact versions only), so `@v7` is the newest tag that both resolves and declares
+#: Node 24. A floating pin above it never resolves: the run dies in "Set up job", before its first
+#: step. Both tags take the same inputs (`python-version`, `enable-cache`) the jobs already pass.
 CHECKOUT = "actions/checkout@v7"
 SETUP_UV = "astral-sh/setup-uv@v7"
 RUNNER = "ubuntu-24.04"

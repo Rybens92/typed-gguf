@@ -78,6 +78,19 @@ docs/metadata/workflow-only, so the default stands) | HEAD: `d311803` on `main`,
 
 🔴 **REQUIRES ATTENTION: none.**
 
+## Addendum, same day: the CI-red and its fix (card `t_70dc92b5`)
+
+The push of `f2dfc3b` turned CI red in **Set up job** in both jobs of `ci.yml`: GitHub could not
+resolve the `astral-sh/setup-uv` step at all (the log's `unable to find version v10`, and the run
+stopped before any step executed), so nothing this report measured had run on GitHub. `setup-uv`
+ships no floating major above `v7` (`v8` and later exist as exact versions only) and `v7` declares
+`runs.using: node24`, so the seven `uses:` references moved to `astral-sh/setup-uv@v7`: the
+release-gate constant and its comment first (RED:
+`test_the_steps_are_checkout_uv_build_gate_and_publish`, 1 failed / 31 passed), then the three
+workflow files, then green (32 passed across the release and docs gates, 3/3 layout). The two prose
+spots in the release notes that named the old pin now name `@v7`. Everything else this report
+verified stands as recorded; `actions/checkout@v7` was already resolvable and did not move.
+
 ## Decision
 
 🤔 **Ship (coordinator pushes `main` → tag `v0.2.3` → GitHub Release), after the owner's OK.**

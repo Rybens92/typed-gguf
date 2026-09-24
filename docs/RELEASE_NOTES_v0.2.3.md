@@ -187,9 +187,12 @@ Two pieces of housekeeping ride along with this build, and neither changes what 
   root again. Nothing installed changes: the wheel ships the same package, with the same commands and
   the same entry points.
 - **The CI actions.** The three workflows now use `actions/checkout@v7` and
-  `astral-sh/setup-uv@v10`. GitHub had started warning on every run that the previous majors sit on a
-  Node runtime it is retiring; these majors declare Node 24 and take the same inputs the jobs already
-  pass. The release gate pins the two strings, so a workflow and its gate cannot drift apart.
+  `astral-sh/setup-uv@v7`. GitHub had started warning on every run that the previous majors sit on a
+  Node runtime it is retiring, and `v7` is the newest *floating* major `setup-uv` publishes: `v8`
+  and later ship as exact versions only, so a floating pin above `v7` never resolves, and the run
+  stops in "Set up job" before its first step. `@v7` resolves and declares Node 24, and both tags
+  take the same inputs the jobs already pass. The release gate pins the two strings, so a workflow
+  and its gate cannot drift apart.
 
 The test hardening that arrived with the carried fixes below is unchanged here: the race gate waits,
 bounded, for the losing host to leave the process table (5 s, 50 ms steps) and its inline double
@@ -409,7 +412,7 @@ the default model's authors (Apache-2.0).
   run against this build's artifacts (`typed_gguf-0.2.3-py3-none-any.whl` +
   `typed_gguf-0.2.3.tar.gz`, 314 263 B + 4 044 675 B), accepts the tag `v0.2.3` (rc 0) and refuses
   `v0.2.2` and `v0.2.4` (rc 1 each, with the `::error::` line on the log). The same gate also pins
-  the two action versions the workflows carry (`actions/checkout@v7`, `astral-sh/setup-uv@v10`), so
+  the two action versions the workflows carry (`actions/checkout@v7`, `astral-sh/setup-uv@v7`), so
   a workflow and its gate cannot drift apart.
 - **The three fixes, verified live before the release.** The runs receipted in
   `docs/evidence/e2e/t_176614c6-live/` (the harness, per-call JSON, exit codes and wall times, and
