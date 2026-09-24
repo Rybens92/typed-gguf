@@ -88,6 +88,19 @@ class DownloadError(RuntimeError_):
     code = "E_DOWNLOAD_FAILED"
 
 
+class UpdateUnavailableError(UserError):
+    """The runtime update/rollback cannot apply here (SPEC 2.5/2.8, serve wave 2026-09-24).
+
+    Exit 2, because what decides it is the caller's own state — not a broken download or a missing
+    bundle: the active runtime is `$TYPED_GGUF_RUNTIME_DIR`-managed (read-only by design, SPEC 2.7),
+    the resolved upstream release carries no bundle under this host's pinned asset name (upstream
+    renamed it; we never guess a name), or there is no retained `previous` bundle to roll back to.
+    The message names which of the three.
+    """
+
+    code = "E_UPDATE_UNAVAILABLE"
+
+
 class Sha256MismatchError(RuntimeError_):
     code = "E_SHA256_MISMATCH"
 
@@ -147,6 +160,11 @@ ERROR_CODES = (
     # drop, or a prompt left inside a thinking block). The message names the fallback; the engine
     # never silently re-renders the other shape.
     "E_ROLE_SPLIT_UNSUPPORTED",
+    # Serve wave (card t_d88b4be0): `runtime update|rollback` cannot apply here — the active
+    # runtime is `$TYPED_GGUF_RUNTIME_DIR`-managed, upstream carries no bundle under this host's
+    # pinned asset name, or no `previous` bundle was retained to roll back to. Exit 2: it is the
+    # caller's own state, not a broken bundle (SPEC 2.5/2.8).
+    "E_UPDATE_UNAVAILABLE",
 )
 WARNING_CODES = (
     "W_LOW_MASS", "W_LOW_CONFIDENCE", "W_UNKNOWN_OPTION", "W_TRUNCATED_STATE",

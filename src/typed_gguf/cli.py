@@ -4,7 +4,9 @@ Implemented in E1a: `init`, `doctor`, `models {search,pull,use,ls,rm,verify,reco
 `version`. The command SPEC 2.8 freezes but this version does not ship (`mcp`) exits 3 with a
 plain "planned" message: no milestone and no SPEC pointer reaches a user (card `t_bf6bb78a`,
 gated by `tests/test_cli_language.py`). `serve` shipped in the serve wave — it serves the HTTP
-surface of SPEC 2.9 from the same warm keep host `run`/`ask` use.
+surface of SPEC 2.9 from the same warm keep host `run`/`ask` use. `runtime` shipped in the same
+wave (card `t_d88b4be0`): SPEC 2.8's `runtime update` refreshes the bundle `init` installed and
+`runtime rollback` restores the one it replaced — `init` keeps installing the pinned tag.
 
 Exit codes (SPEC 2.5): 0 ok, 2 user error, 3 runtime/model error, 4 internal.
 `doctor` additionally uses 2 for "works, but warnings" and 1 for "broken" (A-E1a-3).
@@ -35,10 +37,14 @@ from typed_gguf.keep import identity
 from typed_gguf.registry import gguf, hf, recommend, store
 from typed_gguf.registry.gguf import sha256_file
 from typed_gguf.runtime import capability, finder, fit, install, pins, teardown
+from typed_gguf.runtime import update as runtime_update
 
-COMMANDS = ("init", "doctor", "models", "run", "ask", "serve", "mcp", "bench",
+COMMANDS = ("init", "doctor", "models", "run", "ask", "serve", "runtime", "mcp", "bench",
             "fit", "calibrate", "keep", "version")
 MODELS_SUBCOMMANDS = ("search", "pull", "use", "ls", "rm", "verify", "recommend-quant")
+#: `typed-gguf runtime <sub>` (SPEC 2.8, serve wave): `update` moves the *installed* bundle to a
+#: newer official release, `rollback` returns to the one the update retained.
+RUNTIME_SUBCOMMANDS = ("update", "rollback")
 #: `typed-gguf keep <sub>` (SPEC 2.12). `_host` is the client's own spawn target — reachable,
 #: deliberately not advertised (`test_keep_cli.py` pins that).
 KEEP_SUBCOMMANDS = ("status", "stop")
@@ -54,6 +60,7 @@ COMMAND_DESCRIPTIONS: dict[str, str] = {
     "run": "answer a batch of questions from a file",
     "ask": "answer one question from the command line",
     "serve": "serve a decision API for TypeSafe clients",
+    "runtime": "refresh the installed llama.cpp runtime",
     "mcp": "planned; not in this version",
     "bench": "measure latency, throughput and quality",
     "fit": "plan what this machine can hold",
@@ -71,6 +78,15 @@ MODELS_SUBCOMMAND_DESCRIPTIONS: dict[str, str] = {
     "verify": "check the registered files against their checksums",
     "recommend-quant": "recommend a quantization for this machine",
 }
+#: One plain line per `runtime` subcommand for `typed-gguf runtime <sub> --help`.
+RUNTIME_SUBCOMMAND_DESCRIPTIONS: dict[str, str] = {
+    "update": "refresh the installed llama.cpp runtime",
+    "rollback": "roll back to the runtime the last update replaced",
+}
+#: The subcommand map per command that has one: `typed-gguf <cmd> <sub> --help` prints that
+#: subcommand's own page from it (one description per sub; the flags live in COMMAND_HELP).
+SUBCOMMANDS: dict[str, dict[str, str]] = {"models": MODELS_SUBCOMMAND_DESCRIPTIONS,
+                                          "runtime": RUNTIME_SUBCOMMAND_DESCRIPTIONS}
 #: The one note the command that is specified but not shipped gets — in the root help and on
 #: its own `--help` page. It still exits 3; this is the honest form of the old milestone line.
 PLANNED_NOTE = "planned; not in this version"
@@ -110,6 +126,8 @@ COMMAND_HELP: dict[str, tuple[str, ...]] = {
     "fit": ("[<model>]", "--print", "--no-cache", "--json", "--fit-target MIB", "--fit-ctx N",
             "--n-ctx N", "--n-seq-max N", "--kv-type auto|f16|q8_0|q4_0", "--timeout S"),
     "serve": ("--host IP", "--port N", "--format native|typesafe", "--keep-alive <dur|0>"),
+    "runtime": ("update --check|--dry-run --tag TAG --backend auto|cpu|vulkan|cuda|metal --json",
+                "rollback --json"),
     "mcp": (),
     "bench": ("--suite latency|throughput|quality|calibration|determinism", "--model PATH.GGUF",
               "--backend auto|cpu|vulkan|cuda|all", "--runs N", "--threads N", "--devset FILE",
@@ -2025,6 +2043,65 @@ def _cmd_version(args: list[str]) -> int:
     return 0
 
 
+# --------------------------------------------------------------------- runtime update
+def _build_label(build: Any) -> str:
+    """`11026` -> `11026`; unknown stays unknown (the output never invents a build)."""
+    return str(build) if build else "unknown"
+
+
+def runtime_text(payload: Mapping[str, Any]) -> str:
+    """The human half of the `--json` payload: the same facts, in plain lines."""
+    frm, to = payload["from"], payload["to"]
+    if payload.get("rolled_back"):
+        return (f"rolled back to {to['tag']} (build {_build_label(to['build'])}, {to['variant']}) "
+                f"at {to['dir']}; {frm['tag']} is kept on disk — `typed-gguf runtime update` "
+                f"returns to it")
+    if payload.get("updated"):
+        previous = payload.get("previous") or {}
+        return (f"updated {frm['tag']} -> {to['tag']} (build {_build_label(to['build'])}, "
+                f"{to['variant']}) at {to['dir']}; the previous bundle is kept at "
+                f"{previous.get('dir')}")
+    if payload.get("reason"):
+        return (f"{payload['reason']} (build {_build_label(frm['build'])}, {frm['variant']}) at "
+                f"{frm['dir']}; nothing changed")
+    asset = payload.get("asset") or {}
+    return "\n".join([
+        f"current {frm['tag']} (build {_build_label(frm['build'])}, {frm['variant']}) at "
+        f"{frm['dir']}",
+        f"target  {to['tag']} (build {_build_label(to['build'])}, {to['variant']}) "
+        f"{asset.get('size_human')} -> {to['dir']}",
+        "nothing changed (--check prints the plan only)"])
+
+
+def _cmd_runtime(args: list[str]) -> int:
+    """`typed-gguf runtime update|rollback` (SPEC 2.8, serve wave).
+
+    `update` refreshes the bundle `init` installed — check, download, probe, switch — and keeps
+    the bundle it replaced for `rollback`. `init` keeps installing the *pinned* bundle: updating is
+    something the user asks for, never something that happens to them.
+    """
+    positionals, options = _parse_args(args, value_flags=("tag", "backend"),
+                                       bool_flags=("check", "dry-run", "json"))
+    sub = positionals[0] if positionals else None
+    if len(positionals) > 1:
+        raise UserError(f"unexpected argument {positionals[1]!r}", code="E_UNKNOWN_KEY")
+    as_json = bool(options.get("json"))
+    if sub == "update":
+        payload = runtime_update.update(
+            check=bool(options.get("check") or options.get("dry_run")),
+            tag=options.get("tag"), backend=str(options.get("backend") or "auto"),
+            progress=None if as_json else _progress_printer("downloading runtime"))
+        _emit(payload if as_json else runtime_text(payload), as_json)
+        return 0
+    if sub == "rollback":
+        payload = runtime_update.rollback()
+        _emit(payload if as_json else runtime_text(payload), as_json)
+        return 0
+    given = "no subcommand" if sub is None else repr(sub)
+    raise UserError(f"runtime needs {'|'.join(RUNTIME_SUBCOMMANDS)} (SPEC 2.8), not {given}",
+                    code="E_UNKNOWN_KEY")
+
+
 # --------------------------------------------------------------------- main
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
@@ -2038,16 +2115,17 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     # carried finding #1 (E1c card): `typed-gguf <cmd> --help` used to be an E_UNKNOWN_KEY error
     if any(arg in ("-h", "--help") for arg in rest):
-        if cmd == "models" and rest and rest[0] in MODELS_SUBCOMMANDS:
+        subs = SUBCOMMANDS.get(cmd, {})
+        if rest and rest[0] in subs:
             wanted = rest[0]
             # the matched COMMAND_HELP entry already names the subcommand (`search <query>`), so the
             # usage line adds it once — release review F2 (card `t_a25bd190`) printed it twice
-            entry = next((flag for flag in COMMAND_HELP["models"]
+            entry = next((flag for flag in COMMAND_HELP[cmd]
                           if flag.startswith(wanted)), wanted)
             flags = entry.removeprefix(wanted).strip()
-            print(f"usage: typed-gguf models {wanted}" + (f" {flags}" if flags else ""))
+            print(f"usage: typed-gguf {cmd} {wanted}" + (f" {flags}" if flags else ""))
             print()
-            print(MODELS_SUBCOMMAND_DESCRIPTIONS[wanted])
+            print(subs[wanted])
             print("run `typed-gguf --help` for the command list")
             return 0
         print(_command_usage(cmd))
@@ -2067,6 +2145,8 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_ask(rest)
         if cmd == "serve":
             return _cmd_serve(rest)
+        if cmd == "runtime":
+            return _cmd_runtime(rest)
         if cmd == "bench":
             return _cmd_bench(rest)
         if cmd == "fit":

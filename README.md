@@ -448,6 +448,7 @@ have their own platform handling but are not exercised by that job.
 | `typed-gguf bench --suite latency\|throughput\|quality\|calibration\|determinism --model <path.gguf>` | reproduces the tables in `docs/BENCHMARKS.md`; never touches the registry and never opens a socket |
 | `typed-gguf calibrate [--dry-run]` | fits the per-(model, question-type) temperature/scale on the committed dev set and keeps it only if a held-out split improves |
 | `typed-gguf keep status [--json]` / `stop [--json]` | the warm host: one resident model per data home, answering `run`/`ask` over a 0600 unix socket and unloading itself after `--keep-alive` |
+| `typed-gguf runtime update [--check\|--dry-run] [--tag TAG] [--backend auto\|cpu\|vulkan\|cuda\|metal] [--json]` / `runtime rollback [--json]` | refreshes the llama.cpp bundle `init` installed: the newest official release that carries this host's pinned asset name (the pinned tag re-tagged, never `releases/latest`, never a fork), staged, probed in a child against the lock's required tools, symbols, minimum build and backend, then switched atomically after the warm host stops — the previous bundle is kept on disk and `runtime rollback` returns to it |
 | `typed-gguf version [--json]` | versions, the pinned runtime tag, the installed runtime and the data home |
 | `typed-gguf serve [--host IP] [--port N] [--format native\|typesafe] [--keep-alive <dur\|0>]` | a stdlib HTTP server on `127.0.0.1:8088` answering `GET /health`, `GET /v1/models`, `POST /v1/decide` (native) and `POST /v1/systemone` (TypeSafe) **from the same warm host** `run`/`ask` use — the same model, fit plan, calibration and numbers. A TypeSafe client only has to point `TYPESAFE_BASE_URL` at it and set `TYPESAFE_API_KEY` to any non-empty string |
 | `typed-gguf mcp` | the MCP surface (`typed_gguf_decide`, `typed_gguf_models_list`, `typed_gguf_models_pull`, `typed_gguf_runtime_status`, `typed_gguf_fit`) is planned and not implemented in this release: the command exits 3 today |
@@ -460,6 +461,36 @@ One interface, three shapes: `--format native` (default) is the full response ab
 `--format typesafe` is the compatibility adapter; and the same request/response pair is what
 `typed-gguf run --questions` and `typed-gguf ask` build internally, so anything the CLI can ask can
 be driven from a file.
+
+## Updating the runtime
+
+`init` installs the *pinned* bundle named in `runtime.lock` and stays there: updating is something
+you ask for, never something that happens to you. `runtime update` moves the installed bundle to
+the newest official llama.cpp release that still carries this host's pinned asset name — with the
+pinned tag swapped for the release's own (`llama-b11026-bin-ubuntu-x64.tar.gz` becomes
+`llama-b11160-bin-ubuntu-x64.tar.gz`) — never GitHub's `releases/latest`, never a fork.
+
+    typed-gguf runtime update --check     # what would change (from, to, size) — touches nothing
+    typed-gguf runtime update             # download, verify, probe, switch
+    typed-gguf runtime rollback           # back to the bundle the update replaced
+
+What an update does, in order: it resolves the installed runtime from `runtime.json`; asks the
+release API of the repository `runtime.lock` itself names; downloads into `<data
+home>/downloads/` with the same resume, size and SHA-256 semantics `init` uses; extracts into
+`<data home>/runtime/.pending-<asset>`; probes that directory in a child process against the
+lock's required tools, symbols, minimum build and this host's backend; stops the warm host; and
+only then moves the staged directory into place and rewrites `runtime.json` once. That rewrite is
+the switch point — before it the record is byte-identical, so a failed download, a failed probe or
+a `kill -9` in the middle leaves the working runtime active. It refuses when `TYPED_GGUF_RUNTIME_DIR`
+is set (that rung belongs to whoever set it) and when the warm host would not stop: a process that
+loaded the old libraries must never keep answering after a new build is installed.
+
+Nothing is ever deleted: the bundle an update replaces stays on disk, `rollback` flips
+`runtime.json` back to it without downloading anything, and an update that finds the target
+directory already on disk adopts it instead of fetching it a second time. `--check` (the same as
+`--dry-run`) prints the plan and changes nothing, `--tag b11160` pins one release, and `--json`
+prints the payload the tests pin. No pin in `runtime.lock` is rewritten by an update, and `init`
+still installs the pinned tag it names — the measured numbers above were taken with that bundle.
 
 ## Fit: what this host can actually hold
 

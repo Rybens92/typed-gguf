@@ -21,6 +21,7 @@ from __future__ import annotations
 import hashlib
 import json
 import pathlib
+import re
 import tarfile
 import urllib.error
 
@@ -254,6 +255,15 @@ def test_the_newest_asset_bearing_release_wins_over_releases_latest() -> None:
         update.pick_target([latest], pinned_name=PINNED_ASSET, pinned_tag=PINNED_TAG)
     assert exc.value.code == "E_UPDATE_UNAVAILABLE"
     assert "never guesses" in str(exc.value)
+    # a release that does not carry the bundle is skipped, not a wall: the match behind it wins
+    chosen, _ = update.pick_target([older, latest, release()], pinned_name=PINNED_ASSET,
+                                   pinned_tag=PINNED_TAG, tag=NEXT_TAG)
+    assert chosen.tag == NEXT_TAG
+    # ...and a pinned name with no pinned tag in it has no rule to re-tag: nothing is chosen
+    with pytest.raises(TypedGgufError) as exc:
+        update.pick_target([release()], pinned_name="llama-ubuntu-x64.tar.gz",
+                           pinned_tag=PINNED_TAG)
+    assert exc.value.code == "E_UPDATE_UNAVAILABLE"
 
 
 def test_a_named_tag_must_carry_this_host_s_bundle() -> None:
@@ -263,7 +273,7 @@ def test_a_named_tag_must_carry_this_host_s_bundle() -> None:
                            tag="b11050")
     assert exc.value.code == "E_UPDATE_UNAVAILABLE"
     assert "b11050" in str(exc.value)
-    chosen, _ = update.pick_target([release(), other], pinned_name=PINNED_ASSET,
+    chosen, _ = update.pick_target([other, release()], pinned_name=PINNED_ASSET,
                                    pinned_tag=PINNED_TAG, tag=NEXT_TAG)
     assert chosen.tag == NEXT_TAG
 
@@ -278,6 +288,83 @@ def test_a_pinned_name_without_the_pinned_tag_refuses_before_any_fetch(
                       probes=HOST)
     assert exc.value.code == "E_UPDATE_UNAVAILABLE"
     assert "b11026" in str(exc.value)
+
+
+def test_a_release_entry_without_a_tag_is_skipped_not_a_wall() -> None:
+    """The API's answer is data: a tagless entry, a non-object entry and a single release object
+    must not hide the releases behind them (the live list carries both shapes)."""
+    full = {"tag_name": NEXT_TAG, "published_at": "2026-09-24T13:50:41Z",
+            "assets": [{"name": NEXT_ASSET, "size": 17002550, "digest": "sha256:" + "a" * 64}]}
+    assert [entry.tag for entry in update.parse_releases([{"tag_name": ""}, "junk", full])] == \
+        [NEXT_TAG]
+    assert [entry.tag for entry in update.parse_releases(full)] == [NEXT_TAG]
+    assert update.parse_releases([{"assets": []}, None]) == []
+
+
+def test_an_asset_without_a_usable_size_records_none_not_a_guess() -> None:
+    """A missing or non-numeric `size` is None: the payload's `size_human` says so instead of a
+    number nobody sent."""
+    missing = update.parse_releases([{"tag_name": NEXT_TAG, "assets": [{"name": NEXT_ASSET}]}])
+    assert missing[0].assets[0].size is None
+    broken = update.parse_releases([{"tag_name": NEXT_TAG,
+                                     "assets": [{"name": NEXT_ASSET, "size": "big"}]}])
+    assert broken[0].assets[0].size is None
+
+
+def test_a_record_naming_another_directory_is_not_this_runtime(tmp_path: pathlib.Path) -> None:
+    """`runtime.json` is data, not an answer: when it names a directory that is not the one
+    `find_runtime` found, its tag/build/installed_at describe *that* bundle — the build of this one
+    is read from the binary (and a record that names this directory without a build still
+    answers it)."""
+    home = installed_home(tmp_path)
+    record_path = home.home / "runtime.json"
+    record = json.loads(record_path.read_bytes())
+    record.update({"dir": str(tmp_path / "elsewhere"), "tag": "b1", "build": 1,
+                   "installed_at": "2020-01-01T00:00:00Z"})
+    record_path.write_text(json.dumps(record))
+    current = update.current_runtime(home.home)
+    assert current["dir"] == str(home.dir) and current["build"] == PINNED_BUILD
+    assert current["tag"] is None and current["variant"] is None
+    assert current["installed_at"] is None
+    record.update({"dir": str(home.dir), "build": None})
+    record_path.write_text(json.dumps(record))
+    current = update.current_runtime(home.home)
+    assert current["tag"] == "b1" and current["build"] == PINNED_BUILD
+
+
+def test_an_update_with_a_named_tag_walks_that_release_only(tmp_path: pathlib.Path) -> None:
+    """`--tag` narrows the walk: a named tag that carries no bundle for this host refuses instead
+    of quietly moving to a newer release."""
+    home = installed_home(tmp_path)
+    named = release("b11050", asset="llama-b11050-bin-ubuntu-x64.tar.gz", size=99)
+    other = release("b11050", asset="llama-b11050-bin-macos-arm64.tar.gz")
+    with pytest.raises(TypedGgufError) as exc:
+        update.update(home=home.home, lock=home.lock, tag="b11050", releases=[release(), other],
+                      deep=False, probes=HOST, client=FakeClient())
+    assert exc.value.code == "E_UPDATE_UNAVAILABLE" and "b11050" in str(exc.value)
+    payload = update.update(check=True, home=home.home, lock=home.lock, tag="b11050",
+                            releases=[release(), named], deep=False, probes=HOST)
+    assert payload["to"]["tag"] == "b11050" and payload["to"]["build"] == 11050
+
+
+def test_the_fetch_is_asked_for_the_list_the_way_the_lock_says(tmp_path: pathlib.Path) -> None:
+    """The upstream leg is called with this run's tag, the pinned page size and the HTTP timeout —
+    a fetch that was asked for something else is a different query."""
+    home = installed_home(tmp_path)
+    seen: list[dict] = []
+
+    def fake_fetch(lock: pins.RuntimeLock, **kwargs: object) -> list[update.Release]:
+        assert lock is home.lock
+        seen.append(kwargs)
+        return [release()]
+
+    update.update(check=True, home=home.home, lock=home.lock, fetch=fake_fetch, deep=False,
+                  probes=HOST)
+    assert seen == [{"tag": None, "limit": update.RELEASES_LIMIT,
+                     "timeout": update.REQUEST_TIMEOUT}]
+    update.update(check=True, home=home.home, lock=home.lock, tag=NEXT_TAG, fetch=fake_fetch,
+                  deep=False, probes=HOST)
+    assert seen[1]["tag"] == NEXT_TAG
 
 
 # --------------------------------------------------------------------------- A-E5-6: check mode
@@ -334,7 +421,7 @@ def test_a_target_equal_to_the_current_tag_is_not_an_update(tmp_path: pathlib.Pa
     assert payload["from"]["tag"] == PINNED_TAG
     assert payload["previous"] is None and payload["host_stopped"] is None
     assert home.snapshot() == before
-    assert cli.main(["runtime", "update", "--check"]) == 0
+    assert cli.main(["runtime", "update", "--check", "--backend", "cpu"]) == 0
     assert f"already at {PINNED_TAG}" in capsys.readouterr().out
 
 
@@ -412,12 +499,18 @@ def test_a_successful_update_switches_the_record_and_keeps_the_previous_bundle(
     assert payload["to"] == {"tag": NEXT_TAG, "build": NEXT_BUILD, "dir": str(final),
                              "variant": VARIANT}
     assert payload["probe"] == {"build": NEXT_BUILD,
-                                "tools": {"llama-fit-params": str(final / "llama-fit-params")},
+                                "tools": {"llama-cli": str(final / "llama-cli"),
+                                          "llama-fit-params": str(final / "llama-fit-params")},
                                 "symbols_ok": False, "symbols_probed": False,
                                 "missing_symbols": [], "backends": ["cpu"],
                                 "expect_backend": "cpu"}
     assert payload["asset"]["sha256"] == sha256(archive)
     assert payload["host_stopped"] == client.report
+    assert tuple(payload) == update.UPDATE_KEYS
+    assert tuple(payload["probe"]) == update.PROBE_KEYS
+    assert tuple(payload["asset"]) == update.ASSET_KEYS
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", record["updated_at"]), (
+        record["updated_at"])
     # the bundle: staged, probed, moved — and the previous one still on disk
     assert (final / "libllama.so").exists() and (final / "llama-cli").exists()
     assert (home.dir / "libllama.so").exists()
@@ -430,6 +523,10 @@ def test_a_successful_update_switches_the_record_and_keeps_the_previous_bundle(
     assert record["asset_sha256"] == sha256(archive)
     assert record["asset_verified"] is True
     assert record["libllama_sha256"] == sha256(final / "libllama.so")
+    # the tools the record names live in the bundle the update moved into place, not in the
+    # staging directory the probe saw (`doctor`/`version` read this map)
+    assert record["tools"] == payload["probe"]["tools"]
+    assert record["tools"]["llama-cli"] == str(final / "llama-cli")
     assert set(record["previous"]) == set(update.PREVIOUS_KEYS)
     assert record["previous"] == {"dir": str(home.dir), "tag": PINNED_TAG,
                                   "build": PINNED_BUILD,
@@ -528,9 +625,12 @@ def test_a_re_update_after_a_rollback_adopts_the_bundle_it_already_has(
 def test_the_deep_probe_follows_the_same_knob_init_uses(tmp_path: pathlib.Path,
                                                         monkeypatch: pytest.MonkeyPatch) -> None:
     seen: list[bool] = []
+    asked: list[dict] = []
 
     def spy(runtime_dir: object, **kwargs: object) -> capability.ProbeResult:
         seen.append(bool(kwargs["deep"]))
+        asked.append({key: kwargs.get(key) for key in
+                      ("lock", "expect_backend", "run_tools", "system")})
         return capability.ProbeResult(runtime_dir=pathlib.Path(str(runtime_dir)),
                                       build=NEXT_BUILD, backends=("cpu",),
                                       expect_backend="cpu", symbols_checked=True)
@@ -548,6 +648,8 @@ def test_the_deep_probe_follows_the_same_knob_init_uses(tmp_path: pathlib.Path,
                                 probes=HOST)
         assert seen[-1] is expected, env
         assert payload["probe"]["build"] == NEXT_BUILD
+        assert asked[-1] == {"lock": home.lock, "expect_backend": "cpu", "run_tools": True,
+                             "system": None}, env
 
 
 # --------------------------------------------------------- A-E5-8: a failure leaves the old one
@@ -708,8 +810,10 @@ def test_rollback_flips_the_record_back_and_keeps_both_bundles(
     payload = json.loads(capsys.readouterr().out)
     assert tuple(payload) == update.ROLLBACK_KEYS
     assert payload["rolled_back"] is True
-    assert payload["to"] == {"dir": str(home.dir), "tag": PINNED_TAG, "build": PINNED_BUILD}
-    assert payload["from"] == {"dir": str(new_dir), "tag": NEXT_TAG, "build": NEXT_BUILD}
+    assert payload["to"] == {"dir": str(home.dir), "tag": PINNED_TAG, "build": PINNED_BUILD,
+                             "variant": VARIANT}
+    assert payload["from"] == {"dir": str(new_dir), "tag": NEXT_TAG, "build": NEXT_BUILD,
+                               "variant": VARIANT}
     assert payload["previous"] is None
     record = json.loads((home.home / "runtime.json").read_bytes())
     assert record["dir"] == str(home.dir) and record["tag"] == PINNED_TAG
@@ -762,6 +866,24 @@ def test_rollback_refuses_when_the_retained_bundle_is_gone(tmp_path: pathlib.Pat
 
 
 # --------------------------------------------------------------------------- A-E5-9: refusals
+def test_rollback_stops_the_warm_host_and_timestamps_the_record(tmp_path: pathlib.Path) -> None:
+    """The rollback leg stops the host *before* it flips the record (the same rule the update
+    follows: no process keeps answering on the old libraries) and stamps the switch."""
+    home = installed_home(tmp_path)
+    archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+    update.update(home=home.home, lock=home.lock,
+                  releases=[release(size=archive.stat().st_size)], url=archive.as_uri(),
+                  deep=False, client=FakeClient(), probes=HOST)
+    client = FakeClient()
+    payload = update.rollback(home=home.home, client=client)
+    assert payload["host_stopped"] == client.report
+    assert client.calls == [{"drain": True}]
+    record = json.loads((home.home / "runtime.json").read_bytes())
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", record["rolled_back_at"]), (
+        record["rolled_back_at"])
+    assert record["rolled_back_from"]["dir"] == str(home.home / "runtime" / f"{NEXT_TAG}-{VARIANT}")
+
+
 def test_update_refuses_on_a_runtime_managed_outside_typed_gguf(
         tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch,
         capsys: pytest.CaptureFixture[str]) -> None:
@@ -815,6 +937,44 @@ def test_the_runtime_command_says_what_it_accepts(capsys: pytest.CaptureFixture[
     assert rollback_page.splitlines()[2] == "roll back to the runtime the last update replaced"
     for page in (update_page, rollback_page):
         assert "run `typed-gguf --help` for the command list" in page
+
+
+def test_the_update_record_does_not_tell_the_user_to_re_run_init_force(
+        tmp_path: pathlib.Path) -> None:
+    """A successful update must not leave `init --force` advice in the record.
+
+    `probe.warnings()` compares the live build against the *pinned* tag. That is true, but on a
+    runtime the user explicitly asked to move it is the one warning the update itself answers —
+    and `doctor`/`version` print the record's warnings, so "re-run `typed-gguf init --force`"
+    would point the user at undoing the update. The update path names the move instead.
+    """
+    home = installed_home(tmp_path)
+    archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+
+    def moved_probe(runtime_dir: object, **kwargs: object) -> capability.ProbeResult:
+        staged = pathlib.Path(str(runtime_dir))
+        return capability.ProbeResult(
+            runtime_dir=staged, deep=False, symbols_checked=True, build=NEXT_BUILD,
+            expected_tag=PINNED_TAG, min_build=10828, backends=("cpu",),
+            tools={"llama-fit-params": str(staged / "llama-fit-params")},
+            fit_params_help_exit=0, expect_backend="cpu")
+
+    assert any("init --force" in line for line in moved_probe(home.dir).warnings()), (
+        "the fixture no longer reproduces the pin-difference warning")
+    payload = update.update(home=home.home, lock=home.lock,
+                            releases=[release(size=archive.stat().st_size,
+                                              digest=sha256(archive))],
+                            url=archive.as_uri(), deep=False, client=FakeClient(), probes=HOST,
+                            probe=moved_probe)
+    # a probe that resolved every symbol reports exactly that (`symbols_ok` is not `probed`)
+    assert payload["probe"]["symbols_ok"] is True
+    assert payload["probe"]["symbols_probed"] is True
+    record = json.loads((home.home / "runtime.json").read_bytes())
+    assert record["symbols_ok"] is True and record["symbols_probed"] is True
+    assert not any("init --force" in line for line in record["probe_warnings"]), (
+        record["probe_warnings"])
+    assert any(NEXT_TAG in line and PINNED_TAG in line
+               for line in record["probe_warnings"]), record["probe_warnings"]
 
 
 # ------------------------------------------------------------------ the docs story (A-E5-10)

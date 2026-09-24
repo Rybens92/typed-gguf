@@ -78,6 +78,12 @@ class RuntimeLock:
     #: variant -> system sonames the pinned bundle links but does not ship. `init` pre-flights
     #: them before downloading (E1a FIX finding 2): empty for a variant we have not verified.
     system_libs: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    #: `owner/name` of the upstream release repository (`ggml-org/llama.cpp`), straight from the
+    #: lock's own `llama_cpp.repo`. `runtime update` asks that repository's API for the release
+    #: list — the same rule as the asset names and the URL template: what upstream is, the lock
+    #: says, and a lock that names none cannot be updated from (card t_d88b4be0). Empty for a
+    #: synthetic lock that omits the field.
+    repo: str = ""
 
     @property
     def build(self) -> int:
@@ -226,7 +232,8 @@ def load_lock(path: pathlib.Path | None = None) -> RuntimeLock:
             required_symbols_llama=tuple(llama["required_symbols_llama"]),
             required_symbols_ggml=tuple(llama["required_symbols_ggml"]),
             mandatory_call_order=tuple(llama["mandatory_call_order"]),
-            default_model=default_model, source_path=path, system_libs=system_libs)
+            default_model=default_model, source_path=path, system_libs=system_libs,
+            repo=str(llama.get("repo") or ""))
     except (KeyError, TypeError, ValueError) as exc:
         raise RuntimeMissingError(
             f"E_RUNTIME_MISSING: {path} is not a usable runtime lock "

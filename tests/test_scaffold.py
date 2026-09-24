@@ -58,12 +58,15 @@ def test_cli_version_and_unknown_command(capsys) -> None:
 
 def test_cli_command_set_frozen() -> None:
     assert set(cli.COMMANDS) == {
-        "init", "doctor", "models", "run", "ask", "serve", "mcp", "bench",
+        "init", "doctor", "models", "run", "ask", "serve", "runtime", "mcp", "bench",
         "fit", "calibrate", "keep", "version",      # `keep` is E4 (SPEC 2.12)
     }
     assert set(cli.MODELS_SUBCOMMANDS) == {
         "search", "pull", "use", "ls", "rm", "verify", "recommend-quant",
     }
+    # `runtime` shipped in the serve wave (card `t_d88b4be0`, SPEC 2.8): the installed bundle can
+    # be refreshed and the previous one restored, without moving `init` off the pinned tag.
+    assert set(cli.RUNTIME_SUBCOMMANDS) == {"update", "rollback"}
 
 
 def test_error_catalog_frozen() -> None:

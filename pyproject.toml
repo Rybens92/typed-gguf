@@ -213,7 +213,13 @@ quote-style = "double"
 # `tools/mutmut_driver.py run --max-children 2` (mutmut 3.8 caches verdicts in
 # `mutants/mutmut-stats.json`; a second full `run` reprints them at 0.00 mutations/second, so
 # round 2 went through `run '<key>*'`). Receipts: `docs/evidence/t_f5d8b6c7_serve_gates.md` §5.
-source_paths = ["src/typed_gguf/api/http.py"]
+# Card t_d88b4be0 (`runtime update|rollback`, SPEC 2.8) retargets the pair at the module the card
+# adds: `src/typed_gguf/runtime/update.py` — resolution, the release list, the retag rule, staging,
+# the staged-bundle verdicts, the switch and the record rewrite — with its own gate file as the
+# whole selection (`tests/test_runtime_update.py` drives every branch on fake bundles, offline).
+# `cli.py` is deliberately not in `source_paths`: the `runtime` subcommand is thin wiring those
+# gates already drive end to end. Restore the serve/api pair above when a serve card sweeps next.
+source_paths = ["src/typed_gguf/runtime/update.py"]
 # Card t_f5d8b6c7 (serve) drops `docs` from also_copy for this sweep: the selection
 # (`tests/test_serve.py`) reads no document, while `docs/evidence/` carries 4.3 GB of committed
 # e2e artifacts (a model tree, two venvs with dangling `bin/python*` links) whose copy dominated
@@ -285,7 +291,7 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # fast contract file `tests/test_fit.py` — the live file needs the model and cannot run per mutant.
 # A later sweep restores the keep pair above.
 pytest_add_cli_args_test_selection = [
-    "tests/test_serve.py",
+    "tests/test_runtime_update.py",
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down
