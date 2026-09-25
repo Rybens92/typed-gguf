@@ -1,0 +1,31 @@
+...F............................F                                        [100%]
+=================================== FAILURES ===================================
+__________ test_the_release_notes_are_pinned_to_the_packaged_version ___________
+
+    def test_the_release_notes_are_pinned_to_the_packaged_version() -> None:
+        version = PYPROJECT["project"]["version"]
+>       assert version == "0.3.0", "this file pins the v0.3.0 notes: rename it with the version"
+E       AssertionError: this file pins the v0.3.0 notes: rename it with the version
+E       assert '0.2.3' == '0.3.0'
+E         
+E         - 0.3.0
+E         + 0.2.3
+
+tests/test_public_docs.py:83: AssertionError
+____________ test_the_docs_gate_is_renamed_with_the_version_it_pins ____________
+
+    def test_the_docs_gate_is_renamed_with_the_version_it_pins() -> None:
+        """`test_public_docs` fails with "this file pins the v0.1.0 notes: rename it with the version"
+        when the packaged version moves — this is that instruction, made executable: the two version
+        pins (this file's derivation and the docs gate's literal) cannot drift apart."""
+        pins = DOCS_GATE.read_text(encoding="utf-8")
+>       assert f'"RELEASE_NOTES_v{VERSION}.md"' in pins, (
+            f"the docs gate still reads another release-notes file than v{VERSION}")
+E       AssertionError: the docs gate still reads another release-notes file than v0.2.3
+E       assert '"RELEASE_NOTES_v0.2.3.md"' in '"""Public-docs gate (card `t_07b5cc01`): the README and the release notes read the way the code is.\n\nPolicy v2 (car...G_CODES) if f"`{code}`" not in section]\n    assert missing == [], f"SPEC 2.5 does not list: {\', \'.join(missing)}"\n'
+
+/var/home/rybens/workspace/ggufone/tests/test_release_publish.py:254: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_public_docs.py::test_the_release_notes_are_pinned_to_the_packaged_version
+FAILED tests/test_release_publish.py::test_the_docs_gate_is_renamed_with_the_version_it_pins
+2 failed, 31 passed in 0.18s
