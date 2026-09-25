@@ -1,0 +1,86 @@
+Fetched from the public GitHub API (no auth) on 2026-09-25 after the version bump:
+  https://api.github.com/repos/Rybens92/typed-gguf/actions/runs/36163763039/jobs?per_page=20
+
+run 36163763039 — runtime-matrix, run#3, workflow_dispatch, head 1c6a555, completed/success,
+created 2026-09-25T16:54:36Z   (the head this release-prep card starts from: the parent card's
+evidence commit, pushed by the coordinator)
+
+linux-vulkan        success | 2026-09-25T16:54:39Z -> 2026-09-25T16:54:57Z
+     1 success | Set up job
+     2 success | Run actions/checkout@v7
+     3 success | Run astral-sh/setup-uv@v7
+     4 success | Run sudo apt-get update && sudo apt-get install -y libvulkan1
+     5 success | Run uv sync --extra dev
+     6 success | Download the pinned Vulkan bundle
+     7 success | Oracle (live — the same known-skip filter as linux-cpu)
+    13 success | Post Run astral-sh/setup-uv@v7
+    14 success | Post Run actions/checkout@v7
+    15 success | Complete job
+linux-cpu           success | 2026-09-25T16:54:40Z -> 2026-09-25T16:57:49Z
+     1 success | Set up job
+     2 success | Run actions/checkout@v7
+     3 success | Run astral-sh/setup-uv@v7
+     4 success | Run uv sync --extra dev
+     5 success | Download the pinned bundle
+     6 success | Oracle (live — the two model-absent skips are the only allowed ones)
+     7 success | Small GGUF for the placement smoke (host-side download, not the benchmark's)
+     8 success | Engine smoke — `bench --gpu-layers 4` goes through the loader and reports the placement
+     9 success | Engine smoke — the placement retry answers a typed row, never E_INTERNAL
+    10 success | Warm window — the host a call leaves behind exits by itself (SPEC 2.12)
+    19 success | Post Run astral-sh/setup-uv@v7
+    20 success | Post Run actions/checkout@v7
+    21 success | Complete job
+windows-cpu         success | 2026-09-25T16:54:40Z -> 2026-09-25T16:58:13Z
+     1 success | Set up job
+     2 success | Run actions/checkout@v7
+     3 success | Run astral-sh/setup-uv@v7
+     4 success | Run uv sync --extra dev
+     5 success | Download the pinned CPU bundle and flatten it (the DLLs the finder wants)
+     6 success | Small GGUF for the smoke decision (host-side download, not the benchmark's)
+     7 success | Doctor — the Windows bundle validates (the distribution check is platform-aware)
+     8 success | Engine smoke — `bench --suite latency` end to end (llama.dll loads and computes)
+     9 success | Serve smoke — a real boot, a real HTTP decision, SPEC 2.12's inline fallback
+    17 success | Post Run astral-sh/setup-uv@v7
+    18 success | Post Run actions/checkout@v7
+    19 success | Complete job
+macos-engine-smoke  success | 2026-09-25T16:54:45Z -> 2026-09-25T17:00:06Z
+     1 success | Set up job
+     2 success | Run actions/checkout@v7
+     3 success | Run astral-sh/setup-uv@v7
+     4 success | Run uv sync --extra dev
+     5 success | Download the pinned Metal bundle
+     6 success | Small GGUF for the smoke decision (host-side download, not the benchmark's)
+     7 success | Engine smoke — latency (model load, prefill, decisions)
+     8 success | Engine smoke — results are stable bytes on this platform (A5/A-E2-5)
+     9 success | Engine smoke — the dev set answers end to end (A-E2-3 path on macOS)
+    10 success | Engine smoke — `bench --quick` end to end (card t_f46cec41)
+    11 success | Serve — the pinned SDK client, the warm host, and a clean `keep stop`
+    21 success | Post Run astral-sh/setup-uv@v7
+    22 success | Post Run actions/checkout@v7
+    23 success | Complete job
+macos-metal         success | 2026-09-25T16:54:45Z -> 2026-09-25T16:54:54Z
+     1 success | Set up job
+     2 success | Run actions/checkout@v7
+     3 success | Run astral-sh/setup-uv@v7
+     4 success | Run uv sync --extra dev
+     5 success | Download the pinned Metal bundle
+     6 success | Doctor smoke (E1a)
+    11 success | Post Run astral-sh/setup-uv@v7
+    12 success | Post Run actions/checkout@v7
+    13 success | Complete job
+
+The three runs of this workflow (same API, `/runs?per_page=10`):
+  36163763039  run#3  workflow_dispatch  1c6a555  completed/success  2026-09-25T16:54:36Z
+  36159785190  run#2  workflow_dispatch  7c72c4b  completed/failure  2026-09-25T16:17:17Z   <- the two bugs this wave fixed
+  36151935399  run#1  workflow_dispatch  cc44aad  completed/failure  2026-09-25T15:06:20Z   <- the oracle SKIP filter's RED
+
+ci.yml (Python 3.11 / 3.12 / 3.13), same API, `/workflows/ci.yml/runs?per_page=6`:
+  36163762253  run#32  push  1c6a555  completed/success  2026-09-25T16:54:36Z   <- this head, three interpreters
+  36159785941  run#31  push  7c72c4b  completed/success  2026-09-25T16:17:17Z
+  36134849021  run#30  push  cc44aad  completed/success  2026-09-25T12:25:36Z
+  36048102104  run#29  push  08a925e  completed/success  2026-09-24T19:25:58Z
+  36046493544  run#28  push  3d8e088  completed/success  2026-09-24T19:11:55Z
+  36035433291  run#27  push  c85ae33  completed/failure  2026-09-24T17:36:02Z   <- the py3.11 red this wave fixed
+
+PyPI (https://pypi.org/pypi/typed-gguf/json, same date): latest 0.2.3; releases 0.1.0, 0.1.1,
+0.2.0, 0.2.1, 0.2.2, 0.2.3 — i.e. 0.3.0 is *not* published; this card does not publish it.

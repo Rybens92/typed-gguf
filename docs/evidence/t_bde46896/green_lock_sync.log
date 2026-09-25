@@ -1,0 +1,12 @@
+$ uv lock
+Resolved 18 packages in 0.81ms
+EXIT=0
+
+$ uv sync --frozen --extra dev
+Checked 9 packages in 0.23ms
+EXIT=0
+
+$ grep -n -A2 '^name = "typed-gguf"' uv.lock
+461:name = "typed-gguf"
+462-version = "0.3.0"
+463-source = { editable = "." }

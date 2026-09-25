@@ -1,0 +1,44 @@
+### tree: f64dc7ce6124
+
+### 1. every tracked reference to a release-notes file (the file-name pin surface)
+###    ($ git grep -n RELEASE_NOTES -- . | grep -v '^docs/evidence/' | grep -v '^docs/qa/')
+tests/test_public_docs.py:37:NOTES = (ROOT / "docs" / "RELEASE_NOTES_v0.3.0.md").read_text(encoding="utf-8")
+tests/test_public_docs.py:47:PUBLIC = (("README.md", README), ("docs/RELEASE_NOTES_v0.3.0.md", NOTES))
+tests/test_release_publish.py:57:NOTES = ROOT / "docs" / f"RELEASE_NOTES_v{VERSION}.md"
+tests/test_release_publish.py:254:    assert f'"RELEASE_NOTES_v{VERSION}.md"' in pins, (
+
+### 2. every tracked reference to 0.2.3 outside the receipt trees
+###    (the live surface: src · tests · tools · workflows · packaging · docs/*.md)
+tests/test_default_model.py:3:Card t_a0fa2dc0 (UX, 0.2.3): after `typed-gguf models pull` a plain `ask` must work without
+tests/test_hf.py:307:    It shipped as `typed-gguf/0.1` while the release API's UA said `typed-gguf/0.2.3` (the E2E
+tests/test_runtime_update.py:688:    `typed-gguf/0.2.3`: `registry/hf.py` — the module the GitHub asset download borrows its
+docs/RELEASE_NOTES_v0.2.2.md:320:  `typed_gguf-0.2.2.tar.gz`), accepts the tag `v0.2.2` and refuses `v0.2.1` and `v0.2.3`.
+docs/RELEASE_NOTES_v0.2.3.md:1:# typed-gguf v0.2.3 — typed decisions on any GGUF
+docs/RELEASE_NOTES_v0.2.3.md:3:> Release notes for the v0.2.3 build. Three fixes to what happens while the warm host is working: a
+docs/RELEASE_NOTES_v0.2.3.md:411:  checkout, `uv run typed-gguf version` prints `typed-gguf 0.2.3`; the workflow's own gate script,
+docs/RELEASE_NOTES_v0.2.3.md:412:  run against this build's artifacts (`typed_gguf-0.2.3-py3-none-any.whl` +
+docs/RELEASE_NOTES_v0.2.3.md:413:  `typed_gguf-0.2.3.tar.gz`, 314 263 B + 4 044 675 B), accepts the tag `v0.2.3` (rc 0) and refuses
+docs/RELEASE_NOTES_v0.3.0.md:12:> receipts are carried forward unchanged, each marked where it was measured. v0.2.3 is live on PyPI
+docs/RELEASE_NOTES_v0.3.0.md:329:## The fixes carried in from v0.2.3 and v0.2.2 (unchanged here)
+docs/RELEASE_NOTES_v0.3.0.md:331:- **A model switch no longer throws away the answer in flight** (v0.2.3). Stopping the outgoing host
+docs/RELEASE_NOTES_v0.3.0.md:335:- **A host that cannot serve steps aside** (v0.2.3). A decision that cannot allocate stops that host
+docs/RELEASE_NOTES_v0.3.0.md:338:- **A busy card is not the box's permanent answer** (v0.2.3). A fit plan read while the box was busy
+docs/RELEASE_NOTES_v0.3.0.md:350:  v0.2.3 notes for their full text. Unchanged here.
+
+### 3. the version spellings that must agree, read from the tree
+7:version = "0.3.0"
+8:__version__ = "0.3.0"
+
+### 4. the lock's project pin
+461:name = "typed-gguf"
+462-version = "0.3.0"
+463-source = { editable = "." }
+
+### 5. the two test gates that pin the version / the notes file
+tests/test_public_docs.py:83:    assert version == "0.3.0", "this file pins the v0.3.0 notes: rename it with the version"
+tests/test_release_publish.py:256:    assert f'assert version == "{VERSION}"' in pins, (
+tests/test_serve.py:565:    assert version == b"HTTP/1.1", status
+tests/test_public_docs.py:37:NOTES = (ROOT / "docs" / "RELEASE_NOTES_v0.3.0.md").read_text(encoding="utf-8")
+tests/test_public_docs.py:47:PUBLIC = (("README.md", README), ("docs/RELEASE_NOTES_v0.3.0.md", NOTES))
+tests/test_release_publish.py:57:NOTES = ROOT / "docs" / f"RELEASE_NOTES_v{VERSION}.md"
+tests/test_release_publish.py:254:    assert f'"RELEASE_NOTES_v{VERSION}.md"' in pins, (

@@ -1,0 +1,129 @@
+### tree under test
+f64dc7c tdd(t_bde46896): GREEN — the packaged version is 0.3.0 (pyproject + __init__ + classifier 3.13 + uv.lock); the two version pins now pass
+?? docs/evidence/t_bde46896/gates.sh
+?? docs/evidence/t_bde46896/github_run_36163763039_jobs.txt
+?? docs/evidence/t_bde46896/green_build.log
+?? docs/evidence/t_bde46896/green_gates.log
+?? docs/evidence/t_bde46896/green_gates_bundle_dir.log
+
+$ env -u PYTHONPATH uv run --extra dev pytest -q
+........................................................................ [  3%]
+........................................ssssssss..............F......... [  7%]
+................................................................s....... [ 10%]
+........................................................................ [ 14%]
+..........................................................s............. [ 18%]
+........................................................................ [ 21%]
+........................................................................ [ 25%]
+..........................................ss............................ [ 29%]
+........................................................................ [ 32%]
+........................................................................ [ 36%]
+........................................................................ [ 40%]
+........................................................................ [ 43%]
+..................sss..................................................s [ 47%]
+ssssss..................................................sssssss.sss..... [ 51%]
+..............................................................ss........ [ 54%]
+...................ssss................................................. [ 58%]
+........................................................................ [ 62%]
+......sssssss........................................................... [ 65%]
+........................................................................ [ 69%]
+..........................s............................................. [ 73%]
+........................................................................ [ 76%]
+........................................................................ [ 80%]
+........s........................................sssss.................. [ 84%]
+................................................s....................... [ 87%]
+........................................................................ [ 91%]
+........................................................................ [ 95%]
+......................s...............................ssss.............. [ 98%]
+....................                                                     [100%]
+=================================== FAILURES ===================================
+_________________ test_a_row_records_which_framing_it_measured _________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f055441c440>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-710/test_a_row_records_which_frami0')
+
+    def test_a_row_records_which_framing_it_measured(monkeypatch: pytest.MonkeyPatch,
+                                                     tmp_path) -> None:
+        """A published row must name the framing it measured — the fix is only visible if it does.
+    
+        The response already carries `engine.template` (the resolution that produced the prefix
+        tokens); the quality row copies it, and the report summarizes it, so no table can be silent
+        about which prompt its numbers describe (card t_6de5fc53, requirement 5).
+        """
+        from tests.fake_engine import BenchModel
+        from typed_gguf.bench import suites
+    
+        def factory(spec: harness.ModelSpec) -> BenchModel:
+            return BenchModel(spec, template={"kind": "gguf-renderer", "renderer": "internal",
+                                              "family": "spark2_5"},
+                              prefix_tokens=len(HANDLE_TOKENS))
+    
+>       report = suites.run_suite(harness.BenchConfig(suite="quality", model_path=str(tmp_path / "m"),
+                                                      items=1, threads=1),
+                                  factory=factory)
+
+/var/home/rybens/workspace/ggufone/tests/test_bench_prompt_parity.py:108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/typed_gguf/bench/suites.py:96: in run_suite
+    report = _run_quality(config, make, budget, calibration=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/typed_gguf/bench/suites.py:614: in _run_quality
+    usable, missing = _selected_backends(config, runtimes)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='quality', model_path='/tmp/pytest-of-root/pytest-710/test_a_row_records_which_frami0/m', backend='a...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+runtimes = {}
+
+    def _selected_backends(config: harness.BenchConfig, runtimes: Mapping[str, Any],
+                           ) -> tuple[list[str], dict[str, str]]:
+        """`(usable, missing-with-reason)`. A forced backend that is missing is an error.
+    
+        `config.backend_limit` (the `--quick` preset's "one backend") cuts the *usable* list: the
+        missing map keeps every backend that was asked for, so the report can still name what it did
+        not measure and why.
+        """
+        chosen = config.backends(available=runtimes)
+        usable = [backend for backend in chosen if backend in runtimes]
+        missing = {backend: harness.backend_unavailable_reason(backend) for backend in chosen
+                   if backend not in runtimes}
+        if not usable:
+>           raise harness.BenchError(
+                f"none of the requested backends ({', '.join(chosen)}) has a local llama.cpp bundle; "
+                + missing[chosen[0]], code="E_BENCH_BACKEND")
+E           typed_gguf.bench.harness.BenchError: none of the requested backends (cpu) has a local llama.cpp bundle; no local llama.cpp bundle carries cpu (benchmarks never download one: run `typed-gguf init --backend cpu` or point TYPED_GGUF_BENCH_RUNTIME_DIR at extracted bundles)
+
+src/typed_gguf/bench/suites.py:138: BenchError
+=========================== short test summary info ============================
+FAILED tests/test_bench_prompt_parity.py::test_a_row_records_which_framing_it_measured
+1 failed, 1905 passed, 58 skipped in 58.53s
+EXIT=1
+
+$ uv run python -c "...version assertion..."
+0.3.0 0.3.0
+EXIT=0
+
+$ env -u PYTHONPATH uv run --extra dev pytest -q tests/test_public_docs.py tests/test_release_publish.py
+.................................                                        [100%]
+33 passed in 0.15s
+EXIT=0
+
+$ env -u PYTHONPATH TYPED_GGUF_HOME=/tmp/tmp.C25iFi98Z8 uv run typed-gguf version
+typed-gguf 0.3.0
+  runtime  not installed (`typed-gguf init`)
+  home     /tmp/tmp.C25iFi98Z8
+EXIT=0
+
+$ env -u PYTHONPATH uv run --extra dev ruff check src tests tools docs .github
+All checks passed!
+EXIT=0
+
+$ env -u PYTHONPATH uv build
+Building source distribution...
+Building wheel from source distribution...
+Successfully built dist/typed_gguf-0.3.0.tar.gz
+Successfully built dist/typed_gguf-0.3.0-py3-none-any.whl
+EXIT=0
+
+$ ls dist/
+typed_gguf-0.3.0-py3-none-any.whl
+typed_gguf-0.3.0.tar.gz
