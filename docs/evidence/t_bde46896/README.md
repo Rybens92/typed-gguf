@@ -10,7 +10,9 @@ and releases after this card.
 b531423  tdd(t_bde46896): RED — the v0.3.0 notes land, and the two version pins move to 0.3.0
 f64dc7c  tdd(t_bde46896): GREEN — the packaged version is 0.3.0 (pyproject + __init__ + classifier
          3.13 + uv.lock); the two version pins now pass
-HEAD     this receipt (local only)
+de7906c  docs(evidence): t_bde46896 — this receipt
+HEAD     the final-head gate logs (local only) — `green_gates.log` / `green_gates_bundle_dir.log`
+         are the re-runs on the receipt's own head, so the tree under test is the committed one
 ```
 
 Working tree clean after the receipt commit; `git status --short` is empty, `dist/` is gitignored and
@@ -101,7 +103,7 @@ container prefix, §6):
 
 ```
 $ env -u PYTHONPATH uv run --extra dev pytest -q
-1 failed, 1905 passed, 58 skipped in 58.16s            EXIT=1
+1 failed, 1905 passed, 58 skipped in 58.83s            EXIT=1
 ```
 
 The one failure is `tests/test_bench_prompt_parity.py::test_a_row_records_which_framing_it_measured`
@@ -114,7 +116,7 @@ names `ci.yml` creates in a stub bundle dir:
 
 ```
 $ TYPED_GGUF_BENCH_RUNTIME_DIR=/tmp/offline-bundle-030 env -u PYTHONPATH uv run --extra dev pytest -q
-1906 passed, 58 skipped in 58.54s                      EXIT=0     # green_gates_bundle_dir.log
+1906 passed, 58 skipped in 58.62s                      EXIT=0     # green_gates_bundle_dir.log
 ```
 
 ```

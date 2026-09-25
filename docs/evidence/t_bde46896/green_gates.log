@@ -1,10 +1,6 @@
 ### tree under test
-f64dc7c tdd(t_bde46896): GREEN — the packaged version is 0.3.0 (pyproject + __init__ + classifier 3.13 + uv.lock); the two version pins now pass
-?? docs/evidence/t_bde46896/gates.sh
-?? docs/evidence/t_bde46896/github_run_36163763039_jobs.txt
-?? docs/evidence/t_bde46896/green_build.log
-?? docs/evidence/t_bde46896/green_gates.log
-?? docs/evidence/t_bde46896/green_gates_bundle_dir.log
+de7906c docs(evidence): t_bde46896 — the release-prep receipt: the version sweep, the RED->GREEN version pins, the gates, the notes' outline and its sources
+ M docs/evidence/t_bde46896/green_gates.log
 
 $ env -u PYTHONPATH uv run --extra dev pytest -q
 ........................................................................ [  3%]
@@ -38,8 +34,8 @@ ssssss..................................................sssssss.sss..... [ 51%]
 =================================== FAILURES ===================================
 _________________ test_a_row_records_which_framing_it_measured _________________
 
-monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f055441c440>
-tmp_path = PosixPath('/tmp/pytest-of-root/pytest-710/test_a_row_records_which_frami0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f3cb6348440>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-713/test_a_row_records_which_frami0')
 
     def test_a_row_records_which_framing_it_measured(monkeypatch: pytest.MonkeyPatch,
                                                      tmp_path) -> None:
@@ -71,7 +67,7 @@ src/typed_gguf/bench/suites.py:614: in _run_quality
                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-config = BenchConfig(suite='quality', model_path='/tmp/pytest-of-root/pytest-710/test_a_row_records_which_frami0/m', backend='a...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+config = BenchConfig(suite='quality', model_path='/tmp/pytest-of-root/pytest-713/test_a_row_records_which_frami0/m', backend='a...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
 runtimes = {}
 
     def _selected_backends(config: harness.BenchConfig, runtimes: Mapping[str, Any],
@@ -95,7 +91,7 @@ E           typed_gguf.bench.harness.BenchError: none of the requested backends 
 src/typed_gguf/bench/suites.py:138: BenchError
 =========================== short test summary info ============================
 FAILED tests/test_bench_prompt_parity.py::test_a_row_records_which_framing_it_measured
-1 failed, 1905 passed, 58 skipped in 58.53s
+1 failed, 1905 passed, 58 skipped in 58.83s
 EXIT=1
 
 $ uv run python -c "...version assertion..."
@@ -107,10 +103,10 @@ $ env -u PYTHONPATH uv run --extra dev pytest -q tests/test_public_docs.py tests
 33 passed in 0.15s
 EXIT=0
 
-$ env -u PYTHONPATH TYPED_GGUF_HOME=/tmp/tmp.C25iFi98Z8 uv run typed-gguf version
+$ env -u PYTHONPATH TYPED_GGUF_HOME=/tmp/tmp.IeOL4StDFz uv run typed-gguf version
 typed-gguf 0.3.0
   runtime  not installed (`typed-gguf init`)
-  home     /tmp/tmp.C25iFi98Z8
+  home     /tmp/tmp.IeOL4StDFz
 EXIT=0
 
 $ env -u PYTHONPATH uv run --extra dev ruff check src tests tools docs .github
