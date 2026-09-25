@@ -155,7 +155,7 @@ def describe(decision: dict[str, Any]) -> str:
 
 
 def judge(facts: Facts, *, expect: str) -> list[str]:
-    """Every problem with what the server did, in the order they are found. `[]` = the claim holds."""
+    """Every problem with what the server did, in the order found. `[]` = the claim holds."""
     if expect not in EXPECTATIONS:
         return [f"`--expect` must be one of {', '.join(EXPECTATIONS)}, got {expect!r}"]
     problems: list[str] = []

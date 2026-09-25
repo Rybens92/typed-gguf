@@ -97,14 +97,15 @@ INLINE = answer_body(1200.0, host=False)
 WARNING = ("warning: W_KEEP_UNAVAILABLE: keep-alive needs unix sockets, which this platform does "
            "not have — answering inline instead of keeping a host alive (SPEC 2.12)")
 HOST_LOG = "POST /v1/decide 200 served_by=host 4.1ms req=abc\n"
-INLINE_LOG = f"GET /health 200 served_by=- 0.1ms req=aaa\nPOST /v1/decide 200 served_by=- 900.0ms req=bbb\n"
+INLINE_LOG = ("GET /health 200 served_by=- 0.1ms req=aaa\n"
+              "POST /v1/decide 200 served_by=- 900.0ms req=bbb\n")
 
 
 def facts(decisions: list[dict[str, Any]], log: str = HOST_LOG) -> Any:
     """The probe's collected facts, the way `probe()` hands them to `judge`."""
     module = load_tool()
-    return module.Facts(base_url="http://127.0.0.1:8088", health={"status": "ok"}, decisions=decisions,
-                        log=log)
+    return module.Facts(base_url="http://127.0.0.1:8088", health={"status": "ok"},
+                        decisions=decisions, log=log)
 
 
 # ------------------------------------------------------------------------- the warm-host story
