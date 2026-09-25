@@ -47,6 +47,7 @@ SKIP_FILTER = "tools/matrix_oracle_skips.py"
 SERVE_PROBE = "tools/matrix_serve_probe.py"
 WARM_WINDOW = "tools/matrix_warm_window.py"
 WINDOWS_DOCTOR = "tools/matrix_windows_doctor.py"
+OOM_ROW = "tools/matrix_oom_row.py"
 REGISTER = "tools/matrix_register_model.py"
 SDK_CLIENT = "tools/host_gate_serve_client.py"
 
@@ -175,6 +176,26 @@ def test_the_windows_job_runs_doctor_and_pins_what_it_reports() -> None:
     body = step_containing("windows-cpu", WINDOWS_DOCTOR)
     assert "doctor" in body.lower(), body
     assert (ROOT / WINDOWS_DOCTOR).is_file()
+    assert "--json" in body, "the verdict travels as a file the receipt can cite"
+    text = WORKFLOW_PATH.read_text(encoding="utf-8")
+    assert "cannot pass on Windows" not in text, (
+        "the matrix still claims doctor cannot pass on Windows: card t_8dab8b3a made the "
+        "distribution check + build_number platform-aware, so the claim has to follow the code "
+        "(tests/test_matrix_windows_doctor.py pins the closed truth)")
+
+
+def test_the_fake_oom_step_judges_both_worlds_with_their_own_counts() -> None:
+    """Card t_8dab8b3a F1: the ladder's `3 placement(s)` was asserted on a CPU-pinned bench row."""
+    text = WORKFLOW_PATH.read_text(encoding="utf-8")
+    assert "'3 placement(s)' in reason" not in text, (
+        "the stale assertion is back: a bench row resolves to the cpu backend, which is CPU-pinned "
+        "(card t_55de5779) and has exactly one rung — that assertion could never pass")
+    body = step_containing("linux-cpu", OOM_ROW)
+    assert (ROOT / OOM_ROW).is_file(), "the step's judge must exist"
+    assert "fit_oom_bundle.c" in body, "the step builds the fake-OOM bundle"
+    assert "--bench-row" in body and "--bench-exit" in body, body
+    assert "--probe-receipt" in body, "the ladder world is what carries the 3-rung claim"
+    assert "fit_oom_probe.py" in body, body
 
 
 def test_the_windows_job_runs_the_engine_end_to_end() -> None:

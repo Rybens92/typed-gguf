@@ -11,14 +11,19 @@ name: runtime-matrix
 # `tools/matrix_oracle_skips.py` owns the policy now — those two exact lines are known, and an
 # injected third skip fails the job (SPEC A1's "a skip is a failure unless it is named").
 #
-# WINDOWS, HONESTLY. `doctor` cannot pass there yet: `runtime.lock`'s `required_files` are the Linux
-# SONAMEs (libllama.so, libggml.so, libggml-base.so) while the pinned zip ships llama.dll, and
-# `TOOL_NAMES` has no `.exe` so the build number cannot be read either. `runtime.lock` is the source
-# of both, and fixing them is a distribution change, not a CI one. So the job pins what `doctor`
-# really reports (`tools/matrix_windows_doctor.py`, which also prints a `::warning::` naming the gap
-# on every run) and then proves the parts that DO work on Windows: the DLLs load, `bench` measures,
-# and `serve` answers — inline, with SPEC 2.12's named warning, because `keep.supported()` is false
-# without AF_UNIX.
+# WINDOWS, HONESTLY. The first live run (36159785190) proved what `doctor` could not do there:
+# `runtime.lock`'s `required_files` are the Linux SONAMEs while the pinned zip ships `llama.dll`,
+# `finder.TOOL_NAMES` had no `.exe` leg and the DLL carries no build string — so `runtime.files` /
+# `runtime.loadable` failed on a *complete* bundle and `runtime.build` was "unknown" (card
+# t_f96fed7f pinned that truth loudly). Card t_8dab8b3a closed it, universally: the distribution
+# check renames the lock's roles per platform (`finder.required_files`), `build_number` runs the
+# platform's CLI (`llama-cli.exe --version` prints `build 11026`) and the arch pre-flight reads the
+# DLL's own ABI decoration (`.?AUgraph@llama_model_qwen2@@`). `tools/matrix_windows_doctor.py`
+# pins the closed truth: it fails on any `fail` check, on a distribution check that went back to
+# the Linux names, on a build number that was not read — and it REPORTS (never hides) whatever
+# this runner still only warns about. The job then proves the parts that DO work on Windows: the
+# DLLs load, `bench` measures, and `serve` answers — inline, with SPEC 2.12's named warning,
+# because `keep.supported()` is false without AF_UNIX.
 
 on:
   workflow_dispatch:
@@ -62,6 +67,13 @@ jobs:
             --model /tmp/smoke.gguf --gpu-layers 4 --runs 1 --sizes 256 --threads 2 \
             --json --out /tmp/placement.json > /dev/null
           python3 -c "import json;r=json.load(open('/tmp/placement.json'));p=r['placement'];assert r['model_load']['n']==1,r['model_load'];assert p['requested']=='n_gpu_layers=4',p;assert p['used'] is not None,'the bench row must carry the placement the loader used';assert r['per_question'],'no decision rows'"
+      # Card t_31b3943a's step, corrected by t_8dab8b3a. It used to assert `3 placement(s)` on this
+      # *bench* row: that count is `fit_oom_probe`'s ladder, while a bench row resolves to the `cpu`
+      # backend, which is CPU-PINNED (card t_55de5779) and has no rungs to walk. The assertion had
+      # never run either — the fixture predated the CPU-device gate, so the first live execution
+      # (job 108153215436) stopped at `E_RUNTIME_SYMBOLS` before any OOM. Both worlds are judged now,
+      # each with the count it really has (`tools/matrix_oom_row.py`): the product's row (1 rung,
+      # `measured: false`, never `E_INTERNAL`) and the ladder itself (3 rungs to CPU-only).
       - name: Engine smoke — the placement retry answers a typed row, never E_INTERNAL
         run: |
           set -euo pipefail
@@ -75,8 +87,12 @@ jobs:
             --runs 1 --json --out /tmp/placement-oom.json > /dev/null
           code=$?
           set -e
-          test "$code" = 1     # nothing was measured: a reported row, not a crash
-          python3 -c "import json;r=json.load(open('/tmp/placement-oom.json'));row=r['backends'][0];reason=row['reason'];assert row['measured'] is False,row;assert 'E_BACKEND_OOM' in reason and '3 placement(s)' in reason,reason;assert 'AttributeError' not in reason and 'E_INTERNAL' not in reason,reason"
+          # the ladder world: the same bundle, a full-offload plan — three rungs down to CPU-only
+          env -u TYPED_GGUF_RUNTIME_DIR TYPED_GGUF_FAKE_OOM_ALL=1 \
+            python3 tools/fit_oom_probe.py --model /tmp/synthetic.gguf --runtime /tmp/fake-bundle \
+            --json /tmp/oom-probe.json > /dev/null
+          python3 tools/matrix_oom_row.py --bench-row /tmp/placement-oom.json --bench-exit "$code" \
+            --probe-receipt /tmp/oom-probe.json --json /tmp/oom-row.json
       # Card t_f96fed7f (AC4): SPEC 2.12's window, measured instead of asserted. `ask` starts a host
       # with a 20 s window, a second `ask` inside it must come back warm (model_load_ms == 0.0, the
       # same pid), and then the host has to exit ON ITS OWN: the tool waits the window out and fails
@@ -149,10 +165,12 @@ jobs:
           Invoke-WebRequest -Uri "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf" -OutFile $model
           Get-Item $model | Select-Object Name, Length
           "TYPED_GGUF_SMOKE_GGUF=$model" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-      # The pinned truth about `doctor` on Windows (t_f96fed7f AC2): the report is RED on the Linux
-      # SONAMEs and on the build number, and it is GREEN on finding + classifying the bundle. The
-      # tool fails if any of that drifts, and annotates the job with `::warning::` while it holds.
-      - name: Doctor — the pinned truth on Windows (the distribution gap, named loudly)
+      # The Windows truth (t_f96fed7f pinned the gap; t_8dab8b3a closed it): `runtime.files` names
+      # the DLLs the zip ships, `runtime.loadable` no longer calls the bundle incomplete,
+      # `runtime.build` reads `b11026` out of `llama-cli.exe --version`. The tool fails on any
+      # `fail` check, on a distribution check that went back to the Linux names or a build number
+      # that was not read, and annotates what this runner still only warns about.
+      - name: Doctor — the Windows bundle validates (the distribution check is platform-aware)
         shell: pwsh
         run: uv run python tools/matrix_windows_doctor.py --cli "uv run typed-gguf" --json doctor.json
       - name: Engine smoke — `bench --suite latency` end to end (llama.dll loads and computes)
