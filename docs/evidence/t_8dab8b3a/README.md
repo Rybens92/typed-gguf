@@ -270,4 +270,6 @@ pyproject.toml                            # [tool.mutmut] retargeted at this car
 ```
 
 Commits (local only — the coordinator certifies and pushes): `519adb6` (the capability path),
-`dc1ec41` (F1 fixture + the two worlds), `5b8fbe1` (F2-d doctor/workflow), plus the receipt commit.
+`dc1ec41` (F1 fixture + the two worlds), `5b8fbe1` (F2-d doctor/workflow), `c39a5f3` (the mutation
+triage's own gates + this receipt). Final gates re-run on that head: the two card files 36 passed,
+ruff clean, the F1 step's exact commands `fake-OOM row OK`.
