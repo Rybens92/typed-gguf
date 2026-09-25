@@ -1,9 +1,24 @@
 name: runtime-matrix
 
-# Downloads the PINNED official llama.cpp release asset per platform and runs the oracle's
-# live section against it. A job FAILS if the live section skips (that would mean the
-# distribution path silently regressed). This is the acceptance harness for SPEC A1 / A6
-# and milestone E1a.
+# Downloads the PINNED official llama.cpp release asset per platform, then runs the PRODUCT against
+# it: the oracle's live section (linux, both bundles), `doctor` + an end-to-end engine and `serve`
+# smoke (windows), `bench` + the served TypeSafe path through the real SDK client (macOS). This is
+# the acceptance harness for SPEC A1 / A6 and milestone E1a — the jobs are the evidence, so nothing
+# here may pass for a reason nobody wrote down (card t_f96fed7f).
+#
+# SKIPS. Two of the oracle's live checks are *model-absence* skips and cannot run on a runner: run
+# 36151935399 failed both linux jobs on `! grep -q "SKIP" <<< "$out"` for exactly that reason.
+# `tools/matrix_oracle_skips.py` owns the policy now — those two exact lines are known, and an
+# injected third skip fails the job (SPEC A1's "a skip is a failure unless it is named").
+#
+# WINDOWS, HONESTLY. `doctor` cannot pass there yet: `runtime.lock`'s `required_files` are the Linux
+# SONAMEs (libllama.so, libggml.so, libggml-base.so) while the pinned zip ships llama.dll, and
+# `TOOL_NAMES` has no `.exe` so the build number cannot be read either. `runtime.lock` is the source
+# of both, and fixing them is a distribution change, not a CI one. So the job pins what `doctor`
+# really reports (`tools/matrix_windows_doctor.py`, which also prints a `::warning::` naming the gap
+# on every run) and then proves the parts that DO work on Windows: the DLLs load, `bench` measures,
+# and `serve` answers — inline, with SPEC 2.12's named warning, because `keep.supported()` is false
+# without AF_UNIX.
 
 on:
   workflow_dispatch:
@@ -13,7 +28,8 @@ on:
 jobs:
   linux-cpu:
     runs-on: ubuntu-24.04
-    steps: &steps
+    timeout-minutes: 25
+    steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       - run: uv sync --extra dev
@@ -23,12 +39,13 @@ jobs:
           ver=$(python3 -c "import re,pathlib;print(re.search(r'LLAMA_TAG = \"(b[0-9]+)\"', pathlib.Path('src/typed_gguf/runtime/pins.py').read_text()).group(1))" 2>/dev/null || echo b11026)
           curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/${ver}/llama-${ver}-bin-ubuntu-x64.tar.gz"
           mkdir -p /tmp/typed-gguf-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/typed-gguf-rt
-      - name: Oracle (live, skips are failures)
+      # Card t_f96fed7f (AC1): the policy is the named filter's, not "any SKIP anywhere is a failure".
+      - name: Oracle (live — the two model-absent skips are the only allowed ones)
         run: |
           set -euo pipefail
           out=$(TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt python3 docs/verify_runtime_contract.py)
           echo "$out"
-          ! grep -q "SKIP" <<< "$out"
+          printf '%s\n' "$out" | python3 tools/matrix_oracle_skips.py
       # E2 FIX (card t_31b3943a): a bench placement must survive the loader's degrade ladder on a
       # GPU-less box too — the crash it fixes ("AttributeError: 'Placement' object has no attribute
       # 'kv_type'") happened while the ladder was built, before any device was touched.
@@ -60,9 +77,21 @@ jobs:
           set -e
           test "$code" = 1     # nothing was measured: a reported row, not a crash
           python3 -c "import json;r=json.load(open('/tmp/placement-oom.json'));row=r['backends'][0];reason=row['reason'];assert row['measured'] is False,row;assert 'E_BACKEND_OOM' in reason and '3 placement(s)' in reason,reason;assert 'AttributeError' not in reason and 'E_INTERNAL' not in reason,reason"
+      # Card t_f96fed7f (AC4): SPEC 2.12's window, measured instead of asserted. `ask` starts a host
+      # with a 20 s window, a second `ask` inside it must come back warm (model_load_ms == 0.0, the
+      # same pid), and then the host has to exit ON ITS OWN: the tool waits the window out and fails
+      # if the record, the socket or the pid is still there. Nothing calls `keep stop` here — that is
+      # what makes the claim about the idle unload and not about a stop.
+      - name: Warm window — the host a call leaves behind exits by itself (SPEC 2.12)
+        run: |
+          set -euo pipefail
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run python tools/matrix_warm_window.py \
+            --cli "uv run typed-gguf" --model /tmp/smoke.gguf --keep-alive 20 \
+            --json /tmp/warm_window.json
 
   linux-vulkan:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
@@ -73,29 +102,92 @@ jobs:
           set -euo pipefail
           curl -fsSL -o runtime.tar.gz "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-ubuntu-vulkan-x64.tar.gz"
           mkdir -p /tmp/typed-gguf-rt && tar xzf runtime.tar.gz --strip-components=1 -C /tmp/typed-gguf-rt
-      - name: Oracle (live)
+      - name: Oracle (live — the same known-skip filter as linux-cpu)
         run: |
           set -euo pipefail
           out=$(TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt python3 docs/verify_runtime_contract.py)
           echo "$out"
-          ! grep -q "SKIP" <<< "$out"
+          printf '%s\n' "$out" | python3 tools/matrix_oracle_skips.py
 
+  # Card t_f96fed7f (AC2): this job used to download a zip and assert nothing ("once E1a lands" —
+  # E1a landed long ago, run 36151935399). It now unpacks the pinned win-cpu bundle, proves the DLLs
+  # the finder wants are at the bundle root, runs `doctor` against it via TYPED_GGUF_RUNTIME_DIR and
+  # pins what it reports, then loads the DLLs for real (`bench`) and boots `serve` for a real HTTP
+  # decision — SPEC 2.12's inline fallback, warning included.
   windows-cpu:
     runs-on: windows-2022
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       - run: uv sync --extra dev
-      - name: Download the pinned CPU bundle
+      - name: Download the pinned CPU bundle and flatten it (the DLLs the finder wants)
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
+          $rt = Join-Path $env:RUNNER_TEMP "typed-gguf-rt"
+          New-Item -ItemType Directory -Force -Path $rt | Out-Null
           Invoke-WebRequest -Uri "https://github.com/ggml-org/llama.cpp/releases/download/b11026/llama-b11026-bin-win-cpu-x64.zip" -OutFile runtime.zip
-          Expand-Archive -Path runtime.zip -DestinationPath /tmp/typed-gguf-rt
-      # The oracle's live section loads .so paths (linux); Windows runs the doctor smoke
-      # once E1a lands: `uv run typed-gguf init --runtime-dir /tmp/typed-gguf-rt && uv run typed-gguf doctor`
+          Expand-Archive -Path runtime.zip -DestinationPath $rt -Force
+          # The pinned zip unpacks FLAT (checked against the real asset), but a re-pin may nest it the
+          # way the linux tarballs are — so flatten when it is nested. The root of
+          # TYPED_GGUF_RUNTIME_DIR is where the loader looks (finder.library_names("windows")).
+          if (-not (Test-Path (Join-Path $rt "llama.dll"))) {
+            $inner = Get-ChildItem -LiteralPath $rt -Directory | Select-Object -First 1
+            if ($inner) { Get-ChildItem -LiteralPath $inner.FullName -Force | Move-Item -Destination $rt }
+          }
+          foreach ($dll in @("llama.dll", "ggml.dll", "ggml-base.dll")) {
+            if (-not (Test-Path (Join-Path $rt $dll))) { throw "$dll is missing from $rt" }
+          }
+          Get-ChildItem -LiteralPath $rt -Filter *.dll | Select-Object -First 8 -ExpandProperty Name
+          "TYPED_GGUF_RUNTIME_DIR=$rt" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Small GGUF for the smoke decision (host-side download, not the benchmark's)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $model = Join-Path $env:RUNNER_TEMP "smoke.gguf"
+          Invoke-WebRequest -Uri "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf" -OutFile $model
+          Get-Item $model | Select-Object Name, Length
+          "TYPED_GGUF_SMOKE_GGUF=$model" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      # The pinned truth about `doctor` on Windows (t_f96fed7f AC2): the report is RED on the Linux
+      # SONAMEs and on the build number, and it is GREEN on finding + classifying the bundle. The
+      # tool fails if any of that drifts, and annotates the job with `::warning::` while it holds.
+      - name: Doctor — the pinned truth on Windows (the distribution gap, named loudly)
+        shell: pwsh
+        run: uv run python tools/matrix_windows_doctor.py --cli "uv run typed-gguf" --json doctor.json
+      - name: Engine smoke — `bench --suite latency` end to end (llama.dll loads and computes)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $out = Join-Path $env:RUNNER_TEMP "latency.json"
+          uv run typed-gguf bench --suite latency --model $env:TYPED_GGUF_SMOKE_GGUF `
+            --backend auto --runs 1 --sizes 256 --threads 2 --json --out $out | Out-Null
+          uv run python -c "import json,os,pathlib;r=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'latency.json').read_text(encoding='utf-8'));assert r['suite']=='latency',r['suite'];assert r['model_load']['n']==1,r['model_load'];assert r['per_question'],'no decision rows';print('windows latency ok:',r['wall_ms'],'ms')"
+      - name: Serve smoke — a real boot, a real HTTP decision, SPEC 2.12's inline fallback
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $uv = (Get-Command uv).Source
+          $log = Join-Path $env:RUNNER_TEMP "serve.log"
+          $err = Join-Path $env:RUNNER_TEMP "serve.err"
+          # The served routes resolve REGISTRY ALIASES ONLY (SPEC 2.9) and this job downloaded its
+          # smoke GGUF by URL, so the registry has to learn about the file before a request names it.
+          uv run python tools/matrix_register_model.py --model $env:TYPED_GGUF_SMOKE_GGUF --alias smoke-0.5b --json | Out-Null
+          $serve = Start-Process -FilePath $uv -PassThru -NoNewWindow -RedirectStandardOutput $log -RedirectStandardError $err `
+            -ArgumentList @("run", "typed-gguf", "serve", "--host", "127.0.0.1", "--port", "8088", "--keep-alive", "600")
+          $code = 1
+          try {
+            uv run python tools/matrix_serve_probe.py --base-url http://127.0.0.1:8088 `
+              --model smoke-0.5b --server-log $log --server-log $err --expect inline --json serve_probe.json
+            $code = $LASTEXITCODE
+          } finally {
+            & taskkill /PID $serve.Id /T /F 2>$null | Out-Null
+          }
+          if ($code -ne 0) { throw "the serve probe failed (exit $code): this platform's served behaviour drifted" }
 
   macos-metal:
     runs-on: macos-14
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
@@ -115,6 +207,7 @@ jobs:
   # local path and the dev set ships inside the package.
   macos-engine-smoke:
     runs-on: macos-14
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
@@ -173,3 +266,36 @@ jobs:
           print(f"quick campaign: {total / 1000:.1f} s")
           assert total <= 300_000, total
           PY
+      # Card t_f96fed7f (AC3): the same server, seen by the REAL pinned SDK client — the gate the
+      # host-level E2E had locally and CI never had. `serve --keep-alive 600` keeps a host alive for
+      # the window, the SDK's own call (model: its hardcoded `jev-latest`, which the server maps to
+      # the registry's `current`) goes through the TypeSafe route, the probe then asserts the WARM
+      # answer (`served_by=host`, `model_load_ms == 0.0`, the server's own log), and `keep stop` +
+      # `keep status` close the ledger cleanly.
+      - name: Serve — the pinned SDK client, the warm host, and a clean `keep stop`
+        run: |
+          set -euo pipefail
+          python3 -m venv /tmp/sdk-venv
+          /tmp/sdk-venv/bin/pip install --quiet "typesafe-sdk==0.7.1"
+          /tmp/sdk-venv/bin/python -c "import typesafe_sdk;assert typesafe_sdk.__version__=='0.7.1',typesafe_sdk.__version__"
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run python tools/matrix_register_model.py \
+            --model /tmp/smoke.gguf --alias smoke-0.5b --json > /tmp/register.json
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt nohup uv run typed-gguf serve \
+            --host 127.0.0.1 --port 8088 --keep-alive 600 > /tmp/serve.log 2>&1 &
+          TYPESAFE_API_KEY="typed-gguf-macos-ci" /tmp/sdk-venv/bin/python \
+            tools/host_gate_serve_client.py --base-url http://127.0.0.1:8088 --out /tmp/served.json
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run python tools/matrix_serve_probe.py \
+            --base-url http://127.0.0.1:8088 --model smoke-0.5b \
+            --server-log /tmp/serve.log --expect host --json /tmp/serve_probe.json
+          # The clean stop comes FIRST, while the host is still alive and registered: `keep stop` is
+          # the documented tidy path (it clears the ledger), and `keep status` then has to agree.
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run typed-gguf keep stop --json
+          TYPED_GGUF_RUNTIME_DIR=/tmp/typed-gguf-rt uv run python - <<'PY'
+          import json, subprocess
+          out = subprocess.run(["uv", "run", "typed-gguf", "keep", "status", "--json"],
+                               capture_output=True, text=True, check=True)
+          report = json.loads(out.stdout)
+          assert report["state"] == "stopped", report
+          print("keep status after `keep stop`:", report["state"])
+          PY
+          pkill -f "typed-gguf serve" || true
