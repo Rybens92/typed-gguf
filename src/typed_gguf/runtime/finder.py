@@ -20,6 +20,7 @@ from dataclasses import dataclass
 
 from typed_gguf.errors import RuntimeMissingError
 from typed_gguf.registry import store
+from typed_gguf.runtime.pins import RuntimeLock
 
 _LIB_NAMES: dict[str, dict[str, str]] = {
     "linux": {"llama": "libllama.so", "ggml": "libggml.so", "ggml_base": "libggml-base.so"},
@@ -38,7 +39,23 @@ _ACCELERATOR_NAMES: dict[str, tuple[tuple[str, str], ...]] = {
                 ("metal", "ggml-metal.dll")),
 }
 RUNTIME_RECORD_SCHEMA = "typed_gguf.runtime/v1"
+#: The *roles* a bundle's command-line tools fill. The file name is the platform's (`llama-cli.exe`
+#: on Windows — `tool_name` / `tool_names`), so a caller asks for the role and never for a name:
+#: the pinned Windows zip ships `llama-cli.exe`, which is why `build_number` could not read a build
+#: there while the Linux name is bare (card t_8dab8b3a).
 TOOL_NAMES = ("llama-cli", "llama-fit-params", "llama-tokenize")
+
+
+def tool_name(tool: str, system: str | None = None) -> str:
+    """`llama-cli` -> `llama-cli.exe` on Windows; the same name everywhere else."""
+    if (system or platform.system()).lower() == "windows":
+        return f"{tool}.exe"
+    return tool
+
+
+def tool_names(system: str | None = None) -> tuple[str, ...]:
+    """`TOOL_NAMES` as the platform spells the *files* (SPEC 2.7's bundle layout)."""
+    return tuple(tool_name(name, system) for name in TOOL_NAMES)
 
 
 def accelerator_names(system: str | None = None) -> tuple[tuple[str, str], ...]:
@@ -104,11 +121,34 @@ class RuntimeLayout:
 def layout(directory: str | os.PathLike[str], *, system: str | None = None) -> RuntimeLayout:
     directory = pathlib.Path(directory)
     names = library_names(system)
-    tools = {name: directory / name for name in TOOL_NAMES if (directory / name).exists()}
+    # keys are the ROLES (`llama-cli`), values the platform's file: a caller asks for the role and
+    # gets whichever file this platform ships (card t_8dab8b3a).
+    tools = {role: directory / tool_name(role, system) for role in TOOL_NAMES
+             if (directory / tool_name(role, system)).exists()}
     base = directory / names["ggml_base"]
     return RuntimeLayout(directory=directory, libllama=directory / names["llama"],
                          libggml=directory / names["ggml"],
                          ggml_base=base if base.exists() else None, tools=tools)
+
+
+def required_files(lock: RuntimeLock, *, system: str | None = None) -> tuple[str, ...]:
+    """`runtime.lock`'s `required_files`, spelled for `system`.
+
+    The lock pins the three libraries by their canonical names — the Linux SONAMEs the oracle and
+    `tests/test_pins.py` verify. The same three libraries ship under every platform's own names
+    (`llama.dll` / `ggml.dll` / `ggml-base.dll` on Windows, `*.dylib` on macOS), so a distribution
+    check that reads the lock literally declares a *complete* Windows bundle incomplete and reports
+    `E_RUNTIME_MISSING` for a bundle whose `llama.dll` is right there — what the first live matrix
+    run proved (card t_8dab8b3a, job 108153215424). The naming table above is the single source of
+    those names; this maps the lock's roles onto it, and a name the table does not know is passed
+    through unchanged (a future lock entry is never silently dropped).
+    """
+    resolved = (system or platform.system()).lower()
+    if resolved == "linux":
+        return tuple(lock.required_files)
+    names = library_names(resolved)               # raises for an unknown platform, like the rest
+    role_of = {filename: role for role, filename in _LIB_NAMES["linux"].items()}
+    return tuple(names[role_of[name]] if name in role_of else name for name in lock.required_files)
 
 
 def runtime_dirs(home: pathlib.Path | None = None) -> list[pathlib.Path]:

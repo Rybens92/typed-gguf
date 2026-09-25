@@ -28,6 +28,18 @@ from typed_gguf.runtime import finder, isolated, pins, pressure
 
 _BUILD_RE = re.compile(rb"build\s+b?(\d{2,7})")
 MIN_BUILD_ARCH = {"spark2_5": "spark2_5"}
+#: How an *arch implementation class* can end inside a compiled library — the evidence the scan
+#: below reads. Both are real ABI decorations, not a per-platform hack:
+#:   * `\x00` — the class name is the tail of a whole Itanium/ELF symbol, which is how it appears on
+#:     Linux/macOS (`_ZTS17llama_model_qwen2\0` / `_ZTV17llama_model_qwen2\0` — the pinned
+#:     `libllama.so.0` carries 7 of them);
+#:   * `@@` — the class name is part of an MSVC-decorated type descriptor, which is how it appears
+#:     in a PE (`.?AUgraph@llama_model_qwen2@@` / `.?AUllama_model_qwen2@@` — the pinned Windows
+#:     `llama.dll` carries 6 `llama_model_qwen2` and **no `\x00` form at all**, measured byte-wise).
+#: Either way the class was compiled into *this* library: the answer is read from the binary, never
+#: assumed (card t_8dab8b3a; the ELF-only form is the reason the first live Windows run answered
+#: "no implementation for architecture 'qwen2'").
+_ARCH_NAME_BOUNDARIES = (b"\x00", b"@@")
 
 
 def parse_build(text: str) -> int | None:
@@ -40,11 +52,19 @@ def build_tag(build: int | None) -> str | None:
     return f"b{build}" if build else None
 
 
-def build_number(runtime_dir: str | os.PathLike[str]) -> int | None:
-    """Build of the installed bundle: `llama-cli --version`, else a scan of libllama.so."""
+def build_number(runtime_dir: str | os.PathLike[str], *, system: str | None = None) -> int | None:
+    """Build of the installed bundle: its CLI's own banner, else a scan of its llama library.
+
+    The CLI is the *platform's* (`finder.tool_name`: `llama-cli`, `llama-cli.exe` on Windows), and
+    on any platform it is the only real source of the number: the pinned Windows `llama.dll`
+    carries the version string but no build number at all (`11026` occurs in no file of the
+    `llama-b11026-bin-win-cpu-x64.zip`; the number is a compiled integer formatted by the
+    `version: %s (build %d, commit %s)` string in `llama-common.dll`). The byte scan below is the
+    fallback for a bundle that ships no CLI, and it reads the library this platform really has.
+    """
     runtime_dir = pathlib.Path(runtime_dir)
-    cli = runtime_dir / "llama-cli"
-    if cli.exists():
+    cli = finder.layout(runtime_dir, system=system).tools.get("llama-cli")
+    if cli is not None:
         env = {**os.environ,
                "LD_LIBRARY_PATH": f"{runtime_dir}:{os.environ.get('LD_LIBRARY_PATH', '')}"}
         try:
@@ -60,7 +80,7 @@ def build_number(runtime_dir: str | os.PathLike[str]) -> int | None:
                                 + (proc.stderr or b"").decode("utf-8", "replace"))
             if build is not None:
                 return build
-    lib = runtime_dir / finder.library_names()["llama"]
+    lib = runtime_dir / finder.library_names(system)["llama"]
     if lib.exists():
         match = _BUILD_RE.search(lib.read_bytes())
         if match:
@@ -75,18 +95,26 @@ def arch_symbol_names(runtime_dir: str | os.PathLike[str], arch: str) -> list[st
 
 
 def supports_arch(runtime_dir: str | os.PathLike[str], arch: str, *,
-                  build: int | None = None, lock: pins.RuntimeLock | None = None) -> bool:
-    """Does the bundle carry the arch implementation *and* a new enough build?"""
+                  build: int | None = None, lock: pins.RuntimeLock | None = None,
+                  system: str | None = None) -> bool:
+    """Does the bundle carry the arch implementation *and* a new enough build?
+
+    The first half is a byte scan of the bundle's own library for the arch implementation class
+    `llama_model_<arch>`, terminated by the ABI's own name decoration (`_ARCH_NAME_BOUNDARIES`) —
+    the same evidence in a PE and in an ELF/Mach-O, never a platform assumption.
+    """
     runtime_dir = pathlib.Path(runtime_dir)
     lock = lock or pins.load_lock()
-    lib = runtime_dir / finder.library_names()["llama"]
+    lib = runtime_dir / finder.library_names(system)["llama"]
     if not lib.exists():
         return False
     blob = lib.read_bytes()
-    if not any(name.encode() + b"\x00" in blob for name in arch_symbol_names(runtime_dir, arch)):
+    names = [name.encode() for name in arch_symbol_names(runtime_dir, arch)]
+    if not any(name + boundary in blob
+               for name in names for boundary in _ARCH_NAME_BOUNDARIES):
         return False
     min_build = lock.min_build_for_spark2_5 if arch in MIN_BUILD_ARCH else 0
-    current = build if build is not None else build_number(runtime_dir)
+    current = build if build is not None else build_number(runtime_dir, system=system)
     return current is None or current >= min_build
 
 
@@ -95,11 +123,13 @@ def arch_guard_build(arch: str, lock: pins.RuntimeLock) -> int:
 
 
 def require_arch(runtime_dir: str | os.PathLike[str], arch: str, *,
-                 build: int | None = None, lock: pins.RuntimeLock | None = None) -> None:
+                 build: int | None = None, lock: pins.RuntimeLock | None = None,
+                 system: str | None = None) -> None:
     """Pre-flight gate before a model load (A11 / A-E1a-9): never a crash, always a fix."""
     runtime_dir = pathlib.Path(runtime_dir)
     lock = lock or pins.load_lock()
-    current = build if build is not None else build_number(runtime_dir)
+    lib_name = finder.library_names(system)["llama"]
+    current = build if build is not None else build_number(runtime_dir, system=system)
     min_build = arch_guard_build(arch, lock)
     tag = build_tag(current) or "unknown build"
     if min_build and current is not None and current < min_build:
@@ -108,11 +138,11 @@ def require_arch(runtime_dir: str | os.PathLike[str], arch: str, *,
             f"b{min_build} or newer, but {runtime_dir} is {tag}; fix: `typed-gguf init --force` "
             f"(installs the pinned b11026 bundle) or point TYPED_GGUF_RUNTIME_DIR at a build "
             f">= b{min_build}")
-    if not supports_arch(runtime_dir, arch, build=current, lock=lock):
+    if not supports_arch(runtime_dir, arch, build=current, lock=lock, system=system):
         raise ModelArchUnsupportedError(
             f"E_MODEL_ARCH_UNSUPPORTED: the {tag} runtime at {runtime_dir} has no "
             f"implementation for architecture {arch!r} (looked for "
-            f"{arch_symbol_names(runtime_dir, arch)[0]} in libllama.so); fix: "
+            f"{arch_symbol_names(runtime_dir, arch)[0]} in {lib_name}); fix: "
             f"`typed-gguf init --force` or install a llama.cpp build that supports {arch}")
 
 
@@ -182,6 +212,9 @@ def load_system_lib(name: str) -> str | None:
 @dataclass
 class ProbeResult:
     runtime_dir: pathlib.Path | None = None
+    #: The platform the probe answered for (lowercase `platform.system()`), so the diagnosis texts
+    #: name the file this bundle really has instead of a Linux SONAME (card t_8dab8b3a).
+    system: str = ""
     deep: bool = False
     symbols_checked: bool = False
     present: tuple[str, ...] = ()
@@ -204,6 +237,16 @@ class ProbeResult:
     @property
     def tag(self) -> str | None:
         return build_tag(self.build)
+
+    @property
+    def cli_name(self) -> str:
+        """The CLI file this platform's bundle ships (`llama-cli.exe` on Windows)."""
+        return finder.tool_name("llama-cli", self.system or None)
+
+    @property
+    def lib_name(self) -> str:
+        """The llama library file this platform's bundle ships (`llama.dll` on Windows)."""
+        return finder.library_names(self.system or None)["llama"]
 
     def usable(self, backend: str) -> bool:
         """Is `backend` both present in this bundle *and* loadable on this host?"""
@@ -231,8 +274,8 @@ class ProbeResult:
                        + ", ".join(self.missing_symbols[:8])
                        + ("…" if len(self.missing_symbols) > 8 else ""))
         if self.build is None:
-            out.append("cannot determine the runtime build (no llama-cli banner and no build "
-                       "string in libllama.so)")
+            out.append(f"cannot determine the runtime build (no {self.cli_name} banner and no "
+                       f"build string in {self.lib_name})")
         elif self.min_build and self.build < self.min_build:
             out.append(f"runtime build b{self.build} is older than the minimum b{self.min_build} "
                        f"required for spark2_5 (re-run `typed-gguf init --force`)")
@@ -328,6 +371,7 @@ def probe_runtime(runtime_dir: str | os.PathLike[str] | None = None, *, deep: bo
                   scan: Callable[..., isolated.ProbeScan] | None = None) -> ProbeResult:
     lock = lock or pins.load_lock()
     result = ProbeResult(deep=deep, expected_tag=lock.tag,
+                         system=(system or platform.system()).lower(),
                          min_build=lock.min_build_for_spark2_5, expect_backend=expect_backend)
     if runtime_dir is None:
         found = finder.find_runtime()
@@ -342,14 +386,18 @@ def probe_runtime(runtime_dir: str | os.PathLike[str] | None = None, *, deep: bo
         result.error = f"E_RUNTIME_MISSING: {rt} is not a directory"
         return result
 
-    present = tuple(f for f in lock.required_files if (rt / f).exists())
-    missing = tuple(f for f in lock.required_files if not (rt / f).exists())
+    # The lock pins the canonical (Linux) names; the bundle on this machine carries *its* platform's
+    # (`llama.dll` …). Reading the lock literally made `runtime.files`/`runtime.loadable` fail on a
+    # complete Windows bundle (card t_8dab8b3a).
+    required = finder.required_files(lock, system=system)
+    present = tuple(f for f in required if (rt / f).exists())
+    missing = tuple(f for f in required if not (rt / f).exists())
     result.present = present
     result.missing_files = missing
     layout = finder.layout(rt, system=system)
     result.tools = {name: str(path) for name, path in layout.tools.items()}
     result.backends = tuple(backends(rt, system=system))
-    result.build = build_number(rt)
+    result.build = build_number(rt, system=system)
 
     if missing:
         result.error = (f"E_RUNTIME_MISSING: {rt} is not a complete runtime bundle "
@@ -371,8 +419,8 @@ def probe_runtime(runtime_dir: str | os.PathLike[str] | None = None, *, deep: bo
                 if name != "cpu":
                     result.backend_errors.setdefault(name, found.child_error)
     if run_tools:
-        fit = rt / "llama-fit-params"
-        if "llama-fit-params" in layout.tools:
+        fit = layout.tools.get("llama-fit-params")     # the platform's file (`…-fit-params.exe`)
+        if fit is not None:
             env = {**os.environ,
                    "LD_LIBRARY_PATH": f"{rt}:{os.environ.get('LD_LIBRARY_PATH', '')}"}
             try:

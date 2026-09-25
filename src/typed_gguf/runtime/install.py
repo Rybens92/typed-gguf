@@ -379,7 +379,10 @@ def _unpack_one(plan: InstallPlan, *, home: pathlib.Path, lock: pins.RuntimeLock
         shutil.rmtree(staging)
     extract_bundle(archive, staging)
     _flatten_bundle(staging)
-    missing = [f for f in lock.required_files if not (staging / f).exists()]
+    # The names this *host's* bundle ships (`llama.dll` on Windows): the lock pins the canonical
+    # Linux SONAMEs, so a literal read declares a complete Windows install incomplete (card
+    # t_8dab8b3a). `init` only ever installs for the host it runs on.
+    missing = [f for f in finder.required_files(lock) if not (staging / f).exists()]
     if missing:
         shutil.rmtree(staging, ignore_errors=True)
         raise RuntimeMissingError(

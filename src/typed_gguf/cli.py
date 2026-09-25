@@ -367,10 +367,13 @@ def doctor_checks(home: pathlib.Path | None = None,
                                          lock=lock, expect_backend=capability.host_expectation(),
                                          run_tools=True)
         add("runtime.present", "ok", str(runtime_dir))
+        # The names the bundle on THIS machine really carries (`llama.dll` on Windows): the lock's
+        # `required_files` are the canonical Linux SONAMEs (card t_8dab8b3a).
+        required_names = finder.required_files(lock)
         if probe.error:
             add("runtime.loadable", "fail", probe.error)
         add("runtime.files", "ok" if not probe.missing_files else "fail",
-            "all required libraries present: " + ", ".join(lock.required_files)
+            "all required libraries present: " + ", ".join(required_names)
             if not probe.missing_files else "missing " + ", ".join(probe.missing_files))
         add("runtime.symbols", "ok" if probe.symbols_checked and not probe.missing_symbols
             else ("warn" if not probe.symbols_checked else "fail"),
@@ -435,16 +438,17 @@ def doctor_checks(home: pathlib.Path | None = None,
             add("runtime.fallback", "warn",
                 f"installed {record.get('variant')} after {record.get('backend_requested')} "
                 f"was unusable here [{code}]: {record['fallback_reason']}")
+        lib_name = finder.library_names()["llama"]
         if not record or not record.get("libllama_sha256"):
             add("runtime.sha_recorded", "warn",
-                "runtime.json has no libllama.so SHA-256 (re-run `typed-gguf init --force`)")
+                f"runtime.json has no {lib_name} SHA-256 (re-run `typed-gguf init --force`)")
         elif record.get("libllama_sha256") != sha256_file(
                 runtime_dir / finder.library_names()["llama"]):
             add("runtime.sha_recorded", "fail",
-                "libllama.so SHA-256 differs from the recorded value (re-install)")
+                f"{lib_name} SHA-256 differs from the recorded value (re-install)")
         else:
             digest = record["libllama_sha256"][:16]
-            add("runtime.sha_recorded", "ok", f"libllama.so sha256 {digest}…")
+            add("runtime.sha_recorded", "ok", f"{lib_name} sha256 {digest}…")
 
     registry, registry_warnings = store.load_registry(store.registry_path(home))
     for warning in registry_warnings:

@@ -227,6 +227,9 @@ def _load_backends(ggml: C.CDLL, directory: pathlib.Path) -> None:
 
 def _bind(runtime: Runtime) -> None:
     llama, ggml = runtime.llama, runtime.ggml
+    # the names this platform's bundle really ships (`llama.dll` …): a missing symbol must be
+    # reported against the file the user has in front of them (card t_8dab8b3a)
+    names = library_names(runtime.system)
     sigs: dict[str, tuple[list[object], object]] = {
         "llama_backend_init": ([], None),
         "llama_backend_free": ([], None),
@@ -287,14 +290,14 @@ def _bind(runtime: Runtime) -> None:
         runtime.bindings[name] = fn
     if missing:
         raise RuntimeSymbolsError(
-            f"E_RUNTIME_SYMBOLS: libllama.so is missing {len(missing)} required symbol(s): "
+            f"E_RUNTIME_SYMBOLS: {names['llama']} is missing {len(missing)} required symbol(s): "
             f"{', '.join(sorted(missing))}; the installed runtime is not the pinned b11026 "
             f"bundle (re-run `typed-gguf init --force`)")
     for name in ("ggml_backend_load_all", "ggml_backend_load_all_from_path"):
         fn = getattr(ggml, name, None)
         if fn is None:
             raise RuntimeSymbolsError(
-                f"E_RUNTIME_SYMBOLS: libggml.so is missing {name} — the backend loader must "
+                f"E_RUNTIME_SYMBOLS: {names['ggml']} is missing {name} — the backend loader must "
                 f"run before any model load (PoC pitfall 1)")
     _bind_optional(runtime)
 

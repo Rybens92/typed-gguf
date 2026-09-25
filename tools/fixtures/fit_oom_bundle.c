@@ -16,6 +16,12 @@
  *     calls are stubs): the point is that production's real dlopen path runs, not a mock.
  *   - `llama_model_spark2_5` exists so the arch pre-flight (`capability.require_arch`) passes for
  *     the pinned model's architecture.
+ *   - `ggml_backend_dev_by_name("CPU")` answers a non-NULL handle, because a `cpu` row resolves
+ *     the device it is allowed to compute on BEFORE the load ladder (card t_55de5779's pin in
+ *     `session.open_model`). Without it the fake bundle is refused with `E_RUNTIME_SYMBOLS` and
+ *     the OOM path this fixture exists for is never reached — which is exactly what the first
+ *     live matrix run proved (card t_8dab8b3a: job 108153215436, step "the placement retry
+ *     answers a typed row, never E_INTERNAL").
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -99,6 +105,25 @@ void llama_backend_free(void) {}
 /* The backend loader: called with the bundle directory before any model load (PoC pitfall 1). */
 void ggml_backend_load_all(void) {}
 void ggml_backend_load_all_from_path(const char *dir) { (void) dir; }
+
+/* The device query a *CPU-pinned* load resolves before the ladder: a `cpu` row must be able to
+ * name the device it may compute on (`ctypes_binding.cpu_device` -> `ggml_backend_dev_by_name`).
+ * The handle is only ever tested for non-NULL and passed back inside `llama_model_params.devices`,
+ * so a real address inside this library is the honest stand-in — and returning NULL here would
+ * make production refuse the bundle (E_RUNTIME_SYMBOLS) before the OOM ladder runs.
+ *
+ * `-DTYPED_GGUF_FIXTURE_NO_CPU_DEVICE` builds the fixture as it was BEFORE card t_8dab8b3a: the
+ * suite's RED control (`tests/test_fit_oom_fixture.py`), so the refusal this gate produces stays
+ * reproducible instead of being a story about a run nobody can replay. */
+#ifndef TYPED_GGUF_FIXTURE_NO_CPU_DEVICE
+static int g_cpu_device = 0;
+void *ggml_backend_dev_by_name(const char *name) {
+    if (name != NULL && strcmp(name, "CPU") == 0) {
+        return (void *) &g_cpu_device;
+    }
+    return NULL;
+}
+#endif
 
 /* The arch the pinned model needs (the real bundle exports this symbol; the pre-flight scans the
  * file's bytes for the name). */
