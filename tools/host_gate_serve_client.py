@@ -13,6 +13,12 @@ Exit codes: `0` when every check in `verify` passes, `2` on the first failing ch
 installed SDK is not the pinned one — a *different* SDK answers a different wire, so a mismatch
 there must be loud, never a silently-passing run.
 
+The SDK's own default timeout is **10 s**, which a *cold* shader cache blows past: on the E2E box
+the first decision of the day took 32.1 s server-side and this client gave up after three attempts
+(`docs/evidence/t_559ed8c8/logs/serve_story.log`), while the very same body answered in 2.3 s once
+warm. SPEC §2.9/§6 document the SDK side; the gate therefore passes its own `CLIENT_TIMEOUT` — a
+gate that cannot outlast the box it runs on is red where the product is right (card t_16067777).
+
 `verify` is a pure function over the SDK's own `model_dump()`, so the gate's judgements are
 drivable offline (`tests/test_serve.py` does exactly that) instead of only on the host.
 """
@@ -27,6 +33,10 @@ import time
 from typing import Any
 
 PINNED_SDK = "0.7.1"
+#: How long one SDK call may take (the SDK's own default is 10 s). 180 s is 5× the worst cold
+#: shader-cache decision the E2E measured (32.1 s) — generous on purpose, because the number that
+#: matters here is "long enough that the box, not the client, decides" (P4, card t_16067777).
+CLIENT_TIMEOUT = 180.0
 BASE_URL_ENV = "TYPESAFE_BASE_URL"
 API_KEY_ENV = "TYPESAFE_API_KEY"
 
@@ -260,7 +270,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"typesafe-sdk {installed} -> {base_url}")
     print(f"state: {len(STATE)} chars; questions: "
           + ", ".join(f"{qid}({kind})" for qid, kind in GATE_QUESTIONS.items()))
-    with TypeSafeClient(base_url=base_url) as client:
+    with TypeSafeClient(base_url=base_url, timeout=CLIENT_TIMEOUT) as client:
         for attempt in ("cold", "warm"):
             started = time.monotonic()
             result = client.system_one(STATE, questions)

@@ -1,0 +1,91 @@
+== host ==
+2026-09-25T12:20:45Z
+Python 3.12.13
+Linux 7.2.4-ogc3.1.fc44.x86_64 x86_64
+
+== full suite (offline: TYPED_GGUF_TEST_BLOCK_NET=1, stub bundle, no PYTHONPATH/TYPED_GGUF_HOME) ==
+pytest exit=0
+SKIPPED [1] tests/test_serve.py:741: TYPED_GGUF_TEST_BLOCK_NET forbids AF_INET, the family a loopback server binds
+SKIPPED [1] tests/test_serving_attribution.py:546: live test: pass --run-network to run
+SKIPPED [2] tests/test_templates.py:423: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:442: live test: pass --run-network to run
+SKIPPED [1] tests/test_templates.py:478: live test: pass --run-network to run
+1793 passed, 59 skipped in 52.19s
+  skipped, by reason:
+      1 tests/test_templates.py:478: live test: pass --run-network to run
+      1 tests/test_templates.py:442: live test: pass --run-network to run
+      1 tests/test_templates.py:423: live test: pass --run-network to run
+      1 tests/test_serving_attribution.py:546: live test: pass --run-network to run
+      1 tests/test_serve.py:741: TYPED_GGUF_TEST_BLOCK_NET forbids AF_INET, the family a loopback server binds
+      1 tests/test_runtime_update.py:1101: live test: pass --run-network to run
+      1 tests/test_runtime_live.py:90: pinned Spark GGUF not present
+      1 tests/test_runtime_live.py:83: pinned Spark GGUF not present
+      1 tests/test_runtime_live.py:59: live test: pass --run-network to run
+      1 tests/test_runtime_live.py:50: live test: pass --run-network to run
+      1 tests/test_runtime_live.py:42: live test: pass --run-network to run
+      1 tests/test_runtime_contract.py:90: no runtime installed (run `typed-gguf init` or set TYPED_GGUF_RUNTIME_DIR)
+      1 tests/test_policy_v2.py:339: live test: pass --run-network to run
+      1 tests/test_keep_live.py: live test: pass --run-network to run
+      1 tests/test_hf_network.py:80: live test: pass --run-network to run
+      1 tests/test_hf_network.py:51: live test: pass --run-network to run
+      1 tests/test_hf_network.py:40: live test: pass --run-network to run
+      1 tests/test_hf_network.py:33: live test: pass --run-network to run
+      1 tests/test_gguf_header.py:235: pinned Qwen3.5 GGUF not present
+      1 tests/test_gguf_header.py:219: pinned Spark GGUF not present
+      1 tests/test_fit_live.py:81: live test: pass --run-network to run
+      1 tests/test_fit_live.py:347: live test: pass --run-network to run
+      1 tests/test_fit_live.py:297: live test: pass --run-network to run
+      1 tests/test_fit_live.py:277: live test: pass --run-network to run
+      1 tests/test_fit_live.py:227: live test: pass --run-network to run
+      1 tests/test_fit_live.py:210: live test: pass --run-network to run
+      1 tests/test_fit_live.py:168: live test: pass --run-network to run
+      1 tests/test_fit_live.py:151: live test: pass --run-network to run
+      1 tests/test_fit_live.py:126: live test: pass --run-network to run
+      1 tests/test_fit_live.py:110: live test: pass --run-network to run
+      1 tests/test_engine_fork.py:755: live test: pass --run-network to run
+      1 tests/test_engine_fork.py:715: live test: pass --run-network to run
+      1 tests/test_engine_fork.py:663: live test: pass --run-network to run
+      1 tests/test_engine_fork.py:637: live test: pass --run-network to run
+      1 tests/test_engine_fork.py:593: live test: pass --run-network to run
+      1 tests/test_engine_fork.py:573: live test: pass --run-network to run
+      1 tests/test_e3e_roles.py:814: live test: pass --run-network to run
+      1 tests/test_ctypes_binding.py:157: live test: pass --run-network to run
+      1 tests/test_ctypes_binding.py:131: live test: pass --run-network to run
+      1 tests/test_cli.py:241: live test: pass --run-network to run
+      1 tests/test_bench_vulkan_teardown_live.py:156: live test: pass --run-network to run
+      1 tests/test_bench_live.py:90: live test: pass --run-network to run
+      1 tests/test_bench_live.py:272: live test: pass --run-network to run
+      1 tests/test_bench_live.py:235: live test: pass --run-network to run
+      1 tests/test_bench_live.py:161: live test: pass --run-network to run
+      1 tests/test_bench_live.py:146: live test: pass --run-network to run
+      1 tests/test_bench_live.py:122: live test: pass --run-network to run
+      1 tests/test_bench_live.py:106: live test: pass --run-network to run
+      1 tests/test_bench_isolation_live.py:75: live test: pass --run-network to run
+
+== ruff check src tests tools docs .github ==
+All checks passed!
+ruff exit=0
+
+== uv build ==
+Building source distribution...
+Building wheel from source distribution...
+Successfully built dist/typed_gguf-0.2.3.tar.gz
+Successfully built dist/typed_gguf-0.2.3-py3-none-any.whl
+uv build exit=0
+
+== tree under test ==
+   M pyproject.toml
+   M src/typed_gguf/keep/client.py
+   M src/typed_gguf/keep/state.py
+   M src/typed_gguf/registry/hf.py
+   M src/typed_gguf/runtime/install.py
+   M src/typed_gguf/runtime/update.py
+   M tests/test_hf.py
+   M tests/test_keep_client.py
+   M tests/test_runtime_update.py
+   M tests/test_serve.py
+   M tools/host_gate_serve_client.py
+  ?? docs/evidence/t_16067777/
+   tests/test_serve.py               | 28 ++++++++++++
+   tools/host_gate_serve_client.py   | 12 ++++-
+   11 files changed, 360 insertions(+), 17 deletions(-)

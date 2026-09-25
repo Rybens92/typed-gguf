@@ -1,0 +1,17 @@
+killed by the post-sweep pins, run (A) hf.py:
+typed_gguf.registry.hf.x__translate__mutmut_10
+typed_gguf.registry.hf.x__translate__mutmut_11
+typed_gguf.registry.hf.x__translate__mutmut_12
+typed_gguf.registry.hf.x__translate__mutmut_13
+typed_gguf.registry.hf.x__translate__mutmut_9
+typed_gguf.registry.hf.x_download_url__mutmut_53
+typed_gguf.registry.hf.x_download_url__mutmut_55
+typed_gguf.registry.hf.x_download_url__mutmut_56
+typed_gguf.registry.hf.x_download_url__mutmut_57
+typed_gguf.registry.hf.x_download_url__mutmut_58
+
+killed by the post-sweep pins, run (B) update.py:
+typed_gguf.runtime.update.x_rollback__mutmut_161
+typed_gguf.runtime.update.x_rollback__mutmut_61
+typed_gguf.runtime.update.x_rollback__mutmut_62
+typed_gguf.runtime.update.x_rollback__mutmut_63

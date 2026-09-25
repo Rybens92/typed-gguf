@@ -99,10 +99,16 @@ def plan_install(backend: str = "auto", *, home: pathlib.Path | None = None,
 def _fetch(url: str, dest: pathlib.Path, *, size: int | None = None,
            sha256: str | None = None, progress: hf.Progress | None = None,
            chunk: int = hf.CHUNK) -> tuple[hf.DownloadResult, str]:
+    """Fetch one *GitHub release asset* — `init`'s and `runtime update`'s shared download leg.
+
+    `product=hf.GITHUB` says what the URL is (P2, card t_16067777): these are
+    `github.com/…/releases/download/…` assets, so a 404 must not be worded as HuggingFace's.
+    """
     if url.startswith("file://"):
         source = pathlib.Path(urllib_path_to_path(url))
         return _copy_local(source, dest, size=size, sha256=sha256, progress=progress), "url"
-    result = hf.download_url(url, dest, size=size, sha256=sha256, chunk=chunk, progress=progress)
+    result = hf.download_url(url, dest, size=size, sha256=sha256, chunk=chunk, progress=progress,
+                             product=hf.GITHUB)
     return result, "url"
 
 

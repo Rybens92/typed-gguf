@@ -229,13 +229,32 @@ quote-style = "double"
 # own RED pin covers it, and that module already has an 829-mutant sweep from t_176614c6 (61.0 %),
 # which a re-run would spend on pre-existing survivors. The pair below is run (B); run (A) used
 # `source_paths = ["src/typed_gguf/runtime/update.py"]` + `["tests/test_runtime_update.py"]`.
+# Card t_16067777 (E2E hardening P1-P4) sweeps the two modules whose *logic* its findings change, one
+# Tier-M run each with the gate file that owns the surface: (A) `src/typed_gguf/registry/hf.py` —
+# P2's product-aware wording (`_translate` names huggingface.co or github.com per leg, `install._fetch`
+# passes `product=GITHUB`) and the `__version__`-carried User-Agent — with `tests/test_hf.py`;
+# (B) the update pair above, for P1's `rollback` merge, so its numbers sit beside t_ba767a2b's on the
+# same pair. `keep/state.py` + `keep/client.py` (P3) and `tools/host_gate_serve_client.py` (P4) are
+# deliberately not swept: both are one-line calls the card's own pins drive, and `keep/client.py`
+# already carries t_176614c6's 829-mutant sweep. Run (A): **691 mutants, 377 killed = 54.6 %**
+# (254 survived, 60 "no tests" — the parts of the module only the network/registry gate files drive,
+# which cannot run offline), then a scoped re-run of `x__translate*` + `x__download_url*` +
+# `x__download_file*` after two post-sweep pins (the unreachable leg's host, the unknown-exception
+# leg) landed: **387 killed = 56.0 %, 244 survived**. Run (B): **967 mutants, 826 killed = 85.4 %**
+# (141 survived, 0 timeouts, 0 "no tests"), then a scoped re-run of `x_rollback*` after the
+# `installed_at` + report pins: **830 killed = 85.8 %, 137 survived**. Run (A)'s selection reads one
+# document (`docs/evidence/hf_spark_x2_5.json`), which is why `also_copy` names that file instead of
+# `docs` — the tree itself is 4.3 GB and dominated/aborted the copy. `source_paths` below is left at the
+# standing serve pair (t_f5d8b6c7), so the extra `also_copy` entry is the only thing run (A) leaves
+# behind in this config: the serve selection never reads it, and a later sweep that needs a different
+# document (or none) retargets both lines.
 source_paths = ["src/typed_gguf/api/http.py"]
 # Card t_f5d8b6c7 (serve) drops `docs` from also_copy for this sweep: the selection
 # (`tests/test_serve.py`) reads no document, while `docs/evidence/` carries 4.3 GB of committed
 # e2e artifacts (a model tree, two venvs with dangling `bin/python*` links) whose copy dominated
 # the run and aborted it on this container. A sweep whose gate file reads `docs/` must put it back.
 also_copy = ["src/typed_gguf", "tests", "tools", "runtime.lock", "pyproject.toml", "README.md",
-             "SPEC.md", "LICENSE"]
+             "SPEC.md", "LICENSE", "docs/evidence/hf_spark_x2_5.json"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # E1c FIX (card t_8cb0a05e) used [tests/test_fit.py, tests/test_fit_free_vram.py,
 # tests/test_fit_oom_recovery.py] with max_children = 2 (the fast set, so a sweep can finish

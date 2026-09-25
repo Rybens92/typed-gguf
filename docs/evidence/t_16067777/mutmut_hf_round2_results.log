@@ -1,0 +1,304 @@
+    typed_gguf.registry.hf.xǁFileInfoǁto_dict__mutmut_1: no tests
+    typed_gguf.registry.hf.xǁFileInfoǁto_dict__mutmut_2: no tests
+    typed_gguf.registry.hf.xǁFileInfoǁto_dict__mutmut_3: no tests
+    typed_gguf.registry.hf.xǁFileInfoǁto_dict__mutmut_4: no tests
+    typed_gguf.registry.hf.xǁFileInfoǁto_dict__mutmut_5: no tests
+    typed_gguf.registry.hf.xǁFileInfoǁto_dict__mutmut_6: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_1: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_2: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_3: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_4: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_5: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_6: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_7: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_8: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_9: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_10: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_11: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_12: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_13: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_14: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_15: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_16: no tests
+    typed_gguf.registry.hf.xǁModelInfoǁto_dict__mutmut_17: no tests
+    typed_gguf.registry.hf.x_token__mutmut_4: survived
+    typed_gguf.registry.hf.x_token__mutmut_6: survived
+    typed_gguf.registry.hf.x_token__mutmut_8: survived
+    typed_gguf.registry.hf.x_token__mutmut_9: survived
+    typed_gguf.registry.hf.x_token_paths__mutmut_2: survived
+    typed_gguf.registry.hf.x_token_paths__mutmut_4: survived
+    typed_gguf.registry.hf.x_token_paths__mutmut_5: survived
+    typed_gguf.registry.hf.x_token_paths__mutmut_6: survived
+    typed_gguf.registry.hf.x_token_paths__mutmut_7: survived
+    typed_gguf.registry.hf.x_token_paths__mutmut_8: survived
+    typed_gguf.registry.hf.x_token_paths__mutmut_9: survived
+    typed_gguf.registry.hf.x_token_paths__mutmut_10: survived
+    typed_gguf.registry.hf.x_token_paths__mutmut_11: survived
+    typed_gguf.registry.hf.x__headers__mutmut_2: survived
+    typed_gguf.registry.hf.x__headers__mutmut_3: survived
+    typed_gguf.registry.hf.x__headers__mutmut_4: survived
+    typed_gguf.registry.hf.x__open__mutmut_1: no tests
+    typed_gguf.registry.hf.x__open__mutmut_2: no tests
+    typed_gguf.registry.hf.x__open__mutmut_3: no tests
+    typed_gguf.registry.hf.x__open__mutmut_4: no tests
+    typed_gguf.registry.hf.x__open__mutmut_5: no tests
+    typed_gguf.registry.hf.x__open__mutmut_6: no tests
+    typed_gguf.registry.hf.x__open__mutmut_7: no tests
+    typed_gguf.registry.hf.x__open__mutmut_8: no tests
+    typed_gguf.registry.hf.x__open__mutmut_9: no tests
+    typed_gguf.registry.hf.x__open__mutmut_10: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_1: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_2: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_3: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_4: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_5: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_6: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_7: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_8: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_9: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_10: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_11: no tests
+    typed_gguf.registry.hf.x_fetch_json__mutmut_12: no tests
+    typed_gguf.registry.hf.x_offline_enabled__mutmut_5: survived
+    typed_gguf.registry.hf.x_offline_enabled__mutmut_6: survived
+    typed_gguf.registry.hf.x_offline_enabled__mutmut_10: survived
+    typed_gguf.registry.hf.x_offline_enabled__mutmut_11: survived
+    typed_gguf.registry.hf.x_offline_enabled__mutmut_12: survived
+    typed_gguf.registry.hf.x_offline_enabled__mutmut_13: survived
+    typed_gguf.registry.hf.x_offline_enabled__mutmut_14: survived
+    typed_gguf.registry.hf.x_snapshot_path__mutmut_1: survived
+    typed_gguf.registry.hf.x_snapshot_path__mutmut_3: survived
+    typed_gguf.registry.hf.x_snapshot_path__mutmut_4: survived
+    typed_gguf.registry.hf.x_snapshot_path__mutmut_6: survived
+    typed_gguf.registry.hf.x_snapshot_path__mutmut_7: survived
+    typed_gguf.registry.hf.x_snapshot_path__mutmut_22: survived
+    typed_gguf.registry.hf.x_snapshot_path__mutmut_24: survived
+    typed_gguf.registry.hf.x_snapshot_path__mutmut_25: survived
+    typed_gguf.registry.hf.x_snapshot_path__mutmut_31: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_3: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_5: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_24: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_25: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_26: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_28: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_30: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_33: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_35: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_38: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_45: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_47: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_48: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_49: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_50: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_51: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_52: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_56: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_57: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_58: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_59: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_60: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_61: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_62: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_63: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_68: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_69: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_71: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_72: survived
+    typed_gguf.registry.hf.x_model_info_from_snapshot__mutmut_73: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_6: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_7: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_8: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_9: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_10: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_11: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_12: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_13: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_14: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_15: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_20: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_22: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_23: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_24: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_25: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_26: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_29: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_32: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_36: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_37: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_38: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_52: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_53: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_54: survived
+    typed_gguf.registry.hf.x_repo_files__mutmut_60: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_2: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_8: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_9: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_16: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_18: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_25: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_26: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_27: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_29: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_30: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_37: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_38: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_39: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_45: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_46: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_47: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_48: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_49: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_50: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_51: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_52: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_53: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_54: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_58: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_59: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_60: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_61: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_62: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_63: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_64: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_65: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_76: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_77: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_79: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_80: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_81: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_82: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_83: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_84: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_85: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_86: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_87: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_88: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_89: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_90: survived
+    typed_gguf.registry.hf.x_model_info__mutmut_91: survived
+    typed_gguf.registry.hf.x_search__mutmut_1: survived
+    typed_gguf.registry.hf.x_search__mutmut_7: survived
+    typed_gguf.registry.hf.x_search__mutmut_9: survived
+    typed_gguf.registry.hf.x_search__mutmut_10: survived
+    typed_gguf.registry.hf.x_search__mutmut_11: survived
+    typed_gguf.registry.hf.x_search__mutmut_12: survived
+    typed_gguf.registry.hf.x_search__mutmut_13: survived
+    typed_gguf.registry.hf.x_search__mutmut_16: survived
+    typed_gguf.registry.hf.x_search__mutmut_18: survived
+    typed_gguf.registry.hf.x_search__mutmut_23: survived
+    typed_gguf.registry.hf.x_search__mutmut_24: survived
+    typed_gguf.registry.hf.x_search__mutmut_25: survived
+    typed_gguf.registry.hf.x_search__mutmut_26: survived
+    typed_gguf.registry.hf.x_search__mutmut_27: survived
+    typed_gguf.registry.hf.x_search__mutmut_31: survived
+    typed_gguf.registry.hf.x_search__mutmut_33: survived
+    typed_gguf.registry.hf.x_search__mutmut_42: survived
+    typed_gguf.registry.hf.x_search__mutmut_43: survived
+    typed_gguf.registry.hf.x_search__mutmut_44: survived
+    typed_gguf.registry.hf.x_search__mutmut_48: survived
+    typed_gguf.registry.hf.x_search__mutmut_49: survived
+    typed_gguf.registry.hf.x_search__mutmut_50: survived
+    typed_gguf.registry.hf.x_search__mutmut_51: survived
+    typed_gguf.registry.hf.x_search__mutmut_52: survived
+    typed_gguf.registry.hf.x_search__mutmut_53: survived
+    typed_gguf.registry.hf.x_search__mutmut_54: survived
+    typed_gguf.registry.hf.x_search__mutmut_55: survived
+    typed_gguf.registry.hf.x_search__mutmut_56: survived
+    typed_gguf.registry.hf.x_search__mutmut_57: survived
+    typed_gguf.registry.hf.x_search__mutmut_58: survived
+    typed_gguf.registry.hf.x_search__mutmut_59: survived
+    typed_gguf.registry.hf.x_search__mutmut_60: survived
+    typed_gguf.registry.hf.x_search__mutmut_61: survived
+    typed_gguf.registry.hf.x_search__mutmut_62: survived
+    typed_gguf.registry.hf.x_search__mutmut_63: survived
+    typed_gguf.registry.hf.x_search__mutmut_64: survived
+    typed_gguf.registry.hf.x_search__mutmut_65: survived
+    typed_gguf.registry.hf.x_search__mutmut_66: survived
+    typed_gguf.registry.hf.x_search__mutmut_67: survived
+    typed_gguf.registry.hf.x_search__mutmut_68: survived
+    typed_gguf.registry.hf.x_search__mutmut_69: survived
+    typed_gguf.registry.hf.x_human_bytes__mutmut_5: survived
+    typed_gguf.registry.hf.x_human_bytes__mutmut_6: survived
+    typed_gguf.registry.hf.x_human_bytes__mutmut_11: survived
+    typed_gguf.registry.hf.x_human_bytes__mutmut_12: survived
+    typed_gguf.registry.hf.x_human_bytes__mutmut_14: survived
+    typed_gguf.registry.hf.x_human_bytes__mutmut_15: survived
+    typed_gguf.registry.hf.x_human_bytes__mutmut_17: survived
+    typed_gguf.registry.hf.x_human_bytes__mutmut_18: survived
+    typed_gguf.registry.hf.x__existing_ancestor__mutmut_2: survived
+    typed_gguf.registry.hf.x__existing_ancestor__mutmut_3: survived
+    typed_gguf.registry.hf.x__existing_ancestor__mutmut_4: survived
+    typed_gguf.registry.hf.x__existing_ancestor__mutmut_5: survived
+    typed_gguf.registry.hf.x_check_disk_space__mutmut_11: survived
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_1: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_2: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_3: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_4: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_5: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_6: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_7: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_8: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_9: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_10: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_11: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_12: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_13: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_14: no tests
+    typed_gguf.registry.hf.xǁDownloadResultǁto_dict__mutmut_15: no tests
+    typed_gguf.registry.hf.x_resolve_url__mutmut_1: survived
+    typed_gguf.registry.hf.x_resolve_url__mutmut_2: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_1: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_2: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_3: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_11: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_13: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_15: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_19: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_20: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_21: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_37: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_40: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_41: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_42: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_43: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_44: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_45: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_46: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_48: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_52: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_54: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_62: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_65: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_68: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_69: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_70: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_71: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_72: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_73: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_74: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_75: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_76: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_77: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_78: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_79: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_80: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_81: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_82: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_83: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_84: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_85: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_86: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_87: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_88: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_89: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_112: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_118: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_136: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_143: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_145: survived
+    typed_gguf.registry.hf.x_download_url__mutmut_149: survived
+    typed_gguf.registry.hf.x_download_file__mutmut_1: survived
+    typed_gguf.registry.hf.x_download_file__mutmut_2: survived
+    typed_gguf.registry.hf.x_download_file__mutmut_10: survived
+    typed_gguf.registry.hf.x_download_file__mutmut_19: survived
+    typed_gguf.registry.hf.x_download_file__mutmut_20: survived

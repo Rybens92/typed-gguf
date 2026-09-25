@@ -7,7 +7,8 @@ Milestone: E4 (SPEC 2.12, card t_7e24cea4). The data home grows one small direct
     host.json          # the live host's record (atomic, 0600) — at most one host, hence one file
     <digest>.sock      # the unix socket the host answers on (0600)
     <digest>.spec.json # what the client asked the host to load (0600; removed when it exits)
-    <digest>.log       # the host's own stdout/stderr (the post-mortem of a failed spawn)
+    <digest>.log       # the host's own stdout/stderr (the post-mortem of a failed spawn; `keep
+                       # stop` takes it with the host — P3, card t_16067777)
 ```
 
 Two rules keep the ledger from becoming a source of lies:
@@ -189,6 +190,39 @@ def clear_record(home: pathlib.Path | None = None, *, digest: str | None = None)
         with contextlib.suppress(OSError):
             target.unlink()
             removed = True
+    return removed
+
+
+def clear_log(home: pathlib.Path | None = None, *, digest: str | None = None) -> list[str]:
+    """Remove the ledger's `*.log` files: one host's, or every finished host's (P3, t_16067777).
+
+    The log is the host's own stdout/stderr — `client._log_tail` quotes it while a spawn is
+    failing, and the crash path keeps it. `keep stop` is the deliberate *"this host is done"* verb,
+    so it takes the file with it and leaves the ledger directory holding nothing (A-E5-5's strict
+    reading, and the one thing `keep stop` used to leave behind).
+
+    **Delete, not move:** SPEC 2.7 fixes the data home's path list (`models/`, `registry.json`,
+    `runtime/<tag>-<variant>/`, `runtime.json`, `states/`, `calibration.json`) and §2.12 puts the
+    ledger in `<home>/keep/`; a second, undocumented log home would be a path the SPEC never names,
+    holding content nothing reads once its host is gone.
+
+    With no `digest` this is the ledger's sweep: every `<digest>.log` whose `<digest>.sock` is
+    *gone*. A socket still on disk means a host that is up (or on its way up — `bind` happens
+    before its record is written), and its log is not debris.
+    """
+    directory = keep_dir(home)
+    if not directory.is_dir():
+        return []
+    if digest is not None:
+        targets = [log_path(home, digest)]
+    else:
+        targets = [path for path in sorted(directory.glob(f"*{LOG_SUFFIX}"))
+                   if not path.with_name(f"{path.name[:-len(LOG_SUFFIX)]}{SOCKET_SUFFIX}").exists()]
+    removed: list[str] = []
+    for target in targets:
+        with contextlib.suppress(OSError):
+            target.unlink()
+            removed.append(target.name)
     return removed
 
 

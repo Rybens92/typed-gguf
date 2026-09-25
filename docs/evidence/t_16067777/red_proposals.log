@@ -1,0 +1,184 @@
+FFF.FFF                                                                  [100%]
+=================================== FAILURES ===================================
+___________ test_rollback_keeps_the_probe_facts_the_update_recorded ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5842/test_rollback_keeps_the_probe_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8f067ab920>
+capsys = <_pytest.capture.CaptureFixture object at 0x7f8f067abaa0>
+
+    def test_rollback_keeps_the_probe_facts_the_update_recorded(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch,
+            capsys: pytest.CaptureFixture[str]) -> None:
+        """P1 (card t_16067777, E2E proposal): the record `update` wrote is the one that comes back.
+    
+        `runtime rollback` used to rebuild a ten-key record, so the ~30 keys the update wrote — the
+        probe's `backends`, `symbols_*`, the asset facts — were gone and `typed-gguf version` printed
+        `backends unknown`. SPEC 2.8 promises "all existing record keys stay" for *update*; rolling
+        back is that same record moving to the other bundle, so the probe facts survive it too — and
+        the keys that describe the *active* bundle (its dir, its `tools`, its `libllama` hash) are
+        rewritten to the bundle the record now names.
+        """
+        home = installed_home(tmp_path)
+        archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+        payload = update.update(home=home.home, lock=home.lock,
+                                releases=[release(size=archive.stat().st_size)],
+                                url=archive.as_uri(), deep=False, client=FakeClient(), probes=HOST)
+        probe = payload["probe"]
+        updated = json.loads((home.home / "runtime.json").read_bytes())
+        assert probe["backends"], "the fixture's probe reports at least one backend"
+        monkeypatch.setenv("TYPED_GGUF_HOME", str(home.home))
+        update.rollback(home=home.home, client=FakeClient())
+        record = json.loads((home.home / "runtime.json").read_bytes())
+    
+        # every key the update wrote is still there — the merged record, not a fresh ten-key one
+>       assert set(updated) - set(record) == set()
+E       AssertionError: assert {'asset', 'as..._errors', ...} == set()
+E         
+E         Extra items in the left set:
+E         'warmup_ms'
+E         'probe_warnings'
+E         'backend_requested'
+E         'warmup_error'
+E         'asset_verified'...
+E         
+E         ...Full output truncated (24 lines hidden), use '-vv' to show
+
+tests/test_runtime_update.py:910: AssertionError
+_____ test_the_github_asset_leg_names_github_and_sends_the_real_user_agent _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5842/test_the_github_asset_leg_name0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8f05dcf9e0>
+
+    def test_the_github_asset_leg_names_github_and_sends_the_real_user_agent(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """P2 (card t_16067777, E2E proposal): the GitHub download speaks for GitHub.
+    
+        The E2E's U5 leg read `E_DOWNLOAD_FAILED: …: HuggingFace returned HTTP 404` and the fixture's
+        request log showed `User-Agent: typed-gguf/0.1` on the asset GET while the release API sent
+        `typed-gguf/0.2.3`: `registry/hf.py` — the module the GitHub asset download borrows its
+        transport from — hardcoded the version *and* worded every failure with HuggingFace's name.
+        The asset leg is GitHub's, and the UA carries the packaged version (the same source as the
+        release API's), so a reader of the failure never has to know which module fetched it.
+        """
+        home = installed_home(tmp_path)
+        archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+        seen: list[dict[str, str]] = []
+    
+        def not_found(url: str, headers: dict[str, str], timeout: float = 60.0):
+            seen.append({"url": url, "headers": dict(headers)})
+            raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)  # type: ignore[arg-type]
+    
+        monkeypatch.setattr(hf, "_open", not_found)
+        before = (home.home / "runtime.json").read_bytes()
+        with pytest.raises(TypedGgufError) as exc:
+            update.update(home=home.home, lock=home.lock,
+                          releases=[release(size=archive.stat().st_size)], deep=False,
+                          client=FakeClient(), probes=HOST)
+        message = str(exc.value)
+        assert exc.value.code == "E_DOWNLOAD_FAILED"
+>       assert "GitHub returned HTTP 404" in message, message
+E       AssertionError: E_DOWNLOAD_FAILED: https://example.invalid/releases/download/b11160/llama-b11160-bin-ubuntu-x64.tar.gz: HuggingFace returned HTTP 404 (Not Found)
+E       assert 'GitHub returned HTTP 404' in 'E_DOWNLOAD_FAILED: https://example.invalid/releases/download/b11160/llama-b11160-bin-ubuntu-x64.tar.gz: HuggingFace returned HTTP 404 (Not Found)'
+
+tests/test_runtime_update.py:709: AssertionError
+_______________ test_the_user_agent_carries_the_packaged_version _______________
+
+    def test_the_user_agent_carries_the_packaged_version() -> None:
+        """P2 (card t_16067777): the UA takes its version from the package, never a frozen literal.
+    
+        It shipped as `typed-gguf/0.1` while the release API's UA said `typed-gguf/0.2.3` (the E2E
+        receipt's fixture log showed both on one update run). One source of the version, one UA
+        prefix — the project URL suffix stays, it is not the version.
+        """
+>       assert hf.USER_AGENT.startswith(f"typed-gguf/{__version__}"), hf.USER_AGENT
+E       AssertionError: typed-gguf/0.1 (+https://github.com/Rybens92/typed-gguf)
+E       assert False
+E        +  where False = <built-in method startswith of str object at 0x7f8f066ca870>('typed-gguf/0.2.3')
+E        +    where <built-in method startswith of str object at 0x7f8f066ca870> = 'typed-gguf/0.1 (+https://github.com/Rybens92/typed-gguf)'.startswith
+E        +      where 'typed-gguf/0.1 (+https://github.com/Rybens92/typed-gguf)' = hf.USER_AGENT
+
+tests/test_hf.py:311: AssertionError
+___________________ test_stop_takes_the_ledgers_log_with_it ____________________
+
+keep_home = PosixPath('/tmp/tg-keep-rkgp4v0j/home')
+
+    def test_stop_takes_the_ledgers_log_with_it(keep_home: pathlib.Path) -> None:
+        """P3 (card t_16067777, E2E proposal): `keep stop` leaves no `<digest>.log` in the ledger.
+    
+        **Delete, not move.** SPEC 2.7 fixes the data home's path list (`models/`, `registry.json`,
+        `runtime/<tag>-<variant>/`, `runtime.json`, `states/`, `calibration.json`) and §2.12 puts the
+        host's socket in `<home>/keep/`; a second log directory would be a path the SPEC never names,
+        for a file nothing reads once the host is gone. What the log is *for* is spent where it is
+        read (`_log_tail` quotes it into the fallback string while a spawn is failing, and the crash
+        path keeps it), so the deliberate "I want this host gone" verb takes it along.
+    
+        Both shapes: a ledger whose record is still there (a stale record is not debris to be left
+        under a log) and the one where an earlier `ask` already cleaned the record up.
+        """
+        key = _key()
+        state.ensure_dir(keep_home)
+        log = state.log_path(keep_home, key.digest)
+        log.write_text("keep: the host said something\n", encoding="utf-8")
+        report = client_module.Client(home=keep_home).stop()
+        assert report == {"stopped": False, "pid": None, "reason": "no host", "cleaned": False}
+>       assert not log.exists(), "a log whose host is gone is the ledger's debris, not the ledger"
+E       AssertionError: a log whose host is gone is the ledger's debris, not the ledger
+E       assert not True
+E        +  where True = exists()
+E        +    where exists = PosixPath('/tmp/tg-keep-rkgp4v0j/home/keep/c0f18d15ed979b0f.log').exists
+
+tests/test_keep_client.py:498: AssertionError
+______ test_keep_stop_still_works_after_serving_and_leaves_nothing_behind ______
+
+fake_host_client = PosixPath('/tmp/tg-keep-rlavny9x/home')
+
+    @pytest.mark.needs_fork
+    def test_keep_stop_still_works_after_serving_and_leaves_nothing_behind(fake_host_client) -> None:
+        data_home = fake_host_client
+        app = cli.serve_app(home=data_home, keep_alive=30.0, default_format="native")
+        assert post(app, SDK_MIXED_BODY).status == 200
+        record = keep_state.read_record(data_home)
+        assert record is not None and keep_state.pid_alive(record.pid)
+        report = keep_client.Client(home=data_home).stop()
+        assert report["stopped"] is True
+        assert keep_state.read_record(data_home) is None
+        assert keep_state.wait_pid_gone(record.pid, timeout=5.0), "no leaked host process"
+        # P3 (card t_16067777): the ledger is left *empty*, the host's own `<digest>.log` included.
+        # A-E5-5 reads it strictly ("no host/socket/ledger entry is left behind") and the log is the
+        # one file that used to survive `keep stop` (the E2E receipt's 762 B → 3 090 B).
+        left_behind = sorted(path.name for path in keep_state.keep_dir(data_home).iterdir())
+>       assert left_behind == [], left_behind
+E       AssertionError: ['1cc0d72d73c0bb67.log']
+E       assert ['1cc0d72d73c0bb67.log'] == []
+E         
+E         Left contains one more item: '1cc0d72d73c0bb67.log'
+E         Use -v to get more diff
+
+tests/test_serve.py:880: AssertionError
+----------------------------- Captured stderr call -----------------------------
+POST /v1/systemone 200 served_by=host 62.2ms req=c4e6fdaaad744a7b
+_ test_the_host_gate_driver_raises_the_sdk_timeout_above_its_ten_second_default _
+
+    def test_the_host_gate_driver_raises_the_sdk_timeout_above_its_ten_second_default() -> None:
+        """P4 (card t_16067777, E2E proposal): 10 s is the SDK's default; a cold shader cache is not.
+    
+        On the E2E box the *first* decision of the day took 32.1/28.6/28.5 s server-side (cold Vulkan
+        shader cache) and this driver gave up with `TypeSafeAPITimeoutError (timeout=10.0)`, three
+        attempts — while the same body passed once warm (SPEC 2.9/§6 document the SDK side; the
+        receipt's `harness/sdk_client_long.py` had to pass `timeout=600` to get a measurement at all).
+        A gate that cannot outlast it is red on a box where the product is right.
+        """
+        driver = _gate_driver()
+>       assert driver.CLIENT_TIMEOUT >= 120.0, driver.CLIENT_TIMEOUT
+               ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'host_gate_serve_client' has no attribute 'CLIENT_TIMEOUT'
+
+tests/test_serve.py:1085: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_runtime_update.py::test_rollback_keeps_the_probe_facts_the_update_recorded
+FAILED tests/test_runtime_update.py::test_the_github_asset_leg_names_github_and_sends_the_real_user_agent
+FAILED tests/test_hf.py::test_the_user_agent_carries_the_packaged_version - A...
+FAILED tests/test_keep_client.py::test_stop_takes_the_ledgers_log_with_it - A...
+FAILED tests/test_serve.py::test_keep_stop_still_works_after_serving_and_leaves_nothing_behind
+FAILED tests/test_serve.py::test_the_host_gate_driver_raises_the_sdk_timeout_above_its_ten_second_default
+6 failed, 1 passed in 0.76s

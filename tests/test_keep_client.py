@@ -476,6 +476,41 @@ def test_stop_is_idempotent_and_cleans_a_stale_record(keep_home: pathlib.Path) -
     assert report["cleaned"] is True and state.read_record(keep_home) is None
 
 
+def test_stop_takes_the_ledgers_log_with_it(keep_home: pathlib.Path) -> None:
+    """P3 (card t_16067777, E2E proposal): `keep stop` leaves no `<digest>.log` in the ledger.
+
+    **Delete, not move.** SPEC 2.7 fixes the data home's path list (`models/`, `registry.json`,
+    `runtime/<tag>-<variant>/`, `runtime.json`, `states/`, `calibration.json`) and §2.12 puts the
+    host's socket in `<home>/keep/`; a second log directory would be a path the SPEC never names,
+    for a file nothing reads once the host is gone. What the log is *for* is spent where it is
+    read (`_log_tail` quotes it into the fallback string while a spawn is failing, and the crash
+    path keeps it), so the deliberate "I want this host gone" verb takes it along.
+
+    Both shapes: a ledger whose record is still there (a stale record is not debris to be left
+    under a log) and the one where an earlier `ask` already cleaned the record up.
+    """
+    key = _key()
+    state.ensure_dir(keep_home)
+    log = state.log_path(keep_home, key.digest)
+    log.write_text("keep: the host said something\n", encoding="utf-8")
+    report = client_module.Client(home=keep_home).stop()
+    assert report == {"stopped": False, "pid": None, "reason": "no host", "cleaned": False}
+    assert not log.exists(), "a log whose host is gone is the ledger's debris, not the ledger"
+    assert list(state.keep_dir(keep_home).iterdir()) == []
+
+    socket_file = state.socket_path(keep_home, key.digest)
+    socket_file.write_text("", encoding="utf-8")
+    log.write_text("keep: a killed host's post-mortem\n", encoding="utf-8")
+    state.write_record(state.HostRecord(
+        digest=key.digest, pid=2 ** 30, socket=str(socket_file), key=key.to_dict(), model="a",
+        model_path=key.model_path, keep_alive=30.0, started_at=0.0, loaded_at=0.0,
+        spec=str(state.spec_path(keep_home, key.digest)),
+        log=str(state.log_path(keep_home, key.digest))), keep_home)
+    report = client_module.Client(home=keep_home).stop()
+    assert report["cleaned"] is True and report["stopped"] is False
+    assert list(state.keep_dir(keep_home).iterdir()) == [], "record, socket and log all go"
+
+
 @pytest.mark.needs_fork
 def test_the_spawn_writes_a_private_spec_and_a_log(make_client, keep_home) -> None:
     client = make_client()

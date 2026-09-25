@@ -17,6 +17,7 @@ answer is `schema.render_response(native, format="typesafe")` of the very same e
 """
 from __future__ import annotations
 
+import ast
 import dataclasses
 import importlib.util
 import json
@@ -872,6 +873,11 @@ def test_keep_stop_still_works_after_serving_and_leaves_nothing_behind(fake_host
     assert report["stopped"] is True
     assert keep_state.read_record(data_home) is None
     assert keep_state.wait_pid_gone(record.pid, timeout=5.0), "no leaked host process"
+    # P3 (card t_16067777): the ledger is left *empty*, the host's own `<digest>.log` included.
+    # A-E5-5 reads it strictly ("no host/socket/ledger entry is left behind") and the log is the
+    # one file that used to survive `keep stop` (the E2E receipt's 762 B → 3 090 B).
+    left_behind = sorted(path.name for path in keep_state.keep_dir(data_home).iterdir())
+    assert left_behind == [], left_behind
 
 
 def test_two_concurrent_decisions_serialize_in_arrival_order(home) -> None:
@@ -1064,6 +1070,28 @@ def test_the_host_gate_driver_refuses_a_missing_or_different_sdk(tmp_path) -> No
     assert completed.returncode == 3, completed
     assert expected in completed.stderr, completed.stderr
     assert completed.stdout == "", "a refusal reaches no socket and prints no answers"
+
+
+def test_the_host_gate_driver_raises_the_sdk_timeout_above_its_ten_second_default() -> None:
+    """P4 (card t_16067777, E2E proposal): 10 s is the SDK's default; a cold shader cache is not.
+
+    On the E2E box the *first* decision of the day took 32.1/28.6/28.5 s server-side (cold Vulkan
+    shader cache) and this driver gave up with `TypeSafeAPITimeoutError (timeout=10.0)`, three
+    attempts — while the same body passed once warm (SPEC 2.9/§6 document the SDK side; the
+    receipt's `harness/sdk_client_long.py` had to pass `timeout=600` to get a measurement at all).
+    A gate that cannot outlast it is red on a box where the product is right.
+    """
+    driver = _gate_driver()
+    assert driver.CLIENT_TIMEOUT >= 120.0, driver.CLIENT_TIMEOUT
+    # ...and the client is actually built with it: a constant nobody passes is decoration
+    calls = [node for node in ast.walk(ast.parse(GATE_DRIVER.read_text(encoding="utf-8")))
+             if isinstance(node, ast.Call) and getattr(node.func, "id", "") == "TypeSafeClient"]
+    assert len(calls) == 1, "the driver builds one client"
+    passed = {keyword.arg: ast.unparse(keyword.value) for keyword in calls[0].keywords}
+    assert passed.get("timeout") == "CLIENT_TIMEOUT", passed
+    assert passed.get("base_url") == "base_url", passed
+    doc = (driver.__doc__ or "").lower()
+    assert "shader" in doc and "timeout" in doc, "the driver's own line says why"
 
 
 def test_the_host_gate_script_pins_the_sdk_and_walks_the_documented_steps() -> None:

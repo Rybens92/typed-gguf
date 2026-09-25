@@ -13,6 +13,7 @@ import urllib.error
 
 import pytest
 
+from typed_gguf import __version__
 from typed_gguf.errors import TypedGgufError
 from typed_gguf.registry import hf
 
@@ -298,6 +299,74 @@ def test_download_progress_callback_sees_the_total(monkeypatch: pytest.MonkeyPat
     hf.download_file(DEFAULT_REPO, "m.gguf", tmp_path / "m.gguf", revision="main",
                      size=len(payload), chunk=1000, progress=note)
     assert seen and seen[-1] == (len(payload), len(payload))
+
+
+def test_the_user_agent_carries_the_packaged_version() -> None:
+    """P2 (card t_16067777): the UA takes its version from the package, never a frozen literal.
+
+    It shipped as `typed-gguf/0.1` while the release API's UA said `typed-gguf/0.2.3` (the E2E
+    receipt's fixture log showed both on one update run). One source of the version, one UA
+    prefix — the project URL suffix stays, it is not the version.
+    """
+    assert hf.USER_AGENT.startswith(f"typed-gguf/{__version__}"), hf.USER_AGENT
+    assert "(+https://github.com/Rybens92/typed-gguf)" in hf.USER_AGENT
+
+
+def test_a_huggingface_failure_still_names_huggingface(monkeypatch: pytest.MonkeyPatch,
+                                                      tmp_path: pathlib.Path) -> None:
+    """P2's other half: the wording is per-leg, not a global rename.
+
+    The GitHub asset leg is told which product it talks to; a *HuggingFace* download keeps saying
+    HuggingFace, so the pin cannot be satisfied by papering over the real host.
+    """
+    def boom(url: str, headers: dict[str, str], timeout: float = 60.0):
+        raise urllib.error.HTTPError(url, 500, "Err", {}, None)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(hf, "_open", boom)
+    with pytest.raises(TypedGgufError) as exc:
+        hf.download_file(DEFAULT_REPO, "m.gguf", tmp_path / "m.gguf")
+    assert str(exc.value).endswith("HuggingFace returned HTTP 500 (Err)"), str(exc.value)
+
+
+def test_the_unreachable_download_leg_names_the_host_the_product_talks_to(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    """The `URLError` half of the same wording (Tier-M: the first sweep left these alive).
+
+    A dead network is the other way a leg fails, and it names a *host*: this module's own legs
+    reach huggingface.co, while an asset download from `install` reaches github.com. One
+    `PRODUCT_HOSTS` lookup, two answers — and an unregistered product names itself instead of
+    borrowing somebody else's host or printing `None`.
+    """
+    def refuse(url: str, headers: dict[str, str], timeout: float = 60.0):
+        raise urllib.error.URLError("no route to host")
+
+    monkeypatch.setattr(hf, "_open", refuse)
+    with pytest.raises(TypedGgufError) as exc:
+        hf.download_file(DEFAULT_REPO, "m.gguf", tmp_path / "m.gguf")
+    assert "cannot reach huggingface.co" in str(exc.value), str(exc.value)
+
+    with pytest.raises(TypedGgufError) as exc:
+        hf.download_url("https://github.com/acme/releases/download/b1/x.tar.gz",
+                        tmp_path / "x.tar.gz", product=hf.GITHUB)
+    message = str(exc.value)
+    assert "cannot reach github.com" in message, message
+    assert "huggingface" not in message, message
+
+    unknown = hf._translate(urllib.error.URLError("down"), "acme/x", product="Bitbucket")
+    assert "cannot reach Bitbucket" in str(unknown), str(unknown)
+
+
+def test_an_unknown_transport_failure_is_still_the_typed_download_error(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    """`_translate`'s last leg: a transport that raises something else is never re-raised raw."""
+    def boom(url: str, headers: dict[str, str], timeout: float = 60.0):
+        raise ValueError("the wire said something odd")
+
+    monkeypatch.setattr(hf, "_open", boom)
+    with pytest.raises(TypedGgufError) as exc:
+        hf.download_file(DEFAULT_REPO, "m.gguf", tmp_path / "m.gguf")
+    assert exc.value.code == "E_DOWNLOAD_FAILED"
+    assert "the wire said something odd" in str(exc.value)
 
 
 # ------------------------------------------------------------------ disk precheck

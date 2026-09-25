@@ -426,7 +426,7 @@ class Client:
         return {**base, **dict(reply.get("keep") or {}), "state": "running"}
 
     def stop(self, *, grace: float | None = None, drain: bool = False) -> dict[str, Any]:
-        """`keep stop`: end the host, wait for the process, remove the ledger's entry.
+        """`keep stop`: end the host, wait for the process, remove what the ledger holds of it.
 
         The one verb that acts on the record *verifies* it first — the module's own rule is that a
         record is a claim, not a fact. A record whose socket nobody answers on is the debris a
@@ -434,6 +434,12 @@ class Client:
         the host: by the next call the kernel may have handed it to somebody else (card
         t_a4ebcd36 — the re-gate watched a decoy process die on a stale record's pid). Debris is
         cleaned up, nothing is signalled, and the report says which of the two it was.
+
+        The host's own `<digest>.log` goes too (P3, card t_16067777): this is the verb a human
+        types when they want the host gone, and a ledger that answers `A-E5-5`'s "no
+        host/socket/ledger entry is left behind" has to be empty afterwards — `state.clear_log`
+        says why delete and not move. With no record at all it sweeps the logs of hosts that are
+        already gone (a crashed host's post-mortem outlives its record).
 
         `drain=True` is the **swap**'s half (card t_176614c6(a)): a host that is *busy* (a decision
         in flight — a ping it does not answer in `ping_timeout`) is given this client's own request
@@ -444,6 +450,7 @@ class Client:
         timeout = self.stop_grace if grace is None else float(grace)
         record = state.read_record(self.home)
         if record is None:
+            state.clear_log(self.home)                    # nothing to stop; debris is still ours
             return {"stopped": False, "pid": None, "reason": "no host", "cleaned": False}
         pid = record.pid
         stopped = False
@@ -487,6 +494,8 @@ class Client:
             with contextlib.suppress(Exception):
                 child.wait(timeout=2.0)
         cleaned = state.clear_record(self.home, digest=record.digest)
+        # P3: the log is the ledger's too, and it belongs to the host this verb just ended
+        state.clear_log(self.home, digest=record.digest)
         self.events.append(("stop", pid))
         return {"stopped": stopped, "pid": pid, "reason": reason, "cleaned": cleaned}
 

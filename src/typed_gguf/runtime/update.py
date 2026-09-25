@@ -574,6 +574,15 @@ def rollback(*, home: pathlib.Path | None = None, client: Any = None) -> dict[st
     2.8's tail) — plus the hash of its `libllama`, so the record still answers `doctor`'s
     recorded-SHA check. The bundle the update installed stays on disk (nothing is ever deleted),
     so a later `update` adopts it instead of downloading it again.
+
+    The record that moves back is the **whole** record, not a rebuilt one (P1, card t_16067777):
+    `update` writes the probe's own facts (`backends`, `symbols_*`, the asset block) and SPEC 2.8's
+    "all existing record keys stay" describes the *runtime*, not the verb — a rollback that dropped
+    them left `typed-gguf version` printing `backends unknown` about a bundle that had just been
+    probed. Only the keys that describe the **active** bundle are rewritten (its dir/tag/build/
+    variant, its `libllama` hash, the `tools` map, which names files *inside* that directory, and
+    `previous`/`rolled_back_*`); the asset and update timestamps stay as the record of what the
+    last install did.
     """
     home = home or store.data_home()
     record = finder.runtime_record(home) or {}
@@ -590,7 +599,8 @@ def rollback(*, home: pathlib.Path | None = None, client: Any = None) -> dict[st
             f"E_UPDATE_UNAVAILABLE: the retained bundle {target} is gone (no {library} in it), so "
             f"there is nothing to roll back to; `typed-gguf init` reinstalls the pinned bundle")
     stopped = _stop_host(home, client=client)
-    new_record = {
+    new_record: dict[str, Any] = {
+        **record,
         "schema": finder.RUNTIME_RECORD_SCHEMA,
         "dir": str(target),
         "tag": previous.get("tag"),
@@ -603,6 +613,10 @@ def rollback(*, home: pathlib.Path | None = None, client: Any = None) -> dict[st
                              "build": record.get("build")},
         PREVIOUS: None,
     }
+    if isinstance(record.get("tools"), Mapping):
+        # the probe ran on the bundle the update moved in: its tool paths name files there, and
+        # `doctor`/`version` read this map — point it at the bundle this record now names
+        new_record["tools"] = _retarget_tools(record["tools"], target)
     finder.write_runtime_record(new_record, home)
     return {"schema": ROLLBACK_SCHEMA, "rolled_back": True,
             "from": _from_payload({"tag": record.get("tag"), "build": record.get("build"),

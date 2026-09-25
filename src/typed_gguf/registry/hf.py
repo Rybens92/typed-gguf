@@ -27,6 +27,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from typed_gguf import __version__
 from typed_gguf.errors import DownloadError, HfAuthError, InsufficientDiskError, Sha256MismatchError
 from typed_gguf.registry.gguf import sha256_file
 
@@ -35,7 +36,17 @@ TOKEN_ENV = ("HF_TOKEN", "HUGGING_FACE_HUB_TOKEN", "HUGGINGFACE_HUB_TOKEN")
 DEFAULT_REPO = "XHToken/Spark-X2.5-4B-GGUF"
 SNAPSHOT_NAME = "hf_spark_x2_5.json"
 CHUNK = 1 << 20
-USER_AGENT = "typed-gguf/0.1 (+https://github.com/Rybens92/typed-gguf)"
+#: The version is the package's, never a literal (P2, card t_16067777: it froze at `0.1` while
+#: `runtime.update`'s release-API UA sent the real one — two UAs, one run, one of them lying).
+USER_AGENT = f"typed-gguf/{__version__} (+https://github.com/Rybens92/typed-gguf)"
+
+#: Which product a leg talks to. This module is HuggingFace's, but it also *is* the transport the
+#: GitHub asset download borrows (`install._fetch`), and a failure has to name the host it came
+#: from: the E2E's U5 leg read `HuggingFace returned HTTP 404` about a `github.com` URL.
+HUGGINGFACE = "HuggingFace"
+GITHUB = "GitHub"
+#: The host a failure names, per product (`_translate`) — the message never guesses from the URL.
+PRODUCT_HOSTS = {HUGGINGFACE: "huggingface.co", GITHUB: "github.com"}
 
 Progress = Callable[[int, int | None], None]
 
@@ -113,19 +124,28 @@ def fetch_json(url: str, *, token: str | None = None, timeout: float = 60.0) -> 
         return json.loads(response.read().decode("utf-8"))
 
 
-def _translate(exc: Exception, repo: str) -> Exception:
+def _translate(exc: Exception, repo: str, *, product: str = HUGGINGFACE) -> Exception:
+    """The typed error for a transport failure, **naming the product it came from**.
+
+    `product` is the calling leg's own fact, not a guess read off the URL: this module's
+    HuggingFace calls keep the default, and `install`'s bundle download — a GitHub release asset —
+    passes `GITHUB`, so the message it raises names the host that answered (P2, card t_16067777).
+    A 401/403 is only HuggingFace's gating: a GitHub asset needs no token, so it takes the generic
+    wording instead of advice about `HF_TOKEN`.
+    """
     if isinstance(exc, urllib.error.HTTPError):
-        if exc.code in (401, 403):
+        if product is HUGGINGFACE and exc.code in (401, 403):
             return HfAuthError(
                 f"E_HF_AUTH_REQUIRED: {repo} is gated or private (HTTP {exc.code}); export "
                 f"HF_TOKEN=<token with read access> (HUGGING_FACE_HUB_TOKEN and "
                 f"~/.cache/huggingface/token are honoured too) and retry")
         return DownloadError(
-            f"E_DOWNLOAD_FAILED: {repo}: HuggingFace returned HTTP {exc.code} ({exc.reason})")
+            f"E_DOWNLOAD_FAILED: {repo}: {product} returned HTTP {exc.code} ({exc.reason})")
     if isinstance(exc, (urllib.error.URLError, TimeoutError, OSError)):
         return DownloadError(
-            f"E_DOWNLOAD_FAILED: {repo}: cannot reach huggingface.co ({exc}); this tool is "
-            f"offline-capable only for the pinned default model (TYPED_GGUF_OFFLINE=1)")
+            f"E_DOWNLOAD_FAILED: {repo}: cannot reach {PRODUCT_HOSTS.get(product, product)} "
+            f"({exc}); this tool is offline-capable only for the pinned default model "
+            f"(TYPED_GGUF_OFFLINE=1)")
     return DownloadError(f"E_DOWNLOAD_FAILED: {repo}: {exc}")
 
 
@@ -283,8 +303,13 @@ def resolve_url(repo: str, path: str, revision: str = "main") -> str:
 def download_url(url: str, dest: str | os.PathLike[str], *, size: int | None = None,
                  sha256: str | None = None, token: str | None = None, revision: str | None = None,
                  chunk: int = CHUNK, resume: bool = True, no_verify: bool = False,
-                 progress: Progress | None = None, timeout: float = 60.0) -> DownloadResult:
-    """Range-resumable download into `<dest>.part`, verified, then atomically published."""
+                 progress: Progress | None = None, timeout: float = 60.0,
+                 product: str = HUGGINGFACE) -> DownloadResult:
+    """Range-resumable download into `<dest>.part`, verified, then atomically published.
+
+    `product` is only what a failure is *worded* with (`_translate`), because the transport is
+    shared: HuggingFace by default, `GITHUB` for the release assets `install` fetches.
+    """
     dest = pathlib.Path(dest)
     part = dest.with_name(dest.name + ".part")
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -302,9 +327,9 @@ def download_url(url: str, dest: str | os.PathLike[str], *, size: int | None = N
             if exc.code == 416 and offset:
                 part.unlink(missing_ok=True)  # stale part: start over
                 continue
-            raise _translate(exc, url) from exc
+            raise _translate(exc, url, product=product) from exc
         except Exception as exc:  # noqa: BLE001 - translated below
-            raise _translate(exc, url) from exc
+            raise _translate(exc, url, product=product) from exc
         with response:
             status = getattr(response, "status", 200)
             content_length = None

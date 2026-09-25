@@ -28,8 +28,9 @@ import urllib.error
 import pytest
 
 from tests import conftest as suite_environment
-from typed_gguf import cli
+from typed_gguf import __version__, cli
 from typed_gguf.errors import TypedGgufError
+from typed_gguf.registry import hf
 from typed_gguf.runtime import capability, install, pins, update
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -678,6 +679,43 @@ def test_a_failed_download_leaves_the_runtime_untouched(tmp_path: pathlib.Path) 
     assert not (home.home / "downloads" / NEXT_ASSET).exists()
 
 
+def test_the_github_asset_leg_names_github_and_sends_the_real_user_agent(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """P2 (card t_16067777, E2E proposal): the GitHub download speaks for GitHub.
+
+    The E2E's U5 leg read `E_DOWNLOAD_FAILED: …: HuggingFace returned HTTP 404` and the fixture's
+    request log showed `User-Agent: typed-gguf/0.1` on the asset GET while the release API sent
+    `typed-gguf/0.2.3`: `registry/hf.py` — the module the GitHub asset download borrows its
+    transport from — hardcoded the version *and* worded every failure with HuggingFace's name.
+    The asset leg is GitHub's, and the UA carries the packaged version (the same source as the
+    release API's), so a reader of the failure never has to know which module fetched it.
+    """
+    home = installed_home(tmp_path)
+    archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+    seen: list[dict[str, str]] = []
+
+    def not_found(url: str, headers: dict[str, str], timeout: float = 60.0):
+        seen.append({"url": url, "headers": dict(headers)})
+        raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(hf, "_open", not_found)
+    before = (home.home / "runtime.json").read_bytes()
+    with pytest.raises(TypedGgufError) as exc:
+        update.update(home=home.home, lock=home.lock,
+                      releases=[release(size=archive.stat().st_size)], deep=False,
+                      client=FakeClient(), probes=HOST)
+    message = str(exc.value)
+    assert exc.value.code == "E_DOWNLOAD_FAILED"
+    assert "GitHub returned HTTP 404" in message, message
+    assert "HuggingFace" not in message, message
+    assert "huggingface.co" not in message, message
+    assert seen, "the failing request is the asset GET"
+    agent = seen[0]["headers"].get("User-Agent", "")
+    assert agent.startswith(update.USER_AGENT), agent
+    assert agent.startswith(f"typed-gguf/{__version__}"), agent
+    assert (home.home / "runtime.json").read_bytes() == before
+
+
 def test_a_bundle_missing_a_required_file_aborts_before_the_probe(
         tmp_path: pathlib.Path) -> None:
     home = installed_home(tmp_path)
@@ -842,6 +880,62 @@ def test_rollback_flips_the_record_back_and_keeps_both_bundles(
     assert cli.main(["runtime", "rollback"]) == 2
     assert "E_UPDATE_UNAVAILABLE" in capsys.readouterr().err
     assert (home.home / "runtime.json").read_bytes() == frozen
+
+
+def test_rollback_keeps_the_probe_facts_the_update_recorded(
+        tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str]) -> None:
+    """P1 (card t_16067777, E2E proposal): the record `update` wrote is the one that comes back.
+
+    `runtime rollback` used to rebuild a ten-key record, so the ~30 keys the update wrote — the
+    probe's `backends`, `symbols_*`, the asset facts — were gone and `typed-gguf version` printed
+    `backends unknown`. SPEC 2.8 promises "all existing record keys stay" for *update*; rolling
+    back is that same record moving to the other bundle, so the probe facts survive it too — and
+    the keys that describe the *active* bundle (its dir, its `tools`, its `libllama` hash) are
+    rewritten to the bundle the record now names.
+    """
+    home = installed_home(tmp_path)
+    archive = make_archive(tmp_path, NEXT_ASSET, tag=NEXT_TAG, build=NEXT_BUILD)
+    payload = update.update(home=home.home, lock=home.lock,
+                            releases=[release(size=archive.stat().st_size)],
+                            url=archive.as_uri(), deep=False, client=FakeClient(), probes=HOST)
+    probe = payload["probe"]
+    updated = json.loads((home.home / "runtime.json").read_bytes())
+    assert probe["backends"], "the fixture's probe reports at least one backend"
+    monkeypatch.setenv("TYPED_GGUF_HOME", str(home.home))
+    report = update.rollback(home=home.home, client=FakeClient())
+    record = json.loads((home.home / "runtime.json").read_bytes())
+
+    # every key the update wrote is still there — the merged record, not a fresh ten-key one
+    assert set(updated) - set(record) == set()
+    assert set(home.record) - set(record) == set(), "init's keys survive the round trip too"
+    # ...the probe facts included, which is what `version` reads
+    assert record["backends"] == probe["backends"]
+    for key in ("symbols_ok", "symbols_probed", "missing_symbols", "probe_warnings",
+                "backend_requested", "asset", "asset_sha256", "rung", "url"):
+        assert key in record, key
+    # the keys that describe the *active* bundle are the rollback target's, not the old record's
+    assert record["dir"] == str(home.dir) and record["previous"] is None
+    assert record["libllama_sha256"] == sha256(home.dir / "libllama.so")
+    # Tier-M (the update.py sweep left `previous.get("installed_at")` alive): the stamp is the
+    # bundle-that-is-installed-now's own, carried over from the retained block — not the update's
+    # (the `**record` spread would hand that one over for free) and never `None`.
+    assert record["installed_at"] == home.record["installed_at"]
+    assert record["installed_at"] is not None
+    # ...and the report names the home it acted on and the direction it moved in (the sweep left
+    # `str(None)` and a `from`/`to` swap alive here)
+    assert report["home"] == str(home.home)
+    assert report["rolled_back"] is True
+    assert report["from"]["build"] == NEXT_BUILD and report["to"]["build"] == PINNED_BUILD
+    assert report["to"]["dir"] == str(home.dir)
+    assert record["tools"]["llama-cli"] == str(home.dir / "llama-cli")
+    assert record["tools"]["llama-fit-params"] == str(home.dir / "llama-fit-params")
+    # and the CLI reports the probe facts instead of "backends unknown"
+    assert cli.main(["version", "--json"]) == 0
+    version = json.loads(capsys.readouterr().out)
+    assert version["runtime"]["backends"] == probe["backends"]
+    assert cli.main(["version"]) == 0
+    assert f"backends {', '.join(probe['backends'])}" in capsys.readouterr().out
 
 
 def test_rollback_refuses_when_nothing_was_ever_updated(
