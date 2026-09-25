@@ -1,0 +1,29 @@
+  ok linux-cpu[2] None
+  ok linux-cpu[3] Download the pinned bundle
+  ok linux-cpu[4] Oracle (live — the two model-absent skips are the only allowed ones)
+  ok linux-cpu[5] Small GGUF for the placement smoke (host-side download, not the benchmark's)
+  ok linux-cpu[6] Engine smoke — `bench --gpu-layers 4` goes through the loader and reports the placement
+  ok linux-cpu[7] Engine smoke — the placement retry answers a typed row, never E_INTERNAL
+  ok linux-cpu[8] Warm window — the host a call leaves behind exits by itself (SPEC 2.12)
+  ok linux-vulkan[2] None
+  ok linux-vulkan[3] None
+  ok linux-vulkan[4] Download the pinned Vulkan bundle
+  ok linux-vulkan[5] Oracle (live — the same known-skip filter as linux-cpu)
+  ok windows-cpu[2] None
+  (pwsh, not checked here: no pwsh in this container) windows-cpu[3] Download the pinned CPU bundle and flatten it (the DLLs the finder wants)
+  (pwsh, not checked here: no pwsh in this container) windows-cpu[4] Small GGUF for the smoke decision (host-side download, not the benchmark's)
+  (pwsh, not checked here: no pwsh in this container) windows-cpu[5] Doctor — the Windows bundle validates (the distribution check is platform-aware)
+  (pwsh, not checked here: no pwsh in this container) windows-cpu[6] Engine smoke — `bench --suite latency` end to end (llama.dll loads and computes)
+  (pwsh, not checked here: no pwsh in this container) windows-cpu[7] Serve smoke — a real boot, a real HTTP decision, SPEC 2.12's inline fallback
+  ok macos-metal[2] None
+  ok macos-metal[3] Download the pinned Metal bundle
+  ok macos-metal[4] Doctor smoke (E1a)
+  ok macos-engine-smoke[2] None
+  ok macos-engine-smoke[3] Download the pinned Metal bundle
+  ok macos-engine-smoke[4] Small GGUF for the smoke decision (host-side download, not the benchmark's)
+  ok macos-engine-smoke[5] Engine smoke — latency (model load, prefill, decisions)
+  ok macos-engine-smoke[6] Engine smoke — results are stable bytes on this platform (A5/A-E2-5)
+  ok macos-engine-smoke[7] Engine smoke — the dev set answers end to end (A-E2-3 path on macOS)
+  ok macos-engine-smoke[8] Engine smoke — `bench --quick` end to end (card t_f46cec41)
+  ok macos-engine-smoke[9] Serve — the pinned SDK client, the warm host, and a clean `keep stop`
+bash -n: 23 blocks ok=23, pwsh blocks skipped=5

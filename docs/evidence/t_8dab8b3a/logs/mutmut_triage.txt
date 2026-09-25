@@ -1,0 +1,60 @@
+per function (survived / no-tests):
+  capability._backend_name                       survived=  4 no-tests=  0
+  capability.arch_guard_build                    survived=  2 no-tests=  0
+  capability.as_dict                             survived=  0 no-tests=  0
+  capability.build_number                        survived= 35 no-tests=  0
+  capability.build_tag                           survived=  1 no-tests=  0
+  capability.deep_probe_enabled                  survived=  0 no-tests=  0
+  capability.load_backend_library                survived=  0 no-tests=  0
+  capability.load_system_lib                     survived=  0 no-tests=  0
+  capability.platform_summary                    survived=  0 no-tests=  0
+  capability.probe_runtime                       survived= 56 no-tests=  0
+  capability.probe_symbols                       survived=  0 no-tests=  0
+  capability.require_arch                        survived= 18 no-tests=  0
+  capability.scan_in_process                     survived=  0 no-tests=  0
+  capability.supports_arch                       survived= 13 no-tests=  0
+  finder.accelerator_names                       survived=  0 no-tests=  0
+  finder.backend_of_bundle                       survived=  0 no-tests=  0
+  finder.find_runtime                            survived= 12 no-tests=  0
+  finder.layout                                  survived=  3 no-tests=  0
+  finder.library_glob                            survived= 10 no-tests=  0
+  finder.library_names                           survived=  4 no-tests=  0
+  finder.required_files                          survived=  4 no-tests=  0
+  finder.resolve_runtime                         survived=  6 no-tests=  0
+  finder.runtime_dirs                            survived=  3 no-tests=  0
+  finder.runtime_record                          survived=  3 no-tests=  0
+  finder.write_runtime_record                    survived= 12 no-tests=  0
+
+capability.py: 22 survivor(s) whose mutated line THIS CARD added
+  ON-SURFACE supports_arch__mutmut_14  <- names = [name.encode() for name in arch_symbol_names(runtime_dir, arch)]
+  ON-SURFACE supports_arch__mutmut_28  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE supports_arch__mutmut_29  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE supports_arch__mutmut_30  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE supports_arch__mutmut_31  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE supports_arch__mutmut_33  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE supports_arch__mutmut_35  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE require_arch__mutmut_10  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE require_arch__mutmut_11  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE require_arch__mutmut_12  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE require_arch__mutmut_13  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE require_arch__mutmut_14  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE require_arch__mutmut_15  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE require_arch__mutmut_16  <- current = build if build is not None else build_number(runtime_dir, system=system)
+  ON-SURFACE require_arch__mutmut_35  <- if not supports_arch(runtime_dir, arch, build=current, lock=lock, system=system):
+  ON-SURFACE require_arch__mutmut_36  <- if not supports_arch(runtime_dir, arch, build=current, lock=lock, system=system):
+  ON-SURFACE require_arch__mutmut_37  <- if not supports_arch(runtime_dir, arch, build=current, lock=lock, system=system):
+  ON-SURFACE require_arch__mutmut_40  <- if not supports_arch(runtime_dir, arch, build=current, lock=lock, system=system):
+  ON-SURFACE require_arch__mutmut_41  <- if not supports_arch(runtime_dir, arch, build=current, lock=lock, system=system):
+  ON-SURFACE require_arch__mutmut_42  <- if not supports_arch(runtime_dir, arch, build=current, lock=lock, system=system):
+  ON-SURFACE require_arch__mutmut_44  <- f"{arch_symbol_names(runtime_dir, arch)[0]} in {lib_name}); fix: "
+  ON-SURFACE require_arch__mutmut_48  <- f"{arch_symbol_names(runtime_dir, arch)[0]} in {lib_name}); fix: "
+  (45 survivor(s) elsewhere in the touched functions — pre-existing lines)
+
+finder.py: 4 survivor(s) whose mutated line THIS CARD added
+  ON-SURFACE required_files__mutmut_2  <- resolved = (system or platform.system()).lower()
+  ON-SURFACE required_files__mutmut_5  <- if resolved == "linux":
+  ON-SURFACE required_files__mutmut_6  <- if resolved == "linux":
+  ON-SURFACE required_files__mutmut_15  <- return tuple(names[role_of[name]] if name in role_of else name for name in lock.required_files)
+  (17 survivor(s) elsewhere in the touched functions — pre-existing lines)
+
+ON-SURFACE SURVIVORS: 26

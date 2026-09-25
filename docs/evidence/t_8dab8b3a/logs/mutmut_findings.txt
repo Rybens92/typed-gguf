@@ -1,0 +1,32 @@
+== capability.py: supports_arch__mutmut_14
+   -    names = [name.encode() for name in arch_symbol_names(runtime_dir, arch)]
+   +    names = [name.encode() for name in arch_symbol_names(None, arch)]
+
+== capability.py: supports_arch__mutmut_28
+   -    current = build if build is not None else build_number(runtime_dir, system=system)
+   +    current = None
+
+== capability.py: require_arch__mutmut_10
+   -    current = build if build is not None else build_number(runtime_dir, system=system)
+   +    current = build if (build is not None) and False else build_number(runtime_dir, system=system)
+
+== capability.py: require_arch__mutmut_44
+   -            f"{arch_symbol_names(runtime_dir, arch)[0]} in {lib_name}); fix: "
+   +            f"{arch_symbol_names(None, arch)[0]} in {lib_name}); fix: "
+
+== capability.py: require_arch__mutmut_35
+   -    if not supports_arch(runtime_dir, arch, build=current, lock=lock, system=system):
+   +    if not supports_arch(runtime_dir, arch, build=None, lock=lock, system=system):
+
+== finder.py: required_files__mutmut_2
+   -    resolved = (system or platform.system()).lower()
+   +    resolved = (system or platform.system()).upper()
+
+== finder.py: required_files__mutmut_5
+   -    if resolved == "linux":
+   +    if resolved == "XXlinuxXX":
+
+== finder.py: required_files__mutmut_15
+   -    return tuple(names[role_of[name]] if name in role_of else name for name in lock.required_files)
+   +    return tuple(names[role_of[name]] if (name in role_of) or True else name for name in lock.required_files)
+

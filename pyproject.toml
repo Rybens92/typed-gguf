@@ -248,13 +248,29 @@ quote-style = "double"
 # standing serve pair (t_f5d8b6c7), so the extra `also_copy` entry is the only thing run (A) leaves
 # behind in this config: the serve selection never reads it, and a later sweep that needs a different
 # document (or none) retargets both lines.
-source_paths = ["src/typed_gguf/api/http.py"]
+# Card t_8dab8b3a (the first live matrix's two failures) takes the pair to the module the fix
+# moves: `src/typed_gguf/runtime/capability.py` — `build_number`'s platform CLI leg (`llama-cli.exe`
+# off `finder.tool_name`), the arch scan's TWO ABI decorations (`\x00` = Itanium/ELF tail,
+# `@@` = MSVC/PE RTTI descriptor), `require_arch`'s platform-aware text and `ProbeResult`'s platform
+# — plus `src/typed_gguf/runtime/finder.py`, whose role-vs-filename table (`tool_name` /
+# `library_names` / `required_files`) is what lets a Windows bundle validate at all. The selection
+# is `tests/test_capability.py` (fake bundles, Windows names from the pinned zip, PE-shaped bytes —
+# every branch of both modules) plus `tests/test_pins.py` (the lock's own gate); both are fast,
+# which is what a Tier-M sweep needs on this shared box. max_children = 2 (the pid cap).
+# Restore the http/serve pair above when the next card sweeps one.
+source_paths = ["src/typed_gguf/runtime/capability.py", "src/typed_gguf/runtime/finder.py"]
 # Card t_f5d8b6c7 (serve) drops `docs` from also_copy for this sweep: the selection
 # (`tests/test_serve.py`) reads no document, while `docs/evidence/` carries 4.3 GB of committed
 # e2e artifacts (a model tree, two venvs with dangling `bin/python*` links) whose copy dominated
 # the run and aborted it on this container. A sweep whose gate file reads `docs/` must put it back.
+# Card t_8dab8b3a adds `docs/evidence/llama_cpp_release_b11026.json` to the sweep's copy list: the
+# selection includes `tests/test_pins.py`, whose `test_lock_assets_match_the_captured_evidence`
+# reads the pinned release's captured asset list — without it the baseline dies before the first
+# mutant ("failed to collect stats"). Both documents are small; nothing else under `docs/evidence/`
+# is read by these two gate files.
 also_copy = ["src/typed_gguf", "tests", "tools", "runtime.lock", "pyproject.toml", "README.md",
-             "SPEC.md", "LICENSE", "docs/evidence/hf_spark_x2_5.json"]
+             "SPEC.md", "LICENSE", "docs/evidence/hf_spark_x2_5.json",
+             "docs/evidence/llama_cpp_release_b11026.json"]
 pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # E1c FIX (card t_8cb0a05e) used [tests/test_fit.py, tests/test_fit_free_vram.py,
 # tests/test_fit_oom_recovery.py] with max_children = 2 (the fast set, so a sweep can finish
@@ -336,7 +352,8 @@ pytest_add_cli_args = ["-q", "--timeout=120", "-p", "no:randomly"]
 # update gate files assert. Run (B) is the selection below. Restore this default-model trio when a
 # models card sweeps next.
 pytest_add_cli_args_test_selection = [
-    "tests/test_serve.py",
+    "tests/test_capability.py",
+    "tests/test_pins.py",
 ]
 # NOT read by mutmut 3.8 (it is a CLI-only option: `mutmut run --max-children 2`), and a sweep on
 # this box needs both the flag and a retry driver: a failed `os.fork()` takes the whole run down

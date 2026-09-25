@@ -1,0 +1,16 @@
+llama.dll (PE, pinned win-cpu-x64): 3167232 bytes
+  llama_model_qwen2        : 6
+  ...qwen2 + NUL (ELF tail): 0
+  ...qwen2 + @@ (MSVC RTTI): 2
+  graph descriptor         : 1
+  flat descriptor          : 1
+  build-string matches     : []
+libllama.so.0 (ELF, pinned linux-x64-cpu): 4607392 bytes
+  llama_model_qwen2        : 115
+  ...qwen2 + NUL (ELF tail): 7
+  ...qwen2 + @@ (MSVC RTTI): 0
+  graph descriptor         : 0
+  flat descriptor          : 0
+  build-string matches     : []
+--- the whole win zip: does 11026 occur anywhere?
+win-cpu.zip 18439911 bytes: b'11026' -> 0

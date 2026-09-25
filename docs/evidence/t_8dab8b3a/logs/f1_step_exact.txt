@@ -1,0 +1,45 @@
+--- the step's own run block ---
+set -euo pipefail
+mkdir -p /tmp/fake-bundle
+cc -shared -fPIC -O1 -o /tmp/fake-bundle/libllama.so tools/fixtures/fit_oom_bundle.c
+cc -shared -fPIC -O1 -o /tmp/fake-bundle/libggml.so tools/fixtures/fit_oom_bundle.c
+python3 tools/fit_oom_probe.py --make-gguf /tmp/synthetic.gguf
+set +e
+env -u TYPED_GGUF_RUNTIME_DIR TYPED_GGUF_FAKE_OOM_ALL=1 TYPED_GGUF_BENCH_RUNTIME_DIR=/tmp/fake-bundle \
+  uv run typed-gguf bench --suite throughput --model /tmp/synthetic.gguf --gpu-layers 4 \
+  --runs 1 --json --out /tmp/placement-oom.json > /dev/null
+code=$?
+set -e
+# the ladder world: the same bundle, a full-offload plan — three rungs down to CPU-only
+env -u TYPED_GGUF_RUNTIME_DIR TYPED_GGUF_FAKE_OOM_ALL=1 \
+  python3 tools/fit_oom_probe.py --model /tmp/synthetic.gguf --runtime /tmp/fake-bundle \
+  --json /tmp/oom-probe.json > /dev/null
+python3 tools/matrix_oom_row.py --bench-row /tmp/placement-oom.json --bench-exit "$code" \
+  --probe-receipt /tmp/oom-probe.json --json /tmp/oom-row.json
+
+--- stdout ---
+wrote /tmp/synthetic.gguf
+fake-OOM worlds:
+  bench (cpu-pinned row): 1 placement(s), reason="BackendOomError: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=4, kv_type=auto, needed ~1010 MiB); the driver reports 6477 MiB free; tried 1 placement(s) down to CPU-only, none fit: n_gpu_layers=0 -> oom; the backend asked for a 1010 MiB allocation; backend log: 'ggml_vulkan: Device memory allocation of size 1058982400 failed.'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant"
+  ladder (full-offload)  : 3 placement(s), code='E_BACKEND_OOM'
+fake-OOM row OK: both worlds answered the typed row, never E_INTERNAL
+
+--- stderr ---
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+
+STEP_EXIT=0

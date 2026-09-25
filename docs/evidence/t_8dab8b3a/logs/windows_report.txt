@@ -1,0 +1,17 @@
+doctor exit 2 status 'warnings' (deep probe skipped)
+  ok    runtime.present          /tmp/win-receipt/typed-gguf-rt
+  ok    runtime.files            all required libraries present: llama.dll, ggml.dll, ggml-base.dll
+  warn  runtime.symbols          symbol probe skipped (TYPED_GGUF_DEEP_PROBE=0)
+  ok    runtime.build            build b11026
+  ok    runtime.fit_params       llama-fit-params --help exit 0
+  ok    runtime.backends         backends: cpu (driveable here: cpu)
+  warn  runtime.accelerator      no accelerator in this bundle (expected 'vulkan'); CPU works but decoding is slower
+  warn  runtime.sha_recorded     runtime.json has no llama.dll SHA-256 (re-run `typed-gguf init --force`)
+  warn  model.present            no model in the registry; run `typed-gguf models pull` (default model is pinned)
+::warning::typed-gguf doctor on Windows: the platform-aware checks are green — llama.dll, ggml.dll, ggml-base.dll validated by runtime.files and runtime.build says 'build b11026' — and this runner still warns 4 time(s), reported on every run instead of hidden: runtime.symbols: symbol probe skipped (TYPED_GGUF_DEEP_PROBE=0) | runtime.accelerator: no accelerator in this bundle (expected 'vulkan'); CPU works but decoding is slower | runtime.sha_recorded: runtime.json has no llama.dll SHA-256 (re-run `typed-gguf init --force`) | model.present: no model in the registry; run `typed-gguf models pull` (default model is pinned)
+judge: 0 problem(s) -> OK
+{
+ "exit_code": 2,
+ "status": "warnings",
+ "problems": []
+}

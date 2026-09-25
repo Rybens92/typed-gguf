@@ -1,0 +1,7 @@
+YAML OK. jobs: ['linux-cpu', 'linux-vulkan', 'windows-cpu', 'macos-metal', 'macos-engine-smoke']
+  linux-cpu: 9 steps, 7 run blocks, timeout-minutes=25
+  linux-vulkan: 6 steps, 4 run blocks, timeout-minutes=15
+  windows-cpu: 8 steps, 6 run blocks, timeout-minutes=30
+  macos-metal: 5 steps, 3 run blocks, timeout-minutes=15
+  macos-engine-smoke: 10 steps, 8 run blocks, timeout-minutes=30
+every run block is non-empty

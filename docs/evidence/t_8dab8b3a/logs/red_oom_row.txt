@@ -1,0 +1,318 @@
+FFFFFFFFFFFFF                                                            [100%]
+=================================== FAILURES ===================================
+_______________________ test_both_worlds_pass_the_judge ________________________
+
+    def test_both_worlds_pass_the_judge() -> None:
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f4459757890>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+____________ test_the_crash_reason_this_step_exists_for_is_refused _____________
+
+    def test_the_crash_reason_this_step_exists_for_is_refused() -> None:
+        """The parent-rev control's reason: the step must never go green on it again."""
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f4459754290>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+_______________ test_a_reason_without_the_typed_code_is_refused ________________
+
+    def test_a_reason_without_the_typed_code_is_refused() -> None:
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f4459757ad0>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+________________ test_a_row_that_measured_something_is_refused _________________
+
+    def test_a_row_that_measured_something_is_refused() -> None:
+        """An OOM row measured nothing: `measured: true` means the row is not the fake world."""
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f4459754770>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+_______ test_the_stale_three_rung_expectation_on_a_bench_row_is_refused ________
+
+    def test_the_stale_three_rung_expectation_on_a_bench_row_is_refused() -> None:
+        """The assertion this card is fixing: a CPU-pinned row has one rung, not three."""
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f445973b8f0>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+______________ test_a_bench_row_that_is_not_cpu_pinned_is_refused ______________
+
+    def test_a_bench_row_that_is_not_cpu_pinned_is_refused() -> None:
+        """The count above is only true because the row is cpu + pinned: say so when it drifts."""
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f445976a060>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+__________________ test_an_exit_code_that_drifted_is_refused ___________________
+
+    def test_an_exit_code_that_drifted_is_refused() -> None:
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f445976ae70>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+_____________ test_a_ladder_that_answered_another_code_is_refused ______________
+
+    def test_a_ladder_that_answered_another_code_is_refused() -> None:
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f445976bc50>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+___________ test_a_ladder_that_no_longer_reaches_cpu_only_is_refused ___________
+
+    def test_a_ladder_that_no_longer_reaches_cpu_only_is_refused() -> None:
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:128: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f445976ad20>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+______________ test_a_probe_receipt_from_another_world_is_refused ______________
+
+    def test_a_probe_receipt_from_another_world_is_refused() -> None:
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f445976bfe0>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+_____________ test_main_judges_the_two_files_and_writes_a_verdict ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-54/test_main_judges_the_two_files0')
+
+    def test_main_judges_the_two_files_and_writes_a_verdict(tmp_path: pathlib.Path) -> None:
+        row = tmp_path / "placement-oom.json"
+        receipt = tmp_path / "oom-probe.json"
+        row.write_text(json.dumps(bench_report()), encoding="utf-8")
+        receipt.write_text(json.dumps(probe_receipt()), encoding="utf-8")
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:147: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f44595cc410>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+____________________ test_main_refuses_a_row_it_cannot_read ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-54/test_main_refuses_a_row_it_can0')
+
+    def test_main_refuses_a_row_it_cannot_read(tmp_path: pathlib.Path) -> None:
+        row = tmp_path / "placement-oom.json"
+        row.write_text("not json", encoding="utf-8")
+        receipt = tmp_path / "oom-probe.json"
+        receipt.write_text(json.dumps(probe_receipt()), encoding="utf-8")
+>       module = load_tool()
+                 ^^^^^^^^^^^
+
+tests/test_matrix_oom_row.py:161: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_matrix_oom_row.py:46: in load_tool
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1132: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x7f4459628b60>
+path = '/workspace/ggufone/tools/matrix_oom_row.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/workspace/ggufone/tools/matrix_oom_row.py'
+
+<frozen importlib._bootstrap_external>:1190: FileNotFoundError
+_____________ test_the_tool_exists_where_the_workflow_looks_for_it _____________
+
+    def test_the_tool_exists_where_the_workflow_looks_for_it() -> None:
+>       assert TOOL.is_file()
+E       AssertionError: assert False
+E        +  where False = is_file()
+E        +    where is_file = PosixPath('/workspace/ggufone/tools/matrix_oom_row.py').is_file
+
+tests/test_matrix_oom_row.py:168: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_matrix_oom_row.py::test_both_worlds_pass_the_judge - FileNo...
+FAILED tests/test_matrix_oom_row.py::test_the_crash_reason_this_step_exists_for_is_refused
+FAILED tests/test_matrix_oom_row.py::test_a_reason_without_the_typed_code_is_refused
+FAILED tests/test_matrix_oom_row.py::test_a_row_that_measured_something_is_refused
+FAILED tests/test_matrix_oom_row.py::test_the_stale_three_rung_expectation_on_a_bench_row_is_refused
+FAILED tests/test_matrix_oom_row.py::test_a_bench_row_that_is_not_cpu_pinned_is_refused
+FAILED tests/test_matrix_oom_row.py::test_an_exit_code_that_drifted_is_refused
+FAILED tests/test_matrix_oom_row.py::test_a_ladder_that_answered_another_code_is_refused
+FAILED tests/test_matrix_oom_row.py::test_a_ladder_that_no_longer_reaches_cpu_only_is_refused
+FAILED tests/test_matrix_oom_row.py::test_a_probe_receipt_from_another_world_is_refused
+FAILED tests/test_matrix_oom_row.py::test_main_judges_the_two_files_and_writes_a_verdict
+FAILED tests/test_matrix_oom_row.py::test_main_refuses_a_row_it_cannot_read
+FAILED tests/test_matrix_oom_row.py::test_the_tool_exists_where_the_workflow_looks_for_it
+13 failed in 0.10s

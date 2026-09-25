@@ -1,0 +1,27 @@
+wrote /tmp/synthetic.gguf
+=== block A: the live step head 7c72c4b (the pre-fix fixture) ===
+pre-fix bench exit=1
+pre-fix row: {'backend': 'cpu', 'measured': False, 'placement': 'n_gpu_layers=4 (cpu compute pinned)'}
+pre-fix reason: RuntimeMissingError: E_RUNTIME_SYMBOLS: the bundle at /tmp/fb-prefix cannot name its CPU device (ggml_backend_dev_by_name('CPU') is missing); a CPU-pinned load 
+
+=== block B: the fixed head (this card) ===
+fixed bench exit=1   (1 = nothing was measured: a reported row, not a crash)
+fixed row: {'backend': 'cpu', 'measured': False, 'placement': 'n_gpu_layers=4 (cpu compute pinned)'}
+fixed reason: BackendOomError: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=4, kv_type=auto, needed ~1010 MiB); the driver reports 6542 MiB free; tried 1 placement(s) down to CPU-only, none fit: n_gpu_layers=0 -> oom; the backend asked for a 1010 MiB allocation; backend log: 'ggml_vulkan: Device memory allocation of size 1058982400 failed.'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant
+
+=== block C: the ladder world (tools/fit_oom_probe.py, same bundle) ===
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+ggml_vulkan: Device memory allocation of size 1058982400 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+alloc_tensor_range: failed to allocate Vulkan0 buffer of size 1058982400
+llama_model_load: error loading model: unable to allocate Vulkan0 buffer
+probe exit=0
+ladder code: E_BACKEND_OOM exit_code: 3
+ladder message: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=0, kv_type=f16, needed ~1010 MiB); the driver reports 1112 MiB free; tried 3 placement(s) down to CPU-only, none fit: n_gpu_layers=36 -> oom; n_gpu_layers=18 -> oom; n_gpu_layers=0 -> oom; the backend asked for a 1010 MiB allocation; backend log: 'ggml_vulkan: Device memory allocation of size 1058982400 failed.'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant

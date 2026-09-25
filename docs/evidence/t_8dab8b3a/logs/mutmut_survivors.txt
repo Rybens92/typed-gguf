@@ -1,0 +1,430 @@
+    typed_gguf.runtime.capability.x_build_tag__mutmut_2: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_12: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_13: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_14: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_16: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_17: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_18: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_19: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_20: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_21: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_25: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_26: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_27: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_28: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_31: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_32: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_33: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_34: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_36: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_37: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_39: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_41: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_42: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_49: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_50: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_51: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_52: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_53: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_54: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_55: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_56: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_60: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_62: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_64: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_65: survived
+    typed_gguf.runtime.capability.x_build_number__mutmut_66: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_11: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_14: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_24: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_25: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_26: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_27: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_28: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_29: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_30: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_31: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_33: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_35: survived
+    typed_gguf.runtime.capability.x_supports_arch__mutmut_38: survived
+    typed_gguf.runtime.capability.x_arch_guard_build__mutmut_2: survived
+    typed_gguf.runtime.capability.x_arch_guard_build__mutmut_4: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_10: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_11: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_12: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_13: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_14: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_15: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_16: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_25: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_26: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_30: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_35: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_36: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_37: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_40: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_41: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_42: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_44: survived
+    typed_gguf.runtime.capability.x_require_arch__mutmut_48: survived
+    typed_gguf.runtime.capability.x__backend_name__mutmut_17: survived
+    typed_gguf.runtime.capability.x__backend_name__mutmut_18: survived
+    typed_gguf.runtime.capability.x__backend_name__mutmut_21: survived
+    typed_gguf.runtime.capability.x__backend_name__mutmut_22: survived
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_1: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_2: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_3: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_4: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_5: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_6: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_7: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_8: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_9: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_10: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_11: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_12: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_13: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_14: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_15: no tests
+    typed_gguf.runtime.capability.x_load_backend_library__mutmut_16: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_1: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_2: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_3: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_4: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_5: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_6: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_7: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_8: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_9: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_10: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_11: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_12: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_13: no tests
+    typed_gguf.runtime.capability.x_load_system_lib__mutmut_14: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁusable__mutmut_1: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁusable__mutmut_2: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁusable__mutmut_3: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁusable__mutmut_4: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁusable__mutmut_5: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁusable__mutmut_6: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁusable__mutmut_7: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_1: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_2: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_3: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_4: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_5: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_6: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_7: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_8: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_9: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_10: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁaccelerator__mutmut_11: no tests
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_3: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_6: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_7: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_9: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_10: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_11: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_12: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_17: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_18: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_19: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_20: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_21: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_22: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_23: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_24: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁfailures__mutmut_28: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_2: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_3: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_7: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_9: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_10: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_11: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_13: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_16: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_17: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_18: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_19: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_20: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_21: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_29: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_33: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_34: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_35: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_36: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_37: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_38: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_43: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_45: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_46: survived
+    typed_gguf.runtime.capability.xǁProbeResultǁwarnings__mutmut_47: survived
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_1: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_2: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_3: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_4: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_5: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_6: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_7: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_8: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_9: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_10: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_11: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_12: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_13: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_14: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_15: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_16: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_17: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_18: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_19: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_20: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_21: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_22: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_23: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_24: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_25: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_26: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_27: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_28: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_29: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_30: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_31: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_32: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_33: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_34: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_35: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_36: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_37: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_38: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_39: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_40: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_41: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_42: no tests
+    typed_gguf.runtime.capability.x_probe_symbols__mutmut_43: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_1: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_2: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_3: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_4: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_5: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_6: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_7: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_8: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_9: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_10: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_11: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_12: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_13: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_14: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_15: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_16: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_17: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_18: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_19: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_20: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_21: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_22: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_23: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_24: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_25: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_26: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_27: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_28: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_29: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_30: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_31: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_32: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_33: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_34: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_35: no tests
+    typed_gguf.runtime.capability.x_scan_in_process__mutmut_36: no tests
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_1: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_10: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_15: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_16: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_19: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_20: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_21: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_22: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_23: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_24: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_25: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_26: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_27: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_30: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_32: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_49: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_51: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_67: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_74: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_76: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_77: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_78: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_85: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_86: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_87: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_88: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_89: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_90: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_91: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_92: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_93: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_94: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_100: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_101: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_102: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_104: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_105: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_106: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_107: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_108: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_109: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_112: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_113: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_114: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_115: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_116: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_118: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_119: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_120: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_121: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_122: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_124: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_125: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_126: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_129: survived
+    typed_gguf.runtime.capability.x_probe_runtime__mutmut_131: survived
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_1: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_2: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_3: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_4: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_5: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_6: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_7: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_8: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_9: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_10: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_11: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_12: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_13: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_14: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_15: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_16: no tests
+    typed_gguf.runtime.capability.x_deep_probe_enabled__mutmut_17: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_1: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_2: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_3: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_4: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_5: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_6: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_7: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_8: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_9: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_10: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_11: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_12: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_13: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_14: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_15: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_16: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_17: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_18: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_19: no tests
+    typed_gguf.runtime.capability.x_platform_summary__mutmut_20: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_1: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_2: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_3: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_4: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_5: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_6: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_7: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_8: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_9: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_10: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_11: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_12: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_13: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_14: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_15: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_16: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_17: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_18: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_19: no tests
+    typed_gguf.runtime.capability.x_as_dict__mutmut_20: no tests
+    typed_gguf.runtime.finder.x_accelerator_names__mutmut_1: no tests
+    typed_gguf.runtime.finder.x_accelerator_names__mutmut_2: no tests
+    typed_gguf.runtime.finder.x_accelerator_names__mutmut_3: no tests
+    typed_gguf.runtime.finder.x_accelerator_names__mutmut_4: no tests
+    typed_gguf.runtime.finder.x_accelerator_names__mutmut_5: no tests
+    typed_gguf.runtime.finder.x_accelerator_names__mutmut_6: no tests
+    typed_gguf.runtime.finder.x_accelerator_names__mutmut_7: no tests
+    typed_gguf.runtime.finder.x_accelerator_names__mutmut_8: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_1: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_2: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_3: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_4: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_5: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_6: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_7: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_8: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_9: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_10: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_11: no tests
+    typed_gguf.runtime.finder.x_backend_of_bundle__mutmut_12: no tests
+    typed_gguf.runtime.finder.x_library_names__mutmut_5: survived
+    typed_gguf.runtime.finder.x_library_names__mutmut_6: survived
+    typed_gguf.runtime.finder.x_library_names__mutmut_7: survived
+    typed_gguf.runtime.finder.x_library_names__mutmut_8: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_3: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_5: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_6: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_7: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_10: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_11: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_12: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_13: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_20: survived
+    typed_gguf.runtime.finder.x_library_glob__mutmut_21: survived
+    typed_gguf.runtime.finder.x_layout__mutmut_23: survived
+    typed_gguf.runtime.finder.x_layout__mutmut_36: survived
+    typed_gguf.runtime.finder.x_layout__mutmut_37: survived
+    typed_gguf.runtime.finder.x_required_files__mutmut_2: survived
+    typed_gguf.runtime.finder.x_required_files__mutmut_5: survived
+    typed_gguf.runtime.finder.x_required_files__mutmut_6: survived
+    typed_gguf.runtime.finder.x_required_files__mutmut_15: survived
+    typed_gguf.runtime.finder.x_runtime_dirs__mutmut_9: survived
+    typed_gguf.runtime.finder.x_runtime_dirs__mutmut_11: survived
+    typed_gguf.runtime.finder.x_runtime_dirs__mutmut_12: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_6: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_16: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_17: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_19: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_20: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_21: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_23: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_24: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_25: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_26: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_27: survived
+    typed_gguf.runtime.finder.x_find_runtime__mutmut_28: survived
+    typed_gguf.runtime.finder.x_resolve_runtime__mutmut_3: survived
+    typed_gguf.runtime.finder.x_resolve_runtime__mutmut_4: survived
+    typed_gguf.runtime.finder.x_resolve_runtime__mutmut_5: survived
+    typed_gguf.runtime.finder.x_resolve_runtime__mutmut_6: survived
+    typed_gguf.runtime.finder.x_resolve_runtime__mutmut_12: survived
+    typed_gguf.runtime.finder.x_resolve_runtime__mutmut_13: survived
+    typed_gguf.runtime.finder.x_runtime_record__mutmut_9: survived
+    typed_gguf.runtime.finder.x_runtime_record__mutmut_11: survived
+    typed_gguf.runtime.finder.x_runtime_record__mutmut_13: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_3: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_5: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_7: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_17: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_20: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_24: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_27: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_28: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_31: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_32: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_33: survived
+    typed_gguf.runtime.finder.x_write_runtime_record__mutmut_34: survived

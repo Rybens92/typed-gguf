@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import pathlib
 import stat
+from dataclasses import replace
 
 import pytest
 
@@ -339,6 +340,14 @@ def test_layout_resolves_the_windows_tool_files(tmp_path: pathlib.Path) -> None:
     assert got.tools["llama-cli"].name == "llama-cli.exe"
 
 
+def test_required_files_passes_through_a_name_the_table_does_not_know() -> None:
+    """A future lock entry is renamed only when the table knows it — never dropped, never a KeyError
+    (the mapping is by role; anything else has to survive as it stands)."""
+    lock = pins.load_lock()
+    widened = replace(lock, required_files=(*lock.required_files, "libmtmd.so"))
+    assert finder.required_files(widened, system="windows") == (*WINDOWS_LIBS, "libmtmd.so")
+
+
 @pytest.mark.needs_fork
 def test_build_number_reads_the_windows_cli_banner(tmp_path: pathlib.Path) -> None:
     """The pinned Windows CLI is `llama-cli.exe`; its banner is the only source of the number."""
@@ -376,6 +385,21 @@ def test_require_arch_names_the_library_that_is_really_there(tmp_path: pathlib.P
     assert exc.value.code == "E_MODEL_ARCH_UNSUPPORTED"
     assert "llama_model_llama in llama.dll" in msg, msg
     assert "libllama.so" not in msg, msg
+
+
+def test_the_arch_scan_honours_the_build_floor(tmp_path: pathlib.Path) -> None:
+    """The class being there is half the answer: an older build is still unsupported (the caller's
+    explicit `build` must be what is compared, not a re-read of the bundle).
+
+    `runtime.lock`'s floor for this arch is b10828 (the pinned bundle is the newer b11026, which is
+    why the shipped runtime passes), so the boundary is asserted on both sides of it."""
+    rt = fake_runtime(tmp_path, libs=WINDOWS_LIBS, tools=(), archs=("spark2_5",))
+    assert capability.supports_arch(rt, "spark2_5", system="windows", build=11026)
+    assert capability.supports_arch(rt, "spark2_5", system="windows", build=10828)
+    assert not capability.supports_arch(rt, "spark2_5", system="windows", build=10827)
+    with pytest.raises(TypedGgufError) as exc:
+        capability.require_arch(rt, "spark2_5", system="windows", build=10827)
+    assert "needs runtime build b10828 or newer" in str(exc.value), str(exc.value)
 
 
 def test_probe_runtime_accepts_a_complete_windows_bundle(tmp_path: pathlib.Path) -> None:

@@ -1,0 +1,121 @@
+..............................FFFFFFFF                                   [100%]
+=================================== FAILURES ===================================
+_________ test_the_windows_tool_and_library_names_come_from_one_table __________
+
+    def test_the_windows_tool_and_library_names_come_from_one_table() -> None:
+        """`llama-cli` -> `llama-cli.exe`, and the lock's SONAMEs -> the DLLs the zip carries."""
+>       assert finder.tool_name("llama-cli", "windows") == "llama-cli.exe"
+               ^^^^^^^^^^^^^^^^
+E       AttributeError: module 'typed_gguf.runtime.finder' has no attribute 'tool_name'
+
+tests/test_capability.py:321: AttributeError
+_________________ test_layout_resolves_the_windows_tool_files __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-48/test_layout_resolves_the_windo0')
+
+    def test_layout_resolves_the_windows_tool_files(tmp_path: pathlib.Path) -> None:
+        rt = fake_runtime(tmp_path, libs=WINDOWS_LIBS, tools=WINDOWS_TOOLS)
+        got = finder.layout(rt, system="windows")
+        assert got.libllama.name == "llama.dll"
+        assert got.complete
+>       assert sorted(got.tools) == ["llama-cli", "llama-fit-params"], sorted(got.tools)
+E       AssertionError: []
+E       assert [] == ['llama-cli',...a-fit-params']
+E         
+E         Right contains 2 more items, first extra item: 'llama-cli'
+E         Use -v to get more diff
+
+tests/test_capability.py:337: AssertionError
+________________ test_build_number_reads_the_windows_cli_banner ________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-48/test_build_number_reads_the_wi0')
+
+    @pytest.mark.needs_fork
+    def test_build_number_reads_the_windows_cli_banner(tmp_path: pathlib.Path) -> None:
+        """The pinned Windows CLI is `llama-cli.exe`; its banner is the only source of the number."""
+        rt = fake_runtime(tmp_path, libs=WINDOWS_LIBS, tools=WINDOWS_TOOLS, build=11026)
+>       assert capability.build_number(rt, system="windows") == 11026
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: build_number() got an unexpected keyword argument 'system'
+
+tests/test_capability.py:345: TypeError
+_________ test_build_number_scans_the_windows_library_it_actually_has __________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-48/test_build_number_scans_the_wi0')
+
+    def test_build_number_scans_the_windows_library_it_actually_has(tmp_path: pathlib.Path) -> None:
+        """No CLI: the byte scan has to read `llama.dll`, not a Linux name that is not there."""
+        rt = fake_runtime(tmp_path, libs=WINDOWS_LIBS, tools=(), build=None)
+        (rt / "llama.dll").write_bytes(b"\x7fPE fake\x00build b11026\x00")
+>       assert capability.build_number(rt, system="windows") == 11026
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: build_number() got an unexpected keyword argument 'system'
+
+tests/test_capability.py:354: TypeError
+________________ test_arch_scan_reads_a_windows_decorated_name _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-48/test_arch_scan_reads_a_windows0')
+
+    def test_arch_scan_reads_a_windows_decorated_name(tmp_path: pathlib.Path) -> None:
+        """AC3: a REAL PE capability answer — the MSVC-decorated arch implementation class."""
+        rt = fake_runtime(tmp_path, libs=WINDOWS_LIBS, tools=(), archs=())
+        (rt / "llama.dll").write_bytes(b"\x7fPE fake\x00" + WINDOWS_ARCH_DESCRIPTOR
+                                       + WINDOWS_ARCH_DESCRIPTOR_FLAT)
+>       assert capability.supports_arch(rt, "qwen2", system="windows")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: supports_arch() got an unexpected keyword argument 'system'
+
+tests/test_capability.py:362: TypeError
+___________ test_require_arch_names_the_library_that_is_really_there ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-48/test_require_arch_names_the_li0')
+
+    def test_require_arch_names_the_library_that_is_really_there(tmp_path: pathlib.Path) -> None:
+        """AC4: no hardcoded `libllama.so` in a message a Windows user reads."""
+        rt = fake_runtime(tmp_path, libs=WINDOWS_LIBS, tools=(), archs=("spark2_5",))
+        with pytest.raises(TypedGgufError) as exc:
+>           capability.require_arch(rt, "llama", system="windows", build=11026)
+E           TypeError: require_arch() got an unexpected keyword argument 'system'
+
+tests/test_capability.py:373: TypeError
+_____________ test_probe_runtime_accepts_a_complete_windows_bundle _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-48/test_probe_runtime_accepts_a_c0')
+
+    def test_probe_runtime_accepts_a_complete_windows_bundle(tmp_path: pathlib.Path) -> None:
+        """AC5: `runtime.files`/`runtime.loadable` pass for the zip the job flattened."""
+        rt = fake_runtime(tmp_path, libs=WINDOWS_LIBS, tools=WINDOWS_TOOLS,
+                          ggml_backends=("ggml-cpu-x64.dll", "ggml.dll"))
+        probe = capability.probe_runtime(rt, deep=False, system="windows")
+>       assert probe.missing_files == (), probe.missing_files
+E       AssertionError: ('libllama.so', 'libggml.so', 'libggml-base.so')
+E       assert ('libllama.so...ggml-base.so') == ()
+E         
+E         Left contains 3 more items, first extra item: 'libllama.so'
+E         Use -v to get more diff
+
+tests/test_capability.py:385: AssertionError
+_______ test_the_build_failure_text_names_the_platform_tool_and_library ________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-48/test_the_build_failure_text_na0')
+
+    def test_the_build_failure_text_names_the_platform_tool_and_library(
+            tmp_path: pathlib.Path) -> None:
+        rt = fake_runtime(tmp_path, libs=WINDOWS_LIBS, tools=(), build=None)
+        probe = capability.probe_runtime(rt, deep=False, system="windows")
+        failures = " ".join(probe.failures())
+>       assert "llama-cli.exe" in failures and "llama.dll" in failures, failures
+E       AssertionError: E_RUNTIME_MISSING: /tmp/pytest-of-root/pytest-48/test_the_build_failure_text_na0/runtime is not a complete runtime bundle (missing libllama.so, libggml.so, libggml-base.so) runtime bundle is incomplete: missing libllama.so, libggml.so, libggml-base.so (re-run `typed-gguf init --force`) cannot determine the runtime build (no llama-cli banner and no build string in libllama.so)
+E       assert ('llama-cli.exe' in 'E_RUNTIME_MISSING: /tmp/pytest-of-root/pytest-48/test_the_build_failure_text_na0/runtime is not a complete runtime bu...`typed-gguf init --force`) cannot determine the runtime build (no llama-cli banner and no build string in libllama.so)')
+
+tests/test_capability.py:398: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_capability.py::test_the_windows_tool_and_library_names_come_from_one_table
+FAILED tests/test_capability.py::test_layout_resolves_the_windows_tool_files
+FAILED tests/test_capability.py::test_build_number_reads_the_windows_cli_banner
+FAILED tests/test_capability.py::test_build_number_scans_the_windows_library_it_actually_has
+FAILED tests/test_capability.py::test_arch_scan_reads_a_windows_decorated_name
+FAILED tests/test_capability.py::test_require_arch_names_the_library_that_is_really_there
+FAILED tests/test_capability.py::test_probe_runtime_accepts_a_complete_windows_bundle
+FAILED tests/test_capability.py::test_the_build_failure_text_names_the_platform_tool_and_library
+8 failed, 30 passed in 0.30s

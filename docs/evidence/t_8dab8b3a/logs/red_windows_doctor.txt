@@ -1,0 +1,173 @@
+.FF.FFFF.F...                                                            [100%]
+=================================== FAILURES ===================================
+__________________ test_the_dlopen_seam_resolves_every_symbol __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-51/test_the_dlopen_seam_resolves_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f844281bc80>
+
+    def test_the_dlopen_seam_resolves_every_symbol(tmp_path: pathlib.Path,
+                                                  monkeypatch: pytest.MonkeyPatch) -> None:
+        """The fixed gates do not rest on the skipped probe: with the ABI resolved they still hold."""
+        report = simulated_windows_report(tmp_path, monkeypatch, deep=True)
+        checks = checks_of(report)
+        assert checks["runtime.symbols"]["status"] == "ok", checks["runtime.symbols"]
+        assert checks["runtime.files"]["status"] == "ok", checks["runtime.files"]
+        assert checks["runtime.build"]["status"] == "ok", checks["runtime.build"]
+        module = load_tool()
+>       assert module.judge(report, exit_code=report["exit_code"]) == []
+E       assert ['`doctor --j... same reason'] == []
+E         
+E         Left contains 3 more items, first extra item: "`doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution check became platform-aware, this pin is stale and must be updated on purpose"
+E         Use -v to get more diff
+
+tests/test_matrix_windows_doctor.py:132: AssertionError
+_________ test_the_tool_accepts_the_report_and_reports_the_rest_loudly _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-51/test_the_tool_accepts_the_repo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f84428060c0>
+
+    def test_the_tool_accepts_the_report_and_reports_the_rest_loudly(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        report = simulated_windows_report(tmp_path, monkeypatch)
+        module = load_tool()
+        problems = module.judge(report, exit_code=report["exit_code"])
+>       assert problems == [], problems
+E       AssertionError: ["`doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution ch...ime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason"]
+E       assert ['`doctor --j... same reason'] == []
+E         
+E         Left contains 3 more items, first extra item: "`doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution check became platform-aware, this pin is stale and must be updated on purpose"
+E         Use -v to get more diff
+
+tests/test_matrix_windows_doctor.py:140: AssertionError
+______ test_a_distribution_check_that_went_back_to_linux_names_is_refused ______
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-51/test_a_distribution_check_that0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8442806ab0>
+
+    def test_a_distribution_check_that_went_back_to_linux_names_is_refused(
+            tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """The gap this card closed must never come back quietly."""
+        report = simulated_windows_report(tmp_path, monkeypatch)
+        files = checks_of(report)["runtime.files"]
+        files["status"], files["detail"] = "fail", "missing libllama.so, libggml.so, libggml-base.so"
+        module = load_tool()
+        problems = module.judge(report, exit_code=report["exit_code"])
+>       assert problems and any("files" in problem for problem in problems), problems
+E       AssertionError: ["`doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution ch...ime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason"]
+E       assert (["`doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution ch...ime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason"] and False)
+E        +  where False = any(<generator object test_a_distribution_check_that_went_back_to_linux_names_is_refused.<locals>.<genexpr> at 0x7f8442348040>)
+
+tests/test_matrix_windows_doctor.py:172: AssertionError
+_________________ test_a_report_with_any_fail_check_is_refused _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-51/test_a_report_with_any_fail_ch0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8442806d50>
+
+    def test_a_report_with_any_fail_check_is_refused(tmp_path: pathlib.Path,
+                                                     monkeypatch: pytest.MonkeyPatch) -> None:
+        """A `fail` check anywhere is a broken bundle (A-E1a-3): the step fails, it does not annotate."""
+        report = simulated_windows_report(tmp_path, monkeypatch)
+        checks_of(report)["runtime.symbols"] = {"id": "runtime.symbols", "status": "fail",
+                                                "detail": "0/34 required symbols"}
+        module = load_tool()
+        problems = module.judge(report, exit_code=report["exit_code"])
+>       assert problems and any("symbols" in problem for problem in problems), problems
+E       AssertionError: ["`doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution ch...ime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason"]
+E       assert (["`doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution ch...ime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason"] and False)
+E        +  where False = any(<generator object test_a_report_with_any_fail_check_is_refused.<locals>.<genexpr> at 0x7f8442348ba0>)
+
+tests/test_matrix_windows_doctor.py:183: AssertionError
+___________________ test_an_unknown_build_number_is_refused ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-51/test_an_unknown_build_number_i0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f844283b230>
+
+    def test_an_unknown_build_number_is_refused(tmp_path: pathlib.Path,
+                                                monkeypatch: pytest.MonkeyPatch) -> None:
+        """`build_number` reads the number or the step is red — never "unknown" and green."""
+        report = simulated_windows_report(tmp_path, monkeypatch)
+        checks_of(report)["runtime.build"] = {"id": "runtime.build", "status": "fail",
+                                              "detail": "cannot determine the build number"}
+        module = load_tool()
+        problems = module.judge(report, exit_code=report["exit_code"])
+>       assert problems and any("build" in problem for problem in problems), problems
+E       AssertionError: ["`doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution ch...ime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason"]
+E       assert (["`doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution ch...ime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason"] and False)
+E        +  where False = any(<generator object test_an_unknown_build_number_is_refused.<locals>.<genexpr> at 0x7f8442349b10>)
+
+tests/test_matrix_windows_doctor.py:194: AssertionError
+__________________ test_an_exit_code_that_drifted_is_refused ___________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-51/test_an_exit_code_that_drifted0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f844283a150>
+
+    def test_an_exit_code_that_drifted_is_refused(tmp_path: pathlib.Path,
+                                                 monkeypatch: pytest.MonkeyPatch) -> None:
+        """`doctor`'s exit codes are the contract (A-E1a-3): 1 means a `fail` check was reported."""
+        report = simulated_windows_report(tmp_path, monkeypatch)
+        module = load_tool()
+        problems = module.judge(report, exit_code=1)
+>       assert problems and any("exit" in problem for problem in problems), problems
+E       AssertionError: ["`runtime.files` is 'ok', not fail: the pinned gap this card reports is gone (a platform-aware `required_files`?) — u...ime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason"]
+E       assert (["`runtime.files` is 'ok', not fail: the pinned gap this card reports is gone (a platform-aware `required_files`?) — u...ime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason"] and False)
+E        +  where False = any(<generator object test_an_exit_code_that_drifted_is_refused.<locals>.<genexpr> at 0x7f844234a5a0>)
+
+tests/test_matrix_windows_doctor.py:203: AssertionError
+_________________ test_main_runs_doctor_and_reports_its_truth __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-51/test_main_runs_doctor_and_repo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8442838c80>
+
+    def test_main_runs_doctor_and_reports_its_truth(tmp_path: pathlib.Path,
+                                                    monkeypatch: pytest.MonkeyPatch) -> None:
+        """The step is one command: the tool runs `doctor --json` itself and judges what it printed."""
+        report = simulated_windows_report(tmp_path, monkeypatch)
+        module = load_tool()
+        calls: list[list[str]] = []
+    
+        def fake_doctor(prefix, cwd):
+            calls.append(list(prefix))
+            return json.dumps(report), report["exit_code"]
+    
+        monkeypatch.setattr(module, "run_doctor", fake_doctor)
+        out = tmp_path / "verdict.json"
+        code = module.main(["--cli", "uv run typed-gguf", "--json", str(out)])
+>       assert code == 0, (code, out.read_text(encoding="utf-8"))
+E       AssertionError: (1, '{
+E           "schema": "typed_gguf.matrix.windows_doctor/v1",
+E           "cli": "uv run typed-gguf",
+E           "exit_code": 2,
+E           "statu...E_RUNTIME_MISSING (\'\'): the loader must say the bundle is incomplete for the same reason"
+E           ],
+E           "ok": false
+E         }
+E         ')
+E       assert 1 == 0
+
+tests/test_matrix_windows_doctor.py:227: AssertionError
+----------------------------- Captured stdout call -----------------------------
+doctor exit 2 status 'warnings'
+  ok    runtime.present          /tmp/pytest-of-root/pytest-51/test_main_runs_doctor_and_repo0/typed-gguf-rt
+  ok    runtime.files            all required libraries present: llama.dll, ggml.dll, ggml-base.dll
+  warn  runtime.symbols          symbol probe skipped (TYPED_GGUF_DEEP_PROBE=0)
+  ok    runtime.build            build b11026
+  ok    runtime.fit_params       llama-fit-params --help exit 0
+  ok    runtime.backends         backends: cpu (driveable here: cpu)
+  warn  runtime.accelerator      no accelerator in this bundle (expected 'vulkan'); CPU works but decoding is slower
+  warn  runtime.sha_recorded     runtime.json has no llama.dll SHA-256 (re-run `typed-gguf init --force`)
+  warn  model.present            no model in the registry; run `typed-gguf models pull` (default model is pinned)
+::warning::typed-gguf doctor cannot pass on Windows: runtime.lock's `required_files` are the Linux SONAMEs (libllama.so, libggml.so, libggml-base.so), so `runtime.files`/`runtime.loadable` fail on a bundle whose llama.dll is right there, and `runtime.build` cannot read a build from llama-cli.exe / llama.dll. The bundle IS found and classified (backends: cpu (driveable here: cpu)). The loader is platform-aware; the distribution check is not (SPEC R12). Card t_f96fed7f reports this instead of hiding it.
+----------------------------- Captured stderr call -----------------------------
+FAIL `doctor --json` exited 2, not 1: A-E1a-3 fixes 1 for 'broken' (a report with a `fail` check). If the distribution check became platform-aware, this pin is stale and must be updated on purpose
+FAIL `runtime.files` is 'ok', not fail: the pinned gap this card reports is gone (a platform-aware `required_files`?) — update this pin deliberately instead of letting the job pass for a reason nobody wrote down
+FAIL `runtime.loadable` does not carry E_RUNTIME_MISSING (''): the loader must say the bundle is incomplete for the same reason
+windows doctor RED: 3 problem(s)
+=========================== short test summary info ============================
+FAILED tests/test_matrix_windows_doctor.py::test_the_dlopen_seam_resolves_every_symbol
+FAILED tests/test_matrix_windows_doctor.py::test_the_tool_accepts_the_report_and_reports_the_rest_loudly
+FAILED tests/test_matrix_windows_doctor.py::test_a_distribution_check_that_went_back_to_linux_names_is_refused
+FAILED tests/test_matrix_windows_doctor.py::test_a_report_with_any_fail_check_is_refused
+FAILED tests/test_matrix_windows_doctor.py::test_an_unknown_build_number_is_refused
+FAILED tests/test_matrix_windows_doctor.py::test_an_exit_code_that_drifted_is_refused
+FAILED tests/test_matrix_windows_doctor.py::test_main_runs_doctor_and_reports_its_truth
+7 failed, 6 passed in 0.21s

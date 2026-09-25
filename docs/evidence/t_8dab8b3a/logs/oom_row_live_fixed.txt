@@ -1,0 +1,4 @@
+fake-OOM worlds:
+  bench (cpu-pinned row): 1 placement(s), reason="BackendOomError: E_BACKEND_OOM: llama.cpp could not allocate device memory for the fit plan (n_gpu_layers=4, kv_type=auto, needed ~1010 MiB); the driver reports 6577 MiB free; tried 1 placement(s) down to CPU-only, none fit: n_gpu_layers=0 -> oom; the backend asked for a 1010 MiB allocation; backend log: 'ggml_vulkan: Device memory allocation of size 1058982400 failed.'; fix: `--no-fit` runs on the CPU, `--fit-target <MiB>` leaves that much device memory free for the rest of the desktop, or use a smaller quant"
+  ladder (full-offload)  : 3 placement(s), code='E_BACKEND_OOM'
+fake-OOM row OK: both worlds answered the typed row, never E_INTERNAL

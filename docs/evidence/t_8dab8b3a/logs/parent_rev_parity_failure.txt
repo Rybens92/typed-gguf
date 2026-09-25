@@ -1,0 +1,62 @@
+.F                                                                       [100%]
+=================================== FAILURES ===================================
+_________________ test_a_row_records_which_framing_it_measured _________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f879a4eee40>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-696/test_a_row_records_which_frami0')
+
+    def test_a_row_records_which_framing_it_measured(monkeypatch: pytest.MonkeyPatch,
+                                                     tmp_path) -> None:
+        """A published row must name the framing it measured — the fix is only visible if it does.
+    
+        The response already carries `engine.template` (the resolution that produced the prefix
+        tokens); the quality row copies it, and the report summarizes it, so no table can be silent
+        about which prompt its numbers describe (card t_6de5fc53, requirement 5).
+        """
+        from tests.fake_engine import BenchModel
+        from typed_gguf.bench import suites
+    
+        def factory(spec: harness.ModelSpec) -> BenchModel:
+            return BenchModel(spec, template={"kind": "gguf-renderer", "renderer": "internal",
+                                              "family": "spark2_5"},
+                              prefix_tokens=len(HANDLE_TOKENS))
+    
+>       report = suites.run_suite(harness.BenchConfig(suite="quality", model_path=str(tmp_path / "m"),
+                                                      items=1, threads=1),
+                                  factory=factory)
+
+tests/test_bench_prompt_parity.py:108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/typed_gguf/bench/suites.py:96: in run_suite
+    report = _run_quality(config, make, budget, calibration=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/typed_gguf/bench/suites.py:614: in _run_quality
+    usable, missing = _selected_backends(config, runtimes)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+config = BenchConfig(suite='quality', model_path='/tmp/pytest-of-root/pytest-696/test_a_row_records_which_frami0/m', backend='a...6), parts=(), home=None, quick=False, items_per_type=None, determinism_repeats=3, backend_limit=None, max_seconds=None)
+runtimes = {}
+
+    def _selected_backends(config: harness.BenchConfig, runtimes: Mapping[str, Any],
+                           ) -> tuple[list[str], dict[str, str]]:
+        """`(usable, missing-with-reason)`. A forced backend that is missing is an error.
+    
+        `config.backend_limit` (the `--quick` preset's "one backend") cuts the *usable* list: the
+        missing map keeps every backend that was asked for, so the report can still name what it did
+        not measure and why.
+        """
+        chosen = config.backends(available=runtimes)
+        usable = [backend for backend in chosen if backend in runtimes]
+        missing = {backend: harness.backend_unavailable_reason(backend) for backend in chosen
+                   if backend not in runtimes}
+        if not usable:
+>           raise harness.BenchError(
+                f"none of the requested backends ({', '.join(chosen)}) has a local llama.cpp bundle; "
+                + missing[chosen[0]], code="E_BENCH_BACKEND")
+E           typed_gguf.bench.harness.BenchError: none of the requested backends (cpu) has a local llama.cpp bundle; no local llama.cpp bundle carries cpu (benchmarks never download one: run `typed-gguf init --backend cpu` or point TYPED_GGUF_BENCH_RUNTIME_DIR at extracted bundles)
+
+src/typed_gguf/bench/suites.py:138: BenchError
+=========================== short test summary info ============================
+FAILED tests/test_bench_prompt_parity.py::test_a_row_records_which_framing_it_measured
+1 failed, 1 passed in 0.24s
